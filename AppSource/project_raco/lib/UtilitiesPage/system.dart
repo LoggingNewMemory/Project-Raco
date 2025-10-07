@@ -141,35 +141,62 @@ class _SystemPageState extends State<SystemPage> {
   }
 
   Future<Map<String, dynamic>> _loadScreenModifierState() async {
-    final result = await runRootCommandAndWait(
-      'cat /data/adb/modules/ProjectRaco/raco.txt',
-    );
-    if (result.exitCode == 0) {
+    double red = 1000.0, green = 1000.0, blue = 1000.0, saturation = 1000.0;
+    bool applyOnBoot = false;
+
+    final serviceFileCheckCommand =
+        'grep -q "AyundaRusdi.sh" /data/adb/modules/ProjectRaco/service.sh';
+    final results = await Future.wait([
+      runRootCommandAndWait('cat /data/adb/modules/ProjectRaco/raco.txt'),
+      runRootCommandAndWait(serviceFileCheckCommand),
+    ]);
+
+    final racoResult = results[0];
+    final serviceCheckResult = results[1];
+
+    // The toggle state is determined ONLY by the presence of the line in service.sh
+    applyOnBoot = serviceCheckResult.exitCode == 0;
+
+    // Load slider values from raco.txt
+    if (racoResult.exitCode == 0) {
       final match = RegExp(
         r'^SCREEN_MODIFIER=([\d,]+,(?:Yes|No))$',
         multiLine: true,
-      ).firstMatch(result.stdout.toString());
+      ).firstMatch(racoResult.stdout.toString());
 
       if (match != null) {
         final parts = match.group(1)!.split(',');
-        if (parts.length == 5) {
-          return {
-            'red': double.tryParse(parts[0]) ?? 1000.0,
-            'green': double.tryParse(parts[1]) ?? 1000.0,
-            'blue': double.tryParse(parts[2]) ?? 1000.0,
-            'saturation': double.tryParse(parts[3]) ?? 1000.0,
-            'applyOnBoot': parts[4].toLowerCase() == 'yes',
-          };
+        if (parts.length >= 4) {
+          red = double.tryParse(parts[0]) ?? 1000.0;
+          green = double.tryParse(parts[1]) ?? 1000.0;
+          blue = double.tryParse(parts[2]) ?? 1000.0;
+          saturation = double.tryParse(parts[3]) ?? 1000.0;
         }
       }
     }
-    // Return default values if not found or parsing fails
+
+    // This ensures raco.txt is consistent with the state of service.sh
+    final valuesString =
+        '${red.round()},${green.round()},${blue.round()},${saturation.round()},${applyOnBoot ? "Yes" : "No"}';
+    final sedCheckCommand =
+        "grep -q '^SCREEN_MODIFIER=' /data/adb/modules/ProjectRaco/raco.txt";
+    final checkResult = await runRootCommandAndWait(sedCheckCommand);
+    if (checkResult.exitCode == 0) {
+      await runRootCommandAndWait(
+        "sed -i 's|^SCREEN_MODIFIER=.*|SCREEN_MODIFIER=$valuesString|' /data/adb/modules/ProjectRaco/raco.txt",
+      );
+    } else {
+      await runRootCommandAndWait(
+        "echo 'SCREEN_MODIFIER=$valuesString' >> /data/adb/modules/ProjectRaco/raco.txt",
+      );
+    }
+
     return {
-      'red': 1000.0,
-      'green': 1000.0,
-      'blue': 1000.0,
-      'saturation': 1000.0,
-      'applyOnBoot': false,
+      'red': red,
+      'green': green,
+      'blue': blue,
+      'saturation': saturation,
+      'applyOnBoot': applyOnBoot,
     };
   }
 
@@ -853,9 +880,9 @@ EOF
       // Make the script executable
       await runRootCommandAndWait('chmod +x $ayundaScriptPath');
 
-      // 2. ...and then append a single line to service.sh to execute it on boot.
+      // 2. ...and then insert a line into service.sh to execute it on boot.
       final addExecutionLineCommand =
-          'echo "\\n# Run Screen Modifier Script\\nsh $ayundaScriptPath" >> $_serviceFilePath';
+          "sed -i '/# Ayunda Rusdi/a sh $ayundaScriptPath' $_serviceFilePath";
       await runRootCommandAndWait(addExecutionLineCommand);
     }
   }
