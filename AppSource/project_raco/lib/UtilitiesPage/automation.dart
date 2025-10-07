@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
 import '/l10n/app_localizations.dart';
 import 'utils.dart';
 
@@ -216,7 +214,6 @@ class _HamadaAiCardState extends State<HamadaAiCard> {
         throw Exception('Failed to write to service file');
       }
     } catch (e) {
-      // SnackBar removed from here
       if (mounted) {
         await _refreshState();
       }
@@ -289,6 +286,80 @@ class _HamadaAiCardState extends State<HamadaAiCard> {
   }
 }
 
+/// A simple, full-screen text editor page.
+class GameTxtEditorPage extends StatefulWidget {
+  final String initialContent;
+
+  const GameTxtEditorPage({Key? key, required this.initialContent})
+    : super(key: key);
+
+  @override
+  _GameTxtEditorPageState createState() => _GameTxtEditorPageState();
+}
+
+class _GameTxtEditorPageState extends State<GameTxtEditorPage> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialContent);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// Pops the navigator, returning the current text to the previous screen.
+  void _saveAndExit() {
+    Navigator.pop(context, _controller.text);
+  }
+
+  /// Clears all text in the editor.
+  void _clearText() {
+    _controller.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('game.txt'),
+        elevation: 1,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.clear_all),
+            tooltip: 'Clear All',
+            onPressed: _clearText,
+          ),
+          IconButton(
+            icon: const Icon(Icons.save_outlined),
+            tooltip: 'Save & Close',
+            onPressed: _saveAndExit,
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        child: TextField(
+          controller: _controller,
+          maxLines: null, // Allows for unlimited lines
+          expands: true, // Expands to fill the available space
+          keyboardType: TextInputType.multiline,
+          autofocus: true,
+          decoration: const InputDecoration(
+            border: InputBorder.none,
+            hintText: 'Add package names, one per line...',
+          ),
+          style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
+        ),
+      ),
+    );
+  }
+}
+
 class GameTxtCard extends StatefulWidget {
   const GameTxtCard({Key? key}) : super(key: key);
   @override
@@ -296,114 +367,75 @@ class GameTxtCard extends StatefulWidget {
 }
 
 class _GameTxtCardState extends State<GameTxtCard> {
-  // State variables to manage the UI and process
   bool _isBusy = false;
-  bool _isEditing = false;
-  String? _tempFilePath;
 
-  // File paths
   static const String _originalFilePath = '/data/ProjectRaco/game.txt';
-  static const String _tempFileName = 'game.txt';
 
-  @override
-  void initState() {
-    super.initState();
-    _checkForExistingTempFile();
-  }
-
-  /// Checks if a temp file was left over from a previous session.
-  Future<void> _checkForExistingTempFile() async {
-    try {
-      final cacheDir = await getApplicationCacheDirectory();
-      final tempFile = File('${cacheDir.path}/$_tempFileName');
-      if (await tempFile.exists()) {
-        if (!mounted) return;
-        setState(() {
-          _isEditing = true;
-          _tempFilePath = tempFile.path;
-        });
-      }
-    } catch (e) {
-      // Handle potential errors finding the path
-    }
-  }
-
-  /// Step 1: Copies game.txt to a temp location and opens it.
-  Future<void> _startEditing() async {
+  /// Reads the content of game.txt, navigates to the built-in editor,
+  /// and saves the content back if it was changed.
+  Future<void> _editGameTxt() async {
     if (!await checkRootAccess()) {
-      // SnackBar removed from here
+      // You can show a SnackBar here to inform the user about root access.
       return;
     }
+    if (!mounted) return;
     setState(() => _isBusy = true);
 
+    String originalContent = '';
     try {
-      // Read original file using root
+      // 1. Read the original file using a root command.
       final result = await runRootCommandAndWait('cat $_originalFilePath');
-      if (result.exitCode != 0) {
-        throw Exception('Failed to read original file: ${result.stderr}');
-      }
-      final originalContent = result.stdout.toString();
 
-      // Create a temporary copy in the app's cache directory
-      final cacheDir = await getApplicationCacheDirectory();
-      final tempFile = File('${cacheDir.path}/$_tempFileName');
-      await tempFile.writeAsString(originalContent);
-      _tempFilePath = tempFile.path;
-
-      // Use open_file to launch an editor for the temp file
-      final openResult = await OpenFile.open(_tempFilePath!);
-      if (openResult.type != ResultType.done) {
-        throw Exception('Could not find an app to open the file.');
+      // If the file doesn't exist, we start with an empty string.
+      // Otherwise, we populate with the file's content.
+      if (result.exitCode == 0) {
+        originalContent = result.stdout.toString();
+      } else if (!result.stderr.toString().contains(
+        'No such file or directory',
+      )) {
+        // If there's an error other than "file not found", throw it.
+        throw Exception('Failed to read file: ${result.stderr}');
       }
 
       if (!mounted) return;
-      setState(() => _isEditing = true);
-      // SnackBar removed from here
+
+      // 2. Navigate to the editor page and wait for it to be closed.
+      // The result will be the new text content, or null if nothing was returned.
+      final newContent = await Navigator.push<String?>(
+        context,
+        MaterialPageRoute(
+          fullscreenDialog: true, // Presents as a modal page for better UX
+          builder: (context) =>
+              GameTxtEditorPage(initialContent: originalContent),
+        ),
+      );
+
+      // 3. If new content was returned and it's different from the original, save it.
+      if (newContent != null && newContent != originalContent) {
+        await _saveGameTxt(newContent);
+        // Optionally show a "Saved successfully" SnackBar here.
+      }
     } catch (e) {
-      // SnackBar removed from here
+      // Optionally show an error SnackBar here.
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
   }
 
-  /// Step 2: Syncs changes from the temp file back to the original.
-  Future<void> _syncAndFinishEditing() async {
-    if (_tempFilePath == null || !await checkRootAccess()) {
-      // SnackBar removed from here
-      return;
-    }
-    setState(() => _isBusy = true);
-
+  /// Writes the given string content to the original game.txt file using root.
+  Future<void> _saveGameTxt(String content) async {
     try {
-      // Read the modified content from our temp file
-      final tempFile = File(_tempFilePath!);
-      if (!await tempFile.exists()) {
-        throw Exception('Temporary file not found. Please start again.');
-      }
-      final newContent = await tempFile.readAsString();
-
-      // Use Base64 to safely write the content back with root
-      String base64Content = base64Encode(utf8.encode(newContent));
+      // Use Base64 to safely handle special characters, newlines, and permissions.
+      final base64Content = base64Encode(utf8.encode(content));
       final writeCmd = "echo '$base64Content' | base64 -d > $_originalFilePath";
       final result = await runRootCommandAndWait(writeCmd);
 
       if (result.exitCode != 0) {
-        throw Exception('Failed to write to original file: ${result.stderr}');
+        throw Exception('Failed to write to file: ${result.stderr}');
       }
-
-      // Clean up the temporary file
-      await tempFile.delete();
-
-      if (!mounted) return;
-      setState(() {
-        _isEditing = false;
-        _tempFilePath = null;
-      });
-      // SnackBar removed from here
     } catch (e) {
-      // SnackBar removed from here
-    } finally {
-      if (mounted) setState(() => _isBusy = false);
+      // Rethrow to be caught by the calling function's error handler.
+      rethrow;
     }
   }
 
@@ -412,16 +444,6 @@ class _GameTxtCardState extends State<GameTxtCard> {
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
-    // Determine button state based on whether we're editing
-    final bool isActionSync = _isEditing;
-    final String buttonText = isActionSync
-        ? 'Sync Changes' // Consider adding to your l10n files
-        : localization.edit_game_txt_title;
-    final IconData buttonIcon = isActionSync ? Icons.sync : Icons.edit_note;
-    final VoidCallback? onPressedAction = _isBusy
-        ? null
-        : (isActionSync ? _syncAndFinishEditing : _startEditing);
 
     return Card(
       elevation: 2.0,
@@ -448,15 +470,15 @@ class _GameTxtCardState extends State<GameTxtCard> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: onPressedAction,
+                onPressed: _isBusy ? null : _editGameTxt,
                 icon: _isBusy
                     ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Icon(buttonIcon),
-                label: Text(buttonText),
+                    : const Icon(Icons.edit_note),
+                label: Text(localization.edit_game_txt_title),
               ),
             ),
           ],
