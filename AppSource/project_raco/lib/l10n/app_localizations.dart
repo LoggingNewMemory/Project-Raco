@@ -775,6 +775,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Build By: {builderName}'**
   String build_by_title(String builderName);
+
+  /// No description provided for @screen_modifier_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen Modifier'**
+  String get screen_modifier_title;
+
+  /// No description provided for @screen_modifier_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust the screen color matrix and saturation for a custom display experience.'**
+  String get screen_modifier_description;
+
+  /// No description provided for @screen_modifier_red.
+  ///
+  /// In en, this message translates to:
+  /// **'Red'**
+  String get screen_modifier_red;
+
+  /// No description provided for @screen_modifier_green.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get screen_modifier_green;
+
+  /// No description provided for @screen_modifier_blue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get screen_modifier_blue;
+
+  /// No description provided for @screen_modifier_saturation.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation'**
+  String get screen_modifier_saturation;
+
+  /// No description provided for @screen_modifier_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to Defaults'**
+  String get screen_modifier_reset;
+
+  /// No description provided for @screen_modifier_apply_on_boot.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply on Boot'**
+  String get screen_modifier_apply_on_boot;
 }
 
 class _AppLocalizationsDelegate

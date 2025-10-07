@@ -369,4 +369,29 @@ class AppLocalizationsRu extends AppLocalizations {
   String build_by_title(String builderName) {
     return 'Build By: $builderName';
   }
+
+  @override
+  String get screen_modifier_title => 'Модификатор экрана';
+
+  @override
+  String get screen_modifier_description =>
+      'Настройте цветовую матрицу и насыщенность экрана для индивидуального отображения.';
+
+  @override
+  String get screen_modifier_red => 'Красный';
+
+  @override
+  String get screen_modifier_green => 'Зеленый';
+
+  @override
+  String get screen_modifier_blue => 'Синий';
+
+  @override
+  String get screen_modifier_saturation => 'Насыщенность';
+
+  @override
+  String get screen_modifier_reset => 'Сбросить по умолчанию';
+
+  @override
+  String get screen_modifier_apply_on_boot => 'Применять при загрузке';
 }

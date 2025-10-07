@@ -131,5 +131,13 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "screen_modifier_title": "スクリーンモディファイア",
+    "screen_modifier_description": "画面のカラーマトリックスと彩度を調整して、カスタム表示体験を実現します。",
+    "screen_modifier_red": "赤",
+    "screen_modifier_green": "緑",
+    "screen_modifier_blue": "青",
+    "screen_modifier_saturation": "彩度",
+    "screen_modifier_reset": "デフォルトにリセット",
+    "screen_modifier_apply_on_boot": "起動時に適用"
 }

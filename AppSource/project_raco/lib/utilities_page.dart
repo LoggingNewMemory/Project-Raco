@@ -319,6 +319,13 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
         navigationTarget: systemPage,
         searchKeywords: 'clear cache temporary files system maintenance clean',
       ),
+      SearchResultItem(
+        title: localization.screen_modifier_title,
+        subtitle: localization.system_title,
+        icon: Icons.palette_outlined,
+        navigationTarget: systemPage,
+        searchKeywords: 'screen modifier color saturation display rgb adjust',
+      ),
     ]);
 
     final appearancePage = AppearancePage(

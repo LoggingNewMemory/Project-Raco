@@ -370,4 +370,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String build_by_title(String builderName) {
     return 'Compilacion por: $builderName';
   }
+
+  @override
+  String get screen_modifier_title => 'Modificador de Pantalla';
+
+  @override
+  String get screen_modifier_description =>
+      'Ajuste la matriz de color y la saturación de la pantalla para una experiencia de visualización personalizada.';
+
+  @override
+  String get screen_modifier_red => 'Rojo';
+
+  @override
+  String get screen_modifier_green => 'Verde';
+
+  @override
+  String get screen_modifier_blue => 'Azul';
+
+  @override
+  String get screen_modifier_saturation => 'Saturación';
+
+  @override
+  String get screen_modifier_reset => 'Restablecer a Valores Predeterminados';
+
+  @override
+  String get screen_modifier_apply_on_boot => 'Aplicar al Arrancar';
 }

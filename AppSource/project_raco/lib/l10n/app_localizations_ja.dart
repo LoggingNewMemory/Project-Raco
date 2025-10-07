@@ -354,4 +354,29 @@ class AppLocalizationsJa extends AppLocalizations {
   String build_by_title(String builderName) {
     return '作成者: $builderName';
   }
+
+  @override
+  String get screen_modifier_title => 'スクリーンモディファイア';
+
+  @override
+  String get screen_modifier_description =>
+      '画面のカラーマトリックスと彩度を調整して、カスタム表示体験を実現します。';
+
+  @override
+  String get screen_modifier_red => '赤';
+
+  @override
+  String get screen_modifier_green => '緑';
+
+  @override
+  String get screen_modifier_blue => '青';
+
+  @override
+  String get screen_modifier_saturation => '彩度';
+
+  @override
+  String get screen_modifier_reset => 'デフォルトにリセット';
+
+  @override
+  String get screen_modifier_apply_on_boot => '起動時に適用';
 }

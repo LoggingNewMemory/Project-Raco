@@ -131,5 +131,13 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "screen_modifier_title": "Модификатор экрана",
+    "screen_modifier_description": "Настройте цветовую матрицу и насыщенность экрана для индивидуального отображения.",
+    "screen_modifier_red": "Красный",
+    "screen_modifier_green": "Зеленый",
+    "screen_modifier_blue": "Синий",
+    "screen_modifier_saturation": "Насыщенность",
+    "screen_modifier_reset": "Сбросить по умолчанию",
+    "screen_modifier_apply_on_boot": "Применять при загрузке"
 }

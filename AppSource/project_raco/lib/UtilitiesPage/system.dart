@@ -27,6 +27,7 @@ class _SystemPageState extends State<SystemPage> {
   bool _isAnyaIncluded = true;
   Map<String, dynamic>? _bypassChargingState;
   Map<String, dynamic>? _resolutionState;
+  Map<String, dynamic>? _screenModifierState;
 
   @override
   void initState() {
@@ -139,6 +140,39 @@ class _SystemPageState extends State<SystemPage> {
     return {'isSupported': isSupported, 'isEnabled': isEnabled};
   }
 
+  Future<Map<String, dynamic>> _loadScreenModifierState() async {
+    final result = await runRootCommandAndWait(
+      'cat /data/adb/modules/ProjectRaco/raco.txt',
+    );
+    if (result.exitCode == 0) {
+      final match = RegExp(
+        r'^SCREEN_MODIFIER=([\d,]+,(?:Yes|No))$',
+        multiLine: true,
+      ).firstMatch(result.stdout.toString());
+
+      if (match != null) {
+        final parts = match.group(1)!.split(',');
+        if (parts.length == 5) {
+          return {
+            'red': double.tryParse(parts[0]) ?? 1000.0,
+            'green': double.tryParse(parts[1]) ?? 1000.0,
+            'blue': double.tryParse(parts[2]) ?? 1000.0,
+            'saturation': double.tryParse(parts[3]) ?? 1000.0,
+            'applyOnBoot': parts[4].toLowerCase() == 'yes',
+          };
+        }
+      }
+    }
+    // Return default values if not found or parsing fails
+    return {
+      'red': 1000.0,
+      'green': 1000.0,
+      'blue': 1000.0,
+      'saturation': 1000.0,
+      'applyOnBoot': false,
+    };
+  }
+
   Future<void> _loadData() async {
     final results = await Future.wait([
       _loadDndState(),
@@ -146,6 +180,7 @@ class _SystemPageState extends State<SystemPage> {
       _loadAnyaInclusionState(),
       _loadBypassChargingState(),
       _loadResolutionState(),
+      _loadScreenModifierState(),
     ]);
 
     if (!mounted) return;
@@ -155,6 +190,7 @@ class _SystemPageState extends State<SystemPage> {
       _isAnyaIncluded = results[2] as bool;
       _bypassChargingState = results[3] as Map<String, dynamic>;
       _resolutionState = results[4] as Map<String, dynamic>;
+      _screenModifierState = results[5] as Map<String, dynamic>;
       _isLoading = false;
     });
   }
@@ -189,6 +225,17 @@ class _SystemPageState extends State<SystemPage> {
             isAvailable: _resolutionState?['isAvailable'] ?? false,
             originalSize: _resolutionState?['originalSize'] ?? '',
             originalDensity: _resolutionState?['originalDensity'] ?? 0,
+          ),
+          ScreenModifierCard(
+            initialValues:
+                _screenModifierState ??
+                {
+                  'red': 1000.0,
+                  'green': 1000.0,
+                  'blue': 1000.0,
+                  'saturation': 1000.0,
+                  'applyOnBoot': false,
+                },
           ),
           const SystemActionsCard(),
         ],
@@ -692,6 +739,252 @@ class _ResolutionCardState extends State<ResolutionCard> {
                 ),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ScreenModifierCard extends StatefulWidget {
+  final Map<String, dynamic> initialValues;
+  const ScreenModifierCard({Key? key, required this.initialValues})
+    : super(key: key);
+
+  @override
+  _ScreenModifierCardState createState() => _ScreenModifierCardState();
+}
+
+class _ScreenModifierCardState extends State<ScreenModifierCard> {
+  late double _redValue;
+  late double _greenValue;
+  late double _blueValue;
+  late double _saturationValue;
+  late bool _applyOnBoot;
+  bool _isUpdating = false;
+
+  final String _configFilePath = '/data/adb/modules/ProjectRaco/raco.txt';
+  final String _serviceFilePath = '/data/adb/modules/ProjectRaco/service.sh';
+
+  @override
+  void initState() {
+    super.initState();
+    _redValue = widget.initialValues['red'] as double;
+    _greenValue = widget.initialValues['green'] as double;
+    _blueValue = widget.initialValues['blue'] as double;
+    _saturationValue = widget.initialValues['saturation'] as double;
+    _applyOnBoot = widget.initialValues['applyOnBoot'] as bool;
+  }
+
+  Future<void> _applyAndSaveChanges() async {
+    if (!await checkRootAccess()) return;
+    if (mounted) setState(() => _isUpdating = true);
+
+    try {
+      // Apply live changes
+      final r = _redValue / 1000.0;
+      final g = _greenValue / 1000.0;
+      final b = _blueValue / 1000.0;
+      final s = _saturationValue / 1000.0;
+
+      await runRootCommandAndWait(
+        'service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1',
+      );
+      await runRootCommandAndWait('service call SurfaceFlinger 1022 f $s');
+
+      // Save settings to raco.txt
+      final valuesString =
+          '${_redValue.round()},${_greenValue.round()},${_blueValue.round()},${_saturationValue.round()},${_applyOnBoot ? "Yes" : "No"}';
+      final sedCheckCommand = "grep -q '^SCREEN_MODIFIER=' $_configFilePath";
+      final checkResult = await runRootCommandAndWait(sedCheckCommand);
+
+      if (checkResult.exitCode == 0) {
+        // Line exists, so replace it
+        await runRootCommandAndWait(
+          "sed -i 's|^SCREEN_MODIFIER=.*|SCREEN_MODIFIER=$valuesString|' $_configFilePath",
+        );
+      } else {
+        // Line doesn't exist, so add it
+        await runRootCommandAndWait(
+          "echo 'SCREEN_MODIFIER=$valuesString' >> $_configFilePath",
+        );
+      }
+
+      // Update service.sh for boot settings
+      await _updateBootScript();
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
+    }
+  }
+
+  Future<void> _updateBootScript() async {
+    // 1. Remove any existing block
+    final clearBlockCommand =
+        "sed -i '/# BEGIN SCREEN MODIFIER/,/# END SCREEN MODIFIER/d' $_serviceFilePath";
+    await runRootCommandAndWait(clearBlockCommand);
+
+    if (_applyOnBoot) {
+      // 2. If enabled, add the new block
+      final r = _redValue / 1000.0;
+      final g = _greenValue / 1000.0;
+      final b = _blueValue / 1000.0;
+      final s = _saturationValue / 1000.0;
+
+      final addBlockCommand =
+          '''
+cat <<'EOF' >> $_serviceFilePath
+# BEGIN SCREEN MODIFIER
+(
+  sleep 60
+  service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1
+  service call SurfaceFlinger 1022 f $s
+) &
+# END SCREEN MODIFIER
+EOF
+''';
+      await runRootCommandAndWait(addBlockCommand);
+    }
+  }
+
+  Future<void> _resetToDefaults() async {
+    setState(() {
+      _redValue = 1000.0;
+      _greenValue = 1000.0;
+      _blueValue = 1000.0;
+      _saturationValue = 1000.0;
+    });
+    await _applyAndSaveChanges();
+  }
+
+  Widget _buildSlider(
+    String label,
+    double value,
+    double max,
+    ValueChanged<double> onChanged,
+  ) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 80,
+          child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        ),
+        Expanded(
+          child: Slider(
+            value: value,
+            min: 0,
+            max: max,
+            divisions: (max / 10).round(),
+            label: value.round().toString(),
+            onChanged: (newValue) {
+              setState(() {
+                if (label == AppLocalizations.of(context)!.screen_modifier_red)
+                  _redValue = newValue;
+                if (label ==
+                    AppLocalizations.of(context)!.screen_modifier_green)
+                  _greenValue = newValue;
+                if (label == AppLocalizations.of(context)!.screen_modifier_blue)
+                  _blueValue = newValue;
+                if (label ==
+                    AppLocalizations.of(context)!.screen_modifier_saturation)
+                  _saturationValue = newValue;
+              });
+            },
+            onChangeEnd: (newValue) => _applyAndSaveChanges(),
+          ),
+        ),
+        SizedBox(
+          width: 40,
+          child: Text(value.round().toString(), textAlign: TextAlign.end),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      elevation: 2.0,
+      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              localization.screen_modifier_title,
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              localization.screen_modifier_description,
+              style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+            ),
+            const SizedBox(height: 16),
+            _buildSlider(
+              localization.screen_modifier_red,
+              _redValue,
+              1000,
+              (v) => setState(() => _redValue = v),
+            ),
+            _buildSlider(
+              localization.screen_modifier_green,
+              _greenValue,
+              1000,
+              (v) => setState(() => _greenValue = v),
+            ),
+            _buildSlider(
+              localization.screen_modifier_blue,
+              _blueValue,
+              1000,
+              (v) => setState(() => _blueValue = v),
+            ),
+            _buildSlider(
+              localization.screen_modifier_saturation,
+              _saturationValue,
+              2000,
+              (v) => setState(() => _saturationValue = v),
+            ),
+            const Divider(height: 24),
+            SwitchListTile(
+              title: Text(localization.screen_modifier_apply_on_boot),
+              value: _applyOnBoot,
+              onChanged: _isUpdating
+                  ? null
+                  : (value) {
+                      setState(() => _applyOnBoot = value);
+                      _applyAndSaveChanges();
+                    },
+              secondary: _isUpdating
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.power_settings_new_outlined),
+              activeColor: colorScheme.primary,
+              contentPadding: EdgeInsets.zero,
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isUpdating ? null : _resetToDefaults,
+                icon: const Icon(Icons.refresh),
+                label: Text(localization.screen_modifier_reset),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.secondaryContainer,
+                  foregroundColor: colorScheme.onSecondaryContainer,
+                ),
+              ),
+            ),
           ],
         ),
       ),

@@ -367,4 +367,29 @@ class AppLocalizationsId extends AppLocalizations {
   String build_by_title(String builderName) {
     return 'Dibuat Oleh: $builderName';
   }
+
+  @override
+  String get screen_modifier_title => 'Pengubah Layar';
+
+  @override
+  String get screen_modifier_description =>
+      'Sesuaikan matriks warna layar dan saturasi untuk pengalaman tampilan kustom.';
+
+  @override
+  String get screen_modifier_red => 'Merah';
+
+  @override
+  String get screen_modifier_green => 'Hijau';
+
+  @override
+  String get screen_modifier_blue => 'Biru';
+
+  @override
+  String get screen_modifier_saturation => 'Saturasi';
+
+  @override
+  String get screen_modifier_reset => 'Kembali ke Default';
+
+  @override
+  String get screen_modifier_apply_on_boot => 'Terapkan saat Boot';
 }
