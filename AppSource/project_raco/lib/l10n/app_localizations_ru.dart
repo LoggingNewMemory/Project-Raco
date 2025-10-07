@@ -313,7 +313,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get ram => 'RAM';
 
   @override
-  String get phone_storage => 'Внутреннее хранилище';
+  String get phone_storage => 'хранилище';
 
   @override
   String get battery_capacity => 'Ёмкость батареи';
