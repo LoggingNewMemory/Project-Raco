@@ -101,7 +101,7 @@
     "device_name": "Имя устройства",
     "processor": "Процессор",
     "ram": "RAM",
-    "phone_storage": "Внутреннее хранилище",
+    "phone_storage": "хранилище",
     "battery_capacity": "Ёмкость батареи",
     "custom_governor_title": "Кастомный Governor",
     "custom_governor_description": "Выбор кастомного ЦПУ governor, Это изменит governor в Баланс режиме",
