@@ -317,11 +317,6 @@ class _GameTxtEditorPageState extends State<GameTxtEditorPage> {
     Navigator.pop(context, _controller.text);
   }
 
-  /// Clears all text in the editor.
-  void _clearText() {
-    _controller.clear();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -329,11 +324,6 @@ class _GameTxtEditorPageState extends State<GameTxtEditorPage> {
         title: const Text('game.txt'),
         elevation: 1,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.clear_all),
-            tooltip: 'Clear All',
-            onPressed: _clearText,
-          ),
           IconButton(
             icon: const Icon(Icons.save_outlined),
             tooltip: 'Save & Close',
