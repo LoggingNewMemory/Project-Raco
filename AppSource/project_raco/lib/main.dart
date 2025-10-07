@@ -475,8 +475,20 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           backgroundOpacity: widget.backgroundOpacity,
           backgroundBlur: widget.backgroundBlur,
         ),
-        transitionDuration: Duration.zero,
-        reverseTransitionDuration: Duration.zero,
+        transitionDuration: const Duration(milliseconds: 300),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
       ),
     );
   }
@@ -491,8 +503,20 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           initialBackgroundOpacity: widget.backgroundOpacity,
           initialBackgroundBlur: widget.backgroundBlur,
         ),
-        transitionDuration: Duration.zero,
-        reverseTransitionDuration: Duration.zero,
+        transitionDuration: const Duration(milliseconds: 300),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(-1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
       ),
     );
     // Reload settings that aren't handled by the notifier (like background image)

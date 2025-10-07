@@ -564,8 +564,21 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
                   opaque: false,
                   pageBuilder: (context, animation, secondaryAnimation) =>
                       category.page,
-                  transitionDuration: Duration.zero,
-                  reverseTransitionDuration: Duration.zero,
+                  transitionDuration: const Duration(milliseconds: 300),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                        const begin = Offset(1.0, 0.0);
+                        const end = Offset.zero;
+                        const curve = Curves.easeInOut;
+                        var tween = Tween(
+                          begin: begin,
+                          end: end,
+                        ).chain(CurveTween(curve: curve));
+                        return SlideTransition(
+                          position: animation.drive(tween),
+                          child: child,
+                        );
+                      },
                 ),
               ).then((_) => _loadBackgroundPreferences());
             },
@@ -600,8 +613,21 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
                 opaque: false,
                 pageBuilder: (context, animation, secondaryAnimation) =>
                     item.navigationTarget,
-                transitionDuration: Duration.zero,
-                reverseTransitionDuration: Duration.zero,
+                transitionDuration: const Duration(milliseconds: 300),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                      const begin = Offset(1.0, 0.0);
+                      const end = Offset.zero;
+                      const curve = Curves.easeInOut;
+                      var tween = Tween(
+                        begin: begin,
+                        end: end,
+                      ).chain(CurveTween(curve: curve));
+                      return SlideTransition(
+                        position: animation.drive(tween),
+                        child: child,
+                      );
+                    },
               ),
             ).then((_) => _loadBackgroundPreferences());
           },
