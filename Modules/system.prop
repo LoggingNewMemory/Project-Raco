@@ -31,16 +31,6 @@ debug.gr.numframebuffers=2
 debug.renderengine.graphite=true
 persist.sys.dalvik.multithread=true
 
-# SurfaceFlinger Optimized (Essential)
-debug.sf.enable_layer_command_batching=true
-debug.sf.enable_adpf_cpu_hint=true
-debug.sf.use_phase_offsets_as_durations=1
-debug.sf.enable_advanced_sf_phase_offset=1
-debug.sf.multithreaded_present=1
-debug.sf.use_frame_rate_priority=1
-debug.sf.disable_backpressure=1
-debug.sf.enable_egl_image_tracker=false
-
 # vendor perf
 ro.vendor.perf.scroll_opt=1
 vendor.perf.framepacing.enable=1
