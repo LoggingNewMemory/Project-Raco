@@ -3,22 +3,29 @@
 # All copy and move operations will now abort on failure.
 #
 
-check_for_new_addons() {
+check_for_config_changes() {
   local new_config="$1"
   local saved_config="$2"
   
-  # Get all INCLUDE keys from the new config
-  new_keys=$(grep '^INCLUDE_' "$new_config" | cut -d'=' -f1)
+  # This function extracts all configuration keys (e.g., "INCLUDE_ANYA", "SOC")
+  # from both files, ignoring comments and section headers. It then compares the lists.
+  # If the lists are different in any way (keys added or removed), it returns 0 (true).
   
-  for key in $new_keys; do
-    # Check if the key exists in the saved config
-    if ! grep -q "^$key=" "$saved_config"; then
-      ui_print "- New addon detected: $key"
-      return 0 # 0 means true (new addons found)
-    fi
-  done
+  get_keys() {
+    grep -vE '^#|^\[|^$' "$1" | cut -d'=' -f1
+  }
+
+  new_keys=$(get_keys "$new_config")
+  saved_keys=$(get_keys "$saved_config")
   
-  return 1 # 1 means false (no new addons found)
+  # diff will be silent and exit with 0 if files are identical.
+  # If there is any difference, it will produce output and exit with 1.
+  if ! diff <(echo "$new_keys" | sort) <(echo "$saved_keys" | sort) >/dev/null 2>&1; then
+    ui_print "- Config file structure has changed."
+    return 0 # 0 means true (changes detected)
+  fi
+  
+  return 1 # 1 means false (no changes)
 }
 
 
@@ -102,7 +109,7 @@ ui_print "------------------------------------"
 ui_print "            MODULE INFO             "
 ui_print "------------------------------------"
 ui_print "Name : Project Raco"
-ui_print "Version : 6.9"
+ui_print "Version : 7.0"
 ui_print " "
 sleep 1.5
 
@@ -140,7 +147,7 @@ choose() {
   while true; do
     /system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > "$TMPDIR/events"
     if [ -s "$TMPDIR/events" ]; then
-      if grep -q "KEY_VOLUMEUP" "$TMPDIR/events"; then
+      if grep -q "KEY_VOLUMEUP" "$TMPDITR/events"; then
         return 0
       else
         return 1
@@ -162,26 +169,16 @@ if [ -f "$RACO_PERSIST_CONFIG" ]; then
   ui_print " "
   ui_print "- Saved configuration found."
   
-  # NEW LOGIC: Check for new addons
-  if check_for_new_addons "$RACO_MODULE_CONFIG" "$RACO_PERSIST_CONFIG"; then
+  # MANDATORY RECONFIGURATION LOGIC
+  if check_for_config_changes "$RACO_MODULE_CONFIG" "$RACO_PERSIST_CONFIG"; then
     ui_print " "
-    ui_print "! New Addon Available, Reconfigure?"
+    ui_print "! New Entry of Config File Detected."
+    ui_print "! Reconfigure..."
     ui_print " "
-    ui_print "  Vol+ = Yes, Reconfigure"
-    ui_print "  Vol- = No, use saved values"
-    ui_print " "
-    if choose; then
-      ui_print "- User chose to reconfigure."
-      # By doing nothing here, USE_SAVED_CONFIG remains false
-      # and the script will proceed to the manual selection.
-    else
-      ui_print "- Using saved configuration and ignoring new addons."
-      ui_print "- Copying raco.txt..."
-      cp "$RACO_PERSIST_CONFIG" "$MODPATH" >/dev/null 2>&1 || abort "! Failed to copy saved configuration"
-      USE_SAVED_CONFIG=true
-    fi
+    sleep 2
+    # No choice is given. USE_SAVED_CONFIG remains false, forcing manual selection.
   else
-    # ORIGINAL LOGIC: No new addons found, ask to use saved config
+    # No changes found, ask to use saved config
     ui_print "  Do you want to use it?"
     ui_print " "
     ui_print "  Vol+ = Yes, use saved config"
