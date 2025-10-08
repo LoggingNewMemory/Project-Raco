@@ -107,10 +107,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get credits_8 => 'Andreyka4_45';
 
   @override
-  String get credits_9 => 'KanaDev_IS';
+  String get credits_9 => 'Zexshia';
 
   @override
-  String get credits_10 => 'Y a todos los testers que aportaron su feedback!';
+  String get credits_10 => 'KanaDev_IS';
+
+  @override
+  String get credits_11 => 'Y a todos los testers que aportaron su feedback!';
 
   @override
   String get yes => 'Sí';

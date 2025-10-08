@@ -293,14 +293,20 @@ abstract class AppLocalizations {
   /// No description provided for @credits_9.
   ///
   /// In en, this message translates to:
-  /// **'KanaDev_IS'**
+  /// **'Zexshia'**
   String get credits_9;
 
   /// No description provided for @credits_10.
   ///
   /// In en, this message translates to:
-  /// **'And All Testers That I Can\'t Mentioned One by One'**
+  /// **'KanaDev_IS'**
   String get credits_10;
+
+  /// No description provided for @credits_11.
+  ///
+  /// In en, this message translates to:
+  /// **'And All Testers That I Can\'t Mentioned One by One'**
+  String get credits_11;
 
   /// No description provided for @yes.
   ///

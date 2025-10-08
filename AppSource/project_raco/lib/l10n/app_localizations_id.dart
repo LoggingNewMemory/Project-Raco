@@ -106,10 +106,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get credits_8 => 'Andreyka4_45';
 
   @override
-  String get credits_9 => 'KanaDev_IS';
+  String get credits_9 => 'Zexshia';
 
   @override
-  String get credits_10 =>
+  String get credits_10 => 'KanaDev_IS';
+
+  @override
+  String get credits_11 =>
       'Dan Semua Penguji yang Tidak Bisa Disebutkan Satu per Satu';
 
   @override

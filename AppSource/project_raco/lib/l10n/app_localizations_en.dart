@@ -106,10 +106,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get credits_8 => 'Andreyka4_45';
 
   @override
-  String get credits_9 => 'KanaDev_IS';
+  String get credits_9 => 'Zexshia';
 
   @override
-  String get credits_10 => 'And All Testers That I Can\'t Mentioned One by One';
+  String get credits_10 => 'KanaDev_IS';
+
+  @override
+  String get credits_11 => 'And All Testers That I Can\'t Mentioned One by One';
 
   @override
   String get yes => 'Yes';
