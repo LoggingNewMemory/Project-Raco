@@ -6,6 +6,7 @@ If you want your tweaks merged into Project Raco you must:
 - Can adapth to the main Raco.sh
 - Will not collide with other tweaks
 - All Tweaks must send through 1 pull request
+- See the format of other tweaks in Service.sh
 - Your tweaks is not a gimmick
 
 Support Me: <br />
