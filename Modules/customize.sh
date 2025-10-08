@@ -173,7 +173,7 @@ if [ -f "$RACO_PERSIST_CONFIG" ]; then
   if check_for_config_changes "$RACO_MODULE_CONFIG" "$RACO_PERSIST_CONFIG"; then
     ui_print " "
     ui_print "! New Entry of Config File Detected."
-    ui_print "! Reconfigure..."
+    ui_print "! Forcing reconfiguration..."
     ui_print " "
     sleep 2
     # No choice is given. USE_SAVED_CONFIG remains false, forcing manual selection.
