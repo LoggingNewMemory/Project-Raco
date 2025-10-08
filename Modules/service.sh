@@ -221,7 +221,7 @@ setprop debug.sf.layer_caching_active_layer_timeout_ms $timeout
 ###################################
 # Celestial Render FlowX (@Kzuyoo)
 # Version: 1.6G
-# Note: Notification Disabled
+# Note: Notification Disabled, Wait boot complete removed
 # Purpose of this is the Render (GPU, etc)
 ###################################
 #!/system/bin/sh
@@ -252,12 +252,6 @@ FPS=$(dumpsys display | grep -m1 "mDefaultPeak" | awk '{print int($2)}')
 # ----------------- HELPER FUNCTIONS -----------------
 log() {
     echo "$1"
-}
-
-wait_until_boot_completed() {
-    while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 3; done
-    while [ "$(dumpsys window policy | grep mInputRestricted=true)" != "" ]; do sleep 0.1; done
-    while [ ! -d "/sdcard/Android" ]; do sleep 1; done
 }
 
 mask_val() {
@@ -562,7 +556,6 @@ cleanup_memory() {
 
 # ----------------- MAIN EXECUTION -----------------
 main() {
-    wait_until_boot_completed
     optimize_gpu_temperature
     additional_gpu_settings
     optimize_gpu_frequency
