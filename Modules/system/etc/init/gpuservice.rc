@@ -1,0 +1,9 @@
+service gpu /system/bin/gpuservice
+    class core
+    user gpu_service
+    group graphics drmrpc
+    ioprio be 0
+    task_profiles ProcessCapacityHigh MaxPerformance
+    priority -5
+    writepid /sys/fs/cgroup/top-app/tasks
+    writepid /dev/cpuset/top-app/tasks

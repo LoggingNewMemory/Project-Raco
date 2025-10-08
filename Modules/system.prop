@@ -8,19 +8,17 @@ sys.surfaceflinger.idle_reduce_framerate_enable=no
 
 ###############################
 # Celestial Render FlowX (@Kzuyoo)
-# Version: 1.5G
+# Version: 1.6G
 ###############################
 
-#!/system/bin/sh
-# This file will be read by resetprop
-# Example: Change dpi
-# ro.sf.lcd_density=320
-
-# Rendering Engine
+# Rendering Engine By @Kzuyoo
 debug.hwui.render_ahead=1
-debug.hwui.render_dirty_regions=true
+debug.composition.type=mdp
+persist.sys.composition.type=mdp
 debug.hwui.use_gpu_pixel_buffers=true
 debug.hwui.trace_gpu_resources=false
+debug.hwui.use_buffer_age=true
+debug.hwui.skip_empty_damage=true
 debug.egl.buffcount=2
 debug.egl.callstack=0
 debug.egl.finish=0
@@ -28,43 +26,30 @@ debug.egl.force_msaa=0
 debug.egl.trace=0
 debug.egl.traceGpuCompletion=0
 debug.gr.swapinterval=1
-debug.gr.numframebuffers=2
 debug.graphics.gpu.profiler.perfetto=0
-debug.egl.force_msaa=false
-
-# MAKES APPS LOAD FASTER AND FREES MORE RAM / use only one of them
-dalvik.vm.dexopt-flags=m=y,o=v,u=y
-
-# Hypertheading & Multithread
-persist.sys.dalvik.hyperthreading=true
+debug.gr.numframebuffers=2
+debug.renderengine.graphite=true
 persist.sys.dalvik.multithread=true
+
+# SurfaceFlinger Optimized (Essential)
+debug.sf.enable_layer_command_batching=true
+debug.sf.enable_adpf_cpu_hint=true
+debug.sf.use_phase_offsets_as_durations=1
+debug.sf.enable_advanced_sf_phase_offset=1
+debug.sf.multithreaded_present=1
+debug.sf.use_frame_rate_priority=1
+debug.sf.disable_backpressure=1
+debug.sf.enable_egl_image_tracker=false
 
 # vendor perf
 ro.vendor.perf.scroll_opt=1
 vendor.perf.framepacing.enable=1
 
-# HWUI
-debug.hwui.disable_draw_defer=false
-debug.hwui.use_hint_manager=true
-debug.hwui.skip_empty_damage=true
-debug.hwui.use_buffer_age=true
-debug.hwui.use_partial_updates=true
-debug.hwui.skip_eglmanager_telemetry=true
-ro.hwui.disable_scissor_opt=false
-ro.zygote.disable_gl_preload=false
+# enable perf boosts from System Server
+vendor.perf.gestureflingboost.enable=true
 
-# HWUI properties (https://github.com/pytorch/cpuinfo/blob/main/test/build.prop/xiaomi-redmi-note-4.log)
-ro.hwui.texture_cache_size=72
-ro.hwui.layer_cache_size=48
-ro.hwui.r_buffer_cache_size=8
-ro.hwui.path_cache_size=32
-ro.hwui.gradient_cache_size=1
-ro.hwui.drop_shadow_cache_size=6
-ro.hwui.texture_cache_flushrate=0.4
-ro.hwui.text_small_cache_width=1024
-ro.hwui.text_small_cache_height=1024
-ro.hwui.text_large_cache_width=2048
-ro.hwui.text_large_cache_height=1024
+# enable WorkloadClassifier
+vendor.perf.workloadclassifier.enable=true
 
 # for qcom
 sys.hwc.gpu_perf_mode=1

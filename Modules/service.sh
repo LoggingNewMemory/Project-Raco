@@ -220,32 +220,34 @@ setprop debug.sf.layer_caching_active_layer_timeout_ms $timeout
 
 ###################################
 # Celestial Render FlowX (@Kzuyoo)
-# Version: 1.5G 
+# Version: 1.6G
 # Note: Notification Disabled
 # Purpose of this is the Render (GPU, etc)
 ###################################
-
+#!/system/bin/sh
 # Do NOT assume where your module will be located.
 # ALWAYS use $MODDIR if you need to know where this script
 # and module is placed.
+# This will make sure your module will still work
+# if Magisk change its mount point in the future
 MODDIR=${0%/*}
 
 # ----------------- VARIABLES -----------------
+MALI_PATH="/proc/mali"
 ps_ret="$(ps -Ao pid,args)"
-GED_PATH="/sys/module/ged/parameters"
-GED_PATH2="/sys/kernel/debug/ged/hal"
 GPUF_PATH="/proc/gpufreq"
-GPUF_PATHV2="/proc/gpufreqv2"
-PVR_PATH="/sys/module/pvrsrvkm/parameters"
-PVR_PATH2="/sys/kernel/debug/pvr/apphint"
+GPUF_PATH2="/proc/gpufreqv2"
+GED_PATH2="/sys/kernel/debug/ged/hal"
 ADRENO_PATH="/sys/class/kgsl/kgsl-3d0"
-ADRENO_PATH2="/sys/kernel/debug/kgsl/kgsl-3d0/profiling"
+GED_PATH="/sys/module/ged/parameters"
+PVR_PATH2="/sys/kernel/debug/pvr/apphint"
+PVR_PATH="/sys/module/pvrsrvkm/parameters"
+PLATFORM_GPU_PATH="/sys/devices/platform/gpu"
 ADRENO_PATH3="/sys/module/adreno_idler/parameters"
 KERNEL_FPSGO_PATH="/sys/kernel/debug/fpsgo/common"
-MALI_PATH="/proc/mali"
-PLATFORM_GPU_PATH="/sys/devices/platform/gpu"
+ADRENO_PATH2="/sys/kernel/debug/kgsl/kgsl-3d0/profiling"
 GPUFREQ_TRACING_PATH="/sys/kernel/debug/tracing/events/mtk_events"
-FPS=$(dumpsys display | grep -oE 'fps=[0-9]+' | grep -oE '[0-9]+' | sort -nr | head -n 1)
+FPS=$(dumpsys display | grep -m1 "mDefaultPeak" | awk '{print int($2)}')
 
 # ----------------- HELPER FUNCTIONS -----------------
 log() {
@@ -315,10 +317,10 @@ optimize_gpu_temperature() {
         fi
     done
         
-        # Disable Temperature for Adreno
-        for all_thermal in $(find /sys/devices/soc/*/kgsl/kgsl-3d0/ -name *temp*); do
-            chmod 000 $all_thermal
-        done
+    # Disable Temperature for Adreno
+    for all_thermal in $(find /sys/devices/soc/*/kgsl/kgsl-3d0/ -name *temp*); do
+        chmod 000 $all_thermal
+    done
 }
 
 additional_gpu_settings() {
@@ -392,20 +394,20 @@ optimize_gpu_frequency() {
     fi
 
     # Optimize GPU frequency v2 configurations (Matt Yang)（吟惋兮改)
-    gpu_freq="$(cat $GPUF_PATHV2/gpu_working_opp_table | awk '{print $3}' | sed 's/,//g' | sort -nr | head -n 1)"
-	gpu_volt="$(cat $GPUF_PATHV2/gpu_working_opp_table | awk -v freq="$freq" '$0 ~ freq {gsub(/.*, volt: /, ""); gsub(/,.*/, ""); print}')"
-	write_val "$GPUF_PATHV2/fix_custom_freq_volt" "${gpu_freq} ${gpu_volt}"
-    if [ -d "$GPUF_PATHV2" ]; then
+    gpu_freq="$(cat $GPUF_PATH2/gpu_working_opp_table | awk '{print $3}' | sed 's/,//g' | sort -nr | head -n 1)"
+	gpu_volt="$(cat $GPUF_PATH2/gpu_working_opp_table | awk -v freq="$freq" '$0 ~ freq {gsub(/.*, volt: /, ""); gsub(/,.*/, ""); print}')"
+	write_val "$GPUF_PATH2/fix_custom_freq_volt" "${gpu_freq} ${gpu_volt}"
+    if [ -d "$GPUF_PATH2" ]; then
         for i in $(seq 0 10); do
             lock_val "$i 0 0" /proc/gpufreqv2/limit_table
         done
         # Enable only levels 1–3
         for i in 1 3; do
-            write_val "$GPUF_PATHV2/limit_table" "$i 1 1"
+            write_val "$GPUF_PATH2/limit_table" "$i 1 1"
         done
-        write_val "$GPUF_PATHV2/aging_mode" "disable"
+        write_val "$GPUF_PATH2/aging_mode" "disable"
     else
-        echo "Unknown $GPUF_PATHV2 path. Skipping optimization."
+        echo "Unknown $GPUF_PATH2 path. Skipping optimization."
     fi
 }
 
@@ -474,6 +476,9 @@ optimize_adreno_driver() {
     
     # Disable adreno idler
     write_val "$ADRENO_PATH3/adreno_idler_active" "0"
+    
+    # Touch boost
+    write_val "/sys/module/msm_performance/parameters/touchboost" "1"
 }
 
 optimize_mali_driver() {
@@ -485,6 +490,17 @@ optimize_mali_driver() {
     else
         echo "Unknown $MALI_PATH path. Skipping optimization."
     fi
+    
+    # Mali gpu scheduling (thx to @MiAzami) 
+    mali_dir=$(ls -d /sys/devices/platform/soc/*mali*/scheduling 2>/dev/null | head -n 1)
+    mali1_dir=$(ls -d /sys/devices/platform/soc/*mali* 2>/dev/null | head -n 1)
+    if [ -n "$mali_dir" ]; then
+        apply_setting "$mali_dir/serialize_jobs" "full"
+    fi
+
+    if [ -n "$mali1_dir" ]; then
+        apply_setting "$mali1_dir/js_ctx_scheduling_mode" "1"
+    fi
 }
 
 optimize_task_cgroup_nice() {
@@ -495,27 +511,6 @@ optimize_task_cgroup_nice() {
     change_task_cgroup "hardware.media.c2|vendor.mediatek.hardware" "background" "cpuset"
     change_task_cgroup "aal_sof|kfps|dsp_send_thread|vdec_ipi_recv|mtk_drm_disp_id|disp_feature|hif_thread|main_thread|rx_thread|ged_" "background" "cpuset"
     change_task_cgroup "pp_event|crtc_" "background" "cpuset"
-
-    # Task Optimizer By: Kazuyoo
-    change_task_cgroup "media.codec|media.swcodec|mediaserver" "background" "cpuset"
-    change_task_cgroup "pp_event|crtc_|kbase_event" "background" "cpuset"
-    change_task_cgroup "com.tencent|tencent" "foreground" "cpuset"
-    change_task_cgroup "com.garena|garena" "foreground" "cpuset"
-    change_task_cgroup "com.mobile.legends" "foreground" "cpuset"
-    change_task_cgroup "com.miHoYo|mihoyo" "foreground" "cpuset"
-    change_task_cgroup "cameraserver" "foreground" "cpuset"
-    change_task_cgroup "zygote" "foreground" "cpuset"
-    
-    change_task_nice "surfaceflinger" -20
-    change_task_nice "system_server" -10
-    change_task_nice "netd" 10
-    change_task_nice "mediaserver" 5
-    change_task_nice "cameraserver" -10
-    change_task_nice "zygote" -5
-    change_task_nice "com.tencent" -15
-    change_task_nice "com.garena" -15
-    change_task_nice "com.mobile.legends" -15
-    change_task_nice "com.miHoYo" -15
 }
 
 final_optimize_gpu() {
@@ -552,6 +547,11 @@ final_optimize_gpu() {
    
    # Disable auto voltage scaling for mtk
     write_val "$GPU_FREQ_PATH/gpufreq_aging_enable" "0"
+    
+   # cpuset configuration
+    write_val "/dev/cpuset/foreground/cpus" "0-3,4-7"
+    write_val "/dev/cpuset/foreground/boost/cpus" "4-7"
+    write_val "/dev/cpuset/top-app/cpus" "0-7"
 }
 
 cleanup_memory() {
@@ -574,7 +574,7 @@ main() {
     cleanup_memory
 }
 
-# Main Execution
+# Main Execution & Exit script successfully
 sync && main
 
 ############################
