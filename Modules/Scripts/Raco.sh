@@ -383,11 +383,17 @@ mediatek_performance() {
 	tweak 1 /proc/cpufreq/cpufreq_cci_mode
 	tweak 3 /proc/cpufreq/cpufreq_power_mode
 
+	# Force off FPSGO
+	tweak 0 /sys/kernel/fpsgo/common/force_onoff
+
 	# DDR Boost mode
 	tweak 1 /sys/devices/platform/boot_dramboost/dramboost/dramboost
 
 	# EAS/HMP Switch
 	tweak 0 /sys/devices/system/cpu/eas/enable
+
+	# Disable GED KPI
+	tweak 0 /sys/module/sspm_v3/holders/ged/parameters/is_GED_KPI_enabled
 
 	if [ "$LITE_MODE" -eq 0 ]; then
 		if [ -d /proc/gpufreqv2 ]; then
@@ -560,10 +566,17 @@ tensor_performance() {
 ###################################
 
 mediatek_normal() {
+
+	# Free FPSGO
+	tweak 2 /sys/kernel/fpsgo/common/force_onoff
+
 	tweak 0 /proc/cpufreq/cpufreq_cci_mode
 	tweak 0 /proc/cpufreq/cpufreq_power_mode
 	tweak 0 /sys/devices/platform/boot_dramboost/dramboost/dramboost
 	tweak 2 /sys/devices/system/cpu/eas/enable
+
+	# Enable GED KPI
+	tweak 1 /sys/module/sspm_v3/holders/ged/parameters/is_GED_KPI_enabled
 	
 	kakangkuh 0 /proc/gpufreq/gpufreq_opp_freq
 	kakangkuh -1 /proc/gpufreqv2/fix_target_opp_index
