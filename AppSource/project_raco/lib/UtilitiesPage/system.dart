@@ -912,9 +912,9 @@ EOF
         Expanded(
           child: Slider(
             value: value,
-            min: 0,
+            min: 100,
             max: max,
-            divisions: (max / 10).round(),
+            divisions: ((max - 100) / 10).round(),
             label: value.round().toString(),
             onChanged: (newValue) {
               setState(() {
