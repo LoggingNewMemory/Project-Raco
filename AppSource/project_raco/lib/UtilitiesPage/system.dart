@@ -160,7 +160,7 @@ class _SystemPageState extends State<SystemPage> {
     // Load slider values from raco.txt
     if (racoResult.exitCode == 0) {
       final match = RegExp(
-        r'^SCREEN_MODIFIER=([\d,]+,(?:Yes|No))$',
+        r'^AYUNDA_RUSDI=([\d,]+,(?:Yes|No))$',
         multiLine: true,
       ).firstMatch(racoResult.stdout.toString());
 
@@ -179,15 +179,15 @@ class _SystemPageState extends State<SystemPage> {
     final valuesString =
         '${red.round()},${green.round()},${blue.round()},${saturation.round()},${applyOnBoot ? "Yes" : "No"}';
     final sedCheckCommand =
-        "grep -q '^SCREEN_MODIFIER=' /data/adb/modules/ProjectRaco/raco.txt";
+        "grep -q '^AYUNDA_RUSDI=' /data/adb/modules/ProjectRaco/raco.txt";
     final checkResult = await runRootCommandAndWait(sedCheckCommand);
     if (checkResult.exitCode == 0) {
       await runRootCommandAndWait(
-        "sed -i 's|^SCREEN_MODIFIER=.*|SCREEN_MODIFIER=$valuesString|' /data/adb/modules/ProjectRaco/raco.txt",
+        "sed -i 's|^AYUNDA_RUSDI=.*|AYUNDA_RUSDI=$valuesString|' /data/adb/modules/ProjectRaco/raco.txt",
       );
     } else {
       await runRootCommandAndWait(
-        "echo 'SCREEN_MODIFIER=$valuesString' >> /data/adb/modules/ProjectRaco/raco.txt",
+        "echo 'AYUNDA_RUSDI=$valuesString' >> /data/adb/modules/ProjectRaco/raco.txt",
       );
     }
 
@@ -822,18 +822,18 @@ class _ScreenModifierCardState extends State<ScreenModifierCard> {
       // Save settings to raco.txt
       final valuesString =
           '${_redValue.round()},${_greenValue.round()},${_blueValue.round()},${_saturationValue.round()},${_applyOnBoot ? "Yes" : "No"}';
-      final sedCheckCommand = "grep -q '^SCREEN_MODIFIER=' $_configFilePath";
+      final sedCheckCommand = "grep -q '^AYUNDA_RUSDI=' $_configFilePath";
       final checkResult = await runRootCommandAndWait(sedCheckCommand);
 
       if (checkResult.exitCode == 0) {
         // Line exists, so replace it
         await runRootCommandAndWait(
-          "sed -i 's|^SCREEN_MODIFIER=.*|SCREEN_MODIFIER=$valuesString|' $_configFilePath",
+          "sed -i 's|^AYUNDA_RUSDI=.*|AYUNDA_RUSDI=$valuesString|' $_configFilePath",
         );
       } else {
         // Line doesn't exist, so add it
         await runRootCommandAndWait(
-          "echo 'SCREEN_MODIFIER=$valuesString' >> $_configFilePath",
+          "echo 'AYUNDA_RUSDI=$valuesString' >> $_configFilePath",
         );
       }
 
