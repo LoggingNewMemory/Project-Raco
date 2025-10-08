@@ -148,7 +148,6 @@ mtkvest_perf() {
     gpu_loading 100000
     cpu_boost_policy 1
     boost_extra 1
-    is_GED_KPI_enabled 0
     ged_force_mdp_enable 1
     force_fence_timeout_dump_enable 0
     gpu_idle 0"
@@ -190,7 +189,6 @@ mtkvest_normal() {
     gpu_loading 0
     cpu_boost_policy 0
     boost_extra 0
-    is_GED_KPI_enabled 1
     ged_force_mdp_enable 0
     force_fence_timeout_dump_enable 0
     gpu_idle 0"
