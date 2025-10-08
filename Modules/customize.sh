@@ -147,7 +147,7 @@ choose() {
   while true; do
     /system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > "$TMPDIR/events"
     if [ -s "$TMPDIR/events" ]; then
-      if grep -q "KEY_VOLUMEUP" "$TMPDITR/events"; then
+      if grep -q "KEY_VOLUMEUP" "$TMPDIR/events"; then
         return 0
       else
         return 1
