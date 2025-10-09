@@ -28,41 +28,6 @@ check_for_config_changes() {
   return 1 # 1 means false (no changes)
 }
 
-# FIX: New function to merge configs, preserving user values on upgrade.
-merge_configs() {
-  local new_config_default="$1" # The default raco.txt from the module zip
-  local user_config_to_update="$2" # The user's saved raco.txt (/data/ProjectRaco/raco.txt)
-
-  ui_print "- Merging new configuration options..."
-  
-  # Use a temporary file to avoid issues with reading and writing to the same file.
-  local temp_file=$(mktemp)
-  cp "$user_config_to_update" "$temp_file"
-
-  # Read the default module config line by line
-  while IFS= read -r line || [ -n "$line" ]; do
-    # Skip comments, section headers, and blank lines
-    if [[ "$line" =~ ^# || "$line" =~ ^\[ || -z "$line" ]]; then
-      continue
-    fi
-    
-    # Extract the key (e.g., "INCLUDE_ANYA")
-    key=$(echo "$line" | cut -d'=' -f1)
-    
-    # Check if the key already exists in the user's config
-    # The grep uses `^${key}=` to ensure it matches the key at the start of the line precisely.
-    if ! grep -q "^${key}=" "$temp_file"; then
-      ui_print "  > Adding new option: $key"
-      # If the key doesn't exist, append the entire line (key=value) to the user's config.
-      echo "$line" >> "$temp_file"
-    fi
-  done < "$new_config_default"
-  
-  # Overwrite the original user config with the updated temporary file
-  mv "$temp_file" "$user_config_to_update"
-  ui_print "- Merge complete."
-}
-
 
 LATESTARTSERVICE=true
 SOC=0
@@ -144,7 +109,7 @@ ui_print "------------------------------------"
 ui_print "            MODULE INFO             "
 ui_print "------------------------------------"
 ui_print "Name : Project Raco"
-ui_print "Version : 7.0"
+ui_print "Version : 7.0 FIX"
 ui_print " "
 sleep 1.5
 
@@ -204,20 +169,16 @@ if [ -f "$RACO_PERSIST_CONFIG" ]; then
   ui_print " "
   ui_print "- Saved configuration found."
   
+  # MANDATORY RECONFIGURATION LOGIC
   if check_for_config_changes "$RACO_MODULE_CONFIG" "$RACO_PERSIST_CONFIG"; then
     ui_print " "
-    ui_print "! New configuration options detected in module update."
-    ui_print "! Your settings will be preserved and new options added."
+    ui_print "! New Entry of Config File Detected."
+    ui_print "! Forcing reconfiguration..."
     ui_print " "
     sleep 2
-    
-    merge_configs "$RACO_MODULE_CONFIG" "$RACO_PERSIST_CONFIG"
-    
-    ui_print "- Applying your updated configuration."
-    cp "$RACO_PERSIST_CONFIG" "$RACO_MODULE_CONFIG" >/dev/null 2>&1 || abort "! Failed to apply updated configuration"
-    USE_SAVED_CONFIG=true 
-
+    # No choice is given. USE_SAVED_CONFIG remains false, forcing manual selection.
   else
+    # No changes found, ask to use saved config
     ui_print "  Do you want to use it?"
     ui_print " "
     ui_print "  Vol+ = Yes, use saved config"
@@ -225,6 +186,7 @@ if [ -f "$RACO_PERSIST_CONFIG" ]; then
     ui_print " "
     if choose; then
       ui_print "- Using saved configuration."
+      ui_print "- Copying raco.txt..."
       cp "$RACO_PERSIST_CONFIG" "$MODPATH" >/dev/null 2>&1 || abort "! Failed to copy saved configuration"
       USE_SAVED_CONFIG=true
     else
@@ -272,6 +234,7 @@ if [ "$USE_SAVED_CONFIG" = false ]; then
   ui_print "  Vol+ = Yes  |  Vol- = No"
   if choose; then
     ui_print "- Saving configuration for next time."
+    ui_print "- Copying raco.txt..."
     cp "$RACO_MODULE_CONFIG" "/data/ProjectRaco" >/dev/null 2>&1 || abort "! Failed to save new configuration"
   else
     ui_print "- Choices will not be saved."
