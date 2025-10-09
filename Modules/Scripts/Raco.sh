@@ -3,7 +3,7 @@
 ###############################
 
 # Config file path
-RACO_CONFIG="/data/adb/modules/ProjectRaco/raco.txt"
+RACO_CONFIG="/data/ProjectRaco/raco.txt"
 
 # Format: 1=MTK, 2=SD, 3=Exynos, 4=Unisoc, 5=Tensor, 6=Tegra, 7=Kirin
 SOC=$(grep '^SOC=' "$RACO_CONFIG" | cut -d'=' -f2)
