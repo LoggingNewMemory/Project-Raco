@@ -1,37 +1,89 @@
 #!/system/bin/sh
-#
-# All copy and move operations will now abort on failure.
-#
 
 check_for_config_changes() {
-  local new_config="$1"
+  local new_config_template="$1"
   local saved_config="$2"
   
-  # This function extracts all configuration keys (e.g., "INCLUDE_ANYA", "SOC")
-  # from both files, ignoring comments and section headers. It then compares the lists.
-  # If the lists are different in any way (keys added or removed), it returns 0 (true).
-  
   get_keys() {
-    grep -vE '^#|^\[|^$' "$1" | cut -d'=' -f1
+    grep -vE '^#|^\[|^$' "$1" | cut -d'=' -f1 | sort
   }
 
-  new_keys=$(get_keys "$new_config")
+  new_keys=$(get_keys "$new_config_template")
   saved_keys=$(get_keys "$saved_config")
   
-  # diff will be silent and exit with 0 if files are identical.
-  # If there is any difference, it will produce output and exit with 1.
-  if ! diff <(echo "$new_keys" | sort) <(echo "$saved_keys" | sort) >/dev/null 2>&1; then
-    ui_print "- Config file structure has changed."
+  if ! diff <(echo "$new_keys") <(echo "$saved_keys") >/dev/null 2>&1; then
     return 0 # 0 means true (changes detected)
   fi
   
   return 1 # 1 means false (no changes)
 }
 
+# This function merges old user settings into a new config template.
+# This is triggered when a module update adds/removes options.
+merge_configs() {
+  local new_template="$1"
+  local persistent_config="$2"
+  local temp_config="$MODPATH/raco.tmp"
+
+  ui_print "- Merging your previous settings..."
+  cp "$new_template" "$temp_config"
+
+  while IFS='=' read -r key value || [ -n "$key" ]; do
+    [[ "$key" =~ ^# ]] || [ -z "$key" ] && continue
+    local escaped_key=$(echo "$key" | sed -e 's/[]\/$*.^[]/\\&/g')
+    if grep -q "^${escaped_key}=" "$temp_config"; then
+      sed -i "s/^${escaped_key}=.*/${key}=${value}/" "$temp_config"
+    fi
+  done < "$persistent_config"
+
+  mv "$temp_config" "$persistent_config"
+  ui_print "- Settings merged successfully."
+  ui_print "- New options will use default values."
+}
+
+# This function handles the interactive addon selection using volume keys.
+manual_addon_selection() {
+  local config_file="$1"
+
+  ui_print " "
+  ui_print "- Include Anya Thermal?"
+  ui_print "  Disable / Enable Thermal | Anya Flowstate"
+  ui_print "  Vol+ = Yes  |  Vol- = No"
+  if choose; then INCLUDE_ANYA=1; ui_print "  > Yes"; else INCLUDE_ANYA=0; ui_print "  > No"; fi
+
+  ui_print " "
+  ui_print "- Include Kobo Fast Charge?"
+  ui_print "  Fast Charging Add On"
+  ui_print "  Vol+ = Yes  |  Vol- = No"
+  if choose; then INCLUDE_KOBO=1; ui_print "  > Yes"; else INCLUDE_KOBO=0; ui_print "  > No"; fi
+
+  ui_print " "
+  ui_print "- Include Vestia Zeta Display?"
+  ui_print "  Maximize Screen Refresh Rate"
+  ui_print "  Vol+ = Yes  |  Vol- = No"
+  if choose; then INCLUDE_ZETA=1; ui_print "  > Yes"; else INCLUDE_ZETA=0; ui_print "  > No"; fi
+
+  ui_print " "
+  ui_print "- Include Sandevistan Boot?"
+  ui_print "  An Attempt to Make Boot Faster"
+  ui_print "  Vol+ = Yes  |  Vol- = No"
+  if choose; then INCLUDE_SANDEV=1; ui_print "  > Yes"; else INCLUDE_SANDEV=0; ui_print "  > No"; fi
+
+  ui_print " "
+  ui_print "- Updating configuration..."
+  sed -i "s/^INCLUDE_ANYA=.*/INCLUDE_ANYA=$INCLUDE_ANYA/" "$config_file"
+  sed -i "s/^INCLUDE_KOBO=.*/INCLUDE_KOBO=$INCLUDE_KOBO/" "$config_file"
+  sed -i "s/^INCLUDE_ZETA=.*/INCLUDE_ZETA=$INCLUDE_ZETA/" "$config_file"
+  sed -i "s/^INCLUDE_SANDEV=.*/INCLUDE_SANDEV=$INCLUDE_SANDEV/" "$config_file"
+  ui_print "- Your choices have been saved."
+}
+
+# --- Main Script Execution ---
 
 LATESTARTSERVICE=true
 SOC=0
 RACO_PERSIST_CONFIG="/data/ProjectRaco/raco.txt"
+RACO_MODULE_TEMPLATE="$MODPATH/raco.txt"
 
 ui_print "------------------------------------"
 ui_print "             Project Raco           "
@@ -46,6 +98,9 @@ ui_print "DO NOT COMBINE WITH ANY PERF MODULE!"
 ui_print "------------------------------------"
 ui_print " "
 sleep 1.5
+
+# Ensure the persistent data directory exists
+mkdir -p /data/ProjectRaco
 
 if [ -f "$RACO_PERSIST_CONFIG" ]; then
   SAVED_SOC=$(grep '^SOC=' "$RACO_PERSIST_CONFIG" | cut -d'=' -f2)
@@ -118,22 +173,19 @@ ui_print " "
 sleep 1.5
 
 ui_print "- Setting up module files..."
-mkdir -p /data/ProjectRaco
 unzip -o "$ZIPFILE" 'Scripts/*' -d $MODPATH >&2
+unzip -o "$ZIPFILE" 'raco.txt' -d $MODPATH >&2
 
+# File copy operations
 rm -f "/data/local/tmp/logo.png" >/dev/null 2>&1
-ui_print "- Copying logo.png..."
 cp "$MODPATH/logo.png" "/data/local/tmp" >/dev/null 2>&1 || abort "! Failed to copy logo.png"
-
 rm -f "/data/local/tmp/Anya.png" >/dev/null 2>&1
-ui_print "- Copying Anya.png..."
 cp "$MODPATH/Anya.png" "/data/local/tmp" >/dev/null 2>&1 || abort "! Failed to copy Anya.png"
 
 if [ -f "/data/ProjectRaco/game.txt" ]; then
     ui_print "- Existing game.txt found, preserving user settings."
 else
     ui_print "- Performing first-time setup for game.txt."
-    ui_print "- Copying game.txt..."
     cp "$MODPATH/game.txt" "/data/ProjectRaco" >/dev/null 2>&1 || abort "! Failed to copy game.txt"
 fi
 ui_print " "
@@ -156,29 +208,26 @@ choose() {
   done
 }
 
-RACO_MODULE_CONFIG="$MODPATH/raco.txt"
-
+# --- REVISED CONFIGURATION LOGIC ---
 ui_print "------------------------------------"
 ui_print "      OPTIONAL ADDON SELECTION      "
 ui_print "------------------------------------"
-ui_print "- Extracting configuration file..."
-unzip -o "$ZIPFILE" 'raco.txt' -d $MODPATH >&2
 
-USE_SAVED_CONFIG=false
-if [ -f "$RACO_PERSIST_CONFIG" ]; then
-  ui_print " "
+if [ ! -f "$RACO_PERSIST_CONFIG" ]; then
+  # Case 1: First-time installation.
+  ui_print "- No previous configuration found."
+  ui_print "- Please choose your preferred addons."
+  cp "$RACO_MODULE_TEMPLATE" "$RACO_PERSIST_CONFIG"
+  manual_addon_selection "$RACO_PERSIST_CONFIG"
+else
+  # Case 2: Existing installation.
   ui_print "- Saved configuration found."
-  
-  # MANDATORY RECONFIGURATION LOGIC
-  if check_for_config_changes "$RACO_MODULE_CONFIG" "$RACO_PERSIST_CONFIG"; then
-    ui_print " "
-    ui_print "! New Entry of Config File Detected."
-    ui_print "! Forcing reconfiguration..."
-    ui_print " "
-    sleep 2
-    # No choice is given. USE_SAVED_CONFIG remains false, forcing manual selection.
+  if check_for_config_changes "$RACO_MODULE_TEMPLATE" "$RACO_PERSIST_CONFIG"; then
+    # Case 2a: Module updated with new config options.
+    ui_print "! Config file structure has changed."
+    merge_configs "$RACO_MODULE_TEMPLATE" "$RACO_PERSIST_CONFIG"
   else
-    # No changes found, ask to use saved config
+    # Case 2b: Re-installing same version or no config changes.
     ui_print "  Do you want to use it?"
     ui_print " "
     ui_print "  Vol+ = Yes, use saved config"
@@ -186,90 +235,37 @@ if [ -f "$RACO_PERSIST_CONFIG" ]; then
     ui_print " "
     if choose; then
       ui_print "- Using saved configuration."
-      ui_print "- Copying raco.txt..."
-      cp "$RACO_PERSIST_CONFIG" "$MODPATH" >/dev/null 2>&1 || abort "! Failed to copy saved configuration"
-      USE_SAVED_CONFIG=true
     else
       ui_print "- Re-configuring addons."
+      manual_addon_selection "$RACO_PERSIST_CONFIG"
     fi
   fi
 fi
 
-if [ "$USE_SAVED_CONFIG" = false ]; then
-  ui_print " "
-  ui_print "- Include Anya Thermal?"
-  ui_print "Disable / Enable Thermal | Anya Flowstate"
-  ui_print "  Vol+ = Yes  |  Vol- = No"
-  if choose; then INCLUDE_ANYA=1; ui_print "  > Yes"; else INCLUDE_ANYA=0; ui_print "  > No"; fi
+# Finalize by writing the detected SOC code to the persistent config.
+ui_print "- Finalizing SOC Code ($SOC) in config"
+sed -i "s/^SOC=.*/SOC=$SOC/" "$RACO_PERSIST_CONFIG"
 
-  ui_print " "
-  ui_print "- Include Kobo Fast Charge?"
-  ui_print "Fast Charging Add On"
-  ui_print "  Vol+ = Yes  |  Vol- = No"
-  if choose; then INCLUDE_KOBO=1; ui_print "  > Yes"; else INCLUDE_KOBO=0; ui_print "  > No"; fi
-
-  ui_print " "
-  ui_print "- Include Vestia Zeta Display?"
-  ui_print "Maximize Screen Refresh Rate"
-  ui_print "  Vol+ = Yes  |  Vol- = No"
-  if choose; then INCLUDE_ZETA=1; ui_print "  > Yes"; else INCLUDE_ZETA=0; ui_print "  > No"; fi
-
-  ui_print " "
-  ui_print "- Include Sandevistan Boot?"
-  ui_print "An Attempt to Make Boot Faster"
-  ui_print "  Vol+ = Yes  |  Vol- = No"
-  if choose; then INCLUDE_SANDEV=1; ui_print "  > Yes"; else INCLUDE_SANDEV=0; ui_print "  > No"; fi
-
-  ui_print " "
-  ui_print "- Updating module configuration..."
-  sed -i "s/^INCLUDE_ANYA=.*/INCLUDE_ANYA=$INCLUDE_ANYA/" "$RACO_MODULE_CONFIG"
-  sed -i "s/^INCLUDE_KOBO=.*/INCLUDE_KOBO=$INCLUDE_KOBO/" "$RACO_MODULE_CONFIG"
-  sed -i "s/^INCLUDE_ZETA=.*/INCLUDE_ZETA=$INCLUDE_ZETA/" "$RACO_MODULE_CONFIG"
-  sed -i "s/^INCLUDE_SANDEV=.*/INCLUDE_SANDEV=$INCLUDE_SANDEV/" "$RACO_MODULE_CONFIG"
-  ui_print "- Adding SOC Code ($SOC) to module config..."
-  sed -i "s/^SOC=.*/SOC=$SOC/" "$RACO_MODULE_CONFIG"
-
-  ui_print " "
-  ui_print "- Save these choices for future installations?"
-  ui_print "  Vol+ = Yes  |  Vol- = No"
-  if choose; then
-    ui_print "- Saving configuration for next time."
-    ui_print "- Copying raco.txt..."
-    cp "$RACO_MODULE_CONFIG" "/data/ProjectRaco" >/dev/null 2>&1 || abort "! Failed to save new configuration"
-  else
-    ui_print "- Choices will not be saved."
-    [ -f "$RACO_PERSIST_CONFIG" ] && rm -f "$RACO_PERSIST_CONFIG"
-  fi
-fi
-
-if [ -f "$RACO_MODULE_CONFIG" ]; then
-    ui_print "- Finalizing SOC Code ($SOC) in raco.txt"
-    sed -i "s/^SOC=.*/SOC=$SOC/" "$RACO_MODULE_CONFIG"
-fi
+# Clean up the template file from the module directory.
+# The module's own scripts should now read from /data/ProjectRaco/raco.txt
+rm -f "$RACO_MODULE_TEMPLATE"
 
 ui_print " "
 ui_print "   INSTALLING/UPDATING Project Raco App   "
 ui_print " "
 
 PACKAGE_NAME="com.kanagawa.yamada.project.raco"
-
 ui_print "- Copying ProjectRaco.apk..."
 cp "$MODPATH/ProjectRaco.apk" "/data/local/tmp" >/dev/null 2>&1 || abort "! Failed to copy ProjectRaco.apk"
-
 pm install -r -g /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
-
 if ! pm path "$PACKAGE_NAME" >/dev/null 2>&1; then
   ui_print "! Initial install failed. Retrying with root..."
-  
   su -c pm install -r -g /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
-  
   if ! pm path "$PACKAGE_NAME" >/dev/null 2>&1; then
     ui_print "! Root install also failed. Attempting a clean install..."
-    
     ui_print "- Uninstalling any existing version..."
     su -c pm uninstall "$PACKAGE_NAME" >/dev/null 2>&1
     sleep 1
-    
     ui_print "- Attempting a fresh installation..."
     su -c pm install -g /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
   fi
@@ -280,7 +276,6 @@ if pm path "$PACKAGE_NAME" >/dev/null 2>&1; then
 else
   ui_print "! CRITICAL: Failed to install the Project Raco App after multiple attempts."
 fi
-
 rm /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
 
 ui_print " "
@@ -291,12 +286,8 @@ BIN_PATH=$MODPATH/system/bin
 TARGET_BIN_NAME=HamadaAI
 TARGET_BIN_PATH=$BIN_PATH/$TARGET_BIN_NAME
 PLACEHOLDER_FILE=$BIN_PATH/Kakangkuh
-
 mkdir -p $BIN_PATH
-
-if [ -f "$PLACEHOLDER_FILE" ]; then
-  rm -f "$PLACEHOLDER_FILE"
-fi
+[ -f "$PLACEHOLDER_FILE" ] && rm -f "$PLACEHOLDER_FILE"
 
 ARCH=$(getprop ro.product.cpu.abi)
 if [[ "$ARCH" == *"arm64"* ]]; then
@@ -309,10 +300,7 @@ fi
 
 if [ -f "$SOURCE_BIN" ]; then
   ui_print "- Installing HamadaAI binary..."
-  ui_print "- Moving $(basename "$SOURCE_BIN")..."
   mv "$SOURCE_BIN" "$TARGET_BIN_PATH" >/dev/null 2>&1 || abort "! Failed to move HamadaAI binary"
-
-  ui_print "- Setting permissions for $TARGET_BIN_NAME"
   set_perm $TARGET_BIN_PATH 0 0 0755
 else
   ui_print "! ERROR: Source binary not found at $SOURCE_BIN"
