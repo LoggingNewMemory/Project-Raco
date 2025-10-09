@@ -33,7 +33,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
 
   Future<Map<String, dynamic>> _loadEncoreSwitchState() async {
     final result = await runRootCommandAndWait(
-      'cat /data/adb/modules/ProjectRaco/raco.txt',
+      'cat /data/ProjectRaco/raco.txt',
     );
     if (result.exitCode == 0) {
       final content = result.stdout.toString();
@@ -70,7 +70,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
       runRootCommandAndWait(
         'cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors',
       ),
-      runRootCommandAndWait('cat /data/adb/modules/ProjectRaco/raco.txt'),
+      runRootCommandAndWait('cat /data/ProjectRaco/raco.txt'),
     ]);
     final governorsResult = results[0];
     final configResult = results[1];
@@ -191,7 +191,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
   bool _isUpdatingMitigation = false;
   bool _isUpdatingLiteMode = false;
   bool _isUpdatingBetterPowersave = false;
-  final String _racoConfigFilePath = '/data/adb/modules/ProjectRaco/raco.txt';
+  final String _racoConfigFilePath = '/data/ProjectRaco/raco.txt';
 
   @override
   void initState() {
@@ -378,7 +378,7 @@ class _GovernorCardState extends State<GovernorCard> {
   late List<String> _availableGovernors;
   String? _selectedGovernor;
   bool _isSaving = false;
-  final String _configFilePath = '/data/adb/modules/ProjectRaco/raco.txt';
+  final String _configFilePath = '/data/ProjectRaco/raco.txt';
 
   @override
   void initState() {
