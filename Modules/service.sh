@@ -5,7 +5,7 @@ while [ -z "$(getprop sys.boot_completed)" ]; do
     sleep 10
 done
 
-CONFIG_FILE="/data/adb/modules/ProjectRaco/raco.txt"
+CONFIG_FILE="/data/ProjectRaco/raco.txt"
 
 # Define the function to change the CPU governor.
 # It will only be called if INCLUDE_SANDEV is set to 1.
