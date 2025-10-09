@@ -1,6 +1,10 @@
-![Picsart_25-09-09_11-55-46-438](https://github.com/user-attachments/assets/b4b4e13d-d0c5-421a-a68e-0a47021f6f7e)
+<img width="1280" height="720" alt="Banner" src="https://github.com/user-attachments/assets/c7cf37ee-da35-448a-b847-fe00bab439b4" />
 
-[For Devs] <br />
+Support: Snapdragon, Mediatek, Exynos, Kirin, UniSoc (Probably everything exepct PC CPU)
+- Better actually you can try to install it, if it's success then it's supported
+
+
+### [For Devs] <br />
 If you want your tweaks merged into Project Raco you must:
 - Know your tweaks can run in multiple devices (Not cause bootloops & problems)
 - Can adapth to the main Raco.sh
