@@ -12,7 +12,7 @@ If your module is not listed here, you can try to combine it (Ex: SkiaVK / GL Mo
 - Vestia Zeta Display (Addon)
 - Kobo Fast Charge (Addon)
 - Sandevistan Boot (Addon) (Project Raco Exclusive Settings)
-- Render Tweaks
+- Render Tweaks (Celestial Render FlowX)
 - Hamada AI (Auto switch to performance when enter game)
 - Downscale Resolution
 - Touch Improve Tweak
@@ -23,3 +23,4 @@ If your module is not listed here, you can try to combine it (Ex: SkiaVK / GL Mo
 - Render Tweak (Still can be combined with SkiaVK / GL render) 
 - Auto DND when playing games
 - FStrim & Clear Cache
+- SurfaceFlinger Tweaks (Carlotta Render)
