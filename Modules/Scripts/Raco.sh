@@ -66,18 +66,21 @@ kakangkuh() {
 	echo "$1" >"$2" 2>/dev/null
 }
 
-kill_all() {
-for pkg in $(pm list packages -3 | cut -f 2 -d ":"); do
-    if [ "$pkg" != "com.google.android.inputmethod.latin" ]; then 
-        am force-stop "$pkg" > /dev/null 2>&1
-    fi
-done
 
-cmd activity kill-all > /dev/null 2>&1
-pm trim-caches 100G > /dev/null 2>&1
-echo 3 > /proc/sys/vm/drop_caches
-logcat -c
-logcat -b all -c
+kill_all() {
+    sync
+    cmd activity kill-all > /dev/null 2>&1
+    for pkg in $(pm list packages -3 | cut -f 2 -d ":"); do
+        # Keep the exception for the keyboard to prevent it from closing while you're using a terminal.
+        if [ "$pkg" != "com.google.android.inputmethod.latin" ]; then 
+            am force-stop "$pkg" > /dev/null 2>&1
+        fi
+    done
+
+    pm trim-caches 100G > /dev/null 2>&1
+    echo 3 > /proc/sys/vm/drop_caches
+    logcat -c
+    logcat -b all -c
 }
 
 # This is also external
