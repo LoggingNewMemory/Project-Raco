@@ -1,3 +1,6 @@
+# LAST WARNING!
+## DO NOT COMBINE WITH ANY PERFORMANCE MODULE 
+
 If your module is not listed here, you can try to combine it (Ex: SkiaVK / GL Module)
 
 - App to Control Modes
