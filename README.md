@@ -3,6 +3,7 @@
 Support: Snapdragon, Mediatek, Exynos, Kirin, UniSoc (Probably everything exepct PC CPU)
 - Better actually you can try to install it, if it's success then it's supported
 
+## MUST READ!!
 Features List: [HERE](https://github.com/LoggingNewMemory/Project-Raco/blob/main/FEATURES.md)
 
 ### [For Devs] <br />
