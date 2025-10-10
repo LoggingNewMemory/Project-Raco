@@ -67,14 +67,17 @@ kakangkuh() {
 }
 
 kill_all() {
-	for pkg in $(pm list packages -3 | cut -f 2 -d ":"); do
-    if [ "$pkg" != "com.google.android.inputmethod.latin" ]; then
-        am force-stop $pkg
+for pkg in $(pm list packages -3 | cut -f 2 -d ":"); do
+    if [ "$pkg" != "com.google.android.inputmethod.latin" ]; then 
+        am force-stop "$pkg" > /dev/null 2>&1
     fi
 done
 
+cmd activity kill-all > /dev/null 2>&1
+pm trim-caches 100G > /dev/null 2>&1
 echo 3 > /proc/sys/vm/drop_caches
-am kill-all
+logcat -c
+logcat -b all -c
 }
 
 # This is also external
