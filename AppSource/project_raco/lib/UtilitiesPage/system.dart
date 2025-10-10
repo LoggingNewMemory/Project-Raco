@@ -37,7 +37,7 @@ class _SystemPageState extends State<SystemPage> {
 
   Future<bool> _loadDndState() async {
     final result = await runRootCommandAndWait(
-      'cat /data/adb/modules/ProjectRaco/raco.txt',
+      'cat /data/ProjectRaco/raco.txt',
     );
     if (result.exitCode == 0) {
       final match = RegExp(
@@ -51,7 +51,7 @@ class _SystemPageState extends State<SystemPage> {
 
   Future<bool> _loadAnyaThermalState() async {
     final result = await runRootCommandAndWait(
-      'cat /data/adb/modules/ProjectRaco/raco.txt',
+      'cat /data/ProjectRaco/raco.txt',
     );
     if (result.exitCode == 0) {
       final match = RegExp(
@@ -65,7 +65,7 @@ class _SystemPageState extends State<SystemPage> {
 
   Future<bool> _loadAnyaInclusionState() async {
     final result = await runRootCommandAndWait(
-      'cat /data/adb/modules/ProjectRaco/raco.txt',
+      'cat /data/ProjectRaco/raco.txt',
     );
     if (result.exitCode == 0) {
       final content = result.stdout.toString();
@@ -121,7 +121,7 @@ class _SystemPageState extends State<SystemPage> {
       runRootCommandAndWait(
         'sh /data/adb/modules/ProjectRaco/Scripts/raco_bypass_controller.sh test',
       ),
-      runRootCommandAndWait('cat /data/adb/modules/ProjectRaco/raco.txt'),
+      runRootCommandAndWait('cat /data/ProjectRaco/raco.txt'),
     ]);
     final supportResult = results[0];
     final configResult = results[1];
@@ -147,7 +147,7 @@ class _SystemPageState extends State<SystemPage> {
     final serviceFileCheckCommand =
         'grep -q "AyundaRusdi.sh" /data/adb/modules/ProjectRaco/service.sh';
     final results = await Future.wait([
-      runRootCommandAndWait('cat /data/adb/modules/ProjectRaco/raco.txt'),
+      runRootCommandAndWait('cat /data/ProjectRaco/raco.txt'),
       runRootCommandAndWait(serviceFileCheckCommand),
     ]);
 
@@ -179,15 +179,15 @@ class _SystemPageState extends State<SystemPage> {
     final valuesString =
         '${red.round()},${green.round()},${blue.round()},${saturation.round()},${applyOnBoot ? "Yes" : "No"}';
     final sedCheckCommand =
-        "grep -q '^AYUNDA_RUSDI=' /data/adb/modules/ProjectRaco/raco.txt";
+        "grep -q '^AYUNDA_RUSDI=' /data/ProjectRaco/raco.txt";
     final checkResult = await runRootCommandAndWait(sedCheckCommand);
     if (checkResult.exitCode == 0) {
       await runRootCommandAndWait(
-        "sed -i 's|^AYUNDA_RUSDI=.*|AYUNDA_RUSDI=$valuesString|' /data/adb/modules/ProjectRaco/raco.txt",
+        "sed -i 's|^AYUNDA_RUSDI=.*|AYUNDA_RUSDI=$valuesString|' /data/ProjectRaco/raco.txt",
       );
     } else {
       await runRootCommandAndWait(
-        "echo 'AYUNDA_RUSDI=$valuesString' >> /data/adb/modules/ProjectRaco/raco.txt",
+        "echo 'AYUNDA_RUSDI=$valuesString' >> /data/ProjectRaco/raco.txt",
       );
     }
 
@@ -315,7 +315,7 @@ class DndCard extends StatefulWidget {
 class _DndCardState extends State<DndCard> {
   late bool _dndEnabled;
   bool _isUpdating = false;
-  final String _configFilePath = '/data/adb/modules/ProjectRaco/raco.txt';
+  final String _configFilePath = '/data/ProjectRaco/raco.txt';
 
   @override
   void initState() {
@@ -409,7 +409,7 @@ class AnyaThermalCard extends StatefulWidget {
 class _AnyaThermalCardState extends State<AnyaThermalCard> {
   late bool _isEnabled;
   bool _isUpdating = false;
-  final String _configFilePath = '/data/adb/modules/ProjectRaco/raco.txt';
+  final String _configFilePath = '/data/ProjectRaco/raco.txt';
 
   @override
   void initState() {
@@ -516,7 +516,7 @@ class _BypassChargingCardState extends State<BypassChargingCard> {
   late bool _isEnabled;
   bool _isToggling = false;
 
-  final String _configFilePath = '/data/adb/modules/ProjectRaco/raco.txt';
+  final String _configFilePath = '/data/ProjectRaco/raco.txt';
 
   @override
   void initState() {
@@ -790,7 +790,7 @@ class _ScreenModifierCardState extends State<ScreenModifierCard> {
   late bool _applyOnBoot;
   bool _isUpdating = false;
 
-  final String _configFilePath = '/data/adb/modules/ProjectRaco/raco.txt';
+  final String _configFilePath = '/data/ProjectRaco/raco.txt';
   final String _serviceFilePath = '/data/adb/modules/ProjectRaco/service.sh';
 
   @override
