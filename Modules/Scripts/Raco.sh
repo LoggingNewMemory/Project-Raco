@@ -1,5 +1,5 @@
 ###############################
-# DEFINE CONFIG | Test Sign
+# DEFINE CONFIG 
 ###############################
 
 # Config file path
