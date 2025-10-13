@@ -1,5 +1,5 @@
 ###############################
-# DEFINE CONFIG Dhlh
+# DEFINE CONFIG
 ###############################
 
 # Config file path
