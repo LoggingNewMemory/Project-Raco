@@ -829,11 +829,11 @@ performance_basic() {
         change_cpu_gov "$DEFAULT_CPU_GOV"
     fi
 
+    # Set both PPM and standard cpufreq if PPM exists, otherwise just standard
     if [ -d "/proc/ppm" ]; then
         cpufreq_ppm_max_perf
-    else
-        cpufreq_max_perf
     fi
+    cpufreq_max_perf
 
     for dir in /sys/block/mmcblk0 /sys/block/mmcblk1 /sys/block/sd*; do
         tweak 32 "$dir/queue/read_ahead_kb"
@@ -898,11 +898,11 @@ balanced_basic() {
 
     change_cpu_gov "$DEFAULT_CPU_GOV"
 
-    if [ -d /proc/ppm ]; then
+    # Set both PPM and standard cpufreq if PPM exists, otherwise just standard
+    if [ -d "/proc/ppm" ]; then
         cpufreq_ppm_unlock
-    else
-        cpufreq_unlock
     fi
+    cpufreq_unlock
     
     # Apply device-specific tweaks
     case $SOC in
@@ -941,11 +941,11 @@ powersave_basic() {
 
     change_cpu_gov "powersave"
 
-    if [ -d /proc/ppm ]; then
+    # Set both PPM and standard cpufreq if PPM exists, otherwise just standard
+    if [ -d "/proc/ppm" ]; then
         cpufreq_ppm_min_perf
-    else
-        cpufreq_min_perf
     fi
+    cpufreq_min_perf
 
     # Apply device-specific tweaks
     case $SOC in
