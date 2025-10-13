@@ -165,82 +165,11 @@ dnd_on() {
 mtkvest_perf() {
     # Performance Manager - disable system limiter
     tweak 1 "$MTK_PERFMGR"
-
-    # Configure GED HAL settings
-    if [ -d "$MTK_GED_HAL" ]; then
-        tweak 2 "$MTK_GED_HAL/loading_base_dvfs_step"
-        tweak 1 "$MTK_GED_HAL/loading_stride_size"
-        tweak 16 "$MTK_GED_HAL/loading_window_size"
-    fi
-
-    ged_params="ged_smart_boost 1
-    boost_upper_bound 100
-    enable_gpu_boost 1
-    enable_cpu_boost 1
-    ged_boost_enable 1
-    boost_gpu_enable 1
-    gpu_dvfs_enable 1
-    gx_frc_mode 1
-    gx_dfps 1
-    gx_force_cpu_boost 1
-    gx_boost_on 1
-    gx_game_mode 1
-    gx_3D_benchmark_on 1
-    gx_fb_dvfs_margin 100
-    gx_fb_dvfs_threshold 100
-    gpu_loading 100000
-    cpu_boost_policy 1
-    boost_extra 1
-    ged_force_mdp_enable 1
-    force_fence_timeout_dump_enable 0
-    gpu_idle 0"
-
-    echo "$ged_params" | while read -r param value; do
-        tweak "$value" "$MTK_GED_PARAMS/$param"
-    done
-
-    tweak 100 "$MTK_GED_HAL/gpu_boost_level"
 }
 
 mtkvest_normal() {
     # Performance manager settings for balanced operation
     tweak 0 "$MTK_PERFMGR"
-
-    # Configure GED HAL settings
-    if [ -d "$MTK_GED_HAL" ]; then
-        tweak 4 "$MTK_GED_HAL/loading_base_dvfs_step"
-        tweak 2 "$MTK_GED_HAL/loading_stride_size"
-        tweak 8 "$MTK_GED_HAL/loading_window_size"
-    fi
-
-    # GED parameters
-    ged_params="ged_smart_boost 0
-    boost_upper_bound 0
-    enable_gpu_boost 0
-    enable_cpu_boost 0
-    ged_boost_enable 0
-    boost_gpu_enable 0
-    gpu_dvfs_enable 1
-    gx_frc_mode 0
-    gx_dfps 0
-    gx_force_cpu_boost 0
-    gx_boost_on 0
-    gx_game_mode 0
-    gx_3D_benchmark_on 0
-    gx_fb_dvfs_margin 0
-    gx_fb_dvfs_threshold 0
-    gpu_loading 0
-    cpu_boost_policy 0
-    boost_extra 0
-    ged_force_mdp_enable 0
-    force_fence_timeout_dump_enable 0
-    gpu_idle 0"
-
-    echo "$ged_params" | while read -r param value; do
-        tweak "$value" "$MTK_GED_PARAMS/$param"
-    done
-
-    tweak -1 "$MTK_GED_HAL/gpu_boost_level"
 }
 
 ###################################
