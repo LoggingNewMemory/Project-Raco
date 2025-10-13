@@ -306,6 +306,3 @@ else
   ui_print "! ERROR: Source binary not found at $SOURCE_BIN"
   abort "! Aborting installation."
 fi
-
-set_perm_recursive $MODPATH/system/lib/libncurses.so 0 0 0644 0644
-set_perm_recursive $MODPATH/system/etc/init/gpuservice.rc 0 0 0755 0755
