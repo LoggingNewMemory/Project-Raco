@@ -61,158 +61,158 @@ fi
 
 # Ayunda Rusdi
 
-###################################
-# Carlotta Render (@Koneko_Dev)
-# Version 1.0 
-# Note: The purpose is different from Celestial Render
-# This tweak surface flinger
-###################################
-refresh_rate="$(cmd display dump 2>/dev/null | grep -Eo 'fps=[0-9.]+' | cut -f2 -d= | awk '{printf "%.0f\n", $1}' | sort -nr | head -n1)"
+# ###################################
+# # Carlotta Render (@Koneko_Dev)
+# # Version 1.0 
+# # Note: The purpose is different from Celestial Render
+# # This tweak surface flinger
+# ###################################
+# refresh_rate="$(cmd display dump 2>/dev/null | grep -Eo 'fps=[0-9.]+' | cut -f2 -d= | awk '{printf "%.0f\n", $1}' | sort -nr | head -n1)"
 
-if [ -z "$refresh_rate" ] || [ "$refresh_rate" -lt 1 ]; then
-    refresh_rate="$(dumpsys display | grep -E 'mRefreshRate|frameRate' | grep -Eo '[0-9.]+' | head -n1 | awk '{printf "%.0f\n", $1}')"
-fi
+# if [ -z "$refresh_rate" ] || [ "$refresh_rate" -lt 1 ]; then
+#     refresh_rate="$(dumpsys display | grep -E 'mRefreshRate|frameRate' | grep -Eo '[0-9.]+' | head -n1 | awk '{printf "%.0f\n", $1}')"
+# fi
 
-if [ -z "$refresh_rate" ] || [ "$refresh_rate" -lt 1 ]; then
-    refresh_rate=60
-fi
+# if [ -z "$refresh_rate" ] || [ "$refresh_rate" -lt 1 ]; then
+#     refresh_rate=60
+# fi
 
-frame_duration_ns=$(echo "scale=25; 1000000000 / $refresh_rate" | bc)
+# frame_duration_ns=$(echo "scale=25; 1000000000 / $refresh_rate" | bc)
 
-if [ "$refresh_rate" -ge 120 ]; then
-    app_phase_ratio=0.72      
-    sf_phase_ratio=0.85       
-    app_duration_ratio=0.58   
-    sf_duration_ratio=0.32    
+# if [ "$refresh_rate" -ge 120 ]; then
+#     app_phase_ratio=0.72      
+#     sf_phase_ratio=0.85       
+#     app_duration_ratio=0.58   
+#     sf_duration_ratio=0.32    
     
-elif [ "$refresh_rate" -ge 90 ]; then
-    app_phase_ratio=0.70
-    sf_phase_ratio=0.82  
-    app_duration_ratio=0.62
-    sf_duration_ratio=0.30
+# elif [ "$refresh_rate" -ge 90 ]; then
+#     app_phase_ratio=0.70
+#     sf_phase_ratio=0.82  
+#     app_duration_ratio=0.62
+#     sf_duration_ratio=0.30
     
-elif [ "$refresh_rate" -ge 75 ]; then
-    app_phase_ratio=0.68
-    sf_phase_ratio=0.80
-    app_duration_ratio=0.65
-    sf_duration_ratio=0.28
+# elif [ "$refresh_rate" -ge 75 ]; then
+#     app_phase_ratio=0.68
+#     sf_phase_ratio=0.80
+#     app_duration_ratio=0.65
+#     sf_duration_ratio=0.28
     
-else
-    app_phase_ratio=0.65     
-    sf_phase_ratio=0.75      
-    app_duration_ratio=0.68  
-    sf_duration_ratio=0.25    
-fi
+# else
+#     app_phase_ratio=0.65     
+#     sf_phase_ratio=0.75      
+#     app_duration_ratio=0.68  
+#     sf_duration_ratio=0.25    
+# fi
 
-app_phase_offset_ns=$(echo "scale=0; (-$frame_duration_ns * $app_phase_ratio) / 1" | bc)
-sf_phase_offset_ns=$(echo "scale=0; (-$frame_duration_ns * $sf_phase_ratio) / 1" | bc)
+# app_phase_offset_ns=$(echo "scale=0; (-$frame_duration_ns * $app_phase_ratio) / 1" | bc)
+# sf_phase_offset_ns=$(echo "scale=0; (-$frame_duration_ns * $sf_phase_ratio) / 1" | bc)
 
-app_duration=$(echo "scale=0; ($frame_duration_ns * $app_duration_ratio) / 1" | bc)
-sf_duration=$(echo "scale=0; ($frame_duration_ns * $sf_duration_ratio) / 1" | bc)
+# app_duration=$(echo "scale=0; ($frame_duration_ns * $app_duration_ratio) / 1" | bc)
+# sf_duration=$(echo "scale=0; ($frame_duration_ns * $sf_duration_ratio) / 1" | bc)
 
-app_end_time=$(echo "scale=0; $app_phase_offset_ns + $app_duration" | bc)
-sf_end_time=$(echo "scale=0; $sf_phase_offset_ns + $sf_duration" | bc)
+# app_end_time=$(echo "scale=0; $app_phase_offset_ns + $app_duration" | bc)
+# sf_end_time=$(echo "scale=0; $sf_phase_offset_ns + $sf_duration" | bc)
 
-min_margin=$(echo "scale=0; $frame_duration_ns * 0.08 / 1" | bc)
-dead_time=$(echo "scale=0; -($app_end_time + $sf_phase_offset_ns)" | bc)
+# min_margin=$(echo "scale=0; $frame_duration_ns * 0.08 / 1" | bc)
+# dead_time=$(echo "scale=0; -($app_end_time + $sf_phase_offset_ns)" | bc)
 
-if [ $(echo "$dead_time < $min_margin" | bc) -eq 1 ]; then
-    adjustment=$(echo "scale=0; $min_margin - $dead_time" | bc)
-    app_duration=$(echo "scale=0; $app_duration - $adjustment" | bc)
-fi
+# if [ $(echo "$dead_time < $min_margin" | bc) -eq 1 ]; then
+#     adjustment=$(echo "scale=0; $min_margin - $dead_time" | bc)
+#     app_duration=$(echo "scale=0; $app_duration - $adjustment" | bc)
+# fi
 
-min_phase_duration=$(echo "scale=0; $frame_duration_ns * 0.12 / 1" | bc)
-if [ $(echo "$app_duration < $min_phase_duration" | bc) -eq 1 ]; then
-    app_duration=$min_phase_duration
-fi
-if [ $(echo "$sf_duration < $min_phase_duration" | bc) -eq 1 ]; then
-    sf_duration=$min_phase_duration
-fi
+# min_phase_duration=$(echo "scale=0; $frame_duration_ns * 0.12 / 1" | bc)
+# if [ $(echo "$app_duration < $min_phase_duration" | bc) -eq 1 ]; then
+#     app_duration=$min_phase_duration
+# fi
+# if [ $(echo "$sf_duration < $min_phase_duration" | bc) -eq 1 ]; then
+#     sf_duration=$min_phase_duration
+# fi
 
-app_duration=$(printf "%.0f" "$app_duration")
-sf_duration=$(printf "%.0f" "$sf_duration")
-app_phase_offset_ns=$(printf "%.0f" "$app_phase_offset_ns")
-sf_phase_offset_ns=$(printf "%.0f" "$sf_phase_offset_ns")
+# app_duration=$(printf "%.0f" "$app_duration")
+# sf_duration=$(printf "%.0f" "$sf_duration")
+# app_phase_offset_ns=$(printf "%.0f" "$app_phase_offset_ns")
+# sf_phase_offset_ns=$(printf "%.0f" "$sf_phase_offset_ns")
 
-setprop debug.sf.early.app.duration "$app_duration"
-setprop debug.sf.earlyGl.app.duration "$app_duration" 
-setprop debug.sf.late.app.duration "$app_duration"
+# setprop debug.sf.early.app.duration "$app_duration"
+# setprop debug.sf.earlyGl.app.duration "$app_duration" 
+# setprop debug.sf.late.app.duration "$app_duration"
 
-setprop debug.sf.early.sf.duration "$sf_duration"
-setprop debug.sf.earlyGl.sf.duration "$sf_duration"
-setprop debug.sf.late.sf.duration "$sf_duration"
+# setprop debug.sf.early.sf.duration "$sf_duration"
+# setprop debug.sf.earlyGl.sf.duration "$sf_duration"
+# setprop debug.sf.late.sf.duration "$sf_duration"
 
-setprop debug.sf.early_app_phase_offset_ns "$app_phase_offset_ns"
-setprop debug.sf.high_fps_early_app_phase_offset_ns "$app_phase_offset_ns"
-setprop debug.sf.high_fps_late_app_phase_offset_ns "$app_phase_offset_ns"
-setprop debug.sf.early_phase_offset_ns "$sf_phase_offset_ns"
-setprop debug.sf.high_fps_early_phase_offset_ns "$sf_phase_offset_ns"
-setprop debug.sf.high_fps_late_sf_phase_offset_ns "$sf_phase_offset_ns"
+# setprop debug.sf.early_app_phase_offset_ns "$app_phase_offset_ns"
+# setprop debug.sf.high_fps_early_app_phase_offset_ns "$app_phase_offset_ns"
+# setprop debug.sf.high_fps_late_app_phase_offset_ns "$app_phase_offset_ns"
+# setprop debug.sf.early_phase_offset_ns "$sf_phase_offset_ns"
+# setprop debug.sf.high_fps_early_phase_offset_ns "$sf_phase_offset_ns"
+# setprop debug.sf.high_fps_late_sf_phase_offset_ns "$sf_phase_offset_ns"
 
-if [ "$refresh_rate" -ge 120 ]; then
-    threshold_ratio=0.28
-elif [ "$refresh_rate" -ge 90 ]; then
-    threshold_ratio=0.32
-elif [ "$refresh_rate" -ge 75 ]; then
-    threshold_ratio=0.35
-else
-    threshold_ratio=0.38
-fi
+# if [ "$refresh_rate" -ge 120 ]; then
+#     threshold_ratio=0.28
+# elif [ "$refresh_rate" -ge 90 ]; then
+#     threshold_ratio=0.32
+# elif [ "$refresh_rate" -ge 75 ]; then
+#     threshold_ratio=0.35
+# else
+#     threshold_ratio=0.38
+# fi
 
-phase_offset_threshold_ns=$(echo "scale=0; ($frame_duration_ns * $threshold_ratio) / 1" | bc)
+# phase_offset_threshold_ns=$(echo "scale=0; ($frame_duration_ns * $threshold_ratio) / 1" | bc)
 
-max_threshold=$(echo "scale=0; $frame_duration_ns * 0.45 / 1" | bc)
-min_threshold=$(echo "scale=0; $frame_duration_ns * 0.22 / 1" | bc)
+# max_threshold=$(echo "scale=0; $frame_duration_ns * 0.45 / 1" | bc)
+# min_threshold=$(echo "scale=0; $frame_duration_ns * 0.22 / 1" | bc)
 
-if [ $(echo "$phase_offset_threshold_ns > $max_threshold" | bc) -eq 1 ]; then
-    phase_offset_threshold_ns=$max_threshold
-elif [ $(echo "$phase_offset_threshold_ns < $min_threshold" | bc) -eq 1 ]; then
-    phase_offset_threshold_ns=$min_threshold  
-fi
+# if [ $(echo "$phase_offset_threshold_ns > $max_threshold" | bc) -eq 1 ]; then
+#     phase_offset_threshold_ns=$max_threshold
+# elif [ $(echo "$phase_offset_threshold_ns < $min_threshold" | bc) -eq 1 ]; then
+#     phase_offset_threshold_ns=$min_threshold  
+# fi
 
-phase_offset_threshold_ns=$(printf "%.0f" "$phase_offset_threshold_ns")
-setprop debug.sf.phase_offset_threshold_for_next_vsync_ns "$phase_offset_threshold_ns"
+# phase_offset_threshold_ns=$(printf "%.0f" "$phase_offset_threshold_ns")
+# setprop debug.sf.phase_offset_threshold_for_next_vsync_ns "$phase_offset_threshold_ns"
 
-setprop debug.sf.enable_advanced_sf_phase_offset 1
-setprop debug.sf.enable_cached_set_render_scheduling true
-setprop debug.sf.enable_egl_image_tracker false
-setprop debug.sf.enable_transaction_tracing false
-setprop debug.sf.layer_caching_highlight false
-setprop debug.sf.trace_hint_sessions false
-setprop debug.sf.vsp_trace false
-setprop debug.sf.layer_history_trace false
-setprop debug.sf.kernel_idle_timer_update_overlay false
-setprop debug.sf.enable_layer_caching 1
-setprop debug.sf.predict_hwc_composition_strategy 1
-setprop debug.sf.disable_client_composition_cache 0
-setprop debug.sf.luma_sampling 0
-setprop debug.sf.show_predicted_vsync false
-setprop debug.sf.treat_170m_as_sRGB 0
-setprop debug.sf.use_phase_offsets_as_durations 0
-setprop debug.sf.enable_hwc_vds 0
-setprop debug.vulkan.enable_callback false
-setprop debug.renderengine.vulkan false
-setprop debug.renderengine.backend skiaglthreaded
-setprop debug.stagefright.renderengine.backend skiaglthreaded
-setprop debug.hwui.initialize_gl_always true
-setprop debug.hwui.early_preload_gl_context true
+# setprop debug.sf.enable_advanced_sf_phase_offset 1
+# setprop debug.sf.enable_cached_set_render_scheduling true
+# setprop debug.sf.enable_egl_image_tracker false
+# setprop debug.sf.enable_transaction_tracing false
+# setprop debug.sf.layer_caching_highlight false
+# setprop debug.sf.trace_hint_sessions false
+# setprop debug.sf.vsp_trace false
+# setprop debug.sf.layer_history_trace false
+# setprop debug.sf.kernel_idle_timer_update_overlay false
+# setprop debug.sf.enable_layer_caching 1
+# setprop debug.sf.predict_hwc_composition_strategy 1
+# setprop debug.sf.disable_client_composition_cache 0
+# setprop debug.sf.luma_sampling 0
+# setprop debug.sf.show_predicted_vsync false
+# setprop debug.sf.treat_170m_as_sRGB 0
+# setprop debug.sf.use_phase_offsets_as_durations 0
+# setprop debug.sf.enable_hwc_vds 0
+# setprop debug.vulkan.enable_callback false
+# setprop debug.renderengine.vulkan false
+# setprop debug.renderengine.backend skiaglthreaded
+# setprop debug.stagefright.renderengine.backend skiaglthreaded
+# setprop debug.hwui.initialize_gl_always true
+# setprop debug.hwui.early_preload_gl_context true
 
-fps_int=$(printf "%.0f" "$refresh_rate")
-if [ "$fps_int" -ge 120 ]; then
-    timeout=42 
-elif [ "$fps_int" -ge 90 ]; then
-    timeout=67  
-else
-    timeout=133
-fi
+# fps_int=$(printf "%.0f" "$refresh_rate")
+# if [ "$fps_int" -ge 120 ]; then
+#     timeout=42 
+# elif [ "$fps_int" -ge 90 ]; then
+#     timeout=67  
+# else
+#     timeout=133
+# fi
 
-if [ "$timeout" -lt 16 ]; then 
-   timeout=16
-elif [ "$timeout" -gt 1000 ]; then
-    timeout=1000
-fi
+# if [ "$timeout" -lt 16 ]; then 
+#    timeout=16
+# elif [ "$timeout" -gt 1000 ]; then
+#     timeout=1000
+# fi
 
-setprop debug.sf.layer_caching_active_layer_timeout_ms $timeout
+# setprop debug.sf.layer_caching_active_layer_timeout_ms $timeout
 
 #####################################
 # End of Carlotta Render

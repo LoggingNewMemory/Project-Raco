@@ -3,15 +3,8 @@
 ###################################
 # Star Tweak (@Koneko_dev)
 # Version amba 2.0 
-# Note: 
+# Note: Remove set_hwui_sf because crash SF in Arona
 ###################################
-
-set_hwui_sf() {
-  setprop debug.sf.latch_unsignaled 1
-  setprop debug.hwui.use_buffer_age false
-  setprop debug.hwui.disable_vsync false
-  setprop debug.sf.hw 1
-}
 
 animation() {
     cpu_total=$(awk '{sum+=$1} END{printf "%.0f", sum/1000000}' /sys/devices/system/cpu/cpu[0-9]*/cpufreq/cpuinfo_max_freq 2>/dev/null)
