@@ -1,3 +1,7 @@
+# Wait for boot completion
+while [ -z "$(getprop sys.boot_completed)" ]; do
+    sleep 10
+done
 
 if [ -f $INFO ]; then
   while read LINE; do
@@ -18,7 +22,7 @@ fi
 
 rm -rf /data/local/tmp/logo.png
 rm -rf /data/local/tmp/Anya.png
-pm uninstall --user 0 com.kanagawa.yamada.project.raco >/dev/null 2>&1
+pm uninstall -k com.kanagawa.yamada.project.raco >/dev/null 2>&1
 rm -rf /data/ProjectRaco
 
 # Managed to read this? Thanks for using Project Raco
