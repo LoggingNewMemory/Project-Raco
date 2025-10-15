@@ -802,7 +802,6 @@ performance_basic() {
 
 	sh $STAR_PATH/BATTERY_RESTORE.sh
 	sh $STAR_PATH/CPU_DBPerformance.sh
-	sh $STAR_PATH/CPU_Performance.sh
 	sh $STAR_PATH/SF_Performance.sh
     dnd_on
     corin_perf
@@ -869,7 +868,6 @@ balanced_basic() {
     esac
 	
 	sh $STAR_PATH/BATTERY_RESTORE.sh
-	sh $STAR_PATH/CPU_Balance.sh
 	sh $STAR_PATH/CPU_DBBalance.sh
 	sh $STAR_PATH/SF_Smoothness.sh
 	dnd_off
@@ -916,7 +914,6 @@ powersave_basic() {
     esac
 
 	sh $STAR_PATH/BATTERY_SAVER.sh
-	sh $STAR_PATH/CPU_PowerSave.sh
 	sh $STAR_PATH/SF_Battery.sh
     dnd_off
     corin_powersave

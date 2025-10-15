@@ -1,12 +1,8 @@
 ###################################
 # Star Tweak (@Koneko_dev)
 # Version amba 2.0 
-# Note: 
+# Note: No debug.hwui.target_cpu_time_percent, etc
 ###################################
-
-setprop debug.hwui.target_cpu_time_percent 65
-setprop debug.hwui.use_hint_manager true
-setprop debug.sf.enable_adpf_cpu_hint true
 
 maincore () {
 atrace --async_stop 1>/dev/null
