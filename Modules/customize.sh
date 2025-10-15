@@ -309,5 +309,3 @@ fi
 
 ui_print "- Cleaning up installation files..."
 rm -rf "$MODPATH/HamadaAI"
-
-}
