@@ -62,7 +62,7 @@ int main(void) {
         if (current_screen_on) {
             char package_name[BUFFER_SIZE] = "";
             // This is the updated command to get the top visible activity's package name.
-            const char *focused_app_cmd = "cmd activity stack list | sed -n '/visible=true/{s/.*://;s:/.*::;p;q}'";
+            const char *focused_app_cmd = "cmd activity stack list | sed -n '/visible=true/{s/.*://;s:/.*::;s/^[ \t]*//;p;q}'";
 
             FILE *pipe_fp = popen(focused_app_cmd, "r");
             if (pipe_fp) {
