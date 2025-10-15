@@ -33,6 +33,7 @@ ipv4="/proc/sys/net/ipv4"
 # ADDED: Source External Script
 ##############################
 SCRIPT_PATH="/data/adb/modules/ProjectRaco/Scripts"
+STAR_PATH="$SCRIPT_PATH/STAR"
 MODULE_PATH="/data/adb/modules/ProjectRaco"
 source "$MODULE_PATH/Scripts/corin.sh"
 
@@ -77,10 +78,12 @@ kill_all() {
         fi
     done
 
+
     pm trim-caches 100G > /dev/null 2>&1
     echo 3 > /proc/sys/vm/drop_caches
     logcat -c
     logcat -b all -c
+	sh $STAR_PATH/KILL.sh
 }
 
 # This is also external
@@ -797,6 +800,10 @@ performance_basic() {
         6) tegra_performance ;;
     esac
 
+	sh $STAR_PATH/BATTERY_RESTORE.sh
+	sh $STAR_PATH/CPU_DBPerformance.sh
+	sh $STAR_PATH/CPU_Performance.sh
+	sh $STAR_PATH/SF_Performance.sh
     dnd_on
     corin_perf
     bypass_on
@@ -860,7 +867,11 @@ balanced_basic() {
         5) tensor_normal ;;
         6) tegra_normal ;;
     esac
-    
+	
+	sh $STAR_PATH/BATTERY_RESTORE.sh
+	sh $STAR_PATH/CPU_Balance.sh
+	sh $STAR_PATH/CPU_DBBalance.sh
+	sh $STAR_PATH/SF_Smoothness.sh
 	dnd_off
     corin_balanced
     bypass_off
@@ -904,6 +915,9 @@ powersave_basic() {
         6) tegra_powersave ;;
     esac
 
+	sh $STAR_PATH/BATTERY_SAVER.sh
+	sh $STAR_PATH/CPU_PowerSave.sh
+	sh $STAR_PATH/SF_Battery.sh
     dnd_off
     corin_powersave
     bypass_off
