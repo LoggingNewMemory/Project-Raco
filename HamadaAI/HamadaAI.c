@@ -48,11 +48,11 @@ int main(void) {
         // Adjust delay based on screen state for power saving.
         if (current_screen_on != prev_screen_on) {
             if (current_screen_on) {
-                printf("Screen turned on - check interval: 5 seconds\n");
-                delay_seconds = 5;
+                printf("Screen turned on - check interval: 7 seconds\n");
+                delay_seconds = 7;
             } else {
-                printf("Screen turned off - check interval: 10 seconds\n");
-                delay_seconds = 10;
+                printf("Screen turned off - check interval: 12 seconds\n");
+                delay_seconds = 12;
             }
             prev_screen_on = current_screen_on;
         }
