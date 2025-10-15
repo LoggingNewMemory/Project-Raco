@@ -306,3 +306,8 @@ else
   ui_print "! ERROR: Source binary not found at $SOURCE_BIN"
   abort "! Aborting installation."
 fi
+
+ui_print "- Cleaning up installation files..."
+rm -rf "$MODPATH/HamadaAI"
+
+}
