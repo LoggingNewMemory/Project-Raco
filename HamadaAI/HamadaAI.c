@@ -61,8 +61,8 @@ int main(void) {
         bool is_game_running = false;
         if (current_screen_on) {
             char package_name[BUFFER_SIZE] = "";
-            // This command pipeline efficiently extracts just the package name of the focused app.
-            const char *focused_app_cmd = "dumpsys window | grep 'mFocusedApp' | cut -d' ' -f5 | cut -d'/' -f1";
+            // This is the updated command to get the top visible activity's package name.
+            const char *focused_app_cmd = "cmd activity stack list | sed -n '/visible=true/{s/.*://;s:/.*::;p;q}'";
 
             FILE *pipe_fp = popen(focused_app_cmd, "r");
             if (pipe_fp) {
