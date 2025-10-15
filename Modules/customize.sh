@@ -222,23 +222,26 @@ if [ ! -f "$RACO_PERSIST_CONFIG" ]; then
 else
   # Case 2: Existing installation.
   ui_print "- Saved configuration found."
+
+  # Automatically merge if the config template has changed.
+  # This preserves user settings across module updates.
   if check_for_config_changes "$RACO_MODULE_TEMPLATE" "$RACO_PERSIST_CONFIG"; then
-    # Case 2a: Module updated with new config options.
-    ui_print "! Config file structure has changed."
     merge_configs "$RACO_MODULE_TEMPLATE" "$RACO_PERSIST_CONFIG"
+  fi
+
+  # Always give the user the choice to keep their settings or reconfigure.
+  ui_print " "
+  ui_print "  Use your saved settings?"
+  ui_print "  (New options from updates are already merged)."
+  ui_print " "
+  ui_print "  Vol+ = Yes, use saved settings"
+  ui_print "  Vol- = No, re-configure addons"
+  ui_print " "
+  if choose; then
+    ui_print "- Using your saved/merged configuration."
   else
-    # Case 2b: Re-installing same version or no config changes.
-    ui_print "  Do you want to use it?"
-    ui_print " "
-    ui_print "  Vol+ = Yes, use saved config"
-    ui_print "  Vol- = No, choose again"
-    ui_print " "
-    if choose; then
-      ui_print "- Using saved configuration."
-    else
-      ui_print "- Re-configuring addons."
-      manual_addon_selection "$RACO_PERSIST_CONFIG"
-    fi
+    ui_print "- Re-configuring addons..."
+    manual_addon_selection "$RACO_PERSIST_CONFIG"
   fi
 fi
 
