@@ -61,161 +61,142 @@ fi
 
 # Ayunda Rusdi
 
-# ###################################
-# # Carlotta Render (@Koneko_Dev)
-# # Version 1.0 
-# # Note: The purpose is different from Celestial Render
-# # This tweak surface flinger
-# ###################################
-# refresh_rate="$(cmd display dump 2>/dev/null | grep -Eo 'fps=[0-9.]+' | cut -f2 -d= | awk '{printf "%.0f\n", $1}' | sort -nr | head -n1)"
+###################################
+# Celestial Flinger Flux (@Kzuyoo)
+# Version: 1.8 Essential
+# Note: Notification Disabled
+###################################
 
-# if [ -z "$refresh_rate" ] || [ "$refresh_rate" -lt 1 ]; then
-#     refresh_rate="$(dumpsys display | grep -E 'mRefreshRate|frameRate' | grep -Eo '[0-9.]+' | head -n1 | awk '{printf "%.0f\n", $1}')"
-# fi
+#!/system/bin/sh
+#
+# Celestial-Flinger-Flux by the kazuyoo
+# Open-source powered — with appreciation to GL-DP and all contributors.
+# Licensed under the MIT License.
+#
+# System surface properties have been precisely tuned to enhance frame scheduling accuracy,
+# rendering latency, and responsiveness — especially across 60Hz to 120Hz displays.
+# These optimizations aim to deliver smoother UI transitions and better app performance
+# without compromising system stability.
+#
 
-# if [ -z "$refresh_rate" ] || [ "$refresh_rate" -lt 1 ]; then
-#     refresh_rate=60
-# fi
+# ----------------- HELPER FUNCTIONS -----------------
+# --- Retrieve SurfaceFlinger & display data ---
+  surface=$(dumpsys SurfaceFlinger)
+  latency_out=$(dumpsys SurfaceFlinger --latency 2>/dev/null | head -n 5)
 
-# frame_duration_ns=$(echo "scale=25; 1000000000 / $refresh_rate" | bc)
+# Get FPS from display service
+  FPS=$(dumpsys display | grep -m1 "mDefaultPeak" | awk '{print int($2)}')
 
-# if [ "$refresh_rate" -ge 120 ]; then
-#     app_phase_ratio=0.72      
-#     sf_phase_ratio=0.85       
-#     app_duration_ratio=0.58   
-#     sf_duration_ratio=0.32    
+# Take frame time from VSYNC & latency
+  if echo "$latency_out" | grep -Eq '^[0-9]+$|^[0-9]{10,}$'; then
+      ft=$(echo "$latency_out" | head -n1 | grep -oE '[0-9]+')
+  else
+      ft=$(echo "$surface" | grep -m1 -E "VSYNC period|vsyncPeriod" | awk '{print $7}' | grep -oE '[0-9]+')
+  fi
+
+# Take phase
+  app_phase=$(echo "$surface" | grep -m1 "app phase" | awk '{print $3}')
+  sf_phase=$(echo "$surface" | grep -m1 "SF phase" | awk '{print $3}')
+
+# Take the total missed frame count
+  missed=$(echo "$surface" | grep -m1 "Total missed frame count" | awk '{print $5}')
+  
+# ----------------- OPTIMIZATION SECTIONS -----------------
+surfaceflinger_autoset() {
+# Set SurfaceFlinger props
+  setprop debug.sf.hwc.min.duration "$vspan"
+  setprop debug.sf.early.app.duration "$early"
+  setprop debug.sf.late.app.duration "$late"
+  setprop debug.sf.early.sf.duration "$early"
+  setprop debug.sf.late.sf.duration "$late"
+  setprop debug.sf.earlyGl.sf.duration "$early"
+  setprop debug.sf.earlyGl.app.duration "$early"
+
+  setprop debug.sf.set_idle_timer_ms "$thresh"
+  setprop debug.sf.phase_offset_threshold_for_next_vsync_ns $(( (ft/5) + (thresh * 8000) ))
+
+# --- High FPS (60+) ---
+  if [ "$FPS" -gt 60 ]; then
+    setprop debug.sf.early_phase_offset_ns "$early"
+    setprop debug.sf.early_gl_phase_offset_ns "$early"
+    setprop debug.sf.early_app_phase_offset_ns "$early"
+    setprop debug.sf.early_gl_app_phase_offset_ns "$early"
+
+    setprop debug.sf.high_fps_late_app_phase_offset_ns "$late"
+    setprop debug.sf.high_fps_late_sf_phase_offset_ns "$late"
+    setprop debug.sf.high_fps_early_phase_offset_ns "$early"
+    setprop debug.sf.high_fps_early_gl_phase_offset_ns "$early"
+    setprop debug.sf.high_fps_early_app_phase_offset_ns "$early"
+    setprop debug.sf.high_fps_early_gl_app_phase_offset_ns "$early"
+  fi
+}
+
+surfaceflinger_fallback() {
+# Fallback Using Fixed SurfaceFlinger Settings
+  setprop debug.sf.hwc.min.duration "$vspan"
+  setprop debug.sf.early.app.duration "$early"
+  setprop debug.sf.late.app.duration "$late"
+  setprop debug.sf.early.sf.duration "$early"
+  setprop debug.sf.late.sf.duration "$late"
+  setprop debug.sf.earlyGl.sf.duration "$early"
+  setprop debug.sf.earlyGl.app.duration "$early"
+
+  setprop debug.sf.set_idle_timer_ms "$thresh"
+  setprop debug.sf.phase_offset_threshold_for_next_vsync_ns $(( (ft/5) + (thresh * 8000) ))
+}
+
+other() {
+# SurfaceFlinger Prime Shader Minimal Optimize
+  for i in solid_layers image_layers shadow_layers; do
+      setprop debug.sf.prime_shader_cache.$i true
+  done
+
+# Smooth animation
+   settings put global window_animation_scale 0.9
+   settings put global transition_animation_scale 1.1
+   settings put global animator_duration_scale 0.9
     
-# elif [ "$refresh_rate" -ge 90 ]; then
-#     app_phase_ratio=0.70
-#     sf_phase_ratio=0.82  
-#     app_duration_ratio=0.62
-#     sf_duration_ratio=0.30
-    
-# elif [ "$refresh_rate" -ge 75 ]; then
-#     app_phase_ratio=0.68
-#     sf_phase_ratio=0.80
-#     app_duration_ratio=0.65
-#     sf_duration_ratio=0.28
-    
-# else
-#     app_phase_ratio=0.65     
-#     sf_phase_ratio=0.75      
-#     app_duration_ratio=0.68  
-#     sf_duration_ratio=0.25    
-# fi
+# Percentage of frame time that's used for CPU work.
+   setprop debug.hwui.target_cpu_time_percent $(awk -v b=$(cat /proc/sys/kernel/perf_cpu_time_max_percent 2>/dev/null||echo 25) '{n=$1/b;print int(35+(n*15)/(1+n))}' /proc/loadavg)
+   
+# Application FPS synchronization tolerance with screen refresh rate.
+   setprop debug.sf.frame_rate_multiple_threshold $(awk -v ft=$ft 'BEGIN{printf "%.6f", (ft/1000000000)*0.7}')
+}
+  
+# ----------------- MAIN EXECUTION -----------------
+main() {
+  dumpsys SurfaceFlinger --latency-clear
+  sleep 1
+  # --- Adaptive calculation ---
+  if [ -n "$ft" ] && [ "$ft" -gt 0 ]; then
+    base_const=72
+    vspan=$(( ft * 51 / 1000 ))
+    early=$(( ft * 278 / 1000 ))
+    late=$(( ft * 648 / 1000 ))
+    adj=$(( (1000000000 / ft) / 38 ))
+    fine=$(( ft / 240000 ))
+    thresh=$(( (ft / 1000000) + base_const + adj + fine ))
 
-# app_phase_offset_ns=$(echo "scale=0; (-$frame_duration_ns * $app_phase_ratio) / 1" | bc)
-# sf_phase_offset_ns=$(echo "scale=0; (-$frame_duration_ns * $sf_phase_ratio) / 1" | bc)
+    surfaceflinger_autoset
+  else
+    ft=16666667
+    base_const=72
+    vspan=$(( ft * 51 / 1000 ))
+    early=$(( ft * 278 / 1000 ))
+    late=$(( ft * 648 / 1000 ))
+    thresh=$(( (ft / 1000000) + base_const + 2 ))
 
-# app_duration=$(echo "scale=0; ($frame_duration_ns * $app_duration_ratio) / 1" | bc)
-# sf_duration=$(echo "scale=0; ($frame_duration_ns * $sf_duration_ratio) / 1" | bc)
+    surfaceflinger_fallback
+  fi
+    set start vsync 
+    other
+}
 
-# app_end_time=$(echo "scale=0; $app_phase_offset_ns + $app_duration" | bc)
-# sf_end_time=$(echo "scale=0; $sf_phase_offset_ns + $sf_duration" | bc)
-
-# min_margin=$(echo "scale=0; $frame_duration_ns * 0.08 / 1" | bc)
-# dead_time=$(echo "scale=0; -($app_end_time + $sf_phase_offset_ns)" | bc)
-
-# if [ $(echo "$dead_time < $min_margin" | bc) -eq 1 ]; then
-#     adjustment=$(echo "scale=0; $min_margin - $dead_time" | bc)
-#     app_duration=$(echo "scale=0; $app_duration - $adjustment" | bc)
-# fi
-
-# min_phase_duration=$(echo "scale=0; $frame_duration_ns * 0.12 / 1" | bc)
-# if [ $(echo "$app_duration < $min_phase_duration" | bc) -eq 1 ]; then
-#     app_duration=$min_phase_duration
-# fi
-# if [ $(echo "$sf_duration < $min_phase_duration" | bc) -eq 1 ]; then
-#     sf_duration=$min_phase_duration
-# fi
-
-# app_duration=$(printf "%.0f" "$app_duration")
-# sf_duration=$(printf "%.0f" "$sf_duration")
-# app_phase_offset_ns=$(printf "%.0f" "$app_phase_offset_ns")
-# sf_phase_offset_ns=$(printf "%.0f" "$sf_phase_offset_ns")
-
-# setprop debug.sf.early.app.duration "$app_duration"
-# setprop debug.sf.earlyGl.app.duration "$app_duration" 
-# setprop debug.sf.late.app.duration "$app_duration"
-
-# setprop debug.sf.early.sf.duration "$sf_duration"
-# setprop debug.sf.earlyGl.sf.duration "$sf_duration"
-# setprop debug.sf.late.sf.duration "$sf_duration"
-
-# setprop debug.sf.early_app_phase_offset_ns "$app_phase_offset_ns"
-# setprop debug.sf.high_fps_early_app_phase_offset_ns "$app_phase_offset_ns"
-# setprop debug.sf.high_fps_late_app_phase_offset_ns "$app_phase_offset_ns"
-# setprop debug.sf.early_phase_offset_ns "$sf_phase_offset_ns"
-# setprop debug.sf.high_fps_early_phase_offset_ns "$sf_phase_offset_ns"
-# setprop debug.sf.high_fps_late_sf_phase_offset_ns "$sf_phase_offset_ns"
-
-# if [ "$refresh_rate" -ge 120 ]; then
-#     threshold_ratio=0.28
-# elif [ "$refresh_rate" -ge 90 ]; then
-#     threshold_ratio=0.32
-# elif [ "$refresh_rate" -ge 75 ]; then
-#     threshold_ratio=0.35
-# else
-#     threshold_ratio=0.38
-# fi
-
-# phase_offset_threshold_ns=$(echo "scale=0; ($frame_duration_ns * $threshold_ratio) / 1" | bc)
-
-# max_threshold=$(echo "scale=0; $frame_duration_ns * 0.45 / 1" | bc)
-# min_threshold=$(echo "scale=0; $frame_duration_ns * 0.22 / 1" | bc)
-
-# if [ $(echo "$phase_offset_threshold_ns > $max_threshold" | bc) -eq 1 ]; then
-#     phase_offset_threshold_ns=$max_threshold
-# elif [ $(echo "$phase_offset_threshold_ns < $min_threshold" | bc) -eq 1 ]; then
-#     phase_offset_threshold_ns=$min_threshold  
-# fi
-
-# phase_offset_threshold_ns=$(printf "%.0f" "$phase_offset_threshold_ns")
-# setprop debug.sf.phase_offset_threshold_for_next_vsync_ns "$phase_offset_threshold_ns"
-
-# setprop debug.sf.enable_advanced_sf_phase_offset 1
-# setprop debug.sf.enable_cached_set_render_scheduling true
-# setprop debug.sf.enable_egl_image_tracker false
-# setprop debug.sf.enable_transaction_tracing false
-# setprop debug.sf.layer_caching_highlight false
-# setprop debug.sf.trace_hint_sessions false
-# setprop debug.sf.vsp_trace false
-# setprop debug.sf.layer_history_trace false
-# setprop debug.sf.kernel_idle_timer_update_overlay false
-# setprop debug.sf.enable_layer_caching 1
-# setprop debug.sf.predict_hwc_composition_strategy 1
-# setprop debug.sf.disable_client_composition_cache 0
-# setprop debug.sf.luma_sampling 0
-# setprop debug.sf.show_predicted_vsync false
-# setprop debug.sf.treat_170m_as_sRGB 0
-# setprop debug.sf.use_phase_offsets_as_durations 0
-# setprop debug.sf.enable_hwc_vds 0
-# setprop debug.vulkan.enable_callback false
-# setprop debug.renderengine.vulkan false
-# setprop debug.renderengine.backend skiaglthreaded
-# setprop debug.stagefright.renderengine.backend skiaglthreaded
-# setprop debug.hwui.initialize_gl_always true
-# setprop debug.hwui.early_preload_gl_context true
-
-# fps_int=$(printf "%.0f" "$refresh_rate")
-# if [ "$fps_int" -ge 120 ]; then
-#     timeout=42 
-# elif [ "$fps_int" -ge 90 ]; then
-#     timeout=67  
-# else
-#     timeout=133
-# fi
-
-# if [ "$timeout" -lt 16 ]; then 
-#    timeout=16
-# elif [ "$timeout" -gt 1000 ]; then
-#     timeout=1000
-# fi
-
-# setprop debug.sf.layer_caching_active_layer_timeout_ms $timeout
+# Main Execution & Exit script successfully
+ sync && main
 
 #####################################
-# End of Carlotta Render
+# End of Celestial Flinger Flux
 #####################################
 
 ###################################

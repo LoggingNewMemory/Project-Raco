@@ -7,6 +7,23 @@ debug.graphics.game_default_frame_rate.disabled=true
 sys.surfaceflinger.idle_reduce_framerate_enable=no
 
 ###############################
+# Celestial Flinger Flux (@Kzuyoo)
+# Version: 1.8 Essential
+# Note: Remove egl.hw & sf.hw 
+###############################
+
+# SurfaceFlinger Optimized (Safe Essentials)
+debug.sf.use_phase_offsets_as_durations=1
+debug.sf.enable_advanced_sf_phase_offset=1
+debug.sf.multithreaded_present=1
+debug.sf.disable_backpressure=1
+
+# HWUI Optimized (Essential)
+debug.hwui.render_ahead=1
+debug.hwui.use_hint_manager=true
+debug.hwui.use_gpu_pixel_buffers=true
+
+###############################
 # Celestial Render FlowX (@Kzuyoo)
 # Version: 1.5G
 ###############################

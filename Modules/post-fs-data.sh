@@ -1,3 +1,36 @@
+###################################
+# Celestial Flinger Flux (@Kzuyoo)
+# Version: 1.8 Essential
+###################################
+
+MODDIR=${0%/*}
+
+# --- SurfaceFlinger Optimized Props ---
+resetprop -n ro.sf.disable_triple_buffer "0"
+resetprop -n ro.surface_flinger.running_without_sync_framework "true"
+resetprop -n ro.surface_flinger.start_graphics_allocator_service "false"
+resetprop -n ro.surface_flinger.use_content_detection_for_refresh_rate "false"
+resetprop -n ro.surface_flinger.support_kernel_idle_timer "true"
+resetprop -n ro.surface_flinger.use_context_priority "true"
+resetprop -n ro.surface_flinger.max_frame_buffer_acquired_buffers "3"
+
+# --- Touch Timer ---
+resetprop -n ro.surface_flinger.set_touch_timer_ms "180"
+
+# --- Recording / Casting Optimization ---
+resetprop -n ro.surface_flinger.force_hwc_copy_for_virtual_displays "true"
+
+#####################################
+# End of Celestial Flinger Flux
+#####################################
+
+###################################
+# Celestial Render FlowX (@Kzuyoo)
+# Version: 1.6G
+# Note: Notification Disabled, Wait boot complete removed
+# Purpose of this is the Render (GPU, etc)
+###################################
+
 #!/system/bin/sh
 # Do NOT assume where your module will be located.
 # ALWAYS use $MODDIR if you need to know where this script
@@ -99,3 +132,7 @@ case $gpu_type in
 esac
 
 # This script will be executed in post-fs-data mode
+
+############################
+# End of Celestial Render
+############################
