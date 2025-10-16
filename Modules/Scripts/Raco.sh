@@ -914,7 +914,6 @@ powersave_basic() {
     esac
 
 	sh $STAR_PATH/BATTERY_SAVER.sh
-	sh $STAR_PATH/SF_Battery.sh
     dnd_off
     corin_powersave
     bypass_off
