@@ -26,4 +26,4 @@ If your module is not listed here, you can try to combine it (Ex: SkiaVK / GL Mo
 - Render Tweak (Still can be combined with SkiaVK / GL render) 
 - Auto DND when playing games
 - FStrim & Clear Cache
-- SurfaceFlinger Tweaks (Carlotta Render)
+- SurfaceFlinger Tweaks (Celestial Render Flux)
