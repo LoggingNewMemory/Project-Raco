@@ -140,7 +140,7 @@ ro.vendor.soc.model
     *mt* | *MT*) SOC=1 ;;
     *sm* | *qcom* | *SM* | *QCOM* | *Qualcomm*) SOC=2 ;;
     *exynos* | *Exynos* | *EXYNOS* | *universal* | *samsung* | *erd* | *s5e*) SOC=3 ;;
-    *Unisoc* | *unisoc* | *ums*) SOC=4 ;;
+    *Unisoc* | *unisoc* | *ums* | *UNISOC*) SOC=4 ;;
     *gs* | *Tensor* | *tensor*) SOC=5 ;;
     *kirin*) SOC=7 ;;
     esac
@@ -153,7 +153,7 @@ ro.vendor.soc.model
   soc_recognition_extra
   [ $SOC -eq 0 ] && recognize_soc "$(get_soc_getprop)"
   [ $SOC -eq 0 ] && recognize_soc "$(grep -E "Hardware|Processor" /proc/cpuinfo | uniq | cut -d ':' -f 2 | sed 's/^[ \t]*//')"
-  [ $SOC -eq 0 ] && recognize_soc "$(grep "model\sname" /proc/cpuinfo | uniq | cut -d ':' -f 2 | sed 's/^[ \t]*//')"
+  [ $SOC -eq 0 ] && recognize_soc "$(grep "model|sname" /proc/cpuinfo | uniq | cut -d ':' -f 2 | sed 's/^[ \t]*//')"
   [ $SOC -eq 0 ] && {
     ui_print "! Unable to detect your SoC (Chipset)."
     abort "! Installation cannot continue. Aborting."
