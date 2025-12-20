@@ -6,24 +6,6 @@
 # Note: Remove set_hwui_sf because crash SF in Arona
 ###################################
 
-animation() {
-    cpu_total=$(awk '{sum+=$1} END{printf "%.0f", sum/1000000}' /sys/devices/system/cpu/cpu[0-9]*/cpufreq/cpuinfo_max_freq 2>/dev/null)
-    [ -z "$cpu_total" ] && cpu_total=1000
-    scale=$(awk -v t="$cpu_total" 'BEGIN {
-        s = 1.6 / sqrt(t);
-        if (s < 0.08) s = 0.08;
-        if (s > 1.0) s = 1.0;
-        if (t < 1200) s = 0.8;
-        if (t >= 1200 && t < 1800) s = 0.6;
-        if (t >= 1800 && t < 3000) s = 0.35;
-        if (t >= 3000) s = 0.18;
-        printf "%.2f", s;
-    }')
-    settings put global window_animation_scale $scale 
-    settings put global transition_animation_scale $scale 
-    settings put global animator_duration_scale $scale 
-}
-
 maincore() {
     atrace --async_stop >/dev/null 2>&1 || true
     cmd looper_stats reset >/dev/null 2>&1 || true
@@ -64,8 +46,6 @@ toggle_off_powersave() {
 }
 
 set_hwui_sf
-animation &
-sleep 0.08
 maincore &
 sleep 0.08
 short_preload &
