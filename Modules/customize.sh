@@ -64,6 +64,12 @@ manual_addon_selection() {
   if choose; then INCLUDE_ZETA=1; ui_print "  > Yes"; else INCLUDE_ZETA=0; ui_print "  > No"; fi
 
   ui_print " "
+  ui_print "- Include AmeRender?"
+  ui_print "  An attempt for better rendering"
+  ui_print "  Vol+ = Yes  |  Vol- = No"
+  if choose; then INCLUDE_AME=1; ui_print "  > Yes"; else INCLUDE_AME=0; ui_print "  > No"; fi
+
+  ui_print " "
   ui_print "- Include Sandevistan Boot?"
   ui_print "  An Attempt to Make Boot Faster"
   ui_print "  Vol+ = Yes  |  Vol- = No"
@@ -74,6 +80,7 @@ manual_addon_selection() {
   sed -i "s/^INCLUDE_ANYA=.*/INCLUDE_ANYA=$INCLUDE_ANYA/" "$config_file"
   sed -i "s/^INCLUDE_KOBO=.*/INCLUDE_KOBO=$INCLUDE_KOBO/" "$config_file"
   sed -i "s/^INCLUDE_ZETA=.*/INCLUDE_ZETA=$INCLUDE_ZETA/" "$config_file"
+  sed -i "s/^INCLUDE_AME=.*/INCLUDE_AME=$INCLUDE_AME/" "$config_file"
   sed -i "s/^INCLUDE_SANDEV=.*/INCLUDE_SANDEV=$INCLUDE_SANDEV/" "$config_file"
   ui_print "- Your choices have been saved."
 }
@@ -312,3 +319,4 @@ fi
 
 ui_print "- Cleaning up installation files..."
 rm -rf "$MODPATH/HamadaAI"
+}
