@@ -171,7 +171,7 @@ ui_print "------------------------------------"
 ui_print "            MODULE INFO             "
 ui_print "------------------------------------"
 ui_print "Name : Project Raco"
-ui_print "Version : 2.0"
+ui_print "Version : 3.0 - PRE"
 ui_print " "
 sleep 1.5
 
