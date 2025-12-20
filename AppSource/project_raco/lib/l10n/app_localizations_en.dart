@@ -359,6 +359,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Cap the CPU Freq to Half instead of Minimum Freq (Powersave Mode Only)';
 
   @override
+  String get carlotta_cpu_title => 'Carlotta CPU Mitigation';
+
+  @override
+  String get carlotta_cpu_description =>
+      'Modify Target CPU (WARN: May Crash Your Device)';
+
+  @override
   String build_version_title(String buildName) {
     return 'Project Raco: $buildName Build';
   }

@@ -362,6 +362,13 @@ class AppLocalizationsId extends AppLocalizations {
       'Batasi Freq CPU ke Setengah, bukan Freq Minimum (Hanya Mode Powersave)';
 
   @override
+  String get carlotta_cpu_title => 'Mitigasi CPU Carlotta';
+
+  @override
+  String get carlotta_cpu_description =>
+      'Modifikasi Target CPU (PERINGATAN: Dapat Membuat Perangkat Crash)';
+
+  @override
   String build_version_title(String buildName) {
     return 'Project Raco: Build $buildName';
   }

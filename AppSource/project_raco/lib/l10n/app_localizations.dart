@@ -770,6 +770,18 @@ abstract class AppLocalizations {
   /// **'Cap the CPU Freq to Half instead of Minimum Freq (Powersave Mode Only)'**
   String get better_powersave_description;
 
+  /// No description provided for @carlotta_cpu_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Carlotta CPU Mitigation'**
+  String get carlotta_cpu_title;
+
+  /// No description provided for @carlotta_cpu_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Modify Target CPU (WARN: May Crash Your Device)'**
+  String get carlotta_cpu_description;
+
   /// No description provided for @build_version_title.
   ///
   /// In en, this message translates to:

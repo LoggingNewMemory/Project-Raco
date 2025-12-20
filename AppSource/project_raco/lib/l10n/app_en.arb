@@ -117,6 +117,8 @@
     "clear_cache_title": "Clear Cache",
     "better_powersave_title": "Better Powersave",
     "better_powersave_description": "Cap the CPU Freq to Half instead of Minimum Freq (Powersave Mode Only)",
+    "carlotta_cpu_title": "Carlotta CPU Mitigation",
+    "carlotta_cpu_description": "Modify Target CPU (WARN: May Crash Your Device)",
     "build_version_title": "Project Raco: {buildName} Build",
     "@build_version_title": {
         "placeholders": {

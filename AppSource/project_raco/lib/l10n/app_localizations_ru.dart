@@ -364,6 +364,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Уменьшите частоту процессора наполовину вместо минимальной (только в режиме энергосбережения).';
 
   @override
+  String get carlotta_cpu_title => 'Митигация CPU Carlotta';
+
+  @override
+  String get carlotta_cpu_description =>
+      'Изменить целевой ЦП (ВНИМАНИЕ: Возможен сбой устройства)';
+
+  @override
   String build_version_title(String buildName) {
     return 'Project Raco: $buildName Build';
   }

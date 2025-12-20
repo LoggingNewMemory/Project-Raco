@@ -37,6 +37,17 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
     );
     if (result.exitCode == 0) {
       final content = result.stdout.toString();
+
+      // For Carlotta CPU Mitigation:
+      // Switch ON (Enabled) means KCPU_MITIGATE=0
+      // Switch OFF (Disabled/Mitigation Active) means KCPU_MITIGATE=1
+      final kcpuMitigateVal = RegExp(
+        r'^KCPU_MITIGATE=(\d)',
+        multiLine: true,
+      ).firstMatch(content)?.group(1);
+
+      final carlottaCpuEnabled = kcpuMitigateVal == '0';
+
       return {
         'deviceMitigation':
             RegExp(
@@ -56,12 +67,14 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
               multiLine: true,
             ).firstMatch(content)?.group(1) ==
             '1',
+        'carlottaCpu': carlottaCpuEnabled,
       };
     }
     return {
       'deviceMitigation': false,
       'liteMode': false,
       'betterPowersave': false,
+      'carlottaCpu': false,
     };
   }
 
@@ -123,6 +136,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
             initialLiteModeValue: _encoreState?['liteMode'] ?? false,
             initialBetterPowersaveValue:
                 _encoreState?['betterPowersave'] ?? false,
+            initialCarlottaCpuValue: _encoreState?['carlottaCpu'] ?? false,
           ),
           GovernorCard(
             initialAvailableGovernors: _governorState?['available'] ?? [],
@@ -172,12 +186,14 @@ class FixAndTweakCard extends StatefulWidget {
   final bool initialDeviceMitigationValue;
   final bool initialLiteModeValue;
   final bool initialBetterPowersaveValue;
+  final bool initialCarlottaCpuValue;
 
   const FixAndTweakCard({
     Key? key,
     required this.initialDeviceMitigationValue,
     required this.initialLiteModeValue,
     required this.initialBetterPowersaveValue,
+    required this.initialCarlottaCpuValue,
   }) : super(key: key);
 
   @override
@@ -188,9 +204,13 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
   late bool _deviceMitigationEnabled;
   late bool _liteModeEnabled;
   late bool _betterPowersaveEnabled;
+  late bool _carlottaCpuEnabled;
+
   bool _isUpdatingMitigation = false;
   bool _isUpdatingLiteMode = false;
   bool _isUpdatingBetterPowersave = false;
+  bool _isUpdatingCarlottaCpu = false;
+
   final String _racoConfigFilePath = '/data/ProjectRaco/raco.txt';
 
   @override
@@ -199,6 +219,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
     _deviceMitigationEnabled = widget.initialDeviceMitigationValue;
     _liteModeEnabled = widget.initialLiteModeValue;
     _betterPowersaveEnabled = widget.initialBetterPowersaveValue;
+    _carlottaCpuEnabled = widget.initialCarlottaCpuValue;
   }
 
   Future<void> _updateTweak({
@@ -207,12 +228,16 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
     required Function(bool) stateSetter,
     required Function(bool) isUpdatingSetter,
     required bool initialValue,
+    bool invertLogic = false,
   }) async {
     if (!await checkRootAccess()) return;
     if (mounted) setState(() => isUpdatingSetter(true));
 
     try {
-      final value = enable ? '1' : '0';
+      // If invertLogic is true: Enable(true) writes '0', Disable(false) writes '1'
+      // If invertLogic is false: Enable(true) writes '1', Disable(false) writes '0'
+      final value = invertLogic ? (enable ? '0' : '1') : (enable ? '1' : '0');
+
       final sedCommand =
           "sed -i 's|^$key=.*|$key=$value|' $_racoConfigFilePath";
       final result = await runRootCommandAndWait(sedCommand);
@@ -242,7 +267,8 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
     final bool isBusy =
         _isUpdatingMitigation ||
         _isUpdatingLiteMode ||
-        _isUpdatingBetterPowersave;
+        _isUpdatingBetterPowersave ||
+        _isUpdatingCarlottaCpu;
 
     return Card(
       elevation: 2.0,
@@ -351,6 +377,39 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.battery_saver_outlined),
+              activeColor: colorScheme.primary,
+              contentPadding: EdgeInsets.zero,
+            ),
+            SwitchListTile(
+              title: Text(
+                localization.carlotta_cpu_title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                localization.carlotta_cpu_description,
+                style: textTheme.bodySmall?.copyWith(
+                  fontStyle: FontStyle.italic,
+                  color: colorScheme.error,
+                ),
+              ),
+              value: _carlottaCpuEnabled,
+              onChanged: isBusy
+                  ? null
+                  : (bool enable) => _updateTweak(
+                      key: 'KCPU_MITIGATE',
+                      enable: enable,
+                      stateSetter: (val) => _carlottaCpuEnabled = val,
+                      isUpdatingSetter: (val) => _isUpdatingCarlottaCpu = val,
+                      initialValue: widget.initialCarlottaCpuValue,
+                      invertLogic: true, // Enable writes 0, Disable writes 1
+                    ),
+              secondary: _isUpdatingCarlottaCpu
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.warning_amber_rounded),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),

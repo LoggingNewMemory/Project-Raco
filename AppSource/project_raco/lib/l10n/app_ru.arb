@@ -117,6 +117,8 @@
     "clear_cache_title": "Отчистка caсhe",
     "better_powersave_title": "Batter Powersave",
     "better_powersave_description": "Уменьшите частоту процессора наполовину вместо минимальной (только в режиме энергосбережения).",
+    "carlotta_cpu_title": "Митигация CPU Carlotta",
+    "carlotta_cpu_description": "Изменить целевой ЦП (ВНИМАНИЕ: Возможен сбой устройства)",
     "build_version_title": "Project Raco: {buildName} Build",
     "@build_version_title": {
         "placeholders": {

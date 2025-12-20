@@ -365,6 +365,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'Limita el CPU a la mitad en vez de frecuencia minima (Solo para Modo Eficiencia)';
 
   @override
+  String get carlotta_cpu_title => 'Mitigación de CPU Carlotta';
+
+  @override
+  String get carlotta_cpu_description =>
+      'Modificar CPU Objetivo (ADVERTENCIA: Puede Bloquear su Dispositivo)';
+
+  @override
   String build_version_title(String buildName) {
     return 'Project Raco: $buildName Compilacion';
   }

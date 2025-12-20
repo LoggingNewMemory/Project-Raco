@@ -117,6 +117,8 @@
     "clear_cache_title": "Limpiar caché",
     "better_powersave_title": "Mejor eficiencia",
     "better_powersave_description": "Limita el CPU a la mitad en vez de frecuencia minima (Solo para Modo Eficiencia)",
+    "carlotta_cpu_title": "Mitigación de CPU Carlotta",
+    "carlotta_cpu_description": "Modificar CPU Objetivo (ADVERTENCIA: Puede Bloquear su Dispositivo)",
     "build_version_title": "Project Raco: {buildName} Compilacion",
     "@build_version_title": {
         "placeholders": {
