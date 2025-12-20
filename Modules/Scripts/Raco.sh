@@ -802,7 +802,6 @@ performance_basic() {
 
 	sh $STAR_PATH/BATTERY_RESTORE.sh
 	sh $STAR_PATH/CPU_DBPerformance.sh
-	sh $STAR_PATH/SF_Performance.sh
     dnd_on
     corin_perf
     bypass_on
@@ -869,7 +868,6 @@ balanced_basic() {
 	
 	sh $STAR_PATH/BATTERY_RESTORE.sh
 	sh $STAR_PATH/CPU_DBBalance.sh
-	sh $STAR_PATH/SF_Smoothness.sh
 	dnd_off
     corin_balanced
     bypass_off
