@@ -11,6 +11,7 @@ LITE_MODE=$(grep '^LITE_MODE=' "$RACO_CONFIG" | cut -d'=' -f2)
 BETTER_POWERAVE=$(grep '^BETTER_POWERAVE=' "$RACO_CONFIG" | cut -d'=' -f2)
 ANYA=$(grep '^ANYA=' "$RACO_CONFIG" | cut -d'=' -f2)
 INCLUDE_ANYA=$(grep '^INCLUDE_ANYA=' "$RACO_CONFIG" | cut -d'=' -f2)
+KCPU_MITIGATE=$(grep '^KCPU_MITIGATE=' "$RACO_CONFIG" | cut -d'=' -f2)
 
 DEFAULT_CPU_GOV=$(grep '^GOV=' "$RACO_CONFIG" | cut -d'=' -f2)
 if [ -z "$DEFAULT_CPU_GOV" ]; then
@@ -36,6 +37,10 @@ SCRIPT_PATH="/data/adb/modules/ProjectRaco/Scripts"
 STAR_PATH="$SCRIPT_PATH/STAR"
 MODULE_PATH="/data/adb/modules/ProjectRaco"
 source "$MODULE_PATH/Scripts/corin.sh"
+
+if [ "$KCPU_MITIGATE" -eq 0 ] && [ -f "$SCRIPT_PATH/CarlottaCPU.sh" ]; then
+    source "$SCRIPT_PATH/CarlottaCPU.sh"
+fi
 
 ##############################
 # Begin Functions
@@ -805,6 +810,11 @@ performance_basic() {
     dnd_on
     corin_perf
     bypass_on
+    
+    if [ "$KCPU_MITIGATE" -eq 0 ]; then
+        carcpu_perf
+    fi
+
     anyamelfissa
 }
 
@@ -871,6 +881,11 @@ balanced_basic() {
 	dnd_off
     corin_balanced
     bypass_off
+
+    if [ "$KCPU_MITIGATE" -eq 0 ]; then
+        carcpu_balance
+    fi
+
     anyakawaii
 }
 
@@ -915,6 +930,11 @@ powersave_basic() {
     dnd_off
     corin_powersave
     bypass_off
+
+    if [ "$KCPU_MITIGATE" -eq 0 ]; then
+        carcpu_battery
+    fi
+
     anyakawaii
 }
 ##########################################
