@@ -623,7 +623,6 @@ class GraphicsDriverCard extends StatefulWidget {
 
 class _GraphicsDriverCardState extends State<GraphicsDriverCard> {
   late int _currentValue;
-  bool _isUpdating = false;
 
   @override
   void initState() {
@@ -633,8 +632,6 @@ class _GraphicsDriverCardState extends State<GraphicsDriverCard> {
 
   Future<void> _updateDriver(int value) async {
     if (!await checkRootAccess()) return;
-    if (mounted) setState(() => _isUpdating = true);
-
     try {
       await runRootCommandAndWait(
         'settings put global updatable_driver_all_apps $value',
@@ -646,8 +643,6 @@ class _GraphicsDriverCardState extends State<GraphicsDriverCard> {
           SnackBar(content: Text('Failed to update driver setting: $e')),
         );
       }
-    } finally {
-      if (mounted) setState(() => _isUpdating = false);
     }
   }
 
@@ -699,46 +694,43 @@ class _GraphicsDriverCardState extends State<GraphicsDriverCard> {
               ),
             ),
             const SizedBox(height: 16),
-            if (_isUpdating)
-              const Center(child: LinearProgressIndicator())
-            else
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  OutlinedButton(
-                    onPressed: () => _updateDriver(0),
-                    child: Text(localization.graphics_driver_default),
-                    style: _currentValue == 0
-                        ? OutlinedButton.styleFrom(
-                            backgroundColor: colorScheme.primaryContainer,
-                            foregroundColor: colorScheme.onPrimaryContainer,
-                          )
-                        : null,
-                  ),
-                  const SizedBox(height: 8),
-                  OutlinedButton(
-                    onPressed: () => _updateDriver(1),
-                    child: Text(localization.graphics_driver_game),
-                    style: _currentValue == 1
-                        ? OutlinedButton.styleFrom(
-                            backgroundColor: colorScheme.primaryContainer,
-                            foregroundColor: colorScheme.onPrimaryContainer,
-                          )
-                        : null,
-                  ),
-                  const SizedBox(height: 8),
-                  OutlinedButton(
-                    onPressed: () => _updateDriver(2),
-                    child: Text(localization.graphics_driver_developer),
-                    style: _currentValue == 2
-                        ? OutlinedButton.styleFrom(
-                            backgroundColor: colorScheme.primaryContainer,
-                            foregroundColor: colorScheme.onPrimaryContainer,
-                          )
-                        : null,
-                  ),
-                ],
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                OutlinedButton(
+                  onPressed: () => _updateDriver(0),
+                  child: Text(localization.graphics_driver_default),
+                  style: _currentValue == 0
+                      ? OutlinedButton.styleFrom(
+                          backgroundColor: colorScheme.primaryContainer,
+                          foregroundColor: colorScheme.onPrimaryContainer,
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: () => _updateDriver(1),
+                  child: Text(localization.graphics_driver_game),
+                  style: _currentValue == 1
+                      ? OutlinedButton.styleFrom(
+                          backgroundColor: colorScheme.primaryContainer,
+                          foregroundColor: colorScheme.onPrimaryContainer,
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: () => _updateDriver(2),
+                  child: Text(localization.graphics_driver_developer),
+                  style: _currentValue == 2
+                      ? OutlinedButton.styleFrom(
+                          backgroundColor: colorScheme.primaryContainer,
+                          foregroundColor: colorScheme.onPrimaryContainer,
+                        )
+                      : null,
+                ),
+              ],
+            ),
           ],
         ),
       ),
