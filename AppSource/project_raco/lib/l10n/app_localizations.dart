@@ -841,6 +841,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply on Boot'**
   String get screen_modifier_apply_on_boot;
+
+  /// No description provided for @graphics_driver_title.
+  ///
+  /// In en, this message translates to:
+  /// **'System Graphics Driver'**
+  String get graphics_driver_title;
+
+  /// No description provided for @graphics_driver_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Modify the Graphics Driver of Your Devices'**
+  String get graphics_driver_description;
+
+  /// No description provided for @graphics_driver_default.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get graphics_driver_default;
+
+  /// No description provided for @graphics_driver_game.
+  ///
+  /// In en, this message translates to:
+  /// **'Game Driver'**
+  String get graphics_driver_game;
+
+  /// No description provided for @graphics_driver_developer.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer Driver'**
+  String get graphics_driver_developer;
+
+  /// No description provided for @current_driver.
+  ///
+  /// In en, this message translates to:
+  /// **'Current:'**
+  String get current_driver;
 }
 
 class _AppLocalizationsDelegate

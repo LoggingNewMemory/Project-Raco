@@ -142,5 +142,11 @@
     "screen_modifier_blue": "Синий",
     "screen_modifier_saturation": "Насыщенность",
     "screen_modifier_reset": "Сбросить по умолчанию",
-    "screen_modifier_apply_on_boot": "Применять при загрузке"
+    "screen_modifier_apply_on_boot": "Применять при загрузке",
+    "graphics_driver_title": "Системный графический драйвер",
+    "graphics_driver_description": "Изменить графический драйвер устройства",
+    "graphics_driver_default": "По умолчанию",
+    "graphics_driver_game": "Игровой драйвер",
+    "graphics_driver_developer": "Драйвер разработчика",
+    "current_driver": "Текущий:"
 }

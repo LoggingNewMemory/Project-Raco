@@ -389,4 +389,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get screen_modifier_apply_on_boot => '起動時に適用';
+
+  @override
+  String get graphics_driver_title => 'システムグラフィックドライバ';
+
+  @override
+  String get graphics_driver_description => 'デバイスのグラフィックドライバを変更';
+
+  @override
+  String get graphics_driver_default => 'デフォルト';
+
+  @override
+  String get graphics_driver_game => 'ゲームドライバ';
+
+  @override
+  String get graphics_driver_developer => '開発者用ドライバ';
+
+  @override
+  String get current_driver => '現在:';
 }

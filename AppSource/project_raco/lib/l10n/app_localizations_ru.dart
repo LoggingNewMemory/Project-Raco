@@ -404,4 +404,23 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get screen_modifier_apply_on_boot => 'Применять при загрузке';
+
+  @override
+  String get graphics_driver_title => 'Системный графический драйвер';
+
+  @override
+  String get graphics_driver_description =>
+      'Изменить графический драйвер устройства';
+
+  @override
+  String get graphics_driver_default => 'По умолчанию';
+
+  @override
+  String get graphics_driver_game => 'Игровой драйвер';
+
+  @override
+  String get graphics_driver_developer => 'Драйвер разработчика';
+
+  @override
+  String get current_driver => 'Текущий:';
 }

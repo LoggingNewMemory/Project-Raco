@@ -405,4 +405,23 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get screen_modifier_apply_on_boot => 'Aplicar al Arrancar';
+
+  @override
+  String get graphics_driver_title => 'Controlador Gráfico del Sistema';
+
+  @override
+  String get graphics_driver_description =>
+      'Modifica el controlador gráfico de tu dispositivo';
+
+  @override
+  String get graphics_driver_default => 'Predeterminado';
+
+  @override
+  String get graphics_driver_game => 'Juegos';
+
+  @override
+  String get graphics_driver_developer => 'Desarrollador';
+
+  @override
+  String get current_driver => 'Actual:';
 }

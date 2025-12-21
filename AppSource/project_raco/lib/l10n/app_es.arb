@@ -142,5 +142,11 @@
     "screen_modifier_blue": "Azul",
     "screen_modifier_saturation": "Saturación",
     "screen_modifier_reset": "Restablecer a Valores Predeterminados",
-    "screen_modifier_apply_on_boot": "Aplicar al Arrancar"
+    "screen_modifier_apply_on_boot": "Aplicar al Arrancar",
+    "graphics_driver_title": "Controlador Gráfico del Sistema",
+    "graphics_driver_description": "Modifica el controlador gráfico de tu dispositivo",
+    "graphics_driver_default": "Predeterminado",
+    "graphics_driver_game": "Juegos",
+    "graphics_driver_developer": "Desarrollador",
+    "current_driver": "Actual:"
 }

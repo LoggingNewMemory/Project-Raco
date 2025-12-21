@@ -28,6 +28,7 @@ class _SystemPageState extends State<SystemPage> {
   Map<String, dynamic>? _bypassChargingState;
   Map<String, dynamic>? _resolutionState;
   Map<String, dynamic>? _screenModifierState;
+  int _graphicsDriverValue = 0; // 0: Default, 1: Game, 2: Developer
 
   @override
   void initState() {
@@ -154,10 +155,8 @@ class _SystemPageState extends State<SystemPage> {
     final racoResult = results[0];
     final serviceCheckResult = results[1];
 
-    // The toggle state is determined ONLY by the presence of the line in service.sh
     applyOnBoot = serviceCheckResult.exitCode == 0;
 
-    // Load slider values from raco.txt
     if (racoResult.exitCode == 0) {
       final match = RegExp(
         r'^AYUNDA_RUSDI=([\d,]+,(?:Yes|No))$',
@@ -175,7 +174,6 @@ class _SystemPageState extends State<SystemPage> {
       }
     }
 
-    // This ensures raco.txt is consistent with the state of service.sh
     final valuesString =
         '${red.round()},${green.round()},${blue.round()},${saturation.round()},${applyOnBoot ? "Yes" : "No"}';
     final sedCheckCommand =
@@ -200,6 +198,16 @@ class _SystemPageState extends State<SystemPage> {
     };
   }
 
+  Future<int> _loadGraphicsDriverState() async {
+    final result = await runRootCommandAndWait(
+      'settings get global updatable_driver_all_apps',
+    );
+    if (result.exitCode == 0) {
+      return int.tryParse(result.stdout.toString().trim()) ?? 0;
+    }
+    return 0;
+  }
+
   Future<void> _loadData() async {
     final results = await Future.wait([
       _loadDndState(),
@@ -208,6 +216,7 @@ class _SystemPageState extends State<SystemPage> {
       _loadBypassChargingState(),
       _loadResolutionState(),
       _loadScreenModifierState(),
+      _loadGraphicsDriverState(),
     ]);
 
     if (!mounted) return;
@@ -218,6 +227,7 @@ class _SystemPageState extends State<SystemPage> {
       _bypassChargingState = results[3] as Map<String, dynamic>;
       _resolutionState = results[4] as Map<String, dynamic>;
       _screenModifierState = results[5] as Map<String, dynamic>;
+      _graphicsDriverValue = results[6] as int;
       _isLoading = false;
     });
   }
@@ -248,6 +258,7 @@ class _SystemPageState extends State<SystemPage> {
                 ? localization.bypass_charging_supported
                 : localization.bypass_charging_unsupported,
           ),
+          GraphicsDriverCard(initialValue: _graphicsDriverValue),
           ResolutionCard(
             isAvailable: _resolutionState?['isAvailable'] ?? false,
             originalSize: _resolutionState?['originalSize'] ?? '',
@@ -594,6 +605,140 @@ class _BypassChargingCardState extends State<BypassChargingCard> {
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class GraphicsDriverCard extends StatefulWidget {
+  final int initialValue;
+  const GraphicsDriverCard({Key? key, required this.initialValue})
+    : super(key: key);
+
+  @override
+  _GraphicsDriverCardState createState() => _GraphicsDriverCardState();
+}
+
+class _GraphicsDriverCardState extends State<GraphicsDriverCard> {
+  late int _currentValue;
+  bool _isUpdating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentValue = widget.initialValue;
+  }
+
+  Future<void> _updateDriver(int value) async {
+    if (!await checkRootAccess()) return;
+    if (mounted) setState(() => _isUpdating = true);
+
+    try {
+      await runRootCommandAndWait(
+        'settings put global updatable_driver_all_apps $value',
+      );
+      if (mounted) setState(() => _currentValue = value);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update driver setting: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
+    }
+  }
+
+  String _getDriverName(int value, AppLocalizations localization) {
+    switch (value) {
+      case 1:
+        return localization.graphics_driver_game;
+      case 2:
+        return localization.graphics_driver_developer;
+      case 0:
+      default:
+        return localization.graphics_driver_default;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      elevation: 2.0,
+      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              localization.graphics_driver_title,
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              localization.graphics_driver_description,
+              style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "${localization.current_driver} ${_getDriverName(_currentValue, localization)}",
+              style: textTheme.bodyLarge?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (_isUpdating)
+              const Center(child: LinearProgressIndicator())
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  OutlinedButton(
+                    onPressed: () => _updateDriver(0),
+                    child: Text(localization.graphics_driver_default),
+                    style: _currentValue == 0
+                        ? OutlinedButton.styleFrom(
+                            backgroundColor: colorScheme.primaryContainer,
+                            foregroundColor: colorScheme.onPrimaryContainer,
+                          )
+                        : null,
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: () => _updateDriver(1),
+                    child: Text(localization.graphics_driver_game),
+                    style: _currentValue == 1
+                        ? OutlinedButton.styleFrom(
+                            backgroundColor: colorScheme.primaryContainer,
+                            foregroundColor: colorScheme.onPrimaryContainer,
+                          )
+                        : null,
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: () => _updateDriver(2),
+                    child: Text(localization.graphics_driver_developer),
+                    style: _currentValue == 2
+                        ? OutlinedButton.styleFrom(
+                            backgroundColor: colorScheme.primaryContainer,
+                            foregroundColor: colorScheme.onPrimaryContainer,
+                          )
+                        : null,
+                  ),
+                ],
+              ),
           ],
         ),
       ),

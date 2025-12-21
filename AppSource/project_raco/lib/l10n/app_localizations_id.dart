@@ -402,4 +402,22 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get screen_modifier_apply_on_boot => 'Terapkan saat Boot';
+
+  @override
+  String get graphics_driver_title => 'Driver Grafis Sistem';
+
+  @override
+  String get graphics_driver_description => 'Ubah Driver Grafis Perangkat Anda';
+
+  @override
+  String get graphics_driver_default => 'Default';
+
+  @override
+  String get graphics_driver_game => 'Driver Game';
+
+  @override
+  String get graphics_driver_developer => 'Driver Pengembang';
+
+  @override
+  String get current_driver => 'Saat Ini:';
 }

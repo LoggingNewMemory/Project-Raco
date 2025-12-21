@@ -142,5 +142,11 @@
     "screen_modifier_blue": "青",
     "screen_modifier_saturation": "彩度",
     "screen_modifier_reset": "デフォルトにリセット",
-    "screen_modifier_apply_on_boot": "起動時に適用"
+    "screen_modifier_apply_on_boot": "起動時に適用",
+    "graphics_driver_title": "システムグラフィックドライバ",
+    "graphics_driver_description": "デバイスのグラフィックドライバを変更",
+    "graphics_driver_default": "デフォルト",
+    "graphics_driver_game": "ゲームドライバ",
+    "graphics_driver_developer": "開発者用ドライバ",
+    "current_driver": "現在:"
 }

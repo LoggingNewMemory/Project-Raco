@@ -142,5 +142,11 @@
     "screen_modifier_blue": "Blue",
     "screen_modifier_saturation": "Saturation",
     "screen_modifier_reset": "Reset to Defaults",
-    "screen_modifier_apply_on_boot": "Apply on Boot"
+    "screen_modifier_apply_on_boot": "Apply on Boot",
+    "graphics_driver_title": "System Graphics Driver",
+    "graphics_driver_description": "Modify the Graphics Driver of Your Devices",
+    "graphics_driver_default": "Default",
+    "graphics_driver_game": "Game Driver",
+    "graphics_driver_developer": "Developer Driver",
+    "current_driver": "Current:"
 }

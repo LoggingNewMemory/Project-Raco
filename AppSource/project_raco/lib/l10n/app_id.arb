@@ -142,5 +142,11 @@
     "screen_modifier_blue": "Biru",
     "screen_modifier_saturation": "Saturasi",
     "screen_modifier_reset": "Kembali ke Default",
-    "screen_modifier_apply_on_boot": "Terapkan saat Boot"
+    "screen_modifier_apply_on_boot": "Terapkan saat Boot",
+    "graphics_driver_title": "Driver Grafis Sistem",
+    "graphics_driver_description": "Ubah Driver Grafis Perangkat Anda",
+    "graphics_driver_default": "Default",
+    "graphics_driver_game": "Driver Game",
+    "graphics_driver_developer": "Driver Pengembang",
+    "current_driver": "Saat Ini:"
 }

@@ -307,6 +307,14 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
         searchKeywords: 'bypass charging battery power',
       ),
       SearchResultItem(
+        title: localization.graphics_driver_title,
+        subtitle: localization.system_title,
+        icon: Icons.gamepad_outlined,
+        navigationTarget: systemPage,
+        searchKeywords:
+            'graphics driver vulkan opengl game developer system updatable_driver_all_apps',
+      ),
+      SearchResultItem(
         title: localization.downscale_resolution,
         subtitle: localization.system_title,
         icon: Icons.aspect_ratio_outlined,
