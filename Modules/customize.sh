@@ -1,5 +1,73 @@
 #!/system/bin/sh
 
+# ------------------------------------
+# Frequency Detection Functions
+# ------------------------------------
+
+which_maxfreq() {
+  tr ' ' '\n' <"$1" | sort -nr | head -n 1
+}
+
+which_minfreq() {
+  tr ' ' '\n' <"$1" | grep -v '^[[:space:]]*$' | sort -n | head -n 1
+}
+
+which_midfreq() {
+  total_opp=$(wc -w <"$1")
+  mid_opp=$(((total_opp + 1) / 2))
+  tr ' ' '\n' <"$1" | grep -v '^[[:space:]]*$' | sort -nr | head -n $mid_opp | tail -n 1
+}
+
+detect_and_save_freqs() {
+    local config_file="$1"
+    local max_list=""
+    local mid_list=""
+    local min_list=""
+    
+    ui_print "- Detecting CPU Frequencies..."
+
+    for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        if [ -f "$path/scaling_available_frequencies" ]; then
+            local freq_table="$path/scaling_available_frequencies"
+            local max=$(which_maxfreq "$freq_table")
+            local mid=$(which_midfreq "$freq_table")
+            local min=$(which_minfreq "$freq_table")
+        else
+            # Fallback if table doesn't exist, use cpuinfo limits
+            local max=$(cat "$path/cpuinfo_max_freq")
+            local min=$(cat "$path/cpuinfo_min_freq")
+            # For mid in fallback, we just use max to ensure stability or calc average if needed
+            # adhering to max safe approach
+            local mid=$max 
+        fi
+        
+        # Append to lists (space separated)
+        max_list="${max_list}${max} "
+        mid_list="${mid_list}${mid} "
+        min_list="${min_list}${min} "
+    done
+
+    # Trim trailing spaces
+    max_list=$(echo "$max_list" | sed 's/[[:space:]]*$//')
+    mid_list=$(echo "$mid_list" | sed 's/[[:space:]]*$//')
+    min_list=$(echo "$min_list" | sed 's/[[:space:]]*$//')
+
+    ui_print "  Max: $max_list"
+    ui_print "  Mid: $mid_list"
+    ui_print "  Min: $min_list"
+
+    # Save to raco.txt
+    sed -i "s/^CPU_MAX=.*/CPU_MAX=${max_list}/" "$config_file"
+    sed -i "s/^CPU_MID=.*/CPU_MID=${mid_list}/" "$config_file"
+    sed -i "s/^CPU_MIN=.*/CPU_MIN=${min_list}/" "$config_file"
+    
+    ui_print "- Frequencies saved to config."
+}
+
+# ------------------------------------
+# Existing Functions
+# ------------------------------------
+
 check_for_config_changes() {
   local new_config_template="$1"
   local saved_config="$2"
@@ -18,8 +86,6 @@ check_for_config_changes() {
   return 1 # 1 means false (no changes)
 }
 
-# This function merges old user settings into a new config template.
-# This is triggered when a module update adds/removes options.
 merge_configs() {
   local new_template="$1"
   local persistent_config="$2"
@@ -30,6 +96,11 @@ merge_configs() {
 
   while IFS='=' read -r key value || [ -n "$key" ]; do
     [[ "$key" =~ ^# ]] || [ -z "$key" ] && continue
+    # Skip CPU freqs during merge as we want to re-detect them fresh every install
+    [[ "$key" == "CPU_MAX" ]] && continue
+    [[ "$key" == "CPU_MID" ]] && continue
+    [[ "$key" == "CPU_MIN" ]] && continue
+
     local escaped_key=$(echo "$key" | sed -e 's/[]\/$*.^[]/\\&/g')
     if grep -q "^${escaped_key}=" "$temp_config"; then
       sed -i "s/^${escaped_key}=.*/${key}=${value}/" "$temp_config"
@@ -38,10 +109,8 @@ merge_configs() {
 
   mv "$temp_config" "$persistent_config"
   ui_print "- Settings merged successfully."
-  ui_print "- New options will use default values."
 }
 
-# This function handles the interactive addon selection using volume keys.
 manual_addon_selection() {
   local config_file="$1"
 
@@ -230,13 +299,10 @@ else
   # Case 2: Existing installation.
   ui_print "- Saved configuration found."
 
-  # Automatically merge if the config template has changed.
-  # This preserves user settings across module updates.
   if check_for_config_changes "$RACO_MODULE_TEMPLATE" "$RACO_PERSIST_CONFIG"; then
     merge_configs "$RACO_MODULE_TEMPLATE" "$RACO_PERSIST_CONFIG"
   fi
 
-  # Always give the user the choice to keep their settings or reconfigure.
   ui_print " "
   ui_print "  Use your saved settings?"
   ui_print "  (New options from updates are already merged)."
@@ -252,12 +318,14 @@ else
   fi
 fi
 
+# Detect frequencies and save them to raco.txt (This runs every install to ensure accuracy)
+detect_and_save_freqs "$RACO_PERSIST_CONFIG"
+
 # Finalize by writing the detected SOC code to the persistent config.
 ui_print "- Finalizing SOC Code ($SOC) in config"
 sed -i "s/^SOC=.*/SOC=$SOC/" "$RACO_PERSIST_CONFIG"
 
 # Clean up the template file from the module directory.
-# The module's own scripts should now read from /data/ProjectRaco/raco.txt
 rm -f "$RACO_MODULE_TEMPLATE"
 
 ui_print " "

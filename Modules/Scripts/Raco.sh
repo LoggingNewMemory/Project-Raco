@@ -13,6 +13,11 @@ ANYA=$(grep '^ANYA=' "$RACO_CONFIG" | cut -d'=' -f2)
 INCLUDE_ANYA=$(grep '^INCLUDE_ANYA=' "$RACO_CONFIG" | cut -d'=' -f2)
 KCPU_MITIGATE=$(grep '^KCPU_MITIGATE=' "$RACO_CONFIG" | cut -d'=' -f2)
 
+# LOAD CPU FREQUENCIES FROM CONFIG
+CPU_MAX_LIST=$(grep '^CPU_MAX=' "$RACO_CONFIG" | cut -d'=' -f2)
+CPU_MID_LIST=$(grep '^CPU_MID=' "$RACO_CONFIG" | cut -d'=' -f2)
+CPU_MIN_LIST=$(grep '^CPU_MIN=' "$RACO_CONFIG" | cut -d'=' -f2)
+
 DEFAULT_CPU_GOV=$(grep '^GOV=' "$RACO_CONFIG" | cut -d'=' -f2)
 if [ -z "$DEFAULT_CPU_GOV" ]; then
     if [ -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors ] && grep -q "schedhorizon" /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors; then
@@ -249,42 +254,52 @@ change_cpu_gov() {
 	chmod 444 /sys/devices/system/cpu/cpufreq/policy*/scaling_governor
 }
 
+# --- UPDATED CPU FREQUENCY FUNCTIONS USING CONFIG ---
+
 cpufreq_ppm_max_perf() {
-	cluster=-1
+	local cluster=0
 	for path in /sys/devices/system/cpu/cpufreq/policy*; do
-		((cluster++))
-		cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
+        # Extract freq from list based on cluster index (1-based for cut)
+        local i=$((cluster + 1))
+        local cpu_maxfreq=$(echo "$CPU_MAX_LIST" | cut -d ' ' -f $i)
+        local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
+
 		tweak "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
 
 		if [ "$LITE_MODE" -eq 1 ]; then
-			cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
 			tweak "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
 		else
 			tweak "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
 		fi
+        ((cluster++))
 	done
 }
 
 cpufreq_max_perf() {
-	for path in /sys/devices/system/cpu/*/cpufreq; do
-		cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
+    local i=1
+	for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        local cpu_maxfreq=$(echo "$CPU_MAX_LIST" | cut -d ' ' -f $i)
+        local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
+        
 		tweak "$cpu_maxfreq" "$path/scaling_max_freq"
 
 		if [ "$LITE_MODE" -eq 1 ]; then
-			cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
 			tweak "$cpu_midfreq" "$path/scaling_min_freq"
 		else
 			tweak "$cpu_maxfreq" "$path/scaling_min_freq"
 		fi
+        i=$((i+1))
 	done
 	chmod -f 444 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
 }
 
 cpufreq_ppm_unlock() {
-	cluster=0
+	local cluster=0
 	for path in /sys/devices/system/cpu/cpufreq/policy*; do
-		cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
-		cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+        local i=$((cluster + 1))
+        local cpu_maxfreq=$(echo "$CPU_MAX_LIST" | cut -d ' ' -f $i)
+        local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
+        
 		kakangkuh "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
 		kakangkuh "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
 		((cluster++))
@@ -292,42 +307,50 @@ cpufreq_ppm_unlock() {
 }
 
 cpufreq_unlock() {
-	for path in /sys/devices/system/cpu/*/cpufreq; do
-		cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
-		cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+    local i=1
+	for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        local cpu_maxfreq=$(echo "$CPU_MAX_LIST" | cut -d ' ' -f $i)
+        local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
+        
 		kakangkuh "$cpu_maxfreq" "$path/scaling_max_freq"
 		kakangkuh "$cpu_minfreq" "$path/scaling_min_freq"
+        i=$((i+1))
 	done
 	chmod -f 644 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
 }
 
 cpufreq_ppm_min_perf() {
-    cluster=-1
+    local cluster=0
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
-        ((cluster++))
-        cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+        local i=$((cluster + 1))
+        local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
+        local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
+
         if [ "$BETTER_POWERAVE" -eq 1 ]; then
-            cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
             tweak "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
             tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
         else
             tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
             tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
         fi
+        ((cluster++))
     done
 }
 
 cpufreq_min_perf() {
-    for path in /sys/devices/system/cpu/*/cpufreq; do
-        cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+    local i=1
+    for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
+        local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
+        
         if [ "$BETTER_POWERAVE" -eq 1 ]; then
-            cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
             tweak "$cpu_midfreq" "$path/scaling_max_freq"
             tweak "$cpu_minfreq" "$path/scaling_min_freq"
         else
             tweak "$cpu_minfreq" "$path/scaling_max_freq"
             tweak "$cpu_minfreq" "$path/scaling_min_freq"
         fi
+        i=$((i+1))
     done
     chmod -f 444 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
 }
