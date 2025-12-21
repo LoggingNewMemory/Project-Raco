@@ -364,7 +364,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Уменьшите частоту процессора наполовину вместо минимальной (только в режиме энергосбережения).';
 
   @override
-  String get carlotta_cpu_title => 'Митигация CPU Carlotta';
+  String get carlotta_cpu_title => 'Carlotta CPU';
 
   @override
   String get carlotta_cpu_description =>

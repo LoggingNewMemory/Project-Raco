@@ -773,7 +773,7 @@ abstract class AppLocalizations {
   /// No description provided for @carlotta_cpu_title.
   ///
   /// In en, this message translates to:
-  /// **'Carlotta CPU Mitigation'**
+  /// **'Carlotta CPU'**
   String get carlotta_cpu_title;
 
   /// No description provided for @carlotta_cpu_description.

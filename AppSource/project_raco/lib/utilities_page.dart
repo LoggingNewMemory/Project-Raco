@@ -232,6 +232,14 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
         navigationTarget: coreTweaksPage,
         searchKeywords: 'better powersave battery cpu frequency half minimum',
       ),
+      // Added Carlotta CPU to Search
+      SearchResultItem(
+        title: localization.carlotta_cpu_title,
+        subtitle: localization.core_tweaks_title,
+        icon: Icons.warning_amber_rounded,
+        navigationTarget: coreTweaksPage,
+        searchKeywords: 'carlotta cpu mitigation target',
+      ),
     ]);
 
     final automationPage = AutomationPage(

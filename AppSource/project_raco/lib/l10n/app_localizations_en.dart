@@ -359,7 +359,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Cap the CPU Freq to Half instead of Minimum Freq (Powersave Mode Only)';
 
   @override
-  String get carlotta_cpu_title => 'Carlotta CPU Mitigation';
+  String get carlotta_cpu_title => 'Carlotta CPU';
 
   @override
   String get carlotta_cpu_description =>

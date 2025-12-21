@@ -349,7 +349,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get better_powersave_description => 'CPU周波数を最小ではなく半分に制限します（省電力モードのみ）';
 
   @override
-  String get carlotta_cpu_title => 'Carlotta CPU 緩和';
+  String get carlotta_cpu_title => 'Carlotta CPU';
 
   @override
   String get carlotta_cpu_description =>

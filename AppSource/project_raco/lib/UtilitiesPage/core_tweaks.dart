@@ -389,7 +389,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
                 localization.carlotta_cpu_description,
                 style: textTheme.bodySmall?.copyWith(
                   fontStyle: FontStyle.italic,
-                  color: colorScheme.error,
+                  color: Colors.white,
                 ),
               ),
               value: _carlottaCpuEnabled,

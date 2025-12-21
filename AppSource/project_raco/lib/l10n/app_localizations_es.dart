@@ -365,7 +365,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Limita el CPU a la mitad en vez de frecuencia minima (Solo para Modo Eficiencia)';
 
   @override
-  String get carlotta_cpu_title => 'Mitigación de CPU Carlotta';
+  String get carlotta_cpu_title => 'Carlotta CPU';
 
   @override
   String get carlotta_cpu_description =>

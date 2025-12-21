@@ -117,7 +117,7 @@
     "clear_cache_title": "キャッシュをクリア",
     "better_powersave_title": "より良い省電力",
     "better_powersave_description": "CPU周波数を最小ではなく半分に制限します（省電力モードのみ）",
-    "carlotta_cpu_title": "Carlotta CPU 緩和",
+    "carlotta_cpu_title": "Carlotta CPU",
     "carlotta_cpu_description": "ターゲットCPUを変更 (警告: デバイスがクラッシュする可能性があります)",
     "build_version_title": "Project Raco: {buildName} ビルド",
     "@build_version_title": {

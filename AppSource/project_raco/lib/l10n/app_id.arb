@@ -117,7 +117,7 @@
     "clear_cache_title": "Bersihkan Cache",
     "better_powersave_title": "Powersave Lebih Baik",
     "better_powersave_description": "Batasi Freq CPU ke Setengah, bukan Freq Minimum (Hanya Mode Powersave)",
-    "carlotta_cpu_title": "Mitigasi CPU Carlotta",
+    "carlotta_cpu_title": "Carlotta CPU",
     "carlotta_cpu_description": "Modifikasi Target CPU (PERINGATAN: Dapat Membuat Perangkat Crash)",
     "build_version_title": "Project Raco: Build {buildName}",
     "@build_version_title": {
