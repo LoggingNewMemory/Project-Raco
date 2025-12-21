@@ -409,7 +409,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.warning_amber_rounded),
+                  : const Icon(Icons.memory),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
