@@ -66,6 +66,9 @@ if grep -q "INCLUDE_AME=1" "$CONFIG_FILE"; then
     sh /data/adb/modules/ProjectRaco/Scripts/AmeRender.sh
 fi
 
+# Facur.sh
+sh /data/adb/modules/ProjectRaco/Scripts/Facur.sh
+
 # This script will be executed in late_start service mode
 su -lp 2000 -c "cmd notification post -S bigtext -t 'Project Raco' -i file:///data/local/tmp/logo.png -I file:///data/local/tmp/logo.png TagRaco 'Project Raco - オンライン'"
 
