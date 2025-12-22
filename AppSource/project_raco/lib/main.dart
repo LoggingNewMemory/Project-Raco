@@ -407,8 +407,9 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     if (!_hasRootAccess ||
         !_moduleInstalled ||
         _executingScript.isNotEmpty ||
-        _isHamadaAiRunning)
+        _isHamadaAiRunning) {
       return;
+    }
 
     String targetMode = (modeKey == 'CLEAR' || modeKey == 'COOLDOWN')
         ? 'NONE'
@@ -423,9 +424,11 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
     try {
       await ConfigManager.saveMode(targetMode);
+      // FIX APPLIED HERE: Added redirection > /dev/null 2>&1
+      // This forces the app to ignore lingering stdout/stderr streams
       await run('su', [
         '-c',
-        'sh /data/adb/modules/ProjectRaco/Scripts/Raco.sh $scriptArg',
+        'sh /data/adb/modules/ProjectRaco/Scripts/Raco.sh $scriptArg > /dev/null 2>&1',
       ], verbose: false);
     } catch (e) {
       await _refreshDynamicState();
