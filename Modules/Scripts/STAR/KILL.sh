@@ -7,11 +7,11 @@
 ###################################
 
 # Bersihkan cache process seperti zygote child yang idle
-cmd activity idle-maintenance > /dev/null 2>&1
+cmd activity idle-maintenance
 
 am kill-all >/dev/null 2>&1
 
 sync
 # Bersihkan log & trace yang bisa menahan wakelock
-logcat -c > /dev/null 2>&1
-dumpsys batterystats --reset > /dev/null 2>&1
+logcat -c
+dumpsys batterystats --reset

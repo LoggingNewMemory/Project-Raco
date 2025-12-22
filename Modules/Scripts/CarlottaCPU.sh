@@ -1,7 +1,7 @@
 #!/system/bin/sh
 
-setprop debug.hwui.use_hint_manager true > /dev/null 2>&1
-setprop debug.sf.enable_adpf_cpu_hint true > /dev/null 2>&1
+setprop debug.hwui.use_hint_manager true
+setprop debug.sf.enable_adpf_cpu_hint true
 
 # Internal function to get the number of CPU cores
 _get_num_cores() {
@@ -57,12 +57,12 @@ carcpu_perf() {
         target_percent="$current_load"
     fi
     
-    setprop debug.hwui.target_cpu_time_percent "$target_percent" > /dev/null 2>&1
+    setprop debug.hwui.target_cpu_time_percent "$target_percent"
 
     # Adjust the script's own priority to be non-intrusive
-    iorenice $$ 7 idle > /dev/null 2>&1
-    renice -n 19 -p $$ > /dev/null 2>&1
-    taskset -ap 1 $$ > /dev/null 2>&1
+    iorenice $$ 7 idle
+    renice -n 19 -p $$
+    taskset -ap 1 $$
 }
 
 carcpu_balance() {
@@ -76,12 +76,12 @@ carcpu_balance() {
         target_percent="$current_load"
     fi
 
-    setprop debug.hwui.target_cpu_time_percent "$target_percent" > /dev/null 2>&1
+    setprop debug.hwui.target_cpu_time_percent "$target_percent"
 
     # Adjust the script's own priority to be non-intrusive
-    iorenice $$ 7 idle > /dev/null 2>&1
-    renice -n 19 -p $$ > /dev/null 2>&1
-    taskset -ap 1 $$ > /dev/null 2>&1
+    iorenice $$ 7 idle
+    renice -n 19 -p $$
+    taskset -ap 1 $$
 }
 
 carcpu_battery() {
@@ -95,10 +95,10 @@ carcpu_battery() {
         target_percent="$current_load"
     fi
 
-    setprop debug.hwui.target_cpu_time_percent "$target_percent" > /dev/null 2>&1
+    setprop debug.hwui.target_cpu_time_percent "$target_percent"
 
     # Adjust the script's own priority to be non-intrusive
-    iorenice $$ 7 idle > /dev/null 2>&1
-    renice -n 19 -p $$ > /dev/null 2>&1
-    taskset -ap 1 $$ > /dev/null 2>&1
+    iorenice $$ 7 idle
+    renice -n 19 -p $$
+    taskset -ap 1 $$
 }

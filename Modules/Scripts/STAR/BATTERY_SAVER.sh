@@ -5,7 +5,7 @@
 ###################################
 
 # cmd activity start -a android.intent.action.VIEW -d 'https://t.me/Droid_ch'
-cmd power set-mode 1 > /dev/null 2>&1
-cmd power set-adaptive-power-saver-enabled true > /dev/null 2>&1
-cmd power thermalservice override-status 3 > /dev/null 2>&1
-settings put global battery_saver_constants advertise_is_enabled=true,animation_disabled=true,launch_boost_disabled=true,vibration_disabled=true > /dev/null 2>&1
+cmd power set-mode 1
+cmd power set-adaptive-power-saver-enabled true
+cmd power thermalservice override-status 3
+settings put global battery_saver_constants advertise_is_enabled=true,animation_disabled=true,launch_boost_disabled=true,vibration_disabled=true
