@@ -118,10 +118,11 @@ notification() {
     local MESSAGE="$1"
     local LOGO="/data/local/tmp/logo.png"
     
+    # Redirect output to /dev/null to ensure the stream closes cleanly
     if [ "$LEGACY_NOTIF" = "1" ]; then
-        su -lp 2000 -c "cmd notification post -S bigtext -t '$TITLE' TagRaco '$MESSAGE'"
+        su -lp 2000 -c "cmd notification post -S bigtext -t '$TITLE' TagRaco '$MESSAGE'" > /dev/null 2>&1
     else
-        su -lp 2000 -c "cmd notification post -S bigtext -t '$TITLE' -i file://$LOGO -I file://$LOGO TagRaco '$MESSAGE'"
+        su -lp 2000 -c "cmd notification post -S bigtext -t '$TITLE' -i file://$LOGO -I file://$LOGO TagRaco '$MESSAGE'" > /dev/null 2>&1
     fi
 }
 
@@ -444,7 +445,7 @@ snapdragon_performance() {
 			else
 				devfreq_max_perf "$path"
 			fi
-		done &
+		done > /dev/null 2>&1 &
 
 		for component in DDR LLCC L3; do
 			path="/sys/devices/system/cpu/bus_dcvs/$component"
@@ -453,7 +454,7 @@ snapdragon_performance() {
 			else
 				qcom_cpudcvs_max_perf "$path"
 			fi
-		done &
+		done > /dev/null 2>&1 &
 	fi
 
 	# GPU tweak
@@ -507,7 +508,7 @@ exynos_performance() {
 			else
 				devfreq_max_perf "$path"
 			fi
-		done &
+		done > /dev/null 2>&1 &
 	fi
 }
 
@@ -543,7 +544,7 @@ tensor_performance() {
 			else
 				devfreq_max_perf "$path"
 			fi
-		done &
+		done > /dev/null 2>&1 &
 	fi
 }
 
@@ -610,7 +611,7 @@ snapdragon_normal() {
 			/sys/class/devfreq/*cpubw* \
 			/sys/class/devfreq/*kgsl-ddr-qos*; do
 			devfreq_unlock "$path"
-		done &
+		done > /dev/null 2>&1 &
 
 		for component in DDR LLCC L3; do
 			qcom_cpudcvs_unlock /sys/devices/system/cpu/bus_dcvs/$component
@@ -647,7 +648,7 @@ exynos_normal() {
 	if [ "$DEVICE_MITIGATION" -eq 0 ]; then
 		for path in /sys/class/devfreq/*devfreq_mif*; do
 			devfreq_unlock "$path"
-		done &
+		done > /dev/null 2>&1 &
 	fi
 }
 
@@ -668,7 +669,7 @@ tensor_normal() {
 	if [ "$DEVICE_MITIGATION" -eq 0 ]; then
 		for path in /sys/class/devfreq/*devfreq_mif*; do
 			devfreq_unlock "$path"
-		done &
+		done > /dev/null 2>&1 &
 	fi
 }
 
@@ -730,11 +731,11 @@ tensor_powersave() {
 ##################################
 performance_basic() {
     sync
-    # I/O Tweaks
+    # I/O Tweaks - Redirected to /dev/null to prevent stream holding
     for dir in /sys/block/*; do
         tweak 0 "$dir/queue/iostats"
         tweak 0 "$dir/queue/add_random"
-    done &
+    done > /dev/null 2>&1 &
 
 	tweak 1 "$ipv4/tcp_low_latency"
 	tweak 1 "$ipv4/tcp_ecn"
@@ -804,7 +805,7 @@ performance_basic() {
                 devfreq_max_perf "$path"
             fi
         fi
-    done &
+    done > /dev/null 2>&1 &
 
     if [ "$LITE_MODE" -eq 0 ] && [ "$DEVICE_MITIGATION" -eq 0 ]; then
         change_cpu_gov "performance"
@@ -821,7 +822,7 @@ performance_basic() {
     for dir in /sys/block/mmcblk0 /sys/block/mmcblk1 /sys/block/sd*; do
         tweak 32 "$dir/queue/read_ahead_kb"
         tweak 32 "$dir/queue/nr_requests"
-    done &
+    done > /dev/null 2>&1 &
     
     # Apply device-specific tweaks
     case $SOC in
@@ -844,6 +845,7 @@ performance_basic() {
     fi
 
     anyamelfissa
+    wait
 }
 
 ##########################################
@@ -884,7 +886,7 @@ balanced_basic() {
 
     for path in /sys/class/devfreq/*.ufshc /sys/class/devfreq/mmc*; do
         devfreq_unlock "$path"
-    done &
+    done > /dev/null 2>&1 &
 
     change_cpu_gov "$DEFAULT_CPU_GOV"
 
@@ -915,6 +917,7 @@ balanced_basic() {
     fi
 
     anyakawaii
+    wait
 }
 
 ##########################################
@@ -934,7 +937,7 @@ powersave_basic() {
     
     for path in /sys/class/devfreq/*.ufshc /sys/class/devfreq/mmc*; do
 		devfreq_min_perf "$path"
-	done &
+	done > /dev/null 2>&1 &
 
     change_cpu_gov "powersave"
 
@@ -964,6 +967,7 @@ powersave_basic() {
     fi
 
     anyakawaii
+    wait
 }
 ##########################################
 # MAIN EXECUTION LOGIC
@@ -1001,6 +1005,7 @@ case $MODE in
         notification "Gaming Pro Mode Activated 🚀"
         ;;
     5)
+        # CASE 5: Kept synchronous as requested so it loads for 2 minutes
         powersave_basic
         notification "Cool Down initiated for 2 minutes... ❄️"
         sleep 120

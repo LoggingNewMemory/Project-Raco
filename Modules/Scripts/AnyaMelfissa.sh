@@ -10,16 +10,16 @@ write_val() {
 # Module 1: Process Killer (Priority)
 kill_thermal_services() {
     # Direct kill for common thermal binaries
-    killall -9 thermald thermal-hal-2-0 android.hardware.thermal@2.0-service 2>/dev/null
+    killall -9 thermald thermal-hal-2-0 android.hardware.thermal@2.0-service > /dev/null 2>&1
     
     # Aggressive sweep using pgrep (faster than ps | grep)
-    pgrep -f "thermal" | xargs -r kill -9 2>/dev/null
+    pgrep -f "thermal" | xargs -r kill -9 > /dev/null 2>&1
     
     # Stop init services via property triggers
     getprop | grep -E 'init.svc.*thermal' | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | while read -r svc; do
         stop "$svc"
         setprop ctl.stop "$svc"
-    done
+    done > /dev/null 2>&1
 }
 
 # Module 2: Filesystem & Permissions (Heavy I/O)
@@ -136,18 +136,18 @@ spoof_running_status() {
 main() {
     # 1. Kill services immediately (Synchronous to free resources)
     kill_thermal_services
-    cmd thermalservice override-status 0 2>/dev/null
+    cmd thermalservice override-status 0 > /dev/null 2>&1
 
-    # 2. Execute Heavy Tasks in Parallel
-    (disable_fs_protections) &
-    (disable_cpu_limits) &
-    (disable_gpu_limits) &
+    # 2. Execute Heavy Tasks in Parallel (FIXED: Redirected to /dev/null)
+    (disable_fs_protections) > /dev/null 2>&1 &
+    (disable_cpu_limits) > /dev/null 2>&1 &
+    (disable_gpu_limits) > /dev/null 2>&1 &
 
     # 3. Wait for all background jobs to finish
     wait
 
     # 4. Apply Spoofing (Last step to overwrite any status changes)
-    spoof_running_status
+    spoof_running_status > /dev/null 2>&1
 }
 
 # Execute

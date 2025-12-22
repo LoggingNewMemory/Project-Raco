@@ -63,14 +63,14 @@ restore_hardware() {
 # ----------------- MAIN EXECUTION -----------------
 
 main() {
-    # 1. Run Restore Operations in Parallel
-    (restore_filesystem) &
-    (restore_hardware) &
+    # 1. Run Restore Operations in Parallel (FIXED: Redirected to /dev/null)
+    (restore_filesystem) > /dev/null 2>&1 &
+    (restore_hardware) > /dev/null 2>&1 &
     wait
 
     # 2. Restore Android Thermal Service Internal Status
-    cmd thermalservice override-status 1 2>/dev/null
-    cmd thermalservice reset 2>/dev/null
+    cmd thermalservice override-status 1 > /dev/null 2>&1
+    cmd thermalservice reset > /dev/null 2>&1
 
     # 3. Start Services
     # We attempt to start them genuinely first
@@ -78,13 +78,13 @@ main() {
         resetprop -n "init.svc.$svc" "stopped"
         start "$svc"
         setprop ctl.start "$svc"
-    done
+    done > /dev/null 2>&1
 
     getprop | grep 'thermal' | cut -d '[' -f2 | cut -d ']' -f1 | while read -r prop; do
         if [ -n "$prop" ]; then
             resetprop -n "$prop" "running"
         fi
-    done
+    done > /dev/null 2>&1
 }
 
 # Execute

@@ -23,19 +23,19 @@ tweak "enable" "/proc/gpufreqv2/aging_mode"
 # Settings Set | Supposed All Devices Have
 
 # Optimize Priority
-settings put secure high_priority 1
-settings put secure low_priority 0
+settings put secure high_priority 1 > /dev/null 2>&1
+settings put secure low_priority 0 > /dev/null 2>&1
 
 # From MTKVest
 
-cmd power set-adaptive-power-saver-enabled false
-cmd power set-fixed-performance-mode-enabled true
+cmd power set-adaptive-power-saver-enabled false > /dev/null 2>&1
+cmd power set-fixed-performance-mode-enabled true > /dev/null 2>&1
 
 # From Corin 
-cmd looper_stats disable
+cmd looper_stats disable > /dev/null 2>&1
 
 # Power Save Mode Off
-settings put global low_power 0
+settings put global low_power 0 > /dev/null 2>&1
 }
 
 corin_balanced() {
@@ -55,19 +55,19 @@ tweak "enable" "/proc/gpufreqv2/aging_mode"
 # Settings Set | Supposed All Devices Have
 
 # Optimize Priority
-settings put secure high_priority 1
-settings put secure low_priority 0
+settings put secure high_priority 1 > /dev/null 2>&1
+settings put secure low_priority 0 > /dev/null 2>&1
 
 # From MTKVest
 
-cmd power set-adaptive-power-saver-enabled false
-cmd power set-fixed-performance-mode-enabled false
+cmd power set-adaptive-power-saver-enabled false > /dev/null 2>&1
+cmd power set-fixed-performance-mode-enabled false > /dev/null 2>&1
 
 # From Corin 
-cmd looper_stats enable
+cmd looper_stats enable > /dev/null 2>&1
 
 # Power Save Mode Off
-settings put global low_power 0
+settings put global low_power 0 > /dev/null 2>&1
 }
 
 corin_powersave() {
@@ -87,17 +87,17 @@ tweak "enable" "/proc/gpufreqv2/aging_mode"
 # Settings Set | Supposed All Devices Have
 
 # Optimize Priority
-settings put secure high_priority 0
-settings put secure low_priority 1
+settings put secure high_priority 0 > /dev/null 2>&1
+settings put secure low_priority 1 > /dev/null 2>&1
 
 # From MTKVest
 
-cmd power set-adaptive-power-saver-enabled true
-cmd power set-fixed-performance-mode-enabled false
+cmd power set-adaptive-power-saver-enabled true > /dev/null 2>&1
+cmd power set-fixed-performance-mode-enabled false > /dev/null 2>&1
 
 # From Corin 
-cmd looper_stats enable
+cmd looper_stats enable > /dev/null 2>&1
 
 # Power Save Mode On
-settings put global low_power 1
+settings put global low_power 1 > /dev/null 2>&1
 }
