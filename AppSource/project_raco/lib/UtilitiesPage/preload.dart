@@ -218,7 +218,7 @@ class _PreloadPageState extends State<PreloadPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Info Card (Project Raco: CBT Build)
+            // 1. Info Card (RAM Stats Only)
             Card(
               elevation: 0,
               color: Colors.black.withOpacity(
@@ -232,37 +232,6 @@ class _PreloadPageState extends State<PreloadPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Shield/Verify Icon
-                        Icon(
-                          Icons.verified_user_outlined,
-                          color: const Color(0xFFE5AA70),
-                          size: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Project Raco: CBT Build",
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              "Build By: Wesley", // Hardcoded as per screenshot/request
-                              style: textTheme.bodySmall?.copyWith(
-                                color: Colors.white54,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
                     // Free RAM Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -350,10 +319,7 @@ class _PreloadPageState extends State<PreloadPage> {
               decoration: InputDecoration(
                 hintText: "Search apps...",
                 hintStyle: const TextStyle(color: Colors.white54),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: Colors.white54,
-                ), // Robot icon in screenshot looked like Automation category, using search here
+                prefixIcon: const Icon(Icons.search, color: Colors.white54),
                 suffixIcon: const Icon(
                   Icons.chevron_right,
                   color: Colors.white54,
