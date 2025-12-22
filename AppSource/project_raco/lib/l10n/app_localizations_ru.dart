@@ -170,7 +170,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get hamada_ai_description =>
-      'Автоматически меняет режим на Производительность, когда открывается игра';
+      'Включает Производительность в игре, Энергосбережение при выключенном экране';
 
   @override
   String get downscale_resolution => 'Понизить резрешение';

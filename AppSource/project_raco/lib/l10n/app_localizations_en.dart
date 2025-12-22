@@ -169,7 +169,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hamada_ai_description =>
-      'Automatically Switch to Performance When Entering Game';
+      'Switch to Performance When Entering Game, Switch to Power Save When Screen Off';
 
   @override
   String get downscale_resolution => 'Downscale Resolution';

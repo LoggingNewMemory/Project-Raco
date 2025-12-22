@@ -162,7 +162,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get hamada_ai => 'HAMADA AI';
 
   @override
-  String get hamada_ai_description => 'ゲーム開始時に自動でパフォーマンスモードに切り替え';
+  String get hamada_ai_description => 'ゲーム開始時にパフォーマンス、画面オフ時に省電力モードへ切り替え';
 
   @override
   String get downscale_resolution => '解像度を下げる';

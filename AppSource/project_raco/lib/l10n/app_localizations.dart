@@ -413,7 +413,7 @@ abstract class AppLocalizations {
   /// No description provided for @hamada_ai_description.
   ///
   /// In en, this message translates to:
-  /// **'Automatically Switch to Performance When Entering Game'**
+  /// **'Switch to Performance When Entering Game, Switch to Power Save When Screen Off'**
   String get hamada_ai_description;
 
   /// No description provided for @downscale_resolution.

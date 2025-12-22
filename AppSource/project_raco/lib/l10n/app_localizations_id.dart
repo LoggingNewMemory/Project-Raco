@@ -170,7 +170,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get hamada_ai_description =>
-      'Otomatis Beralih ke Performa Saat Memasuki Game';
+      'Beralih ke Performa Saat Masuk Game, Beralih ke Hemat Daya Saat Layar Mati';
 
   @override
   String get downscale_resolution => 'Turunkan Resolusi';

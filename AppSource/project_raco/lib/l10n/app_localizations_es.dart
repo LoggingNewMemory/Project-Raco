@@ -170,7 +170,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get hamada_ai_description =>
-      'Autmáticamente cambia a modo Rendimiento cuando se inicie un juego.';
+      'Cambiar a Rendimiento al entrar al juego, cambiar a Ahorro de batería al apagar pantalla';
 
   @override
   String get downscale_resolution => 'Disminuir la resolución';
