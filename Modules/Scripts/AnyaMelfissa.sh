@@ -1,127 +1,155 @@
 #!/system/bin/sh
-#
-# Telegram: @RiProG | Channel: @RiOpSo | Group: @RiOpSoDisc
-# Optimized by Kanagawa Yamada (Parallel Processing + IO reduction)
+# ----------------- HELPER FUNCTIONS -----------------
 
-# Helper: Fast write (skips existence check for speed)
-w() { echo "$2" > "$1" 2>/dev/null; }
+write_val() {
+    [ -e "$1" ] && echo "$2" > "$1" 2>/dev/null
+}
 
-# Helper: Fast chmod
-c() { chmod "$2" "$1" 2>/dev/null; }
+# ----------------- ASYNC MODULES -----------------
 
-# ----------------- PARALLEL EXECUTION BLOCKS -----------------
-
-(
-    # [BLOCK 1] GPU & KGSL Optimization
-    for ZONE in /sys/class/thermal/thermal_zone*; do
-        [ ! -f "$ZONE/type" ] && continue
-        case "$(cat "$ZONE/type" 2>/dev/null)" in *gpu*|*ddr*)
-            for TP in "$ZONE"/trip_point_*_temp; do w "$TP" 95000; done ;;
-        esac
-    done
+# Module 1: Process Killer (Priority)
+kill_thermal_services() {
+    # Direct kill for common thermal binaries
+    killall -9 thermald thermal-hal-2-0 android.hardware.thermal@2.0-service 2>/dev/null
     
-    for gpufreq in /proc/gpufreq; do
-        w "$gpufreq/gpufreq_power_limited" "0"
-        for i in thermal oc low_batt_volume low_batt_volt; do
-            w "$gpufreq/gpufreq_limited_${i}_ignore" "1"
-        done
-    done
-
-    # KGSL Tweaks
-    find /sys/class/kgsl/kgsl-3d0 -name 'throttling' -o -name 'max_gpuclk' -o -name 'force_clk_on' -o -name 'adreno_idler_active' -o -name 'thermal_pwrlevel' | while read -r f; do
-        case "$f" in
-            *throttling|*max_gpuclk|*thermal_pwrlevel) w "$f" "0" ;;
-            *force_clk_on) w "$f" "1" ;;
-            *adreno_idler_active) w "$f" "N" ;;
-        esac
-    done
-) &
-
-(
-    # [BLOCK 2] Stop Processes & Services
-    # Efficiently kill all thermal related processes
-    pkill -9 -f thermal 2>/dev/null
-    killall -9 thermald thermal-engine 2>/dev/null
-
-    # Stop services via init
-    for svc in $(getprop | grep -E 'init.svc(\.vendor)?\.thermal' | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]'); do
+    # Aggressive sweep using pgrep (faster than ps | grep)
+    pgrep -f "thermal" | xargs -r kill -9 2>/dev/null
+    
+    # Stop init services via property triggers
+    getprop | grep -E 'init.svc.*thermal' | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | while read -r svc; do
         stop "$svc"
-        resetprop -n "init.svc.$svc" "stopped"
+        setprop ctl.stop "$svc"
     done
-    
-    # Reset Props
-    for prop in $(getprop | grep -E 'sys\..*thermal' | cut -d: -f1 | tr -d '[]'); do
-        resetprop -n "$prop" "0"
-    done
-    
-    # Disable thermal config props
-    for prop in $(getprop | grep -E 'thermal_config|tran\.hbm\.thermal' | awk -F'[][]' '{print $2}'); do
-        resetprop -n "$prop" "0"
-    done
-) &
+}
 
-(
-    # [BLOCK 3] File System Permissions (Slowest part, running in BG)
-    # Target specific paths to avoid full scan
+# Module 2: Filesystem & Permissions (Heavy I/O)
+disable_fs_protections() {
+    # Batch permission removal (Much faster than loops)
     find /sys/devices/virtual/thermal/thermal_zone*/ \
-         /sys/firmware/devicetree/base/soc/*/ \
-         /sys/devices/virtual/hwmon/hwmon*/ \
-         -name '*thermal*' -o -name '*temp*' -o -name '*trip_point_*' -o -name '*limit_info*' \
-         | while read -r file; do
-             c "$file" 000
-         done
+        /sys/firmware/devicetree/base/soc/*/ \
+        /sys/devices/virtual/hwmon/hwmon*/ \
+        \( -name '*temp*' -o -name '*trip_point_*' -o -name '*type*' -o -name '*limit_info*' \) \
+        -exec chmod 000 {} + 2>/dev/null
 
-    for thermmode in /sys/devices/virtual/thermal/thermal_zone*/mode; do
-        c "$thermmode" 644
-        w "$thermmode" "disabled"
-    done
-) &
-
-(
-    # [BLOCK 4] CPU, Kernel & Misc
-    # Core Control
-    for cpu in /sys/devices/system/cpu/cpu*/core_ctl/enable; do
-        c "$cpu" 666; w "$cpu" "0"; c "$cpu" 444
-    done
-
-    # MSM Thermal
-    find /sys -name enabled 2>/dev/null | grep 'msm_thermal' | while read -r m; do
-        w "$m" "N"; w "$m" "0"
-    done
-
-    # PPM & IO
-    w "/proc/ppm/enabled" "1"
-    for p in 2 3 4 6 7; do w "/proc/ppm/policy_status" "$p 0"; done
-    for q in /sys/block/*/queue; do w "$q/iostats" "0"; w "$q/iosched/slice_idle" "0"; done
-    
-    # Logs & Debug
-    for p in exception-trace sched_schedstats tracing_on log_ecn_error snapshot_crashdumper; do
-        find /proc/sys /sys -name "$p" 2>/dev/null | while read -r f; do w "$f" "0"; done
+    # Disable Thermal Zones Mode
+    for mode in /sys/devices/virtual/thermal/thermal_zone*/mode; do
+        write_val "$mode" "disabled"
+        chmod 644 "$mode" 2>/dev/null
     done
     
-    # FPSGO & Bind Mounts
-    w "/sys/kernel/fpsgo/fbt/thrm_enable" "0"
-    w "/sys/kernel/fpsgo/fbt/thrm_temp_th" "95000"
+    # Bind mount blocks
     mount -o bind /dev/null /vendor/bin/hw/thermal-hal-2-0 2>/dev/null
     mount -o bind /dev/null /vendor/bin/thermald 2>/dev/null
     
-    # Transsion specific
-    resetprop -n -v debug.thermal.throttle.support no
-    cmd thermalservice override-status 0 2>/dev/null
+    # Delete Cache
+    rm -f /data/vendor/thermal/config /data/vendor/thermal/*.dump 2>/dev/null
+}
+
+# Module 3: CPU & Scheduler Tweaks
+disable_cpu_limits() {
+    # Core Control & MSM Thermal
+    for cpu in /sys/devices/system/cpu/cpu*/core_ctl/enable; do
+        write_val "$cpu" "0"
+        chmod 444 "$cpu" 2>/dev/null
+    done
+
+    find /sys/ -name enabled | grep 'msm_thermal' | while read -r msm; do
+        write_val "$msm" "N"
+        write_val "$msm" "0"
+    done
+
+    # PPM Policy
+    write_val "/proc/ppm/enabled" "1"
+    for policy in 2 3 4 6 7; do
+        write_val "/proc/ppm/policy_status" "$policy 0"
+    done
+
+    # Disable Logging/Debug/Panic
+    write_val "/proc/sys/kernel/sched_boost" "0"
+    write_val "/proc/sys/kernel/panic" "0"
+    write_val "/proc/sys/kernel/panic_on_oops" "0"
     
-    # Clean Cache
-    rm -f /data/vendor/thermal/config /data/vendor/thermal/*.dump
-) &
+    # Disable specific modules
+    write_val "/sys/module/workqueue/parameters/power_efficient" "N"
+    write_val "/sys/module/workqueue/parameters/disable_numa" "N"
+    
+    # FPSGO & MTK
+    write_val "/sys/kernel/fpsgo/fbt/thrm_enable" "0"
+    write_val "/sys/kernel/eara_thermal/enable" "0"
+}
 
-# Wait for all background blocks to finish
-wait
+# Module 4: GPU Optimization
+disable_gpu_limits() {
+    # Trip Points
+    for ZONE in /sys/class/thermal/thermal_zone*; do 
+        read -r TYPE < "$ZONE/type" 2>/dev/null
+        case "$TYPE" in 
+            *gpu*|*ddr*) 
+                for TP in "$ZONE"/trip_point_*_temp; do 
+                    [ -f "$TP" ] && echo 95000 > "$TP" 2>/dev/null
+                done 
+            ;; 
+        esac 
+    done
 
-# ----------------- SPOOFING (Must run last) -----------------
-# To Spoof Thermal Running in case some games need thermal
-getprop | grep 'thermal' | cut -d '[' -f2 | cut -d ']' -f1 | while read -r prop; do
-    if [ -n "$prop" ]; then
-        resetprop -n "$prop" "running"
+    # KGSL & GPU Freq
+    for kgsl in /sys/class/kgsl/kgsl-3d0; do
+        if [ -d "$kgsl" ]; then
+            write_val "$kgsl/throttling" "0"
+            write_val "$kgsl/max_gpuclk" "0"
+            write_val "$kgsl/force_clk_on" "1"
+            write_val "$kgsl/thermal_pwrlevel" "0"
+        fi
+    done
+    
+    # Generic GPU Freq limits
+    local GPUFREQ=/proc/gpufreq
+    if [ -d "$GPUFREQ" ]; then
+        write_val "$GPUFREQ/gpufreq_power_limited" "0"
+        write_val "$GPUFREQ/gpufreq_limited_thermal_ignore" "1"
     fi
-done
+}
 
+# Module 5: Property Spoofing (The MUST Have)
+spoof_running_status() {
+    # 1. Reset specific thermal props
+    for prop in $(getprop | grep -E 'sys\..*thermal|thermal_config' | cut -d: -f1 | tr -d '[]'); do
+        resetprop -n "$prop" "0"
+    done
+    
+    # 2. Disable Transsion/Infinix specific debug throttle
+    if resetprop debug.thermal.throttle.support | grep -q 'yes'; then
+        resetprop -n -v debug.thermal.throttle.support no
+    fi
+
+    # 3. THE RUNNING SPOOF (Critical)
+    # Forces system to believe thermal services are running to prevent bootloops or crashes
+    getprop | grep 'thermal' | cut -d '[' -f2 | cut -d ']' -f1 | while read -r prop; do
+        if [ -n "$prop" ]; then
+            resetprop -n "$prop" "running"
+        fi
+    done
+}
+
+# ----------------- MAIN EXECUTION -----------------
+
+main() {
+    # 1. Kill services immediately (Synchronous to free resources)
+    kill_thermal_services
+    cmd thermalservice override-status 0 2>/dev/null
+
+    # 2. Execute Heavy Tasks in Parallel
+    (disable_fs_protections) &
+    (disable_cpu_limits) &
+    (disable_gpu_limits) &
+
+    # 3. Wait for all background jobs to finish
+    wait
+
+    # 4. Apply Spoofing (Last step to overwrite any status changes)
+    spoof_running_status
+}
+
+# Execute
+main
 exit 0
