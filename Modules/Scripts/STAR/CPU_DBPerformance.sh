@@ -31,13 +31,6 @@ maincore() {
     logcat -c    
 }
 
-short_preload() {
-    vmt() { cat "$1" >/dev/null 2>&1; }
-    for lib in /system/lib*/libsurfaceflinger.so /system/lib*/libhwui.so /system/lib*/libGLES* /system/lib*/libEGL.so /system/lib*/libui.so /system/lib*/libgui.so /system/lib*/libinputflinger.so; do
-        [ -f "$lib" ] && vmt "$lib" &
-    done
-}
-
 toggle_off_powersave() {
     cmd power set-mode 0 
     cmd power set-adaptive-power-saver-enabled false 
@@ -45,12 +38,6 @@ toggle_off_powersave() {
     settings delete global battery_saver_constants 
 }
 
-set_hwui_sf
-maincore &
-sleep 0.08
-short_preload &
-sleep 0.08
-toggle_off_powersave &
-wait
-sleep 0.5
+maincore
+toggle_off_powersave 
 sync
