@@ -1,4 +1,5 @@
 {
+    "@@locale": "ru",
     "app_title": "Project Raco",
     "by": "By: Kanagawa Yamada",
     "root_access": "Root-доступ:",
@@ -47,6 +48,8 @@
     "device_mitigation_description": "Включите это, если ваш экран имеет подтормаживания",
     "lite_mode_title": "Легкий режим",
     "lite_mode_description": "Облегченная версия производительности, меньше расходует батарею, но дает меньший прирост производительности",
+    "life_mode_title": "Режим LIFE",
+    "life_mode_description": "Половина мощности ЦП в Балансе",
     "hamada_ai": "HAMADA AI",
     "hamada_ai_description": "Автоматически меняет режим на Производительность, когда открывается игра",
     "downscale_resolution": "Понизить резрешение",

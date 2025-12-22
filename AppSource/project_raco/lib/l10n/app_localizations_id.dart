@@ -160,6 +160,12 @@ class AppLocalizationsId extends AppLocalizations {
       'Versi Ringan dari Performa, menggunakan Lebih Sedikit Baterai tetapi Peningkatan Performa Lebih Sedikit';
 
   @override
+  String get life_mode_title => 'Mode LIFE';
+
+  @override
+  String get life_mode_description => 'Setengah Daya CPU di Seimbang';
+
+  @override
   String get hamada_ai => 'HAMADA AI';
 
   @override

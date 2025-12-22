@@ -203,9 +203,50 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
         subtitle: localization.core_tweaks_title,
         icon: Icons.security_update_warning_outlined,
         navigationTarget: coreTweaksPage,
-        searchKeywords: 'device mitigation fix tweak encore',
+        searchKeywords: 'device mitigation fix tweak encore screen freeze',
       ),
-      // ... (Rest of Core Tweaks Items omitted for brevity, logic remains same)
+      SearchResultItem(
+        title: localization.lite_mode_title,
+        subtitle: localization.core_tweaks_title,
+        icon: Icons.energy_savings_leaf_outlined,
+        navigationTarget: coreTweaksPage,
+        searchKeywords: 'lite mode battery saver light performance',
+      ),
+      SearchResultItem(
+        title: localization.life_mode_title,
+        subtitle: localization.core_tweaks_title,
+        icon: Icons.monitor_heart_outlined,
+        navigationTarget: coreTweaksPage,
+        searchKeywords: 'life mode balance cpu power half mid freq',
+      ),
+      SearchResultItem(
+        title: localization.better_powersave_title,
+        subtitle: localization.core_tweaks_title,
+        icon: Icons.battery_saver_outlined,
+        navigationTarget: coreTweaksPage,
+        searchKeywords: 'better powersave battery cap cpu half freq',
+      ),
+      SearchResultItem(
+        title: localization.carlotta_cpu_title,
+        subtitle: localization.core_tweaks_title,
+        icon: Icons.memory,
+        navigationTarget: coreTweaksPage,
+        searchKeywords: 'carlotta cpu target modify mitigation',
+      ),
+      SearchResultItem(
+        title: localization.legacy_notif_title,
+        subtitle: localization.core_tweaks_title,
+        icon: Icons.notifications_active_outlined,
+        navigationTarget: coreTweaksPage,
+        searchKeywords: 'legacy notification fix missing notif',
+      ),
+      SearchResultItem(
+        title: localization.custom_governor_title,
+        subtitle: localization.core_tweaks_title,
+        icon: Icons.speed,
+        navigationTarget: coreTweaksPage,
+        searchKeywords: 'custom governor cpu scaling frequency control',
+      ),
     ]);
 
     // --- Automation ---
@@ -227,14 +268,21 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
         subtitle: localization.automation_title,
         icon: Icons.smart_toy_outlined,
         navigationTarget: automationPage,
-        searchKeywords: 'hamada ai automation bot',
+        searchKeywords: 'hamada ai automation bot auto performance game',
       ),
       SearchResultItem(
         title: localization.edit_game_txt_title,
         subtitle: localization.automation_title,
         icon: Icons.edit_note,
         navigationTarget: automationPage,
-        searchKeywords: 'edit game txt list apps',
+        searchKeywords: 'edit game txt list apps package',
+      ),
+      SearchResultItem(
+        title: localization.dnd_title,
+        subtitle: localization.automation_title,
+        icon: Icons.do_not_disturb_on_outlined,
+        navigationTarget: automationPage,
+        searchKeywords: 'dnd do not disturb gaming mode auto',
       ),
     ]);
 
@@ -252,7 +300,48 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
       ),
     );
     _allSearchableItems.addAll([
-      // ... (System Items omitted for brevity)
+      SearchResultItem(
+        title: localization.anya_thermal_title,
+        subtitle: localization.system_title,
+        icon: Icons.thermostat,
+        navigationTarget: systemPage,
+        searchKeywords: 'anya thermal flowstate disable heat control',
+      ),
+      SearchResultItem(
+        title: localization.bypass_charging_title,
+        subtitle: localization.system_title,
+        icon: Icons.power_off_outlined,
+        navigationTarget: systemPage,
+        searchKeywords: 'bypass charging power battery protect game',
+      ),
+      SearchResultItem(
+        title: localization.fstrim_title,
+        subtitle: localization.system_title,
+        icon: Icons.cleaning_services_outlined,
+        navigationTarget: systemPage,
+        searchKeywords: 'fstrim trim storage maintenance',
+      ),
+      SearchResultItem(
+        title: localization.clear_cache_title,
+        subtitle: localization.system_title,
+        icon: Icons.delete_outline,
+        navigationTarget: systemPage,
+        searchKeywords: 'clear cache storage junk',
+      ),
+      SearchResultItem(
+        title: localization.graphics_driver_title,
+        subtitle: localization.system_title,
+        icon: Icons.games_outlined,
+        navigationTarget: systemPage,
+        searchKeywords: 'graphics driver gpu game developer system',
+      ),
+      SearchResultItem(
+        title: localization.downscale_resolution,
+        subtitle: localization.system_title,
+        icon: Icons.display_settings,
+        navigationTarget: systemPage,
+        searchKeywords: 'resolution downscale size dpi wm size',
+      ),
     ]);
 
     // --- Appearance ---
@@ -283,9 +372,14 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
         navigationTarget: appearancePage,
         searchKeywords: 'banner image header theme color',
       ),
+      SearchResultItem(
+        title: localization.screen_modifier_title,
+        subtitle: localization.appearance_title,
+        icon: Icons.palette_outlined,
+        navigationTarget: appearancePage,
+        searchKeywords: 'screen modifier color saturation red green blue',
+      ),
     ]);
-
-    // Removed Kasane Preload section from here
   }
 
   void _updateSearchResults() {
@@ -301,10 +395,8 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
       if (mounted) {
         setState(() {
           _filteredSearchResults = _allSearchableItems.where((item) {
-            final itemKeywords = item.searchKeywords.toLowerCase().split(' ');
-            return queryTerms.every(
-              (term) => itemKeywords.any((keyword) => keyword.startsWith(term)),
-            );
+            final itemKeywords = item.searchKeywords.toLowerCase();
+            return queryTerms.every((term) => itemKeywords.contains(term));
           }).toList();
         });
       }

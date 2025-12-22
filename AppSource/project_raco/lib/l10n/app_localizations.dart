@@ -392,6 +392,18 @@ abstract class AppLocalizations {
   /// **'Light Version of Performance, uses Less Battery but Less Performance Boost'**
   String get lite_mode_description;
 
+  /// No description provided for @life_mode_title.
+  ///
+  /// In en, this message translates to:
+  /// **'LIFE Mode'**
+  String get life_mode_title;
+
+  /// No description provided for @life_mode_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Half CPU Power on Balance'**
+  String get life_mode_description;
+
   /// No description provided for @hamada_ai.
   ///
   /// In en, this message translates to:

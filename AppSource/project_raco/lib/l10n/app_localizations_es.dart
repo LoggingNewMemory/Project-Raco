@@ -160,6 +160,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'Versión ligera de rendimiento, usa menos batería pero con menor aumento de rendimiento';
 
   @override
+  String get life_mode_title => 'Modo LIFE';
+
+  @override
+  String get life_mode_description => 'Mitad de potencia de CPU en Equilibrado';
+
+  @override
   String get hamada_ai => 'HAMADA AI';
 
   @override

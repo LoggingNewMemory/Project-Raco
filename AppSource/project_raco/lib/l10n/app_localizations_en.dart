@@ -159,6 +159,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Light Version of Performance, uses Less Battery but Less Performance Boost';
 
   @override
+  String get life_mode_title => 'LIFE Mode';
+
+  @override
+  String get life_mode_description => 'Half CPU Power on Balance';
+
+  @override
   String get hamada_ai => 'HAMADA AI';
 
   @override

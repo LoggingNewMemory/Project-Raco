@@ -160,6 +160,12 @@ class AppLocalizationsRu extends AppLocalizations {
       'Облегченная версия производительности, меньше расходует батарею, но дает меньший прирост производительности';
 
   @override
+  String get life_mode_title => 'Режим LIFE';
+
+  @override
+  String get life_mode_description => 'Половина мощности ЦП в Балансе';
+
+  @override
   String get hamada_ai => 'HAMADA AI';
 
   @override

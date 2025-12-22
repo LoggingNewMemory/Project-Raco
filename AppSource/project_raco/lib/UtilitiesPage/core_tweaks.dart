@@ -61,6 +61,12 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
               multiLine: true,
             ).firstMatch(content)?.group(1) ==
             '1',
+        'lifeMode':
+            RegExp(
+              r'^LIFE_MODE=(\d)',
+              multiLine: true,
+            ).firstMatch(content)?.group(1) ==
+            '1',
         'betterPowersave':
             RegExp(
               r'^BETTER_POWERAVE=(\d)',
@@ -79,6 +85,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
     return {
       'deviceMitigation': false,
       'liteMode': false,
+      'lifeMode': false,
       'betterPowersave': false,
       'carlottaCpu': false,
       'legacyNotif': false,
@@ -141,6 +148,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
             initialDeviceMitigationValue:
                 _encoreState?['deviceMitigation'] ?? false,
             initialLiteModeValue: _encoreState?['liteMode'] ?? false,
+            initialLifeModeValue: _encoreState?['lifeMode'] ?? false,
             initialBetterPowersaveValue:
                 _encoreState?['betterPowersave'] ?? false,
             initialCarlottaCpuValue: _encoreState?['carlottaCpu'] ?? false,
@@ -193,6 +201,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
 class FixAndTweakCard extends StatefulWidget {
   final bool initialDeviceMitigationValue;
   final bool initialLiteModeValue;
+  final bool initialLifeModeValue;
   final bool initialBetterPowersaveValue;
   final bool initialCarlottaCpuValue;
   final bool initialLegacyNotifValue;
@@ -201,6 +210,7 @@ class FixAndTweakCard extends StatefulWidget {
     Key? key,
     required this.initialDeviceMitigationValue,
     required this.initialLiteModeValue,
+    required this.initialLifeModeValue,
     required this.initialBetterPowersaveValue,
     required this.initialCarlottaCpuValue,
     required this.initialLegacyNotifValue,
@@ -214,12 +224,14 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
     with AutomaticKeepAliveClientMixin {
   late bool _deviceMitigationEnabled;
   late bool _liteModeEnabled;
+  late bool _lifeModeEnabled;
   late bool _betterPowersaveEnabled;
   late bool _carlottaCpuEnabled;
   late bool _legacyNotifEnabled;
 
   bool _isUpdatingMitigation = false;
   bool _isUpdatingLiteMode = false;
+  bool _isUpdatingLifeMode = false;
   bool _isUpdatingBetterPowersave = false;
   bool _isUpdatingCarlottaCpu = false;
   bool _isUpdatingLegacyNotif = false;
@@ -234,6 +246,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
     super.initState();
     _deviceMitigationEnabled = widget.initialDeviceMitigationValue;
     _liteModeEnabled = widget.initialLiteModeValue;
+    _lifeModeEnabled = widget.initialLifeModeValue;
     _betterPowersaveEnabled = widget.initialBetterPowersaveValue;
     _carlottaCpuEnabled = widget.initialCarlottaCpuValue;
     _legacyNotifEnabled = widget.initialLegacyNotifValue;
@@ -285,6 +298,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
     final bool isBusy =
         _isUpdatingMitigation ||
         _isUpdatingLiteMode ||
+        _isUpdatingLifeMode ||
         _isUpdatingBetterPowersave ||
         _isUpdatingCarlottaCpu ||
         _isUpdatingLegacyNotif;
@@ -364,6 +378,37 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.energy_savings_leaf_outlined),
+              activeColor: colorScheme.primary,
+              contentPadding: EdgeInsets.zero,
+            ),
+            SwitchListTile(
+              title: Text(
+                localization.life_mode_title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                localization.life_mode_description,
+                style: textTheme.bodySmall?.copyWith(
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              value: _lifeModeEnabled,
+              onChanged: isBusy
+                  ? null
+                  : (bool enable) => _updateTweak(
+                      key: 'LIFE_MODE',
+                      enable: enable,
+                      stateSetter: (val) => _lifeModeEnabled = val,
+                      isUpdatingSetter: (val) => _isUpdatingLifeMode = val,
+                      initialValue: widget.initialLifeModeValue,
+                    ),
+              secondary: _isUpdatingLifeMode
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.monitor_heart_outlined),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),

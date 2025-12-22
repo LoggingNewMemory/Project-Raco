@@ -8,6 +8,7 @@ RACO_CONFIG="/data/ProjectRaco/raco.txt"
 # Format: 1=MTK, 2=SD, 3=Exynos, 4=Unisoc, 5=Tensor, 6=Tegra, 7=Kirin
 SOC=$(grep '^SOC=' "$RACO_CONFIG" | cut -d'=' -f2)
 LITE_MODE=$(grep '^LITE_MODE=' "$RACO_CONFIG" | cut -d'=' -f2)
+LIFE_MODE=$(grep '^LIFE_MODE=' "$RACO_CONFIG" | cut -d'=' -f2)
 BETTER_POWERAVE=$(grep '^BETTER_POWERAVE=' "$RACO_CONFIG" | cut -d'=' -f2)
 ANYA=$(grep '^ANYA=' "$RACO_CONFIG" | cut -d'=' -f2)
 INCLUDE_ANYA=$(grep '^INCLUDE_ANYA=' "$RACO_CONFIG" | cut -d'=' -f2)
@@ -259,8 +260,6 @@ change_cpu_gov() {
 	chmod 444 /sys/devices/system/cpu/cpufreq/policy*/scaling_governor
 }
 
-# --- UPDATED CPU FREQUENCY FUNCTIONS USING CONFIG ---
-
 cpufreq_ppm_max_perf() {
 	local cluster=0
 	for path in /sys/devices/system/cpu/cpufreq/policy*; do
@@ -322,6 +321,34 @@ cpufreq_unlock() {
         i=$((i+1))
 	done
 	chmod -f 644 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
+}
+
+cpufreq_ppm_life_perf() {
+    local cluster=0
+    for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        local i=$((cluster + 1))
+        local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
+        local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
+        
+        # In Life Mode, max is capped at midfreq
+        kakangkuh "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+        kakangkuh "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+        ((cluster++))
+    done
+}
+
+cpufreq_life_perf() {
+    local i=1
+    for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
+        local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
+        
+        # In Life Mode, max is capped at midfreq
+        kakangkuh "$cpu_midfreq" "$path/scaling_max_freq"
+        kakangkuh "$cpu_minfreq" "$path/scaling_min_freq"
+        i=$((i+1))
+    done
+    chmod -f 644 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
 }
 
 cpufreq_ppm_min_perf() {
@@ -890,9 +917,18 @@ balanced_basic() {
 
     # Set both PPM and standard cpufreq if PPM exists, otherwise just standard
     if [ -d "/proc/ppm" ]; then
-        cpufreq_ppm_unlock
+        if [ "$LIFE_MODE" -eq 1 ]; then
+            cpufreq_ppm_life_perf
+        else
+            cpufreq_ppm_unlock
+        fi
     fi
-    cpufreq_unlock
+    
+    if [ "$LIFE_MODE" -eq 1 ]; then
+        cpufreq_life_perf
+    else
+        cpufreq_unlock
+    fi
     
     # Apply device-specific tweaks
     case $SOC in

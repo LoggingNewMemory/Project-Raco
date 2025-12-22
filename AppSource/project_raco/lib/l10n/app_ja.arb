@@ -1,4 +1,5 @@
 {
+    "@@locale": "ja",
     "app_title": "Project Raco",
     "by": "作成者: 神奈川山田",
     "root_access": "ルートアクセス:",
@@ -47,6 +48,8 @@
     "device_mitigation_description": "画面のフリーズが発生した場合にオンにします",
     "lite_mode_title": "ライトモード",
     "lite_mode_description": "パフォーマンスの軽量版、バッテリー消費は少ないがパフォーマンスの向上も少ない",
+    "life_mode_title": "LIFEモード",
+    "life_mode_description": "バランスモードでCPUパワーを半分にする",
     "hamada_ai": "HAMADA AI",
     "hamada_ai_description": "ゲーム開始時に自動でパフォーマンスモードに切り替え",
     "downscale_resolution": "解像度を下げる",

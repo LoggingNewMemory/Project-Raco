@@ -153,6 +153,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get lite_mode_description => 'パフォーマンスの軽量版、バッテリー消費は少ないがパフォーマンスの向上も少ない';
 
   @override
+  String get life_mode_title => 'LIFEモード';
+
+  @override
+  String get life_mode_description => 'バランスモードでCPUパワーを半分にする';
+
+  @override
   String get hamada_ai => 'HAMADA AI';
 
   @override

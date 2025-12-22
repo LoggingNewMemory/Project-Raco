@@ -1,4 +1,5 @@
 {
+    "@@locale": "es",
     "app_title": "Project Raco",
     "by": "Por: Kanagawa Yamada",
     "root_access": "Acceso Root:",
@@ -47,6 +48,8 @@
     "device_mitigation_description": "Enciendelo si experimentas congelado de pantalla",
     "lite_mode_title": "Modo lite",
     "lite_mode_description": "Versión ligera de rendimiento, usa menos batería pero con menor aumento de rendimiento",
+    "life_mode_title": "Modo LIFE",
+    "life_mode_description": "Mitad de potencia de CPU en Equilibrado",
     "hamada_ai": "HAMADA AI",
     "hamada_ai_description": "Autmáticamente cambia a modo Rendimiento cuando se inicie un juego.",
     "downscale_resolution": "Disminuir la resolución",

@@ -1,4 +1,5 @@
 {
+    "@@locale": "en",
     "app_title": "Project Raco",
     "by": "By: Kanagawa Yamada",
     "root_access": "Root Access:",
@@ -47,6 +48,8 @@
     "device_mitigation_description": "Turn on if you experience screen freeze",
     "lite_mode_title": "LITE Mode",
     "lite_mode_description": "Light Version of Performance, uses Less Battery but Less Performance Boost",
+    "life_mode_title": "LIFE Mode",
+    "life_mode_description": "Half CPU Power on Balance",
     "hamada_ai": "HAMADA AI",
     "hamada_ai_description": "Automatically Switch to Performance When Entering Game",
     "downscale_resolution": "Downscale Resolution",
