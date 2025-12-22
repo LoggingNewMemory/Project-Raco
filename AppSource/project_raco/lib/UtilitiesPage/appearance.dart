@@ -140,11 +140,15 @@ class BackgroundSettingsCard extends StatefulWidget {
   _BackgroundSettingsCardState createState() => _BackgroundSettingsCardState();
 }
 
-class _BackgroundSettingsCardState extends State<BackgroundSettingsCard> {
+class _BackgroundSettingsCardState extends State<BackgroundSettingsCard>
+    with AutomaticKeepAliveClientMixin {
   late String? _path;
   late double _opacity;
   late double _blurPercentage;
   final double _maxSigma = 15.0;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -230,6 +234,7 @@ class _BackgroundSettingsCardState extends State<BackgroundSettingsCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -333,9 +338,13 @@ class BannerSettingsCard extends StatefulWidget {
   _BannerSettingsCardState createState() => _BannerSettingsCardState();
 }
 
-class _BannerSettingsCardState extends State<BannerSettingsCard> {
+class _BannerSettingsCardState extends State<BannerSettingsCard>
+    with AutomaticKeepAliveClientMixin {
   late String? _path;
   bool _isProcessing = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -460,6 +469,7 @@ class _BannerSettingsCardState extends State<BannerSettingsCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;

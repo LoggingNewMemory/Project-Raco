@@ -124,7 +124,8 @@ class HamadaAiCard extends StatefulWidget {
   _HamadaAiCardState createState() => _HamadaAiCardState();
 }
 
-class _HamadaAiCardState extends State<HamadaAiCard> {
+class _HamadaAiCardState extends State<HamadaAiCard>
+    with AutomaticKeepAliveClientMixin {
   late bool _hamadaAiEnabled;
   late bool _hamadaStartOnBoot;
   bool _isTogglingProcess = false;
@@ -132,6 +133,9 @@ class _HamadaAiCardState extends State<HamadaAiCard> {
 
   final String _serviceFilePath = '/data/adb/modules/ProjectRaco/service.sh';
   final String _hamadaStartCommand = 'su -c /system/bin/HamadaAI';
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -224,6 +228,7 @@ class _HamadaAiCardState extends State<HamadaAiCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -356,10 +361,14 @@ class GameTxtCard extends StatefulWidget {
   _GameTxtCardState createState() => _GameTxtCardState();
 }
 
-class _GameTxtCardState extends State<GameTxtCard> {
+class _GameTxtCardState extends State<GameTxtCard>
+    with AutomaticKeepAliveClientMixin {
   bool _isBusy = false;
 
   static const String _originalFilePath = '/data/ProjectRaco/game.txt';
+
+  @override
+  bool get wantKeepAlive => true;
 
   /// Reads the content of game.txt, navigates to the built-in editor,
   /// and saves the content back if it was changed.
@@ -431,6 +440,7 @@ class _GameTxtCardState extends State<GameTxtCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;

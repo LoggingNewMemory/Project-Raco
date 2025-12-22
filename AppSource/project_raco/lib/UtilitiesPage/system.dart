@@ -245,6 +245,9 @@ class _SystemPageState extends State<SystemPage> {
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(8, 8, 8, 32),
+        // Add cacheExtent to keep items alive just outside the viewport,
+        // though AutomaticKeepAliveClientMixin is the primary fix.
+        cacheExtent: 1000,
         children: [
           DndCard(initialDndEnabled: _dndEnabled ?? false),
           if (_isAnyaIncluded)
@@ -323,10 +326,13 @@ class DndCard extends StatefulWidget {
   _DndCardState createState() => _DndCardState();
 }
 
-class _DndCardState extends State<DndCard> {
+class _DndCardState extends State<DndCard> with AutomaticKeepAliveClientMixin {
   late bool _dndEnabled;
   bool _isUpdating = false;
   final String _configFilePath = '/data/ProjectRaco/raco.txt';
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -362,6 +368,7 @@ class _DndCardState extends State<DndCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Important for KeepAlive
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -417,10 +424,14 @@ class AnyaThermalCard extends StatefulWidget {
   _AnyaThermalCardState createState() => _AnyaThermalCardState();
 }
 
-class _AnyaThermalCardState extends State<AnyaThermalCard> {
+class _AnyaThermalCardState extends State<AnyaThermalCard>
+    with AutomaticKeepAliveClientMixin {
   late bool _isEnabled;
   bool _isUpdating = false;
   final String _configFilePath = '/data/ProjectRaco/raco.txt';
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -462,6 +473,7 @@ class _AnyaThermalCardState extends State<AnyaThermalCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -523,11 +535,15 @@ class BypassChargingCard extends StatefulWidget {
   _BypassChargingCardState createState() => _BypassChargingCardState();
 }
 
-class _BypassChargingCardState extends State<BypassChargingCard> {
+class _BypassChargingCardState extends State<BypassChargingCard>
+    with AutomaticKeepAliveClientMixin {
   late bool _isEnabled;
   bool _isToggling = false;
 
   final String _configFilePath = '/data/ProjectRaco/raco.txt';
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -553,6 +569,7 @@ class _BypassChargingCardState extends State<BypassChargingCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -621,8 +638,12 @@ class GraphicsDriverCard extends StatefulWidget {
   _GraphicsDriverCardState createState() => _GraphicsDriverCardState();
 }
 
-class _GraphicsDriverCardState extends State<GraphicsDriverCard> {
+class _GraphicsDriverCardState extends State<GraphicsDriverCard>
+    with AutomaticKeepAliveClientMixin {
   late int _currentValue;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -660,6 +681,7 @@ class _GraphicsDriverCardState extends State<GraphicsDriverCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -752,10 +774,14 @@ class ResolutionCard extends StatefulWidget {
   _ResolutionCardState createState() => _ResolutionCardState();
 }
 
-class _ResolutionCardState extends State<ResolutionCard> {
+class _ResolutionCardState extends State<ResolutionCard>
+    with AutomaticKeepAliveClientMixin {
   bool _isChanging = false;
   late double _currentValue;
   final List<int> _percentages = [50, 60, 70, 80, 90, 100];
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -822,6 +848,7 @@ class _ResolutionCardState extends State<ResolutionCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -919,7 +946,8 @@ class ScreenModifierCard extends StatefulWidget {
   _ScreenModifierCardState createState() => _ScreenModifierCardState();
 }
 
-class _ScreenModifierCardState extends State<ScreenModifierCard> {
+class _ScreenModifierCardState extends State<ScreenModifierCard>
+    with AutomaticKeepAliveClientMixin {
   late double _redValue;
   late double _greenValue;
   late double _blueValue;
@@ -929,6 +957,9 @@ class _ScreenModifierCardState extends State<ScreenModifierCard> {
 
   final String _configFilePath = '/data/ProjectRaco/raco.txt';
   final String _serviceFilePath = '/data/adb/modules/ProjectRaco/service.sh';
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -1080,6 +1111,7 @@ EOF
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -1177,9 +1209,13 @@ class SystemActionsCard extends StatefulWidget {
   _SystemActionsCardState createState() => _SystemActionsCardState();
 }
 
-class _SystemActionsCardState extends State<SystemActionsCard> {
+class _SystemActionsCardState extends State<SystemActionsCard>
+    with AutomaticKeepAliveClientMixin {
   bool _isFstrimRunning = false;
   bool _isClearCacheRunning = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   Future<void> _runAction({
     required String command,
@@ -1202,6 +1238,7 @@ class _SystemActionsCardState extends State<SystemActionsCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;

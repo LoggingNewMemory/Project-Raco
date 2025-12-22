@@ -210,7 +210,8 @@ class FixAndTweakCard extends StatefulWidget {
   _FixAndTweakCardState createState() => _FixAndTweakCardState();
 }
 
-class _FixAndTweakCardState extends State<FixAndTweakCard> {
+class _FixAndTweakCardState extends State<FixAndTweakCard>
+    with AutomaticKeepAliveClientMixin {
   late bool _deviceMitigationEnabled;
   late bool _liteModeEnabled;
   late bool _betterPowersaveEnabled;
@@ -224,6 +225,9 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
   bool _isUpdatingLegacyNotif = false;
 
   final String _racoConfigFilePath = '/data/ProjectRaco/raco.txt';
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -274,6 +278,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -478,11 +483,15 @@ class GovernorCard extends StatefulWidget {
   _GovernorCardState createState() => _GovernorCardState();
 }
 
-class _GovernorCardState extends State<GovernorCard> {
+class _GovernorCardState extends State<GovernorCard>
+    with AutomaticKeepAliveClientMixin {
   late List<String> _availableGovernors;
   String? _selectedGovernor;
   bool _isSaving = false;
   final String _configFilePath = '/data/ProjectRaco/raco.txt';
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -520,6 +529,7 @@ class _GovernorCardState extends State<GovernorCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
