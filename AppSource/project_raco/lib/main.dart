@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '/l10n/app_localizations.dart';
 import 'about_page.dart';
 import 'utilities_page.dart';
+import 'preload.dart';
 
 // A simple global notifier to broadcast theme changes instantly.
 final themeNotifier = ValueNotifier<Color?>(null);
@@ -528,6 +529,34 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     _refreshDynamicState();
   }
 
+  void _navigateToPreloadPage() {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        opaque: false,
+        pageBuilder: (context, animation, secondaryAnimation) => PreloadPage(
+          backgroundImagePath: widget.backgroundImagePath,
+          backgroundOpacity: widget.backgroundOpacity,
+          backgroundBlur: widget.backgroundBlur,
+        ),
+        transitionDuration: const Duration(milliseconds: 300),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(-1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
@@ -598,6 +627,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                           Icons.clear_all_outlined,
                           'CLEAR',
                         ),
+                        _buildPreloadCard(localization), // Added Preload Card
+                        const SizedBox(height: 10),
                         _buildUtilitiesCard(localization),
                         const SizedBox(height: 10),
                         _buildLanguageSelector(localization),
@@ -838,6 +869,48 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
               Text(
                 localization.utilities,
                 style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: colorScheme.onSurfaceVariant,
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreloadCard(AppLocalizations localization) {
+    final colorScheme = Theme.of(context).colorScheme;
+    // MATCHED: Now uses surfaceContainer and standard styles to match Utilities card
+    return Card(
+      elevation: 2.0,
+      margin: EdgeInsets.zero,
+      color: colorScheme.surfaceContainer,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: _navigateToPreloadPage,
+        child: Container(
+          height: 56.0,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.rocket_launch_outlined,
+                    color: Colors.white, // Updated to white
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    localization.kasane_title,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
               ),
               Icon(
                 Icons.arrow_forward_ios,

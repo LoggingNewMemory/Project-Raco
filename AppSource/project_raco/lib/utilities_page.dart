@@ -10,7 +10,6 @@ import 'UtilitiesPage/automation.dart';
 import 'UtilitiesPage/core_tweaks.dart';
 import 'UtilitiesPage/system.dart';
 import 'UtilitiesPage/utils.dart';
-import 'UtilitiesPage/preload.dart';
 
 //region Models for Search and Navigation
 class UtilityCategory {
@@ -286,28 +285,7 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
       ),
     ]);
 
-    final preloadPage = PreloadPage(
-      backgroundImagePath: _backgroundImagePath,
-      backgroundOpacity: _backgroundOpacity,
-      backgroundBlur: _backgroundBlur,
-    );
-
-    _allCategories.add(
-      UtilityCategory(
-        title: localization.kasane_title,
-        icon: Icons.rocket_launch_outlined,
-        page: preloadPage,
-      ),
-    );
-    _allSearchableItems.addAll([
-      SearchResultItem(
-        title: localization.kasane_title,
-        subtitle: localization.system_title,
-        icon: Icons.rocket_launch_outlined,
-        navigationTarget: preloadPage,
-        searchKeywords: 'kasane preload ram memory app launch boost',
-      ),
-    ]);
+    // Removed Kasane Preload section from here
   }
 
   void _updateSearchResults() {
