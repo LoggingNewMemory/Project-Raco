@@ -161,21 +161,8 @@ class _PreloadPageState extends State<PreloadPage> {
       SnackBar(content: Text("Preloading ${selectedPackages.length} apps...")),
     );
 
-    const String kasanePath = "/data/adb/modules/ProjectRaco/kasane";
-    bool useFullPath = true;
-    final check = await Process.run('su', [
-      '-c',
-      '[ -f "$kasanePath" ] && echo "yes"',
-    ]);
-
-    if (!check.stdout.toString().contains("yes")) {
-      useFullPath = false;
-    }
-
-    final String cmd = useFullPath ? kasanePath : "kasane";
-
     for (final pkg in selectedPackages) {
-      await Process.run('su', ['-c', '$cmd -a $pkg -m $_selectedMode']);
+      await Process.run('su', ['-c', 'kasane -a $pkg -m $_selectedMode -l']);
     }
 
     ScaffoldMessenger.of(
