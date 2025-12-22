@@ -903,7 +903,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                 children: [
                   Icon(
                     Icons.rocket_launch_outlined,
-                    color: Colors.white, // Updated to white
+                    color: colorScheme.onSurface,
                   ),
                   const SizedBox(width: 12),
                   Text(

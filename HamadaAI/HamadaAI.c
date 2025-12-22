@@ -9,9 +9,14 @@
 #define RACO_SCRIPT "/data/adb/modules/ProjectRaco/Scripts/Raco.sh"
 #define BUFFER_SIZE 1024
 
-// Enum to track the last executed state to avoid redundant script calls
+#define MODE_POWERSAVE "3" 
+#define MODE_GAME "1"      
+#define MODE_NORMAL "2"    
+
+// Enum to track the last executed state
 typedef enum {
     EXEC_NONE,
+    EXEC_POWERSAVE,
     EXEC_GAME,
     EXEC_NORMAL
 } ExecType;
@@ -38,7 +43,7 @@ void execute_cmd(const char *cmd, char *buffer, size_t size) {
 }
 
 int main(void) {
-    // Check for game.txt at startup and exit if it's missing.
+    // Check for game.txt at startup
     if (!file_exists(GAME_LIST)) {
         fprintf(stderr, "Error: %s not found\n", GAME_LIST);
         return 1;
@@ -47,79 +52,81 @@ int main(void) {
     bool prev_screen_on = true;
     ExecType last_executed = EXEC_NONE;
     int delay_seconds = 5;
-    char buffer[BUFFER_SIZE]; // Reusable buffer for commands
+    char buffer[BUFFER_SIZE]; 
 
     while (1) {
-        // --- 1. Screen State Detection (Updated) ---
+        // --- 1. Screen State Detection ---
         bool current_screen_on = false;
         
-        // Using the lighter 'cmd deviceidle' instead of 'dumpsys'
+        // Check screen state
         execute_cmd("cmd deviceidle get screen", buffer, sizeof(buffer));
 
-        // Check if output contains "true"
         if (strstr(buffer, "true") != NULL) {
             current_screen_on = true;
         }
 
-        // Adjust delay based on screen state for power saving.
+        // Adjust delay based on screen state (Slower checks when screen is off to save battery)
         if (current_screen_on != prev_screen_on) {
             if (current_screen_on) {
-                printf("Screen turned on - check interval: 7 seconds\n");
-                delay_seconds = 7;
+                printf("Screen turned on - check interval: 5 seconds\n");
+                delay_seconds = 5;
             } else {
-                printf("Screen turned off - check interval: 12 seconds\n");
-                delay_seconds = 12;
+                printf("Screen turned off - check interval: 10 seconds\n");
+                delay_seconds = 10;
             }
             prev_screen_on = current_screen_on;
         }
 
-        // --- 2. Focused App and Game Detection ---
-        bool is_game_running = false;
-        
-        // Only check for games if the screen is actually ON
-        if (current_screen_on) {
+        // --- 2. Determine Target State ---
+        ExecType target_state = EXEC_NONE;
+        const char* target_mode_arg = "";
+        const char* target_mode_name = "";
+
+        if (!current_screen_on) {
+            // Priority 1: If Screen is OFF, force Powersave
+            target_state = EXEC_POWERSAVE;
+            target_mode_arg = MODE_POWERSAVE;
+            target_mode_name = "Powersave";
+        } else {
+            // Priority 2: If Screen is ON, check for Games
+            bool is_game_running = false;
             char package_name[BUFFER_SIZE] = "";
-            
-            // Command to get the top visible activity's package name
             const char *focused_app_cmd = "cmd activity stack list | sed -n '/visible=true/{s/.*://;s:/.*::;s/^[ \t]*//;p;q}'";
 
             execute_cmd(focused_app_cmd, package_name, sizeof(package_name));
 
             if (strlen(package_name) > 0) {
                 char grep_command[BUFFER_SIZE];
-                // We use `grep -qFx` for the most efficient search:
-                // -q: quiet mode, exits immediately on first match.
-                // -F: treats the package name as a fixed string.
-                // -x: matches the whole line.
+                // Efficient grep to check if package is in game.txt
                 snprintf(grep_command, sizeof(grep_command), "grep -qFx \"%s\" %s", package_name, GAME_LIST);
 
-                // `system` returns the command's exit code. `grep` returns 0 on a successful match.
                 if (system(grep_command) == 0) {
                     is_game_running = true;
                     printf("Game package detected: %s\n", package_name);
                 }
             }
+
+            if (is_game_running) {
+                target_state = EXEC_GAME;
+                target_mode_arg = MODE_GAME;
+                target_mode_name = "Game";
+            } else {
+                target_state = EXEC_NORMAL;
+                target_mode_arg = MODE_NORMAL;
+                target_mode_name = "Normal";
+            }
         }
 
-        // --- 3. Execute Control Script ---
-        if (is_game_running) {
-            if (last_executed != EXEC_GAME) {
-                printf("Applying game profile...\n");
-                char command[BUFFER_SIZE];
-                snprintf(command, sizeof(command), "sh %s 1", RACO_SCRIPT);
-                system(command);
-                last_executed = EXEC_GAME;
-            }
-        } else {
-            // Note: If screen is off, is_game_running is false, so we fall here.
-            // This ensures we go back to normal profile if screen turns off while gaming.
-            if (last_executed != EXEC_NORMAL) {
-                printf("Applying normal profile...\n");
-                char command[BUFFER_SIZE];
-                snprintf(command, sizeof(command), "sh %s 2", RACO_SCRIPT);
-                system(command);
-                last_executed = EXEC_NORMAL;
-            }
+        // --- 3. Apply Control Script (Only if state changed) ---
+        if (last_executed != target_state) {
+            printf("Applying %s profile (Mode %s)...\n", target_mode_name, target_mode_arg);
+            char command[BUFFER_SIZE];
+            
+            // Execute Raco.sh with the determined argument
+            snprintf(command, sizeof(command), "sh %s %s", RACO_SCRIPT, target_mode_arg);
+            system(command);
+            
+            last_executed = target_state;
         }
 
         sleep(delay_seconds);
