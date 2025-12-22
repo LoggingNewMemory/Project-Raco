@@ -51,7 +51,7 @@
     "life_mode_title": "Режим LIFE",
     "life_mode_description": "Половина мощности ЦП в Балансе",
     "hamada_ai": "HAMADA AI",
-    "hamada_ai_description": "Автоматически меняет режим на Производительность, когда открывается игра",
+    "hamada_ai_description": "Включает Производительность в игре, Энергосбережение при выключенном экране",
     "downscale_resolution": "Понизить резрешение",
     "selected_resolution": "Выбранное разрешение: {resolution}",
     "@selected_resolution": {

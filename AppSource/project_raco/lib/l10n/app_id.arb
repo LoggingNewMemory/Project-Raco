@@ -51,7 +51,7 @@
     "life_mode_title": "Mode LIFE",
     "life_mode_description": "Setengah Daya CPU di Seimbang",
     "hamada_ai": "HAMADA AI",
-    "hamada_ai_description": "Otomatis Beralih ke Performa Saat Memasuki Game",
+    "hamada_ai_description": "Beralih ke Performa Saat Masuk Game, Beralih ke Hemat Daya Saat Layar Mati",
     "downscale_resolution": "Turunkan Resolusi",
     "selected_resolution": "Terpilih: {resolution}",
     "@selected_resolution": {

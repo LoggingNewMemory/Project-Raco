@@ -51,7 +51,7 @@
     "life_mode_title": "LIFEモード",
     "life_mode_description": "バランスモードでCPUパワーを半分にする",
     "hamada_ai": "HAMADA AI",
-    "hamada_ai_description": "ゲーム開始時に自動でパフォーマンスモードに切り替え",
+    "hamada_ai_description": "ゲーム開始時にパフォーマンス、画面オフ時に省電力モードへ切り替え",
     "downscale_resolution": "解像度を下げる",
     "selected_resolution": "選択済み: {resolution}",
     "@selected_resolution": {

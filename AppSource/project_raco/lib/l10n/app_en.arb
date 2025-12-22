@@ -51,7 +51,7 @@
     "life_mode_title": "LIFE Mode",
     "life_mode_description": "Half CPU Power on Balance",
     "hamada_ai": "HAMADA AI",
-    "hamada_ai_description": "Automatically Switch to Performance When Entering Game",
+    "hamada_ai_description": "Switch to Performance When Entering Game, Switch to Power Save When Screen Off",
     "downscale_resolution": "Downscale Resolution",
     "selected_resolution": "Selected: {resolution}",
     "@selected_resolution": {

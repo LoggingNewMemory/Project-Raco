@@ -51,7 +51,7 @@
     "life_mode_title": "Modo LIFE",
     "life_mode_description": "Mitad de potencia de CPU en Equilibrado",
     "hamada_ai": "HAMADA AI",
-    "hamada_ai_description": "Autmáticamente cambia a modo Rendimiento cuando se inicie un juego.",
+    "hamada_ai_description": "Cambiar a Rendimiento al entrar al juego, cambiar a Ahorro de batería al apagar pantalla",
     "downscale_resolution": "Disminuir la resolución",
     "selected_resolution": "Seleccionado: {resolution}",
     "@selected_resolution": {
