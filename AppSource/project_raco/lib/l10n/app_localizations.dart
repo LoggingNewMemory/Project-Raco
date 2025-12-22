@@ -889,6 +889,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use Legacy Notification In Case Notification Doesn\'t Show In Some ROMs'**
   String get legacy_notif_description;
+
+  /// No description provided for @kasane_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Kasane Preload'**
+  String get kasane_title;
+
+  /// No description provided for @kasane_by.
+  ///
+  /// In en, this message translates to:
+  /// **'By: Koneko_Dev'**
+  String get kasane_by;
+
+  /// No description provided for @free_ram.
+  ///
+  /// In en, this message translates to:
+  /// **'Free RAM:'**
+  String get free_ram;
+
+  /// No description provided for @preload_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Preload Mode'**
+  String get preload_mode;
+
+  /// No description provided for @start_preload.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Preload'**
+  String get start_preload;
 }
 
 class _AppLocalizationsDelegate

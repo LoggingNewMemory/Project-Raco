@@ -150,5 +150,10 @@
     "graphics_driver_developer": "開発者用ドライバ",
     "current_driver": "現在:",
     "legacy_notif_title": "レガシー通知",
-    "legacy_notif_description": "一部のROMで通知が表示されない場合にレガシー通知を使用する"
+    "legacy_notif_description": "一部のROMで通知が表示されない場合にレガシー通知を使用する",
+    "kasane_title": "Kasane プリロード",
+    "kasane_by": "作成者: Koneko_Dev",
+    "free_ram": "空き RAM:",
+    "preload_mode": "プリロードモード",
+    "start_preload": "開始"
 }

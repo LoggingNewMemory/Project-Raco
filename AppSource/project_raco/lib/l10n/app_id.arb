@@ -150,5 +150,10 @@
     "graphics_driver_developer": "Driver Pengembang",
     "current_driver": "Saat Ini:",
     "legacy_notif_title": "Notifikasi Legacy",
-    "legacy_notif_description": "Gunakan Notifikasi Legacy Jika Notifikasi Tidak Muncul Di Beberapa ROM"
+    "legacy_notif_description": "Gunakan Notifikasi Legacy Jika Notifikasi Tidak Muncul Di Beberapa ROM",
+    "kasane_title": "Kasane Preload",
+    "kasane_by": "Oleh: Koneko_Dev",
+    "free_ram": "RAM Bebas:",
+    "preload_mode": "Mode Preload",
+    "start_preload": "Mulai"
 }

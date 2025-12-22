@@ -427,4 +427,19 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get legacy_notif_description =>
       'Gunakan Notifikasi Legacy Jika Notifikasi Tidak Muncul Di Beberapa ROM';
+
+  @override
+  String get kasane_title => 'Kasane Preload';
+
+  @override
+  String get kasane_by => 'Oleh: Koneko_Dev';
+
+  @override
+  String get free_ram => 'RAM Bebas:';
+
+  @override
+  String get preload_mode => 'Mode Preload';
+
+  @override
+  String get start_preload => 'Mulai';
 }

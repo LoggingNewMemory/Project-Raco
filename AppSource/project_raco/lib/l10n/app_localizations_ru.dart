@@ -431,4 +431,19 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get legacy_notif_description =>
       'Используйте это, если уведомления не отображаются на некоторых прошивках';
+
+  @override
+  String get kasane_title => 'Kasane Предзагрузка';
+
+  @override
+  String get kasane_by => 'Автор: Koneko_Dev';
+
+  @override
+  String get free_ram => 'Свободная RAM:';
+
+  @override
+  String get preload_mode => 'Режим предзагрузки';
+
+  @override
+  String get start_preload => 'Начать';
 }

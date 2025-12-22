@@ -413,4 +413,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get legacy_notif_description => '一部のROMで通知が表示されない場合にレガシー通知を使用する';
+
+  @override
+  String get kasane_title => 'Kasane プリロード';
+
+  @override
+  String get kasane_by => '作成者: Koneko_Dev';
+
+  @override
+  String get free_ram => '空き RAM:';
+
+  @override
+  String get preload_mode => 'プリロードモード';
+
+  @override
+  String get start_preload => '開始';
 }

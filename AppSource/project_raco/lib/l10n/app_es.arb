@@ -150,5 +150,10 @@
     "graphics_driver_developer": "Desarrollador",
     "current_driver": "Actual:",
     "legacy_notif_title": "Notificación heredada",
-    "legacy_notif_description": "Use la notificación heredada si la notificación no aparece en algunas ROMs"
+    "legacy_notif_description": "Use la notificación heredada si la notificación no aparece en algunas ROMs",
+    "kasane_title": "Kasane Preload",
+    "kasane_by": "Por: Koneko_Dev",
+    "free_ram": "RAM Libre:",
+    "preload_mode": "Modo de Preload",
+    "start_preload": "Iniciar"
 }

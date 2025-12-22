@@ -432,4 +432,19 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get legacy_notif_description =>
       'Use la notificación heredada si la notificación no aparece en algunas ROMs';
+
+  @override
+  String get kasane_title => 'Kasane Preload';
+
+  @override
+  String get kasane_by => 'Por: Koneko_Dev';
+
+  @override
+  String get free_ram => 'RAM Libre:';
+
+  @override
+  String get preload_mode => 'Modo de Preload';
+
+  @override
+  String get start_preload => 'Iniciar';
 }

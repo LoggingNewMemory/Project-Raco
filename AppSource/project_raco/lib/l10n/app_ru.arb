@@ -150,5 +150,10 @@
     "graphics_driver_developer": "Драйвер разработчика",
     "current_driver": "Текущий:",
     "legacy_notif_title": "Устаревшее уведомление",
-    "legacy_notif_description": "Используйте это, если уведомления не отображаются на некоторых прошивках"
+    "legacy_notif_description": "Используйте это, если уведомления не отображаются на некоторых прошивках",
+    "kasane_title": "Kasane Предзагрузка",
+    "kasane_by": "Автор: Koneko_Dev",
+    "free_ram": "Свободная RAM:",
+    "preload_mode": "Режим предзагрузки",
+    "start_preload": "Начать"
 }
