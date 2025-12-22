@@ -46,7 +46,7 @@
     "device_mitigation_title": "Device Mitigation",
     "device_mitigation_description": "Turn on if you experience screen freeze",
     "lite_mode_title": "LITE Mode",
-    "lite_mode_description": "Using Lite mode (Requested by Fans)",
+    "lite_mode_description": "Light Version of Performance, uses Less Battery but Less Performance Boost",
     "hamada_ai": "HAMADA AI",
     "hamada_ai_description": "Automatically Switch to Performance When Entering Game",
     "downscale_resolution": "Downscale Resolution",
@@ -148,5 +148,7 @@
     "graphics_driver_default": "Default",
     "graphics_driver_game": "Game Driver",
     "graphics_driver_developer": "Developer Driver",
-    "current_driver": "Current:"
+    "current_driver": "Current:",
+    "legacy_notif_title": "Legacy Notification",
+    "legacy_notif_description": "Use Legacy Notification In Case Notification Doesn't Show In Some ROMs"
 }

@@ -46,7 +46,7 @@
     "device_mitigation_title": "デバイスの緩和",
     "device_mitigation_description": "画面のフリーズが発生した場合にオンにします",
     "lite_mode_title": "ライトモード",
-    "lite_mode_description": "ライトモードを使用する（ファンによるリクエスト）",
+    "lite_mode_description": "パフォーマンスの軽量版、バッテリー消費は少ないがパフォーマンスの向上も少ない",
     "hamada_ai": "HAMADA AI",
     "hamada_ai_description": "ゲーム開始時に自動でパフォーマンスモードに切り替え",
     "downscale_resolution": "解像度を下げる",
@@ -148,5 +148,7 @@
     "graphics_driver_default": "デフォルト",
     "graphics_driver_game": "ゲームドライバ",
     "graphics_driver_developer": "開発者用ドライバ",
-    "current_driver": "現在:"
+    "current_driver": "現在:",
+    "legacy_notif_title": "レガシー通知",
+    "legacy_notif_description": "一部のROMで通知が表示されない場合にレガシー通知を使用する"
 }

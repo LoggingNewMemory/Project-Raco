@@ -12,6 +12,7 @@ BETTER_POWERAVE=$(grep '^BETTER_POWERAVE=' "$RACO_CONFIG" | cut -d'=' -f2)
 ANYA=$(grep '^ANYA=' "$RACO_CONFIG" | cut -d'=' -f2)
 INCLUDE_ANYA=$(grep '^INCLUDE_ANYA=' "$RACO_CONFIG" | cut -d'=' -f2)
 KCPU_MITIGATE=$(grep '^KCPU_MITIGATE=' "$RACO_CONFIG" | cut -d'=' -f2)
+LEGACY_NOTIF=$(grep '^LEGACY_NOTIF=' "$RACO_CONFIG" | cut -d'=' -f2)
 
 # LOAD CPU FREQUENCIES FROM CONFIG
 CPU_MAX_LIST=$(grep '^CPU_MAX=' "$RACO_CONFIG" | cut -d'=' -f2)
@@ -117,7 +118,11 @@ notification() {
     local MESSAGE="$1"
     local LOGO="/data/local/tmp/logo.png"
     
-    su -lp 2000 -c "cmd notification post -S bigtext -t '$TITLE' -i file://$LOGO -I file://$LOGO TagRaco '$MESSAGE'"
+    if [ "$LEGACY_NOTIF" = "1" ]; then
+        su -lp 2000 -c "cmd notification post -S bigtext -t '$TITLE' TagRaco '$MESSAGE'"
+    else
+        su -lp 2000 -c "cmd notification post -S bigtext -t '$TITLE' -i file://$LOGO -I file://$LOGO TagRaco '$MESSAGE'"
+    fi
 }
 
 dnd_off() {

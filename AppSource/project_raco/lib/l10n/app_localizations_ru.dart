@@ -156,7 +156,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get lite_mode_title => 'Легкий режим';
 
   @override
-  String get lite_mode_description => 'Лёгкий режим (По просьбе фанатов)';
+  String get lite_mode_description =>
+      'Облегченная версия производительности, меньше расходует батарею, но дает меньший прирост производительности';
 
   @override
   String get hamada_ai => 'HAMADA AI';
@@ -423,4 +424,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get current_driver => 'Текущий:';
+
+  @override
+  String get legacy_notif_title => 'Устаревшее уведомление';
+
+  @override
+  String get legacy_notif_description =>
+      'Используйте это, если уведомления не отображаются на некоторых прошивках';
 }

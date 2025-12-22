@@ -68,6 +68,12 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
             ).firstMatch(content)?.group(1) ==
             '1',
         'carlottaCpu': carlottaCpuEnabled,
+        'legacyNotif':
+            RegExp(
+              r'^LEGACY_NOTIF=(\d)',
+              multiLine: true,
+            ).firstMatch(content)?.group(1) ==
+            '1',
       };
     }
     return {
@@ -75,6 +81,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
       'liteMode': false,
       'betterPowersave': false,
       'carlottaCpu': false,
+      'legacyNotif': false,
     };
   }
 
@@ -137,6 +144,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
             initialBetterPowersaveValue:
                 _encoreState?['betterPowersave'] ?? false,
             initialCarlottaCpuValue: _encoreState?['carlottaCpu'] ?? false,
+            initialLegacyNotifValue: _encoreState?['legacyNotif'] ?? false,
           ),
           GovernorCard(
             initialAvailableGovernors: _governorState?['available'] ?? [],
@@ -187,6 +195,7 @@ class FixAndTweakCard extends StatefulWidget {
   final bool initialLiteModeValue;
   final bool initialBetterPowersaveValue;
   final bool initialCarlottaCpuValue;
+  final bool initialLegacyNotifValue;
 
   const FixAndTweakCard({
     Key? key,
@@ -194,6 +203,7 @@ class FixAndTweakCard extends StatefulWidget {
     required this.initialLiteModeValue,
     required this.initialBetterPowersaveValue,
     required this.initialCarlottaCpuValue,
+    required this.initialLegacyNotifValue,
   }) : super(key: key);
 
   @override
@@ -205,11 +215,13 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
   late bool _liteModeEnabled;
   late bool _betterPowersaveEnabled;
   late bool _carlottaCpuEnabled;
+  late bool _legacyNotifEnabled;
 
   bool _isUpdatingMitigation = false;
   bool _isUpdatingLiteMode = false;
   bool _isUpdatingBetterPowersave = false;
   bool _isUpdatingCarlottaCpu = false;
+  bool _isUpdatingLegacyNotif = false;
 
   final String _racoConfigFilePath = '/data/ProjectRaco/raco.txt';
 
@@ -220,6 +232,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
     _liteModeEnabled = widget.initialLiteModeValue;
     _betterPowersaveEnabled = widget.initialBetterPowersaveValue;
     _carlottaCpuEnabled = widget.initialCarlottaCpuValue;
+    _legacyNotifEnabled = widget.initialLegacyNotifValue;
   }
 
   Future<void> _updateTweak({
@@ -268,7 +281,8 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
         _isUpdatingMitigation ||
         _isUpdatingLiteMode ||
         _isUpdatingBetterPowersave ||
-        _isUpdatingCarlottaCpu;
+        _isUpdatingCarlottaCpu ||
+        _isUpdatingLegacyNotif;
 
     return Card(
       elevation: 2.0,
@@ -410,6 +424,37 @@ class _FixAndTweakCardState extends State<FixAndTweakCard> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.memory),
+              activeColor: colorScheme.primary,
+              contentPadding: EdgeInsets.zero,
+            ),
+            SwitchListTile(
+              title: Text(
+                localization.legacy_notif_title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                localization.legacy_notif_description,
+                style: textTheme.bodySmall?.copyWith(
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              value: _legacyNotifEnabled,
+              onChanged: isBusy
+                  ? null
+                  : (bool enable) => _updateTweak(
+                      key: 'LEGACY_NOTIF',
+                      enable: enable,
+                      stateSetter: (val) => _legacyNotifEnabled = val,
+                      isUpdatingSetter: (val) => _isUpdatingLegacyNotif = val,
+                      initialValue: widget.initialLegacyNotifValue,
+                    ),
+              secondary: _isUpdatingLegacyNotif
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.notifications_active_outlined),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),

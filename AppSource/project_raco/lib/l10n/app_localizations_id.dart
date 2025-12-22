@@ -157,7 +157,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get lite_mode_description =>
-      'Menggunakan mode Lite (Diminta oleh Penggemar)';
+      'Versi Ringan dari Performa, menggunakan Lebih Sedikit Baterai tetapi Peningkatan Performa Lebih Sedikit';
 
   @override
   String get hamada_ai => 'HAMADA AI';
@@ -420,4 +420,11 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get current_driver => 'Saat Ini:';
+
+  @override
+  String get legacy_notif_title => 'Notifikasi Legacy';
+
+  @override
+  String get legacy_notif_description =>
+      'Gunakan Notifikasi Legacy Jika Notifikasi Tidak Muncul Di Beberapa ROM';
 }

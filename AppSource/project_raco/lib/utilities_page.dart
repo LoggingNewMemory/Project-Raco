@@ -240,6 +240,14 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
         navigationTarget: coreTweaksPage,
         searchKeywords: 'carlotta cpu mitigation target',
       ),
+      // Added Legacy Notification to Search
+      SearchResultItem(
+        title: localization.legacy_notif_title,
+        subtitle: localization.core_tweaks_title,
+        icon: Icons.notifications_active_outlined,
+        navigationTarget: coreTweaksPage,
+        searchKeywords: 'legacy notification rom issue',
+      ),
     ]);
 
     final automationPage = AutomationPage(

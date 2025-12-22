@@ -46,7 +46,7 @@
     "device_mitigation_title": "Mitigasi Perangkat",
     "device_mitigation_description": "Nyalakan jika Anda mengalami layar beku",
     "lite_mode_title": "Mode LITE",
-    "lite_mode_description": "Menggunakan mode Lite (Diminta oleh Penggemar)",
+    "lite_mode_description": "Versi Ringan dari Performa, menggunakan Lebih Sedikit Baterai tetapi Peningkatan Performa Lebih Sedikit",
     "hamada_ai": "HAMADA AI",
     "hamada_ai_description": "Otomatis Beralih ke Performa Saat Memasuki Game",
     "downscale_resolution": "Turunkan Resolusi",
@@ -148,5 +148,7 @@
     "graphics_driver_default": "Default",
     "graphics_driver_game": "Driver Game",
     "graphics_driver_developer": "Driver Pengembang",
-    "current_driver": "Saat Ini:"
+    "current_driver": "Saat Ini:",
+    "legacy_notif_title": "Notifikasi Legacy",
+    "legacy_notif_description": "Gunakan Notifikasi Legacy Jika Notifikasi Tidak Muncul Di Beberapa ROM"
 }

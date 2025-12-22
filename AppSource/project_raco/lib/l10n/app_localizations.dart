@@ -389,7 +389,7 @@ abstract class AppLocalizations {
   /// No description provided for @lite_mode_description.
   ///
   /// In en, this message translates to:
-  /// **'Using Lite mode (Requested by Fans)'**
+  /// **'Light Version of Performance, uses Less Battery but Less Performance Boost'**
   String get lite_mode_description;
 
   /// No description provided for @hamada_ai.
@@ -877,6 +877,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Current:'**
   String get current_driver;
+
+  /// No description provided for @legacy_notif_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Legacy Notification'**
+  String get legacy_notif_title;
+
+  /// No description provided for @legacy_notif_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Legacy Notification In Case Notification Doesn\'t Show In Some ROMs'**
+  String get legacy_notif_description;
 }
 
 class _AppLocalizationsDelegate

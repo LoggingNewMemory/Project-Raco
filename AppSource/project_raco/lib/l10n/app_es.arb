@@ -46,7 +46,7 @@
     "device_mitigation_title": "Mitigación del dispositivo",
     "device_mitigation_description": "Enciendelo si experimentas congelado de pantalla",
     "lite_mode_title": "Modo lite",
-    "lite_mode_description": "Usar modo lite (Solicitado por fans)",
+    "lite_mode_description": "Versión ligera de rendimiento, usa menos batería pero con menor aumento de rendimiento",
     "hamada_ai": "HAMADA AI",
     "hamada_ai_description": "Autmáticamente cambia a modo Rendimiento cuando se inicie un juego.",
     "downscale_resolution": "Disminuir la resolución",
@@ -148,5 +148,7 @@
     "graphics_driver_default": "Predeterminado",
     "graphics_driver_game": "Juegos",
     "graphics_driver_developer": "Desarrollador",
-    "current_driver": "Actual:"
+    "current_driver": "Actual:",
+    "legacy_notif_title": "Notificación heredada",
+    "legacy_notif_description": "Use la notificación heredada si la notificación no aparece en algunas ROMs"
 }

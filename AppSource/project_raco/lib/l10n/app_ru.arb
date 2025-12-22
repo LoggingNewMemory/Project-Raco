@@ -46,7 +46,7 @@
     "device_mitigation_title": "Смягчение фризов",
     "device_mitigation_description": "Включите это, если ваш экран имеет подтормаживания",
     "lite_mode_title": "Легкий режим",
-    "lite_mode_description": "Лёгкий режим (По просьбе фанатов)",
+    "lite_mode_description": "Облегченная версия производительности, меньше расходует батарею, но дает меньший прирост производительности",
     "hamada_ai": "HAMADA AI",
     "hamada_ai_description": "Автоматически меняет режим на Производительность, когда открывается игра",
     "downscale_resolution": "Понизить резрешение",
@@ -148,5 +148,7 @@
     "graphics_driver_default": "По умолчанию",
     "graphics_driver_game": "Игровой драйвер",
     "graphics_driver_developer": "Драйвер разработчика",
-    "current_driver": "Текущий:"
+    "current_driver": "Текущий:",
+    "legacy_notif_title": "Устаревшее уведомление",
+    "legacy_notif_description": "Используйте это, если уведомления не отображаются на некоторых прошивках"
 }

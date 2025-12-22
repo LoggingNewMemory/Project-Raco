@@ -150,7 +150,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get lite_mode_title => 'ライトモード';
 
   @override
-  String get lite_mode_description => 'ライトモードを使用する（ファンによるリクエスト）';
+  String get lite_mode_description => 'パフォーマンスの軽量版、バッテリー消費は少ないがパフォーマンスの向上も少ない';
 
   @override
   String get hamada_ai => 'HAMADA AI';
@@ -407,4 +407,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get current_driver => '現在:';
+
+  @override
+  String get legacy_notif_title => 'レガシー通知';
+
+  @override
+  String get legacy_notif_description => '一部のROMで通知が表示されない場合にレガシー通知を使用する';
 }
