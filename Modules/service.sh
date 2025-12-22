@@ -6,6 +6,22 @@ while [ -z "$(getprop sys.boot_completed)" ]; do
 done
 
 CONFIG_FILE="/data/ProjectRaco/raco.txt"
+LEGACY_NOTIF=$(grep '^LEGACY_NOTIF=' "$CONFIG_FILE" | cut -d'=' -f2)
+
+send_notif() {
+    local title="$1"
+    local message="$2"
+    local tag="$3"
+    local icon_path="$4"
+
+    if [ "$LEGACY_NOTIF" = "1" ]; then
+        # Legacy Mode: No icons
+        su -lp 2000 -c "cmd notification post -S bigtext -t '$title' '$tag' '$message'"
+    else
+        # Standard Mode: With icons
+        su -lp 2000 -c "cmd notification post -S bigtext -t '$title' -i file://$icon_path -I file://$icon_path '$tag' '$message'"
+    fi
+}
 
 # Define the function to change the CPU governor.
 # It will only be called if INCLUDE_SANDEV is set to 1.
@@ -46,7 +62,7 @@ tweak 0 /proc/sys/kernel/softlockup_panic
 # Run AnyaMelfissa.sh only if both INCLUDE_ANYA and ANYA are set to 1
 if grep -q "INCLUDE_ANYA=1" "$CONFIG_FILE" && grep -q "ANYA=1" "$CONFIG_FILE"; then
     sh /data/adb/modules/ProjectRaco/Scripts/AnyaMelfissa.sh
-    su -lp 2000 -c "cmd notification post -S bigtext -t 'Anya Melfissa' -i file:///data/local/tmp/Anya.png -I file:///data/local/tmp/Anya.png TagAnya 'Good Day! Thermal Is Dead BTW'"
+    send_notif "Anya Melfissa" "Good Day! Thermal Is Dead BTW" "TagAnya" "/data/local/tmp/Anya.png"
 fi
 
 # Run KoboKanaeru.sh if INCLUDE_KOBO=1
@@ -69,8 +85,7 @@ fi
 # Facur.sh
 sh /data/adb/modules/ProjectRaco/Scripts/Facur.sh
 
-# This script will be executed in late_start service mode
-su -lp 2000 -c "cmd notification post -S bigtext -t 'Project Raco' -i file:///data/local/tmp/logo.png -I file:///data/local/tmp/logo.png TagRaco 'Project Raco - オンライン'"
+send_notif "Project Raco" "Project Raco - オンライン" "TagRaco" "/data/local/tmp/logo.png"
 
 # Revert CPU governor to default after 20 seconds, only if INCLUDE_SANDEV=1
 if grep -q "INCLUDE_SANDEV=1" "$CONFIG_FILE"; then
