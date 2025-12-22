@@ -134,7 +134,7 @@
     "@build_by_title": {
         "placeholders": {
             "builderName": {
-                "type": "String"
+                 "type": "String"
             }
         }
     },
@@ -158,5 +158,7 @@
     "kasane_by": "Por: Koneko_Dev",
     "free_ram": "RAM Libre:",
     "preload_mode": "Modo de Preload",
-    "start_preload": "Iniciar"
+    "start_preload": "Iniciar",
+    "swipe_again_to_cancel": "Desliza a la derecha de nuevo para cancelar",
+    "execution_cancelled": "Ejecución cancelada"
 }

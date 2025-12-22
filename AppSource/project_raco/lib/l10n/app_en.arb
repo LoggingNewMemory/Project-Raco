@@ -158,5 +158,7 @@
     "kasane_by": "By: Koneko_Dev",
     "free_ram": "Free RAM:",
     "preload_mode": "Preload Mode",
-    "start_preload": "Start Preload"
+    "start_preload": "Start Preload",
+    "swipe_again_to_cancel": "Swipe Right Again To Cancel",
+    "execution_cancelled": "Execution Cancelled"
 }

@@ -452,4 +452,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get start_preload => 'Начать';
+
+  @override
+  String get swipe_again_to_cancel => 'Свайпните вправо еще раз для отмены';
+
+  @override
+  String get execution_cancelled => 'Выполнение отменено';
 }

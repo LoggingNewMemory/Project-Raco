@@ -448,4 +448,10 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get start_preload => 'Mulai';
+
+  @override
+  String get swipe_again_to_cancel => 'Geser Kanan Lagi Untuk Membatalkan';
+
+  @override
+  String get execution_cancelled => 'Eksekusi Dibatalkan';
 }

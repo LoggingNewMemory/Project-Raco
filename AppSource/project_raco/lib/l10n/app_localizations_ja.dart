@@ -434,4 +434,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get start_preload => '開始';
+
+  @override
+  String get swipe_again_to_cancel => 'もう一度右にスワイプしてキャンセル';
+
+  @override
+  String get execution_cancelled => '実行がキャンセルされました';
 }

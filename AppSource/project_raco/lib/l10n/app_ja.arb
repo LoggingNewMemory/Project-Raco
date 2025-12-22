@@ -56,7 +56,7 @@
     "selected_resolution": "選択済み: {resolution}",
     "@selected_resolution": {
         "placeholders": {
-            "resolution": {
+           "resolution": {
                 "type": "String"
             }
         }
@@ -135,7 +135,7 @@
         "placeholders": {
             "builderName": {
                 "type": "String"
-            }
+             }
         }
     },
     "screen_modifier_title": "スクリーンモディファイア",
@@ -158,5 +158,7 @@
     "kasane_by": "作成者: Koneko_Dev",
     "free_ram": "空き RAM:",
     "preload_mode": "プリロードモード",
-    "start_preload": "開始"
+    "start_preload": "開始",
+    "swipe_again_to_cancel": "もう一度右にスワイプしてキャンセル",
+    "execution_cancelled": "実行がキャンセルされました"
 }

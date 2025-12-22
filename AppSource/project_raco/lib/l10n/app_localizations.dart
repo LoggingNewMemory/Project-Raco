@@ -931,6 +931,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start Preload'**
   String get start_preload;
+
+  /// No description provided for @swipe_again_to_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe Right Again To Cancel'**
+  String get swipe_again_to_cancel;
+
+  /// No description provided for @execution_cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Execution Cancelled'**
+  String get execution_cancelled;
 }
 
 class _AppLocalizationsDelegate

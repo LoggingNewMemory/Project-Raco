@@ -447,4 +447,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get start_preload => 'Start Preload';
+
+  @override
+  String get swipe_again_to_cancel => 'Swipe Right Again To Cancel';
+
+  @override
+  String get execution_cancelled => 'Execution Cancelled';
 }

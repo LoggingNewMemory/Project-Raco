@@ -259,6 +259,10 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   bool _isHamadaAiRunning = false;
   bool _isContentVisible = false;
 
+  // Variables for Swipe to Cancel
+  int _swipeRightCount = 0;
+  Timer? _swipeResetTimer;
+
   @override
   void initState() {
     super.initState();
@@ -269,6 +273,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _swipeResetTimer?.cancel();
     super.dispose();
   }
 
@@ -420,13 +425,14 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       setState(() {
         _executingScript = scriptArg;
         _currentMode = targetMode;
+        // Reset swipe counter when starting a new script
+        _swipeRightCount = 0;
       });
     }
 
     try {
       await ConfigManager.saveMode(targetMode);
-      // FIX APPLIED HERE: Added redirection > /dev/null 2>&1
-      // This forces the app to ignore lingering stdout/stderr streams
+      // Added redirection > /dev/null 2>&1
       await run('su', [
         '-c',
         'sh /data/adb/modules/ProjectRaco/Scripts/Raco.sh $scriptArg > /dev/null 2>&1',
@@ -435,6 +441,71 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       await _refreshDynamicState();
     } finally {
       if (mounted) setState(() => _executingScript = '');
+    }
+  }
+
+  /// Handles the "Swipe Right 2 Times to Cancel" logic
+  void _onHorizontalDragEnd(DragEndDetails details) {
+    if (_executingScript.isEmpty) return; // Only cancel if something is running
+
+    // Check velocity to ensure it's a swipe (positive = Right)
+    if (details.primaryVelocity! > 500) {
+      if (_swipeRightCount == 0) {
+        setState(() {
+          _swipeRightCount++;
+        });
+
+        // Show feedback: "Swipe again to cancel"
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.swipe_again_to_cancel),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+
+        // Reset counter if second swipe doesn't happen quickly
+        _swipeResetTimer?.cancel();
+        _swipeResetTimer = Timer(const Duration(seconds: 2), () {
+          if (mounted) {
+            setState(() {
+              _swipeRightCount = 0;
+            });
+          }
+        });
+      } else {
+        // Second swipe detected
+        _cancelExecution();
+      }
+    }
+  }
+
+  Future<void> _cancelExecution() async {
+    _swipeResetTimer?.cancel();
+    setState(() {
+      _swipeRightCount = 0;
+    });
+
+    try {
+      // Force kill the script process
+      await run('su', ['-c', 'pkill -f Raco.sh'], verbose: false);
+    } catch (e) {
+      // Ignore errors during kill command
+    }
+
+    if (mounted) {
+      setState(() {
+        _executingScript = '';
+      });
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.execution_cancelled),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      // Refresh state to ensure UI is consistent
+      _refreshDynamicState();
     }
   }
 
@@ -525,7 +596,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
     // Reload settings that aren't handled by the notifier (like background image)
     widget.onSettingsChanged();
-    // **FIX**: Refresh the dynamic state (like HamadaAI status) after returning.
     _refreshDynamicState();
   }
 
@@ -564,79 +634,85 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: _isLoading
-              ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 32.0),
-                    child: LinearProgressIndicator(),
-                  ),
-                )
-              : AnimatedOpacity(
-                  opacity: _isContentVisible ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 500),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTitleHeader(colorScheme, localization),
-                        const SizedBox(height: 16),
-                        _buildBannerAndStatus(localization),
-                        const SizedBox(height: 10),
-                        _buildControlRow(
-                          localization.power_save_desc,
-                          '3',
-                          localization.power_save,
-                          Icons.battery_saver_outlined,
-                          'POWER_SAVE',
-                        ),
-                        _buildControlRow(
-                          localization.balanced_desc,
-                          '2',
-                          localization.balanced,
-                          Icons.balance_outlined,
-                          'BALANCED',
-                        ),
-                        _buildControlRow(
-                          localization.performance_desc,
-                          '1',
-                          localization.performance,
-                          Icons.speed_outlined,
-                          'PERFORMANCE',
-                        ),
-                        _buildControlRow(
-                          localization.gaming_desc,
-                          '4',
-                          localization.gaming_pro,
-                          Icons.sports_esports_outlined,
-                          'GAMING_PRO',
-                        ),
-                        _buildControlRow(
-                          localization.cooldown_desc,
-                          '5',
-                          localization.cooldown,
-                          Icons.ac_unit_outlined,
-                          'COOLDOWN',
-                        ),
-                        _buildControlRow(
-                          localization.clear_desc,
-                          '6',
-                          localization.clear,
-                          Icons.clear_all_outlined,
-                          'CLEAR',
-                        ),
-                        _buildPreloadCard(localization), // Added Preload Card
-                        const SizedBox(height: 10),
-                        _buildUtilitiesCard(localization),
-                        const SizedBox(height: 10),
-                        _buildLanguageSelector(localization),
-                        const SizedBox(height: 20),
-                      ],
+      body: GestureDetector(
+        // Detects swipes anywhere on the main screen area
+        onHorizontalDragEnd: _onHorizontalDragEnd,
+        behavior: HitTestBehavior.translucent,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: _isLoading
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 32.0),
+                      child: LinearProgressIndicator(),
+                    ),
+                  )
+                : AnimatedOpacity(
+                    opacity: _isContentVisible ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 500),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildTitleHeader(colorScheme, localization),
+                          const SizedBox(height: 16),
+                          _buildBannerAndStatus(localization),
+                          const SizedBox(height: 10),
+                          _buildControlRow(
+                            localization.power_save_desc,
+                            '3',
+                            localization.power_save,
+                            Icons.battery_saver_outlined,
+                            'POWER_SAVE',
+                          ),
+                          _buildControlRow(
+                            localization.balanced_desc,
+                            '2',
+                            localization.balanced,
+                            Icons.balance_outlined,
+                            'BALANCED',
+                          ),
+                          _buildControlRow(
+                            localization.performance_desc,
+                            '1',
+                            localization.performance,
+                            Icons.speed_outlined,
+                            'PERFORMANCE',
+                          ),
+                          _buildControlRow(
+                            localization.gaming_desc,
+                            '4',
+                            localization.gaming_pro,
+                            Icons.sports_esports_outlined,
+                            'GAMING_PRO',
+                          ),
+                          _buildControlRow(
+                            localization.cooldown_desc,
+                            '5',
+                            localization.cooldown,
+                            Icons.ac_unit_outlined,
+                            'COOLDOWN',
+                          ),
+                          _buildControlRow(
+                            localization.clear_desc,
+                            '6',
+                            localization.clear,
+                            Icons.clear_all_outlined,
+                            'CLEAR',
+                          ),
+                          _buildPreloadCard(localization),
+                          const SizedBox(height: 10),
+                          _buildUtilitiesCard(localization),
+                          const SizedBox(height: 10),
+                          _buildLanguageSelector(localization),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                     ),
                   ),
-                ),
+          ),
         ),
       ),
     );
@@ -884,7 +960,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   Widget _buildPreloadCard(AppLocalizations localization) {
     final colorScheme = Theme.of(context).colorScheme;
-    // MATCHED: Now uses surfaceContainer and standard styles to match Utilities card
     return Card(
       elevation: 2.0,
       margin: EdgeInsets.zero,
@@ -924,7 +999,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
-  // --- NEW: Method to show the language selection dialog ---
   void _showLanguageSelectionDialog(AppLocalizations localization) {
     final currentLang = supportedLanguages.firstWhere(
       (lang) => lang.displayName == _selectedLanguage,
@@ -970,7 +1044,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
-  // --- REFACTORED: Language selector now opens the dialog ---
   Widget _buildLanguageSelector(AppLocalizations localization) {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(

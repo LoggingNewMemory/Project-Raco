@@ -158,5 +158,7 @@
     "kasane_by": "Автор: Koneko_Dev",
     "free_ram": "Свободная RAM:",
     "preload_mode": "Режим предзагрузки",
-    "start_preload": "Начать"
+    "start_preload": "Начать",
+    "swipe_again_to_cancel": "Свайпните вправо еще раз для отмены",
+    "execution_cancelled": "Выполнение отменено"
 }

@@ -158,5 +158,7 @@
     "kasane_by": "Oleh: Koneko_Dev",
     "free_ram": "RAM Bebas:",
     "preload_mode": "Mode Preload",
-    "start_preload": "Mulai"
+    "start_preload": "Mulai",
+    "swipe_again_to_cancel": "Geser Kanan Lagi Untuk Membatalkan",
+    "execution_cancelled": "Eksekusi Dibatalkan"
 }
