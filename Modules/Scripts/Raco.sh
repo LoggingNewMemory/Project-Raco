@@ -84,21 +84,18 @@ kill_all() {
     sync
     cmd activity kill-all > /dev/null 2>&1
     for pkg in $(pm list packages -3 | cut -f 2 -d ":"); do
-        # Keep the exception for the keyboard to prevent it from closing while you're using a terminal.
         if [ "$pkg" != "com.google.android.inputmethod.latin" ]; then 
-            am force-stop "$pkg" > /dev/null 2>&1
+            am force-stop "$pkg" > /dev/null 2>&1 &
         fi
     done
-
+    wait
 
     pm trim-caches 100G > /dev/null 2>&1
     echo 3 > /proc/sys/vm/drop_caches
     logcat -c
     logcat -b all -c
-	sh $STAR_PATH/KILL.sh
+	sh $STAR_PATH/KILL.sh &
 }
-
-# This is also external
 
 bypass_on() {
     BYPASS=$(grep "^ENABLE_BYPASS=" "$RACO_CONFIG" | cut -d'=' -f2 | tr -d ' ')
@@ -145,10 +142,8 @@ dnd_on() {
 ###################################
 
 mtkvest_perf() {
-    # Performance Manager - disable system limiter
     tweak 1 /proc/perfmgr/syslimiter/syslimiter_force_disable
 
-    # Configure GED HAL settings
     if [ -d /sys/kernel/ged/hal ]; then
         tweak 2 /sys/kernel/ged/hal/loading_base_dvfs_step
         tweak 1 /sys/kernel/ged/hal/loading_stride_size
@@ -159,10 +154,8 @@ mtkvest_perf() {
 }
 
 mtkvest_normal() {
-    # Performance manager settings for balanced operation
     tweak 0 /proc/perfmgr/syslimiter/syslimiter_force_disable
 
-    # Configure GED HAL settings
     if [ -d /sys/kernel/ged/hal ]; then
         tweak 4 /sys/kernel/ged/hal/loading_base_dvfs_step
         tweak 2 /sys/kernel/ged/hal/loading_stride_size
@@ -263,127 +256,148 @@ change_cpu_gov() {
 cpufreq_ppm_max_perf() {
 	local cluster=0
 	for path in /sys/devices/system/cpu/cpufreq/policy*; do
-        # Extract freq from list based on cluster index (1-based for cut)
-        local i=$((cluster + 1))
-        local cpu_maxfreq=$(echo "$CPU_MAX_LIST" | cut -d ' ' -f $i)
-        local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
+        (
+            local i=$((cluster + 1))
+            local cpu_maxfreq=$(echo "$CPU_MAX_LIST" | cut -d ' ' -f $i)
+            local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
 
-		tweak "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+            tweak "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
 
-		if [ "$LITE_MODE" -eq 1 ]; then
-			tweak "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
-		else
-			tweak "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
-		fi
+            if [ "$LITE_MODE" -eq 1 ]; then
+                tweak "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+            else
+                tweak "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+            fi
+        ) &
         ((cluster++))
 	done
+    wait
 }
 
 cpufreq_max_perf() {
     local i=1
 	for path in /sys/devices/system/cpu/cpufreq/policy*; do
-        local cpu_maxfreq=$(echo "$CPU_MAX_LIST" | cut -d ' ' -f $i)
-        local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
-        
-		tweak "$cpu_maxfreq" "$path/scaling_max_freq"
+        (
+            local cpu_maxfreq=$(echo "$CPU_MAX_LIST" | cut -d ' ' -f $i)
+            local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
+            
+            tweak "$cpu_maxfreq" "$path/scaling_max_freq"
 
-		if [ "$LITE_MODE" -eq 1 ]; then
-			tweak "$cpu_midfreq" "$path/scaling_min_freq"
-		else
-			tweak "$cpu_maxfreq" "$path/scaling_min_freq"
-		fi
+            if [ "$LITE_MODE" -eq 1 ]; then
+                tweak "$cpu_midfreq" "$path/scaling_min_freq"
+            else
+                tweak "$cpu_maxfreq" "$path/scaling_min_freq"
+            fi
+        ) &
         i=$((i+1))
 	done
+    wait
 	chmod -f 444 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
 }
 
 cpufreq_ppm_unlock() {
 	local cluster=0
 	for path in /sys/devices/system/cpu/cpufreq/policy*; do
-        local i=$((cluster + 1))
-        local cpu_maxfreq=$(echo "$CPU_MAX_LIST" | cut -d ' ' -f $i)
-        local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
-        
-		kakangkuh "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
-		kakangkuh "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+        (
+            local i=$((cluster + 1))
+            local cpu_maxfreq=$(echo "$CPU_MAX_LIST" | cut -d ' ' -f $i)
+            local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
+            
+            kakangkuh "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+            kakangkuh "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+        ) &
 		((cluster++))
 	done
+    wait
 }
 
 cpufreq_unlock() {
     local i=1
 	for path in /sys/devices/system/cpu/cpufreq/policy*; do
-        local cpu_maxfreq=$(echo "$CPU_MAX_LIST" | cut -d ' ' -f $i)
-        local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
-        
-		kakangkuh "$cpu_maxfreq" "$path/scaling_max_freq"
-		kakangkuh "$cpu_minfreq" "$path/scaling_min_freq"
+        (
+            local cpu_maxfreq=$(echo "$CPU_MAX_LIST" | cut -d ' ' -f $i)
+            local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
+            
+            kakangkuh "$cpu_maxfreq" "$path/scaling_max_freq"
+            kakangkuh "$cpu_minfreq" "$path/scaling_min_freq"
+        ) &
         i=$((i+1))
 	done
+    wait
 	chmod -f 644 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
 }
 
 cpufreq_ppm_life_perf() {
     local cluster=0
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
-        local i=$((cluster + 1))
-        local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
-        local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
-        
-        # In Life Mode, max is capped at midfreq
-        kakangkuh "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
-        kakangkuh "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+        (
+            local i=$((cluster + 1))
+            local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
+            local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
+            
+            kakangkuh "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+            kakangkuh "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+        ) &
         ((cluster++))
     done
+    wait
 }
 
 cpufreq_life_perf() {
     local i=1
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
-        local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
-        local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
-        
-        # In Life Mode, max is capped at midfreq
-        kakangkuh "$cpu_midfreq" "$path/scaling_max_freq"
-        kakangkuh "$cpu_minfreq" "$path/scaling_min_freq"
+        (
+            local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
+            local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
+            
+            kakangkuh "$cpu_midfreq" "$path/scaling_max_freq"
+            kakangkuh "$cpu_minfreq" "$path/scaling_min_freq"
+        ) &
         i=$((i+1))
     done
+    wait
     chmod -f 644 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
 }
 
 cpufreq_ppm_min_perf() {
     local cluster=0
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
-        local i=$((cluster + 1))
-        local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
-        local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
+        (
+            local i=$((cluster + 1))
+            local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
+            local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
 
-        if [ "$BETTER_POWERAVE" -eq 1 ]; then
-            tweak "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
-            tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
-        else
-            tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
-            tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
-        fi
+            if [ "$BETTER_POWERAVE" -eq 1 ]; then
+                tweak "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+                tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+            else
+                tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+                tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+            fi
+        ) &
         ((cluster++))
     done
+    wait
 }
 
 cpufreq_min_perf() {
     local i=1
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
-        local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
-        local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
-        
-        if [ "$BETTER_POWERAVE" -eq 1 ]; then
-            tweak "$cpu_midfreq" "$path/scaling_max_freq"
-            tweak "$cpu_minfreq" "$path/scaling_min_freq"
-        else
-            tweak "$cpu_minfreq" "$path/scaling_max_freq"
-            tweak "$cpu_minfreq" "$path/scaling_min_freq"
-        fi
+        (
+            local cpu_midfreq=$(echo "$CPU_MID_LIST" | cut -d ' ' -f $i)
+            local cpu_minfreq=$(echo "$CPU_MIN_LIST" | cut -d ' ' -f $i)
+            
+            if [ "$BETTER_POWERAVE" -eq 1 ]; then
+                tweak "$cpu_midfreq" "$path/scaling_max_freq"
+                tweak "$cpu_minfreq" "$path/scaling_min_freq"
+            else
+                tweak "$cpu_minfreq" "$path/scaling_max_freq"
+                tweak "$cpu_minfreq" "$path/scaling_min_freq"
+            fi
+        ) &
         i=$((i+1))
     done
+    wait
     chmod -f 444 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
 }
 
@@ -393,20 +407,15 @@ cpufreq_min_perf() {
 ###################################
 
 mediatek_performance() {
-	# MTK Power and CCI mode
 	tweak 1 /proc/cpufreq/cpufreq_cci_mode
 	tweak 3 /proc/cpufreq/cpufreq_power_mode
 
-	# Force off FPSGO
 	tweak 0 /sys/kernel/fpsgo/common/force_onoff
 
-	# DDR Boost mode
 	tweak 1 /sys/devices/platform/boot_dramboost/dramboost/dramboost
 
-	# EAS/HMP Switch
 	tweak 0 /sys/devices/system/cpu/eas/enable
 
-	# Disable GED KPI
 	tweak 0 /sys/module/sspm_v3/holders/ged/parameters/is_GED_KPI_enabled
 
 	if [ "$LITE_MODE" -eq 0 ]; then
@@ -428,17 +437,14 @@ mediatek_performance() {
 		tweak "$mid_oppfreq" /sys/kernel/ged/hal/custom_boost_gpu_freq
 	fi
 
-	# Disable GPU Power limiter
 	[ -f "/proc/gpufreq/gpufreq_power_limited" ] && {
 		for setting in ignore_batt_oc ignore_batt_percent ignore_low_batt ignore_thermal_protect ignore_pbm_limited; do
 			tweak "$setting 1" /proc/gpufreq/gpufreq_power_limited
 		done
 	}
 
-	# Disable battery current limiter
 	tweak "stop 1" /proc/mtk_batoc_throttling/battery_oc_protect_stop
 
-	# DRAM Frequency
 	if [ "$LITE_MODE" -eq 0 ]; then
 		tweak 0 /sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp
 		tweak 0 /sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp
@@ -449,10 +455,8 @@ mediatek_performance() {
 		devfreq_mid_perf /sys/class/devfreq/mtk-dvfsrc-devfreq
 	fi
 
-	# Eara Thermal
 	tweak 0 /sys/kernel/eara_thermal/enable
 
-    # Call the simplified function for other tweaks
     mtkvest_perf
 }
 
@@ -483,7 +487,6 @@ snapdragon_performance() {
 		done &
 	fi
 
-	# GPU tweak
 	gpu_path="/sys/class/kgsl/kgsl-3d0/devfreq"
 	if [ "$LITE_MODE" -eq 0 ]; then
 	    devfreq_max_perf "$gpu_path"
@@ -581,7 +584,6 @@ tensor_performance() {
 
 mediatek_normal() {
 
-	# Free FPSGO
 	tweak 2 /sys/kernel/fpsgo/common/force_onoff
 
 	tweak 0 /proc/cpufreq/cpufreq_cci_mode
@@ -589,7 +591,6 @@ mediatek_normal() {
 	tweak 0 /sys/devices/platform/boot_dramboost/dramboost/dramboost
 	tweak 2 /sys/devices/system/cpu/eas/enable
 
-	# Enable GED KPI
 	tweak 1 /sys/module/sspm_v3/holders/ged/parameters/is_GED_KPI_enabled
 	
 	kakangkuh 0 /proc/gpufreq/gpufreq_opp_freq
@@ -602,14 +603,13 @@ mediatek_normal() {
 	fi
 	tweak "$min_oppfreq" /sys/kernel/ged/hal/custom_boost_gpu_freq
 
-    # Reset GPU frequency limits to normal
     if [[ -f "/proc/gpufreq/gpufreq_limit_table" ]]; then
         for id in {0..8}; do
-            tweak "$id 1 1" /proc/gpufreq/gpufreq_limit_table
+            tweak "$id 1 1" /proc/gpufreq/gpufreq_limit_table &
         done
+        wait
     fi
 
-	# Reset GPU power limiter
 	[ -f "/proc/gpufreq/gpufreq_power_limited" ] && {
 		for setting in ignore_batt_oc ignore_batt_percent ignore_low_batt ignore_thermal_protect ignore_pbm_limited; do
 			tweak "$setting 0" /proc/gpufreq/gpufreq_power_limited
@@ -622,7 +622,6 @@ mediatek_normal() {
 	devfreq_unlock /sys/class/devfreq/mtk-dvfsrc-devfreq
 	tweak 1 /sys/kernel/eara_thermal/enable
 
-    # Call the simplified function for other tweaks
     mtkvest_normal
 }
 
@@ -636,12 +635,13 @@ snapdragon_normal() {
 			/sys/class/devfreq/*memlat* \
 			/sys/class/devfreq/*cpubw* \
 			/sys/class/devfreq/*kgsl-ddr-qos*; do
-			devfreq_unlock "$path"
-		done &
+			devfreq_unlock "$path" &
+		done
 
 		for component in DDR LLCC L3; do
-			qcom_cpudcvs_unlock /sys/devices/system/cpu/bus_dcvs/$component
+			qcom_cpudcvs_unlock /sys/devices/system/cpu/bus_dcvs/$component &
 		done
+        wait
 	fi
 
 	devfreq_unlock /sys/class/kgsl/kgsl-3d0/devfreq
@@ -673,8 +673,9 @@ exynos_normal() {
 
 	if [ "$DEVICE_MITIGATION" -eq 0 ]; then
 		for path in /sys/class/devfreq/*devfreq_mif*; do
-			devfreq_unlock "$path"
-		done &
+			devfreq_unlock "$path" &
+		done
+        wait
 	fi
 }
 
@@ -694,8 +695,9 @@ tensor_normal() {
 
 	if [ "$DEVICE_MITIGATION" -eq 0 ]; then
 		for path in /sys/class/devfreq/*devfreq_mif*; do
-			devfreq_unlock "$path"
-		done &
+			devfreq_unlock "$path" &
+		done
+        wait
 	fi
 }
 
@@ -757,39 +759,44 @@ tensor_powersave() {
 ##################################
 performance_basic() {
     sync
-    # I/O Tweaks
     for dir in /sys/block/*; do
-        tweak 0 "$dir/queue/iostats"
-        tweak 0 "$dir/queue/add_random"
-    done &
+        (
+            tweak 0 "$dir/queue/iostats"
+            tweak 0 "$dir/queue/add_random"
+        ) &
+    done
 
-	tweak 1 "$ipv4/tcp_low_latency"
-	tweak 1 "$ipv4/tcp_ecn"
-	tweak 3 "$ipv4/tcp_fastopen"
-	tweak 1 "$ipv4/tcp_sack"
-	tweak 0 "$ipv4/tcp_timestamps"
-    tweak 3 /proc/sys/kernel/perf_cpu_time_max_percent
-    tweak 0 /proc/sys/kernel/sched_schedstats
-    tweak 0 /proc/sys/kernel/task_cpustats_enable
-    tweak 0 /proc/sys/kernel/sched_autogroup_enabled
-    tweak 1 /proc/sys/kernel/sched_child_runs_first
-    tweak 32 /proc/sys/kernel/sched_nr_migrate
-    tweak 50000 /proc/sys/kernel/sched_migration_cost_ns
-    tweak 1000000 /proc/sys/kernel/sched_min_granularity_ns
-    tweak 1500000 /proc/sys/kernel/sched_wakeup_granularity_ns
-    tweak 0 /proc/sys/vm/page-cluster
-    tweak 15 /proc/sys/vm/stat_interval
-    tweak 0 /proc/sys/vm/compaction_proactiveness
-    tweak 0 /sys/module/mmc_core/parameters/use_spi_crc
-    tweak 0 /sys/module/opchain/parameters/chain_on
-    tweak 0 /sys/module/cpufreq_bouncing/parameters/enable
-    tweak 0 /proc/task_info/task_sched_info/task_sched_info_enable
-    tweak 0 /proc/oplus_scheduler/sched_assist/sched_assist_enabled
-    tweak "libunity.so, libil2cpp.so, libmain.so, libUE4.so, libgodot_android.so, libgdx.so, libgdx-box2d.so, libminecraftpe.so, libLive2DCubismCore.so, libyuzu-android.so, libryujinx.so, libcitra-android.so, libhdr_pro_engine.so, libandroidx.graphics.path.so, libeffect.so" /proc/sys/kernel/sched_lib_name
-    tweak 255 /proc/sys/kernel/sched_lib_mask_force
+    {
+        tweak 1 "$ipv4/tcp_low_latency"
+        tweak 1 "$ipv4/tcp_ecn"
+        tweak 3 "$ipv4/tcp_fastopen"
+        tweak 1 "$ipv4/tcp_sack"
+        tweak 0 "$ipv4/tcp_timestamps"
+        tweak 3 /proc/sys/kernel/perf_cpu_time_max_percent
+        tweak 0 /proc/sys/kernel/sched_schedstats
+        tweak 0 /proc/sys/kernel/task_cpustats_enable
+        tweak 0 /proc/sys/kernel/sched_autogroup_enabled
+        tweak 1 /proc/sys/kernel/sched_child_runs_first
+        tweak 32 /proc/sys/kernel/sched_nr_migrate
+        tweak 50000 /proc/sys/kernel/sched_migration_cost_ns
+        tweak 1000000 /proc/sys/kernel/sched_min_granularity_ns
+        tweak 1500000 /proc/sys/kernel/sched_wakeup_granularity_ns
+        tweak 0 /proc/sys/vm/page-cluster
+        tweak 15 /proc/sys/vm/stat_interval
+        tweak 0 /proc/sys/vm/compaction_proactiveness
+        tweak 0 /sys/module/mmc_core/parameters/use_spi_crc
+        tweak 0 /sys/module/opchain/parameters/chain_on
+        tweak 0 /sys/module/cpufreq_bouncing/parameters/enable
+        tweak 0 /proc/task_info/task_sched_info/task_sched_info_enable
+        tweak 0 /proc/oplus_scheduler/sched_assist/sched_assist_enabled
+        tweak "libunity.so, libil2cpp.so, libmain.so, libUE4.so, libgodot_android.so, libgdx.so, libgdx-box2d.so, libminecraftpe.so, libLive2DCubismCore.so, libyuzu-android.so, libryujinx.so, libcitra-android.so, libhdr_pro_engine.so, libandroidx.graphics.path.so, libeffect.so" /proc/sys/kernel/sched_lib_name
+        tweak 255 /proc/sys/kernel/sched_lib_mask_force
+        tweak 0 /proc/sys/kernel/split_lock_mitigate
+        tweak 80 /proc/sys/vm/vfs_cache_pressure
+    } &
 
     for dir in /sys/class/thermal/thermal_zone*; do
-        tweak "step_wise" "$dir/policy"
+        tweak "step_wise" "$dir/policy" &
     done
 
     [ -f /sys/module/battery_saver/parameters/enabled ] && {
@@ -798,59 +805,67 @@ performance_basic() {
         else
             tweak N /sys/module/battery_saver/parameters/enabled
         fi
-    }
-
-    tweak 0 /proc/sys/kernel/split_lock_mitigate
+    } &
 
     if [ -f "/sys/kernel/debug/sched_features" ]; then
-        tweak NEXT_BUDDY /sys/kernel/debug/sched_features
-        tweak NO_TTWU_QUEUE /sys/kernel/debug/sched_features
+        (
+            tweak NEXT_BUDDY /sys/kernel/debug/sched_features
+            tweak NO_TTWU_QUEUE /sys/kernel/debug/sched_features
+        ) &
     fi
 
     if [ -d "/dev/stune/" ]; then
-        tweak 1 /dev/stune/top-app/schedtune.prefer_idle
-        tweak 1 /dev/stune/top-app/schedtune.boost
+        (
+            tweak 1 /dev/stune/top-app/schedtune.prefer_idle
+            tweak 1 /dev/stune/top-app/schedtune.boost
+        ) &
     fi
 
     tp_path="/proc/touchpanel"
     if [ -d "$tp_path" ]; then
-        tweak 1 $tp_path/game_switch_enable
-        tweak 0 $tp_path/oplus_tp_limit_enable
-        tweak 0 $tp_path/oppo_tp_limit_enable
-        tweak 1 $tp_path/oplus_tp_direction
-        tweak 1 $tp_path/oppo_tp_direction
+        (
+            tweak 1 $tp_path/game_switch_enable
+            tweak 0 $tp_path/oplus_tp_limit_enable
+            tweak 0 $tp_path/oppo_tp_limit_enable
+            tweak 1 $tp_path/oplus_tp_direction
+            tweak 1 $tp_path/oppo_tp_direction
+        ) &
     fi
-
-    tweak 80 /proc/sys/vm/vfs_cache_pressure
 
     for path in /sys/class/devfreq/*.ufshc /sys/class/devfreq/mmc*; do
         if [ -d "$path" ]; then
-            if [ "$LITE_MODE" -eq 1 ]; then
-                devfreq_mid_perf "$path"
-            else
-                devfreq_max_perf "$path"
-            fi
+            (
+                if [ "$LITE_MODE" -eq 1 ]; then
+                    devfreq_mid_perf "$path"
+                else
+                    devfreq_max_perf "$path"
+                fi
+            ) &
         fi
-    done &
+    done
 
-    if [ "$LITE_MODE" -eq 0 ] && [ "$DEVICE_MITIGATION" -eq 0 ]; then
-        change_cpu_gov "performance"
-    else
-        change_cpu_gov "$DEFAULT_CPU_GOV"
-    fi
+    {
+        if [ "$LITE_MODE" -eq 0 ] && [ "$DEVICE_MITIGATION" -eq 0 ]; then
+            change_cpu_gov "performance"
+        else
+            change_cpu_gov "$DEFAULT_CPU_GOV"
+        fi
 
-    # Set both PPM and standard cpufreq if PPM exists, otherwise just standard
-    if [ -d "/proc/ppm" ]; then
-        cpufreq_ppm_max_perf
-    fi
-    cpufreq_max_perf
+        if [ -d "/proc/ppm" ]; then
+            cpufreq_ppm_max_perf
+        fi
+        cpufreq_max_perf
+    } &
 
     for dir in /sys/block/mmcblk0 /sys/block/mmcblk1 /sys/block/sd*; do
-        tweak 32 "$dir/queue/read_ahead_kb"
-        tweak 32 "$dir/queue/nr_requests"
-    done &
+        (
+            tweak 32 "$dir/queue/read_ahead_kb"
+            tweak 32 "$dir/queue/nr_requests"
+        ) &
+    done
     
-    # Apply device-specific tweaks
+    wait
+
     case $SOC in
         1) mediatek_performance ;;
         2) snapdragon_performance ;;
@@ -859,18 +874,20 @@ performance_basic() {
         5) tensor_performance ;;
         6) tegra_performance ;;
     esac
+    wait
 
-	sh $STAR_PATH/BATTERY_RESTORE.sh
-	sh $STAR_PATH/CPU_DBPerformance.sh
+	sh $STAR_PATH/BATTERY_RESTORE.sh &
+	sh $STAR_PATH/CPU_DBPerformance.sh &
     dnd_on
-    corin_perf
-    bypass_on
+    corin_perf &
+    bypass_on &
     
     if [ "$KCPU_MITIGATE" -eq 0 ]; then
-        carcpu_perf
+        carcpu_perf &
     fi
 
-    anyamelfissa
+    anyamelfissa &
+    wait
 }
 
 ##########################################
@@ -880,57 +897,64 @@ balanced_basic() {
     sync
     [ -f /sys/module/battery_saver/parameters/enabled ] && {
         if grep -qo '[0-9]\+' /sys/module/battery_saver/parameters/enabled; then
-        kakangkuh 0 /sys/module/battery_saver/parameters/enabled
+            kakangkuh 0 /sys/module/battery_saver/parameters/enabled
         else
-        kakangkuh N /sys/module/battery_saver/parameters/enabled
+            kakangkuh N /sys/module/battery_saver/parameters/enabled
         fi
-    }
+    } &
 
-    kakangkuh 1 /proc/sys/kernel/split_lock_mitigate
+    kakangkuh 1 /proc/sys/kernel/split_lock_mitigate &
 
     if [ -f "/sys/kernel/debug/sched_features" ]; then
-        kakangkuh NEXT_BUDDY /sys/kernel/debug/sched_features
-        kakangkuh TTWU_QUEUE /sys/kernel/debug/sched_features
+        (
+            kakangkuh NEXT_BUDDY /sys/kernel/debug/sched_features
+            kakangkuh TTWU_QUEUE /sys/kernel/debug/sched_features
+        ) &
     fi
 
     if [ -d "/dev/stune/" ]; then
-        kakangkuh 0 /dev/stune/top-app/schedtune.prefer_idle
-        kakangkuh 1 /dev/stune/top-app/schedtune.boost
+        (
+            kakangkuh 0 /dev/stune/top-app/schedtune.prefer_idle
+            kakangkuh 1 /dev/stune/top-app/schedtune.boost
+        ) &
     fi
 
     tp_path="/proc/touchpanel"
     if [ -d "$tp_path" ]; then
-        kakangkuh 0 $tp_path/game_switch_enable
-        kakangkuh 1 $tp_path/oplus_tp_limit_enable
-        kakangkuh 1 $tp_path/oppo_tp_limit_enable
-        kakangkuh 0 $tp_path/oplus_tp_direction
-        kakangkuh 0 $tp_path/oppo_tp_direction
+        (
+            kakangkuh 0 $tp_path/game_switch_enable
+            kakangkuh 1 $tp_path/oplus_tp_limit_enable
+            kakangkuh 1 $tp_path/oppo_tp_limit_enable
+            kakangkuh 0 $tp_path/oplus_tp_direction
+            kakangkuh 0 $tp_path/oppo_tp_direction
+        ) &
     fi
 
-    kakangkuh 120 /proc/sys/vm/vfs_cache_pressure
+    kakangkuh 120 /proc/sys/vm/vfs_cache_pressure &
 
     for path in /sys/class/devfreq/*.ufshc /sys/class/devfreq/mmc*; do
-        devfreq_unlock "$path"
-    done &
+        devfreq_unlock "$path" &
+    done
 
-    change_cpu_gov "$DEFAULT_CPU_GOV"
-
-    # Set both PPM and standard cpufreq if PPM exists, otherwise just standard
-    if [ -d "/proc/ppm" ]; then
-        if [ "$LIFE_MODE" -eq 1 ]; then
-            cpufreq_ppm_life_perf
-        else
-            cpufreq_ppm_unlock
+    {
+        change_cpu_gov "$DEFAULT_CPU_GOV"
+        if [ -d "/proc/ppm" ]; then
+            if [ "$LIFE_MODE" -eq 1 ]; then
+                cpufreq_ppm_life_perf
+            else
+                cpufreq_ppm_unlock
+            fi
         fi
-    fi
+        
+        if [ "$LIFE_MODE" -eq 1 ]; then
+            cpufreq_life_perf
+        else
+            cpufreq_unlock
+        fi
+    } &
     
-    if [ "$LIFE_MODE" -eq 1 ]; then
-        cpufreq_life_perf
-    else
-        cpufreq_unlock
-    fi
-    
-    # Apply device-specific tweaks
+    wait 
+
     case $SOC in
         1) mediatek_normal ;;
         2) snapdragon_normal ;;
@@ -939,18 +963,20 @@ balanced_basic() {
         5) tensor_normal ;;
         6) tegra_normal ;;
     esac
+    wait
 	
-	sh $STAR_PATH/BATTERY_RESTORE.sh
-	sh $STAR_PATH/CPU_DBBalance.sh
+	sh $STAR_PATH/BATTERY_RESTORE.sh &
+	sh $STAR_PATH/CPU_DBBalance.sh &
 	dnd_off
-    corin_balanced
-    bypass_off
+    corin_balanced &
+    bypass_off &
 
     if [ "$KCPU_MITIGATE" -eq 0 ]; then
-        carcpu_balance
+        carcpu_balance &
     fi
 
-    anyakawaii
+    anyakawaii &
+    wait
 }
 
 ##########################################
@@ -966,21 +992,22 @@ powersave_basic() {
         else
             tweak Y /sys/module/battery_saver/parameters/enabled
         fi
-    }
+    } &
     
     for path in /sys/class/devfreq/*.ufshc /sys/class/devfreq/mmc*; do
-		devfreq_min_perf "$path"
-	done &
+		devfreq_min_perf "$path" &
+	done
 
-    change_cpu_gov "powersave"
+    {
+        change_cpu_gov "powersave"
+        if [ -d "/proc/ppm" ]; then
+            cpufreq_ppm_min_perf
+        fi
+        cpufreq_min_perf
+    } &
 
-    # Set both PPM and standard cpufreq if PPM exists, otherwise just standard
-    if [ -d "/proc/ppm" ]; then
-        cpufreq_ppm_min_perf
-    fi
-    cpufreq_min_perf
+    wait
 
-    # Apply device-specific tweaks
     case $SOC in
         1) mediatek_powersave ;;
         2) snapdragon_powersave ;;
@@ -989,17 +1016,19 @@ powersave_basic() {
         5) tensor_powersave ;;
         6) tegra_powersave ;;
     esac
+    wait
 
-	sh $STAR_PATH/BATTERY_SAVER.sh
+	sh $STAR_PATH/BATTERY_SAVER.sh &
     dnd_off
-    corin_powersave
-    bypass_off
+    corin_powersave &
+    bypass_off &
 
     if [ "$KCPU_MITIGATE" -eq 0 ]; then
-        carcpu_battery
+        carcpu_battery &
     fi
 
-    anyakawaii
+    anyakawaii &
+    wait
 }
 ##########################################
 # MAIN EXECUTION LOGIC
