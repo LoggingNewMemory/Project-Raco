@@ -780,7 +780,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         width: double.infinity,
         errorBuilder: (context, error, stackTrace) {
           return Image.asset(
-            'assets/Raco.jpg',
+            'assets/Raco.png',
             fit: BoxFit.cover,
             width: double.infinity,
           );
@@ -788,7 +788,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       );
     } else {
       bannerImage = Image.asset(
-        'assets/Raco.jpg',
+        'assets/Raco.png',
         fit: BoxFit.cover,
         width: double.infinity,
         errorBuilder: (context, error, stackTrace) {
