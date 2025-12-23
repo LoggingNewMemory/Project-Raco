@@ -1,11 +1,22 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '/l10n/app_localizations.dart';
+
+// 1. Custom Class to handle data safely (Fixes AppInfo constructor error)
+class AppItem {
+  final String name;
+  final String packageName;
+  final Uint8List? icon;
+
+  AppItem({required this.name, required this.packageName, this.icon});
+}
 
 class PreloadPage extends StatefulWidget {
   final String? backgroundImagePath;
@@ -13,14 +24,14 @@ class PreloadPage extends StatefulWidget {
   final double backgroundBlur;
 
   const PreloadPage({
-    Key? key,
+    super.key, // Fixed: Use super parameter
     required this.backgroundImagePath,
     required this.backgroundOpacity,
     required this.backgroundBlur,
-  }) : super(key: key);
+  });
 
   @override
-  _PreloadPageState createState() => _PreloadPageState();
+  State<PreloadPage> createState() => _PreloadPageState(); // Fixed: Public state type
 }
 
 class _PreloadPageState extends State<PreloadPage> {
@@ -41,24 +52,32 @@ class _PreloadPageState extends State<PreloadPage> {
   };
 
   // App List Cache & State
-  static List<AppInfo>? _cachedApps;
-  List<AppInfo> _installedApps = [];
+  List<AppItem> _installedApps = [];
   Map<String, bool> _selectedApps = {};
   bool _isLoadingApps = true;
   String _searchQuery = "";
   final TextEditingController _searchController = TextEditingController();
 
+  // Persistence keys
+  static const String _prefsKeyApps = 'preload_cached_apps';
+  static const String _prefsKeySelected = 'preload_selected_apps';
+
   @override
   void initState() {
     super.initState();
     _fetchRamInfo();
-    // Load from cache if available, otherwise fetch
-    _fetchInstalledApps(forceRefresh: false);
+    _initData();
 
     // Refresh RAM every 3 seconds
     _ramTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       _fetchRamInfo();
     });
+  }
+
+  Future<void> _initData() async {
+    await _loadFromCache();
+    // Fetch fresh data in background
+    _fetchInstalledApps(forceRefresh: true);
   }
 
   @override
@@ -67,6 +86,73 @@ class _PreloadPageState extends State<PreloadPage> {
     _searchController.dispose();
     super.dispose();
   }
+
+  // --- Persistence Logic ---
+
+  Future<void> _loadFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Load Selected Apps
+      final String? selectedJson = prefs.getString(_prefsKeySelected);
+      if (selectedJson != null) {
+        final Map<String, dynamic> decoded = jsonDecode(selectedJson);
+        setState(() {
+          _selectedApps = decoded.map((k, v) => MapEntry(k, v as bool));
+        });
+      }
+
+      // Load App List
+      final String? appsJson = prefs.getString(_prefsKeyApps);
+      if (appsJson != null) {
+        final List<dynamic> decodedList = jsonDecode(appsJson);
+
+        // Map to our custom AppItem class
+        final List<AppItem> cachedList = decodedList.map((item) {
+          return AppItem(
+            name: item['n'] as String,
+            packageName: item['p'] as String,
+            icon: null, // Icons are not cached to save space
+          );
+        }).toList();
+
+        if (mounted && cachedList.isNotEmpty) {
+          setState(() {
+            _installedApps = cachedList;
+            _isLoadingApps = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Cache load error: $e");
+    }
+  }
+
+  Future<void> _saveToCache(List<AppItem> apps) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Save minimal data (Name & Package only)
+      final List<Map<String, String>> tinyList = apps
+          .map((app) => {'n': app.name, 'p': app.packageName})
+          .toList();
+
+      await prefs.setString(_prefsKeyApps, jsonEncode(tinyList));
+    } catch (e) {
+      debugPrint("Cache save error: $e");
+    }
+  }
+
+  Future<void> _saveSelection() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefsKeySelected, jsonEncode(_selectedApps));
+    } catch (e) {
+      debugPrint("Selection save error: $e");
+    }
+  }
+
+  // --- Core Logic ---
 
   Future<void> _fetchRamInfo() async {
     try {
@@ -82,7 +168,7 @@ class _PreloadPageState extends State<PreloadPage> {
 
         final total = parseMem('MemTotal');
         final available = parseMem('MemAvailable');
-        final free = parseMem('MemFree');
+        // Fixed: Removed unused 'free' variable
         final used = total - available;
 
         if (mounted) {
@@ -107,28 +193,17 @@ class _PreloadPageState extends State<PreloadPage> {
   }
 
   Future<void> _fetchInstalledApps({bool forceRefresh = false}) async {
-    // 1. Check Cache
-    if (!forceRefresh && _cachedApps != null && _cachedApps!.isNotEmpty) {
-      if (mounted) {
-        setState(() {
-          _installedApps = List.from(_cachedApps!);
-          _isLoadingApps = false;
-        });
-      }
-      return;
-    }
-
-    if (mounted) {
+    if (_installedApps.isEmpty && mounted) {
       setState(() {
         _isLoadingApps = true;
       });
     }
 
-    List<AppInfo> allAppsInfo = [];
+    List<AppInfo> rawApps = [];
 
-    // 2. Fetch Real Data via API
     try {
-      allAppsInfo = await InstalledApps.getInstalledApps(true, true);
+      // Get real apps from plugin
+      rawApps = await InstalledApps.getInstalledApps(true, true);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -138,10 +213,10 @@ class _PreloadPageState extends State<PreloadPage> {
       return;
     }
 
-    // 3. Try to filter using Root
     bool rootFilterSuccess = false;
-    List<AppInfo> finalResult = [];
+    List<AppInfo> filteredResult = [];
 
+    // Filter using Root (su)
     try {
       final result = await Process.run('su', ['-c', 'pm list packages -3']);
 
@@ -155,31 +230,39 @@ class _PreloadPageState extends State<PreloadPage> {
 
         final Set<String> rootPkgSet = rootPackageNames.toSet();
 
-        finalResult = allAppsInfo
+        filteredResult = rawApps
             .where((app) => rootPkgSet.contains(app.packageName))
             .toList();
 
-        finalResult.sort((a, b) => (a.name ?? "").compareTo(b.name ?? ""));
+        // Fixed: Removed dead null check (?? "")
+        filteredResult.sort((a, b) => (a.name).compareTo(b.name));
         rootFilterSuccess = true;
       }
     } catch (e) {
       rootFilterSuccess = false;
     }
 
-    // 4. Fallback if root failed
     if (!rootFilterSuccess) {
-      finalResult = allAppsInfo;
-      finalResult.sort((a, b) => (a.name ?? "").compareTo(b.name ?? ""));
+      filteredResult = rawApps;
+      // Fixed: Removed dead null check
+      filteredResult.sort((a, b) => (a.name).compareTo(b.name));
     }
 
-    // Update Cache
-    _cachedApps = finalResult;
+    // Convert AppInfo to our custom AppItem
+    final List<AppItem> finalItems = filteredResult.map((info) {
+      return AppItem(
+        name: info.name,
+        packageName: info.packageName,
+        icon: info.icon,
+      );
+    }).toList();
 
     if (mounted) {
       setState(() {
-        _installedApps = finalResult;
+        _installedApps = finalItems;
         _isLoadingApps = false;
       });
+      _saveToCache(finalItems);
     }
   }
 
@@ -190,12 +273,14 @@ class _PreloadPageState extends State<PreloadPage> {
         .toList();
 
     if (selectedPackages.isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("No apps selected")));
       return;
     }
 
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Preloading ${selectedPackages.length} apps...")),
     );
@@ -204,6 +289,7 @@ class _PreloadPageState extends State<PreloadPage> {
       await Process.run('su', ['-c', 'kasane -a $pkg -m $_selectedMode -l']);
     }
 
+    if (!mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text("Preload Complete")));
@@ -216,12 +302,11 @@ class _PreloadPageState extends State<PreloadPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // Filter apps based on search
     final filteredApps = _installedApps.where((app) {
-      final nameMatch = (app.name ?? "").toLowerCase().contains(
+      final nameMatch = app.name.toLowerCase().contains(
         _searchQuery.toLowerCase(),
       );
-      final pkgMatch = (app.packageName ?? "").toLowerCase().contains(
+      final pkgMatch = app.packageName.toLowerCase().contains(
         _searchQuery.toLowerCase(),
       );
       return nameMatch || pkgMatch;
@@ -250,7 +335,9 @@ class _PreloadPageState extends State<PreloadPage> {
             // 1. Info Card
             Card(
               elevation: 0,
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(
+                alpha: 0.3,
+              ), // Fixed deprecated .withOpacity
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -394,7 +481,7 @@ class _PreloadPageState extends State<PreloadPage> {
 
             // 4. App List
             Expanded(
-              child: _isLoadingApps
+              child: _isLoadingApps && _installedApps.isEmpty
                   ? const Center(child: CircularProgressIndicator())
                   : filteredApps.isEmpty
                   ? const Center(
@@ -411,7 +498,7 @@ class _PreloadPageState extends State<PreloadPage> {
                         itemCount: filteredApps.length,
                         itemBuilder: (context, index) {
                           final app = filteredApps[index];
-                          final pkg = app.packageName ?? "";
+                          final pkg = app.packageName;
                           final isSelected = _selectedApps[pkg] ?? false;
 
                           return CheckboxListTile(
@@ -419,7 +506,7 @@ class _PreloadPageState extends State<PreloadPage> {
                             secondary: SizedBox(
                               width: 40,
                               height: 40,
-                              child: app.icon != null
+                              child: app.icon != null && app.icon!.isNotEmpty
                                   ? Image.memory(app.icon!)
                                   : const Icon(
                                       Icons.android,
@@ -427,7 +514,7 @@ class _PreloadPageState extends State<PreloadPage> {
                                     ),
                             ),
                             title: Text(
-                              app.name ?? pkg,
+                              app.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(color: Colors.white),
@@ -449,6 +536,7 @@ class _PreloadPageState extends State<PreloadPage> {
                               setState(() {
                                 _selectedApps[pkg] = val ?? false;
                               });
+                              _saveSelection();
                             },
                           );
                         },
@@ -463,7 +551,7 @@ class _PreloadPageState extends State<PreloadPage> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Container(color: colorScheme.background),
+        Container(color: colorScheme.surface), // Fixed deprecated background
         if (widget.backgroundImagePath != null &&
             widget.backgroundImagePath!.isNotEmpty)
           ImageFiltered(
