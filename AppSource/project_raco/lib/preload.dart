@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:device_apps/device_apps.dart';
 import '/l10n/app_localizations.dart';
 
 class PreloadPage extends StatefulWidget {
@@ -39,8 +38,7 @@ class _PreloadPageState extends State<PreloadPage> {
   };
 
   // App List
-  // CHANGED: Now stores ApplicationWithIcon objects instead of plain Strings
-  List<ApplicationWithIcon> _installedApps = [];
+  List<String> _installedApps = [];
   Map<String, bool> _selectedApps = {};
   bool _isLoadingApps = true;
   String _searchQuery = "";
@@ -105,32 +103,41 @@ class _PreloadPageState extends State<PreloadPage> {
 
   Future<void> _fetchInstalledApps() async {
     try {
-      final apps = await DeviceApps.getInstalledApplications(
-        includeAppIcons: true,
-        includeSystemApps: false,
-        onlyAppsWithLaunchIntent: true,
-      );
+      // List user installed packages (-3)
+      final result = await Process.run('su', ['-c', 'pm list packages -3']);
+      if (result.exitCode == 0) {
+        final List<String> apps = result.stdout
+            .toString()
+            .split('\n')
+            .where((line) => line.startsWith('package:'))
+            .map((line) => line.replaceAll('package:', '').trim())
+            .toList();
 
-      // Filter and cast to ApplicationWithIcon
-      final List<ApplicationWithIcon> appsWithIcons = apps
-          .whereType<ApplicationWithIcon>()
-          .toList();
+        apps.sort();
 
-      // Sort by App Name instead of Package Name
-      appsWithIcons.sort(
-        (a, b) => a.appName.toLowerCase().compareTo(b.appName.toLowerCase()),
-      );
-
-      if (mounted) {
-        setState(() {
-          _installedApps = appsWithIcons;
-          _isLoadingApps = false;
-        });
+        if (mounted) {
+          setState(() {
+            _installedApps = apps;
+            _isLoadingApps = false;
+          });
+        }
+      } else {
+        throw Exception("Root command failed");
       }
     } catch (e) {
-      // Fallback if plugin fails (rare on Android)
+      // Fallback/Mock for UI testing
       if (mounted) {
         setState(() {
+          _installedApps = [
+            'com.us.itovision.mobilestudent',
+            'cn.wps.xiaomi.abroad.lite',
+            'com.adobe.scan.android',
+            'com.android.soundrecorder',
+            'com.brave.browser',
+            'com.cloudflare.onedotonedotonedotone',
+            'com.garena.game.df',
+            'com.gojek.app',
+          ];
           _isLoadingApps = false;
         });
       }
@@ -170,12 +177,10 @@ class _PreloadPageState extends State<PreloadPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // Filter apps by Name OR Package Name
-    final filteredApps = _installedApps.where((app) {
-      final query = _searchQuery.toLowerCase();
-      return app.appName.toLowerCase().contains(query) ||
-          app.packageName.toLowerCase().contains(query);
-    }).toList();
+    // Filter apps
+    final filteredApps = _installedApps
+        .where((app) => app.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
 
     // The main content of the page
     final Widget pageContent = Scaffold(
@@ -188,7 +193,9 @@ class _PreloadPageState extends State<PreloadPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _runKasane,
-        backgroundColor: const Color(0xFF8B4513),
+        backgroundColor: const Color(
+          0xFF8B4513,
+        ), // Match the screenshot's brownish FAB
         foregroundColor: Colors.white,
         icon: const Icon(Icons.rocket_launch),
         label: Text(localization.start_preload),
@@ -201,7 +208,9 @@ class _PreloadPageState extends State<PreloadPage> {
             // 1. Info Card (RAM Stats Only)
             Card(
               elevation: 0,
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withOpacity(
+                0.3,
+              ), // Dark translucent background
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -210,6 +219,7 @@ class _PreloadPageState extends State<PreloadPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Free RAM Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -220,7 +230,7 @@ class _PreloadPageState extends State<PreloadPage> {
                         Text(
                           _freeRam,
                           style: const TextStyle(
-                            color: Color(0xFFE5AA70),
+                            color: Color(0xFFE5AA70), // Light orange/brown text
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
                           ),
@@ -228,13 +238,14 @@ class _PreloadPageState extends State<PreloadPage> {
                       ],
                     ),
                     const SizedBox(height: 8),
+                    // Progress Bar
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
                         value: _ramProgress,
                         minHeight: 6,
                         backgroundColor: Colors.white10,
-                        color: Colors.orange,
+                        color: Colors.orange, // Match screenshot progress color
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -324,35 +335,15 @@ class _PreloadPageState extends State<PreloadPage> {
                   : ListView.builder(
                       itemCount: filteredApps.length,
                       itemBuilder: (context, index) {
-                        final app = filteredApps[index];
-                        final isSelected =
-                            _selectedApps[app.packageName] ?? false;
-
+                        final pkg = filteredApps[index];
+                        final isSelected = _selectedApps[pkg] ?? false;
                         return CheckboxListTile(
                           contentPadding: EdgeInsets.zero,
-                          // CHANGED: Display Icon using Image.memory
-                          secondary: Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Image.memory(
-                              app.icon,
-                              width: 40,
-                              height: 40,
-                            ),
-                          ),
-                          // CHANGED: Display App Name as Title
                           title: Text(
-                            app.appName,
+                            pkg,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(color: Colors.white70),
-                          ),
-                          // CHANGED: Display Package Name as Subtitle
-                          subtitle: Text(
-                            app.packageName,
-                            style: const TextStyle(
-                              color: Colors.white30,
-                              fontSize: 12,
-                            ),
                           ),
                           value: isSelected,
                           activeColor: colorScheme.primary,
@@ -360,7 +351,7 @@ class _PreloadPageState extends State<PreloadPage> {
                           side: const BorderSide(color: Colors.white54),
                           onChanged: (val) {
                             setState(() {
-                              _selectedApps[app.packageName] = val ?? false;
+                              _selectedApps[pkg] = val ?? false;
                             });
                           },
                         );
@@ -372,10 +363,15 @@ class _PreloadPageState extends State<PreloadPage> {
       ),
     );
 
+    // THEME INTEGRATION:
+    // This Stack is crucial to prevent the UI scrambling.
     return Stack(
       fit: StackFit.expand,
       children: [
+        // 1. Solid background color (Covers the previous screen)
         Container(color: colorScheme.background),
+
+        // 2. Background Image (if set in Appearance)
         if (widget.backgroundImagePath != null &&
             widget.backgroundImagePath!.isNotEmpty)
           ImageFiltered(
@@ -394,6 +390,8 @@ class _PreloadPageState extends State<PreloadPage> {
               ),
             ),
           ),
+
+        // 3. The Page Content
         pageContent,
       ],
     );
