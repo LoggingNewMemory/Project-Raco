@@ -40,7 +40,8 @@ class _PreloadPageState extends State<PreloadPage> {
     'r': 'Recursive (looped deep check)',
   };
 
-  // App List
+  // App List Cache & State
+  static List<AppInfo>? _cachedApps;
   List<AppInfo> _installedApps = [];
   Map<String, bool> _selectedApps = {};
   bool _isLoadingApps = true;
@@ -51,7 +52,9 @@ class _PreloadPageState extends State<PreloadPage> {
   void initState() {
     super.initState();
     _fetchRamInfo();
-    _fetchInstalledApps();
+    // Load from cache if available, otherwise fetch
+    _fetchInstalledApps(forceRefresh: false);
+
     // Refresh RAM every 3 seconds
     _ramTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       _fetchRamInfo();
@@ -92,7 +95,6 @@ class _PreloadPageState extends State<PreloadPage> {
         }
       }
     } catch (e) {
-      // Simple fallback for RAM numbers if /proc/meminfo fails (unlikely on real device)
       if (mounted) {
         setState(() {
           _freeRam = "Unknown";
@@ -104,11 +106,27 @@ class _PreloadPageState extends State<PreloadPage> {
     }
   }
 
-  Future<void> _fetchInstalledApps() async {
+  Future<void> _fetchInstalledApps({bool forceRefresh = false}) async {
+    // 1. Check Cache
+    if (!forceRefresh && _cachedApps != null && _cachedApps!.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          _installedApps = List.from(_cachedApps!);
+          _isLoadingApps = false;
+        });
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoadingApps = true;
+      });
+    }
+
     List<AppInfo> allAppsInfo = [];
 
-    // 1. Fetch Real Data via API (No Root Required)
-    // This gets icons, labels, and package names for everything.
+    // 2. Fetch Real Data via API
     try {
       allAppsInfo = await InstalledApps.getInstalledApps(true, true);
     } catch (e) {
@@ -120,8 +138,10 @@ class _PreloadPageState extends State<PreloadPage> {
       return;
     }
 
-    // 2. Try to filter using Root to get only "User Installed" apps (-3)
+    // 3. Try to filter using Root
     bool rootFilterSuccess = false;
+    List<AppInfo> finalResult = [];
+
     try {
       final result = await Process.run('su', ['-c', 'pm list packages -3']);
 
@@ -135,35 +155,31 @@ class _PreloadPageState extends State<PreloadPage> {
 
         final Set<String> rootPkgSet = rootPackageNames.toSet();
 
-        // Filter the full list
-        List<AppInfo> filteredList = allAppsInfo
+        finalResult = allAppsInfo
             .where((app) => rootPkgSet.contains(app.packageName))
             .toList();
 
-        filteredList.sort((a, b) => (a.name ?? "").compareTo(b.name ?? ""));
-
-        if (mounted) {
-          setState(() {
-            _installedApps = filteredList;
-            _isLoadingApps = false;
-          });
-        }
+        finalResult.sort((a, b) => (a.name ?? "").compareTo(b.name ?? ""));
         rootFilterSuccess = true;
       }
     } catch (e) {
-      // Root command failed (Permission denied or not rooted)
       rootFilterSuccess = false;
     }
 
-    // 3. Fallback: If Root filter failed, show ALL Real Apps
+    // 4. Fallback if root failed
     if (!rootFilterSuccess) {
-      allAppsInfo.sort((a, b) => (a.name ?? "").compareTo(b.name ?? ""));
-      if (mounted) {
-        setState(() {
-          _installedApps = allAppsInfo;
-          _isLoadingApps = false;
-        });
-      }
+      finalResult = allAppsInfo;
+      finalResult.sort((a, b) => (a.name ?? "").compareTo(b.name ?? ""));
+    }
+
+    // Update Cache
+    _cachedApps = finalResult;
+
+    if (mounted) {
+      setState(() {
+        _installedApps = finalResult;
+        _isLoadingApps = false;
+      });
     }
   }
 
@@ -200,7 +216,7 @@ class _PreloadPageState extends State<PreloadPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // Filter apps
+    // Filter apps based on search
     final filteredApps = _installedApps.where((app) {
       final nameMatch = (app.name ?? "").toLowerCase().contains(
         _searchQuery.toLowerCase(),
@@ -211,7 +227,6 @@ class _PreloadPageState extends State<PreloadPage> {
       return nameMatch || pkgMatch;
     }).toList();
 
-    // The main content of the page
     final Widget pageContent = Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
@@ -322,36 +337,62 @@ class _PreloadPageState extends State<PreloadPage> {
 
             const SizedBox(height: 20),
 
-            // 3. Search Bar
-            TextField(
-              controller: _searchController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: "Search apps...",
-                hintStyle: const TextStyle(color: Colors.white54),
-                prefixIcon: const Icon(Icons.search, color: Colors.white54),
-                suffixIcon: const Icon(
-                  Icons.chevron_right,
-                  color: Colors.white54,
+            // 3. Search Bar & Refresh Button
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: "Search apps...",
+                      hintStyle: const TextStyle(color: Colors.white54),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Colors.white54,
+                      ),
+                      suffixIcon: const Icon(
+                        Icons.chevron_right,
+                        color: Colors.white54,
+                      ),
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.white24),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: colorScheme.primary),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                    ),
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                  ),
                 ),
-                filled: true,
-                fillColor: Colors.transparent,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.white24),
+                const SizedBox(width: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white24),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.refresh),
+                    color: Colors.white70,
+                    tooltip: "Reload App List",
+                    onPressed: () {
+                      _fetchInstalledApps(forceRefresh: true);
+                    },
+                  ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.primary),
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-              ),
-              onChanged: (val) => setState(() => _searchQuery = val),
+              ],
             ),
 
             const SizedBox(height: 16),
 
-            // 4. App List (REAL DATA ONLY)
+            // 4. App List
             Expanded(
               child: _isLoadingApps
                   ? const Center(child: CircularProgressIndicator())
@@ -362,51 +403,56 @@ class _PreloadPageState extends State<PreloadPage> {
                         style: TextStyle(color: Colors.white54),
                       ),
                     )
-                  : ListView.builder(
-                      itemCount: filteredApps.length,
-                      itemBuilder: (context, index) {
-                        final app = filteredApps[index];
-                        final pkg = app.packageName ?? "";
-                        final isSelected = _selectedApps[pkg] ?? false;
-
-                        return CheckboxListTile(
-                          contentPadding: EdgeInsets.zero,
-                          secondary: SizedBox(
-                            width: 40,
-                            height: 40,
-                            child: app.icon != null
-                                ? Image.memory(app.icon!)
-                                : const Icon(
-                                    Icons.android,
-                                    color: Colors.white54,
-                                  ),
-                          ),
-                          title: Text(
-                            app.name ?? pkg,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          subtitle: Text(
-                            pkg,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white54,
-                              fontSize: 12,
-                            ),
-                          ),
-                          value: isSelected,
-                          activeColor: colorScheme.primary,
-                          checkColor: colorScheme.onPrimary,
-                          side: const BorderSide(color: Colors.white54),
-                          onChanged: (val) {
-                            setState(() {
-                              _selectedApps[pkg] = val ?? false;
-                            });
-                          },
-                        );
+                  : RefreshIndicator(
+                      onRefresh: () async {
+                        await _fetchInstalledApps(forceRefresh: true);
                       },
+                      child: ListView.builder(
+                        itemCount: filteredApps.length,
+                        itemBuilder: (context, index) {
+                          final app = filteredApps[index];
+                          final pkg = app.packageName ?? "";
+                          final isSelected = _selectedApps[pkg] ?? false;
+
+                          return CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            secondary: SizedBox(
+                              width: 40,
+                              height: 40,
+                              child: app.icon != null
+                                  ? Image.memory(app.icon!)
+                                  : const Icon(
+                                      Icons.android,
+                                      color: Colors.white54,
+                                    ),
+                            ),
+                            title: Text(
+                              app.name ?? pkg,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            subtitle: Text(
+                              pkg,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
+                            ),
+                            value: isSelected,
+                            activeColor: colorScheme.primary,
+                            checkColor: colorScheme.onPrimary,
+                            side: const BorderSide(color: Colors.white54),
+                            onChanged: (val) {
+                              setState(() {
+                                _selectedApps[pkg] = val ?? false;
+                              });
+                            },
+                          );
+                        },
+                      ),
                     ),
             ),
           ],
