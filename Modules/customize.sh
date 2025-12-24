@@ -335,25 +335,17 @@ ui_print " "
 PACKAGE_NAME="com.kanagawa.yamada.project.raco"
 ui_print "- Copying ProjectRaco.apk..."
 cp "$MODPATH/ProjectRaco.apk" "/data/local/tmp" >/dev/null 2>&1 || abort "! Failed to copy ProjectRaco.apk"
-pm install -r -g /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
-if ! pm path "$PACKAGE_NAME" >/dev/null 2>&1; then
-  ui_print "! Initial install failed. Retrying with root..."
-  su -c pm install -r -g /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
-  if ! pm path "$PACKAGE_NAME" >/dev/null 2>&1; then
-    ui_print "! Root install also failed. Attempting a clean install..."
-    ui_print "- Uninstalling any existing version..."
-    su -c pm uninstall "$PACKAGE_NAME" >/dev/null 2>&1
-    sleep 1
-    ui_print "- Attempting a fresh installation..."
-    su -c pm install -g /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
-  fi
-fi
+
+ui_print "- Installing APK..."
+pm install --user 0 /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
 
 if pm path "$PACKAGE_NAME" >/dev/null 2>&1; then
   ui_print "- Project Raco App installed/updated successfully."
 else
-  ui_print "! CRITICAL: Failed to install the Project Raco App after multiple attempts."
+  ui_print "! CRITICAL: Failed to install the Project Raco App."
 fi
+
+# Clean up APK file
 rm /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
 
 ui_print " "
