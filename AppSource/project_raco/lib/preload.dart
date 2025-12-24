@@ -9,7 +9,6 @@ import 'package:installed_apps/installed_apps.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '/l10n/app_localizations.dart';
 
-// 1. Custom Class to handle data safely (Fixes AppInfo constructor error)
 class AppItem {
   final String name;
   final String packageName;
@@ -24,14 +23,14 @@ class PreloadPage extends StatefulWidget {
   final double backgroundBlur;
 
   const PreloadPage({
-    super.key, // Fixed: Use super parameter
+    super.key,
     required this.backgroundImagePath,
     required this.backgroundOpacity,
     required this.backgroundBlur,
   });
 
   @override
-  State<PreloadPage> createState() => _PreloadPageState(); // Fixed: Public state type
+  State<PreloadPage> createState() => _PreloadPageState();
 }
 
 class _PreloadPageState extends State<PreloadPage> {
@@ -53,14 +52,18 @@ class _PreloadPageState extends State<PreloadPage> {
 
   // App List Cache & State
   List<AppItem> _installedApps = [];
-  Map<String, bool> _selectedApps = {};
+
+  // CHANGED: Single string for single selection
+  String? _selectedAppPackage;
+
   bool _isLoadingApps = true;
   String _searchQuery = "";
   final TextEditingController _searchController = TextEditingController();
 
   // Persistence keys
   static const String _prefsKeyApps = 'preload_cached_apps';
-  static const String _prefsKeySelected = 'preload_selected_apps';
+  static const String _prefsKeySelected =
+      'preload_selected_single_app'; // Changed Key
 
   @override
   void initState() {
@@ -68,7 +71,6 @@ class _PreloadPageState extends State<PreloadPage> {
     _fetchRamInfo();
     _initData();
 
-    // Refresh RAM every 3 seconds
     _ramTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       _fetchRamInfo();
     });
@@ -76,7 +78,6 @@ class _PreloadPageState extends State<PreloadPage> {
 
   Future<void> _initData() async {
     await _loadFromCache();
-    // Fetch fresh data in background
     _fetchInstalledApps(forceRefresh: true);
   }
 
@@ -93,26 +94,22 @@ class _PreloadPageState extends State<PreloadPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // Load Selected Apps
-      final String? selectedJson = prefs.getString(_prefsKeySelected);
-      if (selectedJson != null) {
-        final Map<String, dynamic> decoded = jsonDecode(selectedJson);
+      // CHANGED: Load single string
+      final String? savedPackage = prefs.getString(_prefsKeySelected);
+      if (savedPackage != null) {
         setState(() {
-          _selectedApps = decoded.map((k, v) => MapEntry(k, v as bool));
+          _selectedAppPackage = savedPackage;
         });
       }
 
-      // Load App List
       final String? appsJson = prefs.getString(_prefsKeyApps);
       if (appsJson != null) {
         final List<dynamic> decodedList = jsonDecode(appsJson);
-
-        // Map to our custom AppItem class
         final List<AppItem> cachedList = decodedList.map((item) {
           return AppItem(
             name: item['n'] as String,
             packageName: item['p'] as String,
-            icon: null, // Icons are not cached to save space
+            icon: null,
           );
         }).toList();
 
@@ -131,8 +128,6 @@ class _PreloadPageState extends State<PreloadPage> {
   Future<void> _saveToCache(List<AppItem> apps) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-
-      // Save minimal data (Name & Package only)
       final List<Map<String, String>> tinyList = apps
           .map((app) => {'n': app.name, 'p': app.packageName})
           .toList();
@@ -146,7 +141,11 @@ class _PreloadPageState extends State<PreloadPage> {
   Future<void> _saveSelection() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefsKeySelected, jsonEncode(_selectedApps));
+      if (_selectedAppPackage != null) {
+        await prefs.setString(_prefsKeySelected, _selectedAppPackage!);
+      } else {
+        await prefs.remove(_prefsKeySelected);
+      }
     } catch (e) {
       debugPrint("Selection save error: $e");
     }
@@ -168,7 +167,6 @@ class _PreloadPageState extends State<PreloadPage> {
 
         final total = parseMem('MemTotal');
         final available = parseMem('MemAvailable');
-        // Fixed: Removed unused 'free' variable
         final used = total - available;
 
         if (mounted) {
@@ -202,7 +200,6 @@ class _PreloadPageState extends State<PreloadPage> {
     List<AppInfo> rawApps = [];
 
     try {
-      // Get real apps from plugin
       rawApps = await InstalledApps.getInstalledApps(true, true);
     } catch (e) {
       if (mounted) {
@@ -216,7 +213,6 @@ class _PreloadPageState extends State<PreloadPage> {
     bool rootFilterSuccess = false;
     List<AppInfo> filteredResult = [];
 
-    // Filter using Root (su)
     try {
       final result = await Process.run('su', ['-c', 'pm list packages -3']);
 
@@ -234,7 +230,6 @@ class _PreloadPageState extends State<PreloadPage> {
             .where((app) => rootPkgSet.contains(app.packageName))
             .toList();
 
-        // Fixed: Removed dead null check (?? "")
         filteredResult.sort((a, b) => (a.name).compareTo(b.name));
         rootFilterSuccess = true;
       }
@@ -244,11 +239,9 @@ class _PreloadPageState extends State<PreloadPage> {
 
     if (!rootFilterSuccess) {
       filteredResult = rawApps;
-      // Fixed: Removed dead null check
       filteredResult.sort((a, b) => (a.name).compareTo(b.name));
     }
 
-    // Convert AppInfo to our custom AppItem
     final List<AppItem> finalItems = filteredResult.map((info) {
       return AppItem(
         name: info.name,
@@ -267,27 +260,25 @@ class _PreloadPageState extends State<PreloadPage> {
   }
 
   Future<void> _runKasane() async {
-    final selectedPackages = _selectedApps.entries
-        .where((entry) => entry.value)
-        .map((entry) => entry.key)
-        .toList();
-
-    if (selectedPackages.isEmpty) {
+    // CHANGED: Check single selection
+    if (_selectedAppPackage == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text("No apps selected")));
+      ).showSnackBar(const SnackBar(content: Text("No app selected")));
       return;
     }
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Preloading ${selectedPackages.length} apps...")),
+      SnackBar(content: Text("Preloading $_selectedAppPackage...")),
     );
 
-    for (final pkg in selectedPackages) {
-      await Process.run('su', ['-c', 'kasane -a $pkg -m $_selectedMode -l']);
-    }
+    // Run for single package
+    await Process.run('su', [
+      '-c',
+      'kasane -a $_selectedAppPackage -m $_selectedMode -l',
+    ]);
 
     if (!mounted) return;
     ScaffoldMessenger.of(
@@ -335,9 +326,7 @@ class _PreloadPageState extends State<PreloadPage> {
             // 1. Info Card
             Card(
               elevation: 0,
-              color: Colors.black.withValues(
-                alpha: 0.3,
-              ), // Fixed deprecated .withOpacity
+              color: Colors.black.withValues(alpha: 0.3),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -389,7 +378,7 @@ class _PreloadPageState extends State<PreloadPage> {
             ),
             const SizedBox(height: 20),
 
-            // 2. Preload Mode Selector
+            // 2. Preload Mode
             Text(
               "Preload Mode",
               style: textTheme.bodySmall?.copyWith(color: Colors.white70),
@@ -424,7 +413,7 @@ class _PreloadPageState extends State<PreloadPage> {
 
             const SizedBox(height: 20),
 
-            // 3. Search Bar & Refresh Button
+            // 3. Search Bar
             Row(
               children: [
                 Expanded(
@@ -436,10 +425,6 @@ class _PreloadPageState extends State<PreloadPage> {
                       hintStyle: const TextStyle(color: Colors.white54),
                       prefixIcon: const Icon(
                         Icons.search,
-                        color: Colors.white54,
-                      ),
-                      suffixIcon: const Icon(
-                        Icons.chevron_right,
                         color: Colors.white54,
                       ),
                       filled: true,
@@ -479,7 +464,7 @@ class _PreloadPageState extends State<PreloadPage> {
 
             const SizedBox(height: 16),
 
-            // 4. App List
+            // 4. App List (Redesigned for Single Selection)
             Expanded(
               child: _isLoadingApps && _installedApps.isEmpty
                   ? const Center(child: CircularProgressIndicator())
@@ -494,50 +479,109 @@ class _PreloadPageState extends State<PreloadPage> {
                       onRefresh: () async {
                         await _fetchInstalledApps(forceRefresh: true);
                       },
-                      child: ListView.builder(
+                      child: ListView.separated(
                         itemCount: filteredApps.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 8),
                         itemBuilder: (context, index) {
                           final app = filteredApps[index];
                           final pkg = app.packageName;
-                          final isSelected = _selectedApps[pkg] ?? false;
+                          final isSelected = _selectedAppPackage == pkg;
 
-                          return CheckboxListTile(
-                            contentPadding: EdgeInsets.zero,
-                            secondary: SizedBox(
-                              width: 40,
-                              height: 40,
-                              child: app.icon != null && app.icon!.isNotEmpty
-                                  ? Image.memory(app.icon!)
-                                  : const Icon(
-                                      Icons.android,
-                                      color: Colors.white54,
-                                    ),
-                            ),
-                            title: Text(
-                              app.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            subtitle: Text(
-                              pkg,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white54,
-                                fontSize: 12,
-                              ),
-                            ),
-                            value: isSelected,
-                            activeColor: colorScheme.primary,
-                            checkColor: colorScheme.onPrimary,
-                            side: const BorderSide(color: Colors.white54),
-                            onChanged: (val) {
+                          return GestureDetector(
+                            onTap: () {
                               setState(() {
-                                _selectedApps[pkg] = val ?? false;
+                                _selectedAppPackage = pkg;
                               });
                               _saveSelection();
                             },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? colorScheme.primary.withValues(alpha: 0.2)
+                                    : Colors.white.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? colorScheme.primary
+                                      : Colors.transparent,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  // Icon
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black12,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child:
+                                        app.icon != null && app.icon!.isNotEmpty
+                                        ? ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            child: Image.memory(app.icon!),
+                                          )
+                                        : const Icon(
+                                            Icons.android,
+                                            color: Colors.white54,
+                                          ),
+                                  ),
+                                  const SizedBox(width: 16),
+
+                                  // Texts
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          app.name,
+                                          style: TextStyle(
+                                            color: isSelected
+                                                ? Colors.white
+                                                : Colors.white70,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            fontSize: 16,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Text(
+                                          pkg,
+                                          style: TextStyle(
+                                            color: isSelected
+                                                ? Colors.white70
+                                                : Colors.white38,
+                                            fontSize: 12,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // Selection Indicator
+                                  if (isSelected)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Icon(
+                                        Icons.check_circle,
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -551,7 +595,7 @@ class _PreloadPageState extends State<PreloadPage> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Container(color: colorScheme.surface), // Fixed deprecated background
+        Container(color: colorScheme.surface),
         if (widget.backgroundImagePath != null &&
             widget.backgroundImagePath!.isNotEmpty)
           ImageFiltered(
