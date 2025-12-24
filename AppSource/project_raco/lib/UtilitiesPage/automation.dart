@@ -132,7 +132,14 @@ class _HamadaAiCardState extends State<HamadaAiCard>
   bool _isTogglingBoot = false;
 
   final String _serviceFilePath = '/data/adb/modules/ProjectRaco/service.sh';
-  final String _hamadaStartCommand = 'su -c /system/bin/HamadaAI';
+
+  // FIXED: Use absolute path to module binary to avoid mount issues
+  final String _binaryPath =
+      '/data/adb/modules/ProjectRaco/system/bin/HamadaAI';
+
+  // FIXED: Added nohup, stderr/stdout redirection, and backgrounding (&)
+  // This prevents the shell from hanging waiting for the infinite loop to finish.
+  String get _hamadaStartCommand => 'nohup $_binaryPath > /dev/null 2>&1 &';
 
   @override
   bool get wantKeepAlive => true;
@@ -173,7 +180,8 @@ class _HamadaAiCardState extends State<HamadaAiCard>
     if (mounted) setState(() => _isTogglingProcess = true);
     try {
       if (enable) {
-        await runRootCommandFireAndForget(_hamadaStartCommand);
+        // We wrap in su -c explicitly here for the runtime toggle
+        await runRootCommandFireAndForget('su -c "$_hamadaStartCommand"');
         await Future.delayed(const Duration(milliseconds: 500));
       } else {
         await runRootCommandAndWait('killall HamadaAI');
@@ -191,14 +199,22 @@ class _HamadaAiCardState extends State<HamadaAiCard>
       String content = (await runRootCommandAndWait(
         'cat $_serviceFilePath',
       )).stdout.toString();
+
       List<String> lines = content.replaceAll('\r\n', '\n').split('\n');
-      lines.removeWhere((line) => line.trim() == _hamadaStartCommand);
+
+      // Cleanup: Remove ANY line that tries to start HamadaAI (old blocking ones AND new ones)
+      // This fixes the issue for users who have the old blocking command saved.
+      lines.removeWhere((line) => line.contains('HamadaAI'));
 
       while (lines.isNotEmpty && lines.last.trim().isEmpty) {
         lines.removeLast();
       }
 
       if (enable) {
+        // For service.sh, we don't strictly need "su -c" as it runs as root,
+        // but using the consistent command string is safer.
+        // We strip the outer 'su -c' if we want cleaner service.sh,
+        // but sticking to the variable is fine as long as it has the '&'.
         lines.add(_hamadaStartCommand);
       }
 
