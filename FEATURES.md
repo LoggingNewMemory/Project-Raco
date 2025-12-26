@@ -11,6 +11,14 @@ If your module is not listed here, you can try to combine it (Ex: SkiaVK / GL Mo
 - GED Tweaks
 - Mali Scheduling
 - Anya Disable Thermal Flowstate (Addon) (Project Raco Exclusive)
+
+WARNING 
+Cannot use getprop | grep thermal anymore to check due to spoof thermal running 
+
+Use
+> ps -A | grep -i thermal
+
+
 - Fast Charge (Addon)
 - Vestia Zeta Display (Addon)
 - Kobo Fast Charge (Addon)
