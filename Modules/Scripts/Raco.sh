@@ -890,6 +890,10 @@ performance_basic() {
 # Balanced Profile (2)
 ##########################################
 balanced_basic() {
+    performance_basic 
+    # Why? Stupid workaround that works
+    # Apparently when I switched from powersave to balanced the GPUFreq locked to minimum
+    # But when I switch from performance to balanced... It fuckin works
     sync
     
     # 1. Battery Saver
