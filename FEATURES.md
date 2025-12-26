@@ -15,8 +15,8 @@ If your module is not listed here, you can try to combine it (Ex: SkiaVK / GL Mo
 - Vestia Zeta Display (Addon)
 - Kobo Fast Charge (Addon)
 - Sandevistan Boot (Addon) (Project Raco Exclusive Settings)
-- Render Tweaks (Celestial Render FlowX)
-- Hamada AI (Auto switch to performance when enter game)
+- Render Tweaks & SurfaceFlinger Tweaks (AmeRender Gen II) (Addon)
+- Hamada AI (Auto switch to performance when enter game, switch to powersave when screen is off)
 - Downscale Resolution
 - Touch Improve Tweak
 - Ayunda Rusdi Color Enhancer Pro (Project Raco Exclusive)
@@ -26,4 +26,5 @@ If your module is not listed here, you can try to combine it (Ex: SkiaVK / GL Mo
 - Render Tweak (Still can be combined with SkiaVK / GL render) 
 - Auto DND when playing games
 - FStrim & Clear Cache
-- SurfaceFlinger Tweaks (Celestial Render Flux)
+- Preload (Kasane Preload)
+- System Graphics Driver Switcher 
