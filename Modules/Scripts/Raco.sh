@@ -107,7 +107,7 @@ bypass_off() {
 }
 
 notification() {
-    local TITLE="Otonose Raco"
+    local TITLE="Project Raco"
     local MESSAGE="$1"
     local LOGO="/data/local/tmp/logo.png"
     
@@ -981,20 +981,56 @@ balanced_basic() {
 ##########################################
 powersave_basic() {
     sync
-    balanced_basic
-
+    
+    # 1. Battery Saver (Strict Enable)
     [ -f /sys/module/battery_saver/parameters/enabled ] && {
         if grep -qo '[0-9]\+' /sys/module/battery_saver/parameters/enabled; then
-            tweak 1 /sys/module/battery_saver/parameters/enabled
+            kakangkuh 1 /sys/module/battery_saver/parameters/enabled
         else
-            tweak Y /sys/module/battery_saver/parameters/enabled
+            kakangkuh Y /sys/module/battery_saver/parameters/enabled
         fi
     } &
+
+    # 2. Kernel/VM/Sched (Explicit Set)
+    (
+        kakangkuh 1 /proc/sys/kernel/split_lock_mitigate
+        kakangkuh 100 /proc/sys/vm/vfs_cache_pressure
+    ) &
+
+    # 3. Debug Sched (Match Balanced or Neutral)
+    if [ -f "/sys/kernel/debug/sched_features" ]; then
+        (
+            kakangkuh NEXT_BUDDY /sys/kernel/debug/sched_features
+            kakangkuh NO_TTWU_QUEUE /sys/kernel/debug/sched_features
+        ) &
+    fi
+
+    # 4. Stune (Disable Boost)
+    if [ -d "/dev/stune/" ]; then
+        (
+            kakangkuh 0 /dev/stune/top-app/schedtune.prefer_idle
+            kakangkuh 0 /dev/stune/top-app/schedtune.boost
+        ) &
+    fi
+
+    # 5. Touchpanel (Disable Gaming)
+    tp_path="/proc/touchpanel"
+    if [ -d "$tp_path" ]; then
+        (
+            kakangkuh 0 $tp_path/game_switch_enable
+            kakangkuh 1 $tp_path/oplus_tp_limit_enable
+            kakangkuh 1 $tp_path/oppo_tp_limit_enable
+            kakangkuh 0 $tp_path/oplus_tp_direction
+            kakangkuh 0 $tp_path/oppo_tp_direction
+        ) &
+    fi
     
+    # 6. UFS/MMC (Restrict)
     for path in /sys/class/devfreq/*.ufshc /sys/class/devfreq/mmc*; do
         devfreq_min_perf "$path" &
     done
 
+    # 7. CPU Frequency (Powersave Gov + Min Perf)
     {
         change_cpu_gov "powersave"
         if [ -d "/proc/ppm" ]; then
@@ -1027,6 +1063,7 @@ powersave_basic() {
     anyakawaii &
     wait
 }
+
 ##########################################
 # MAIN EXECUTION LOGIC
 ##########################################

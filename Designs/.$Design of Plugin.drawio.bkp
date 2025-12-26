@@ -15,9 +15,6 @@
         <mxCell id="T7zYG6sHnA1AOEGuWey4-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#f8cecc;strokeColor=#FF0B0B;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-21" target="T7zYG6sHnA1AOEGuWey4-3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-2" target="T7zYG6sHnA1AOEGuWey4-21">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-2" value="Install Plugin" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="120" y="90" width="120" height="40" as="geometry" />
         </mxCell>
