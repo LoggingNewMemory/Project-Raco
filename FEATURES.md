@@ -15,7 +15,7 @@ If your module is not listed here, you can try to combine it (Ex: SkiaVK / GL Mo
 - Vestia Zeta Display (Addon)
 - Kobo Fast Charge (Addon)
 - Sandevistan Boot (Addon) (Project Raco Exclusive Settings)
-- Render Tweaks & SurfaceFlinger Tweaks (AmeRender Gen II) (Addon)
+- Render Tweaks & SurfaceFlinger Tweaks (AmeRender Gen II) (Addon) (Still can be combined with SkiaVK / GL render) 
 - Hamada AI (Auto switch to performance when enter game, switch to powersave when screen is off)
 - Downscale Resolution
 - Touch Improve Tweak
@@ -23,8 +23,10 @@ If your module is not listed here, you can try to combine it (Ex: SkiaVK / GL Mo
 - Disable Frame Rate Limit 
 - Disable Lock Frame Rate When Low Battery
 - Bypass Charging on Supported Devices
-- Render Tweak (Still can be combined with SkiaVK / GL render) 
 - Auto DND when playing games
 - FStrim & Clear Cache
 - Preload (Kasane Preload)
 - System Graphics Driver Switcher 
+- Minor Kernel Tweaks
+- Disable Tracing
+- LMK Tweak
