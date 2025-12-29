@@ -1,37 +1,49 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.2.5 Chrome/138.0.7204.251 Electron/37.6.1 Safari/537.36" version="28.2.5">
   <diagram name="Page-1" id="Dr9NLq6jSTpD4ir3QxBL">
-    <mxGraphModel dx="815" dy="558" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2038" dy="813" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="T7zYG6sHnA1AOEGuWey4-1" value="Design of Plugins for Project Raco&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Designed By: Kanagawa Yamada&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="10" y="10" width="210" height="60" as="geometry" />
+          <mxGeometry x="630" y="210" width="210" height="60" as="geometry" />
         </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fillColor=#dae8fc;strokeColor=#0000FF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-21" target="T7zYG6sHnA1AOEGuWey4-4">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="180" y="207.5" as="sourcePoint" />
+            <mxPoint x="-130" y="207.5" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#f8cecc;strokeColor=#FF0B0B;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-21" target="T7zYG6sHnA1AOEGuWey4-3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-2" target="T7zYG6sHnA1AOEGuWey4-21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-2" value="Install Plugin" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="120" y="90" width="120" height="40" as="geometry" />
+          <mxGeometry x="-190" y="90" width="120" height="40" as="geometry" />
         </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-3" target="T7zYG6sHnA1AOEGuWey4-13">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-3" value="&lt;div&gt;If not then cancel instalation&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="305" y="277.5" width="130" height="50" as="geometry" />
+          <mxGeometry x="-5" y="277.5" width="130" height="50" as="geometry" />
         </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-4" target="T7zYG6sHnA1AOEGuWey4-10">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-4" target="T7zYG6sHnA1AOEGuWey4-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-4" value="&lt;div&gt;Verify if&lt;/div&gt;&lt;div&gt;RacoPlugin=1&lt;/div&gt;&lt;div&gt;in raco.prop&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="10" y="277.5" width="150" height="50" as="geometry" />
+          <mxGeometry x="-370" y="277.5" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#0000FF;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-10" target="T7zYG6sHnA1AOEGuWey4-24">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF0B0B;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-10" target="T7zYG6sHnA1AOEGuWey4-25">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-10" value="Run install.sh" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="10" y="357.5" width="150" height="40" as="geometry" />
+          <mxGeometry x="-370" y="357.5" width="150" height="40" as="geometry" />
         </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-12" value="Structure of Plugins for Project Raco:&lt;br&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;br&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Plugin.zip:&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- service.sh&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- install.sh&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- raco.prop&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- uninstall.sh&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="560" y="10" width="280" height="120" as="geometry" />
@@ -43,19 +55,52 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-13" value="&lt;div&gt;Prompt:&lt;br&gt;Save Logs?&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="305" y="352.5" width="130" height="35" as="geometry" />
+          <mxGeometry x="-5" y="352.5" width="130" height="35" as="geometry" />
         </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-15" value="Delete the folder containing the Plugin" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="380" y="437.5" width="120" height="70" as="geometry" />
+          <mxGeometry x="130" y="450" width="120" height="70" as="geometry" />
         </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-16" value="Copy Logs to Download folder and prompt user the location" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="210" y="437.5" width="150" height="70" as="geometry" />
+          <mxGeometry x="-40" y="450" width="150" height="70" as="geometry" />
         </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-20" value="&lt;font style=&quot;color: rgb(255, 20, 20);&quot;&gt;RED&lt;/font&gt; = NO&lt;div&gt;&lt;font style=&quot;color: rgb(0, 0, 255);&quot;&gt;BLUE&lt;/font&gt; = YES&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="630" y="140" width="210" height="60" as="geometry" />
         </mxCell>
         <mxCell id="T7zYG6sHnA1AOEGuWey4-21" value="Prompt User install confirmation" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="112.5" y="147.5" width="135" height="50" as="geometry" />
+          <mxGeometry x="-197.5" y="147.5" width="135" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-24" target="T7zYG6sHnA1AOEGuWey4-30">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-24" value="Copy all contents of .zip to /data/ProjectRaco/&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Plugins&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-460" y="450" width="155" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-25" target="T7zYG6sHnA1AOEGuWey4-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-25" value="Script Error" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-285" y="450" width="145" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-30" target="T7zYG6sHnA1AOEGuWey4-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-30" value="Done" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-355" y="560" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-33" target="T7zYG6sHnA1AOEGuWey4-34">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-33" target="T7zYG6sHnA1AOEGuWey4-35">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-33" value="Run Plugin" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="90" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-34" value="Auto (When System Boots)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="180" width="180" height="47.5" as="geometry" />
+        </mxCell>
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-35" value="Manual (Via Raco app)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="180" width="180" height="47.5" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
