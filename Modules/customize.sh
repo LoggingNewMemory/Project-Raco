@@ -279,26 +279,21 @@ ui_print " "
 ui_print "         INSTALLING HAMADA AI         "
 ui_print " "
 
-BIN_PATH=$MODPATH/system/bin
-TARGET_BIN_NAME=HamadaAI
-TARGET_BIN_PATH=$BIN_PATH/$TARGET_BIN_NAME
-PLACEHOLDER_FILE=$BIN_PATH/Kakangkuh
-mkdir -p $BIN_PATH
-[ -f "$PLACEHOLDER_FILE" ] && rm -f "$PLACEHOLDER_FILE"
+TARGET_BIN_PATH="$MODPATH/Binaries"
 
 ARCH=$(getprop ro.product.cpu.abi)
 if [[ "$ARCH" == *"arm64"* ]]; then
   ui_print "- Detected 64-bit ARM architecture ($ARCH)"
-  SOURCE_BIN=$MODPATH/HamadaAI/hamadaAI_arm64
+  SOURCE_BIN=$MODPATH/Binaries/hamadaAI_arm64
 else
   ui_print "- Detected 32-bit ARM architecture or other ($ARCH)"
-  SOURCE_BIN=$MODPATH/HamadaAI/hamadaAI_arm32
+  SOURCE_BIN=$MODPATH/Binaries/hamadaAI_arm32
 fi
 
 if [ -f "$SOURCE_BIN" ]; then
   ui_print "- Installing HamadaAI binary..."
   mv "$SOURCE_BIN" "$TARGET_BIN_PATH" >/dev/null 2>&1 || abort "! Failed to move HamadaAI binary"
-  set_perm $TARGET_BIN_PATH 0 0 0755
+  set_perm "$TARGET_BIN_PATH" 0 0 0755
 else
   ui_print "! ERROR: Source binary not found at $SOURCE_BIN"
   abort "! Aborting installation."
