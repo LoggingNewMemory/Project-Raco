@@ -1,179 +1,247 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.2.5 Chrome/138.0.7204.251 Electron/37.6.1 Safari/537.36" version="28.2.5">
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.2.9 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.2.9">
   <diagram name="Page-1" id="Dr9NLq6jSTpD4ir3QxBL">
-    <mxGraphModel dx="1665" dy="558" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1833" dy="673" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-1" value="Design of Plugins for Project Raco&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Designed By: Kanagawa Yamada&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="630" y="142.5" width="210" height="60" as="geometry" />
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Design of Plugins for Project Raco&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Designed By: Kanagawa Yamada&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="210" x="630" y="142.5" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fillColor=#dae8fc;strokeColor=#0000FF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="T7zYG6sHnA1AOEGuWey4-21" target="T7zYG6sHnA1AOEGuWey4-4" edge="1">
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-6" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fillColor=#dae8fc;strokeColor=#0000FF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="T7zYG6sHnA1AOEGuWey4-4">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="440" y="127.5" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="T7zYG6sHnA1AOEGuWey4-2" target="T7zYG6sHnA1AOEGuWey4-21" edge="1">
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-23" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="T7zYG6sHnA1AOEGuWey4-21">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-2" value="Install Plugin" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="380" y="10" width="120" height="40" as="geometry" />
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Install Plugin" vertex="1">
+          <mxGeometry height="40" width="120" x="380" y="10" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-3" value="&lt;div&gt;If not then cancel instalation&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="470" y="197.5" width="130" height="50" as="geometry" />
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;If not then cancel instalation&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="130" x="470" y="197.5" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#0000FF;" parent="1" source="T7zYG6sHnA1AOEGuWey4-4" target="T7zYG6sHnA1AOEGuWey4-10" edge="1">
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-11" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#0000FF;" target="T7zYG6sHnA1AOEGuWey4-10">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF0B0B;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-4" target="BlSGJZnd2eMCj37Jkbx--6">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--8" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF0B0B;" target="BlSGJZnd2eMCj37Jkbx--6">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-4" value="&lt;div&gt;Verify if&lt;/div&gt;&lt;div&gt;RacoPlugin=1&lt;/div&gt;&lt;div&gt;in raco.prop&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="290" y="197.5" width="150" height="50" as="geometry" />
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;Verify if&lt;/div&gt;&lt;div&gt;RacoPlugin=1&lt;/div&gt;&lt;div&gt;in raco.prop&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="150" x="290" y="197.5" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#0000FF;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-10" target="T7zYG6sHnA1AOEGuWey4-24">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--4" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF0B0B;" target="BlSGJZnd2eMCj37Jkbx--2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF0B0B;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-10" target="BlSGJZnd2eMCj37Jkbx--2">
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-20" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0000FF;" target="d1gLv-eZ_kltYxL5Xl-B-19">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-10" value="Run install.sh" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="150" y="290" width="150" height="40" as="geometry" />
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Run install.sh" vertex="1">
+          <mxGeometry height="40" width="150" x="150" y="290" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-12" value="Structure of Plugins for Project Raco:&lt;br&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;br&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Plugin.zip:&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- service.sh&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- install.sh&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- raco.prop&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- uninstall.sh&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="560" y="10" width="280" height="120" as="geometry" />
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-12" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Structure of Plugins for Project Raco:&lt;br&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;br&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Plugin.zip:&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- service.sh&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- install.sh&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- raco.prop&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- uninstall.sh&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="120" width="280" x="560" y="10" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#0000FF;" parent="1" source="T7zYG6sHnA1AOEGuWey4-13" target="T7zYG6sHnA1AOEGuWey4-16" edge="1">
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-18" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#0000FF;" target="T7zYG6sHnA1AOEGuWey4-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF0B0B;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-13" target="T7zYG6sHnA1AOEGuWey4-15">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--13" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF0B0B;" target="T7zYG6sHnA1AOEGuWey4-15">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-13" value="&lt;div&gt;Prompt:&lt;br&gt;Save Logs?&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="384" y="381" width="122.5" height="35" as="geometry" />
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;Prompt:&lt;br&gt;Save Logs?&lt;/div&gt;" vertex="1">
+          <mxGeometry height="35" width="122.5" x="384" y="381" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-15" target="BlSGJZnd2eMCj37Jkbx--14">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--16" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="BlSGJZnd2eMCj37Jkbx--14">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-15" value="Delete the folder containing the Plugin" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="510" y="475" width="120" height="70" as="geometry" />
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-15" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Delete the folder containing the Plugin" vertex="1">
+          <mxGeometry height="70" width="120" x="510" y="475" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-16" target="BlSGJZnd2eMCj37Jkbx--14">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--15" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="BlSGJZnd2eMCj37Jkbx--14">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-16" value="Copy Logs to Download folder and prompt user the location (/sdcard/downloads)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="340" y="475" width="150" height="70" as="geometry" />
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Copy Logs to Download folder and prompt user the location (/sdcard/downloads)" vertex="1">
+          <mxGeometry height="70" width="150" x="340" y="475" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-20" value="&lt;font style=&quot;color: rgb(255, 20, 20);&quot;&gt;RED&lt;/font&gt; = NO&lt;div&gt;&lt;font style=&quot;color: rgb(0, 0, 255);&quot;&gt;BLUE&lt;/font&gt; = YES&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="630" y="217.5" width="210" height="60" as="geometry" />
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-20" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font style=&quot;color: rgb(255, 20, 20);&quot;&gt;RED&lt;/font&gt; = NO&lt;div&gt;&lt;font style=&quot;color: rgb(0, 0, 255);&quot;&gt;BLUE&lt;/font&gt; = YES&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="210" x="630" y="217.5" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF0B0B;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-21" target="T7zYG6sHnA1AOEGuWey4-3">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--17" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF0B0B;" target="T7zYG6sHnA1AOEGuWey4-3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-21" value="Prompt User install confirmation" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="372.5" y="67.5" width="135" height="50" as="geometry" />
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-21" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Prompt User install confirmation" vertex="1">
+          <mxGeometry height="50" width="135" x="372.5" y="67.5" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-24" target="BlSGJZnd2eMCj37Jkbx--19">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--20" edge="1" parent="1" source="T7zYG6sHnA1AOEGuWey4-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="BlSGJZnd2eMCj37Jkbx--19">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="T7zYG6sHnA1AOEGuWey4-24" value="Copy all Contents to&amp;nbsp;&lt;div&gt;/data/ProjectRaco/Plugins/(plugin id from raco.prop)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="-10" y="377.5" width="217.5" height="50" as="geometry" />
+        <mxCell id="T7zYG6sHnA1AOEGuWey4-24" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Copy all Contents to&amp;nbsp;&lt;div&gt;/data/ProjectRaco/Plugins/(plugin id from raco.prop)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="217.5" x="-8.75" y="416" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--2" target="BlSGJZnd2eMCj37Jkbx--19">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--21" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="BlSGJZnd2eMCj37Jkbx--19">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--49" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;endArrow=none;endFill=0;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--2" target="T7zYG6sHnA1AOEGuWey4-13">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--49" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;endArrow=none;endFill=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="384" y="437.01724137931046" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--2" value="Script Error" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="227.5" y="377.5" width="120" height="50" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Script Error" vertex="1">
+          <mxGeometry height="50" width="120" x="227.5" y="416" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--6" value="No RacoPlugin=1 in raco.prop" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="385" y="290" width="120" height="40" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="No RacoPlugin=1 in raco.prop" vertex="1">
+          <mxGeometry height="40" width="120" x="385" y="290" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--9" value="Cancel Install" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="385" y="340" width="120" height="30" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Cancel Install" vertex="1">
+          <mxGeometry height="30" width="120" x="385" y="340" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--10" value="" style="endArrow=none;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--9" target="BlSGJZnd2eMCj37Jkbx--6">
-          <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--10" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--9" style="endArrow=none;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="BlSGJZnd2eMCj37Jkbx--6" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
             <mxPoint x="420" y="320" as="sourcePoint" />
             <mxPoint x="470" y="270" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--12" value="" style="endArrow=none;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--9" target="T7zYG6sHnA1AOEGuWey4-13">
-          <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--12" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--9" style="endArrow=none;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="T7zYG6sHnA1AOEGuWey4-13" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
             <mxPoint x="570" y="390" as="sourcePoint" />
             <mxPoint x="620" y="340" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--14" value="Done" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="440" y="610" width="120" height="40" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Done" vertex="1">
+          <mxGeometry height="40" width="120" x="440" y="610" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--19" value="Done" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="165" y="480" width="120" height="40" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--19" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Done" vertex="1">
+          <mxGeometry height="40" width="120" x="165" y="518.5" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--23" target="BlSGJZnd2eMCj37Jkbx--24">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--26" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="BlSGJZnd2eMCj37Jkbx--24">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--23" target="BlSGJZnd2eMCj37Jkbx--25">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--27" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="BlSGJZnd2eMCj37Jkbx--25">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--23" value="Run Plugin" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="-260" y="17.5" width="120" height="40" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--23" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Run Plugin" vertex="1">
+          <mxGeometry height="40" width="120" x="-200" y="30" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--24" target="BlSGJZnd2eMCj37Jkbx--29">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--30" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="BlSGJZnd2eMCj37Jkbx--29">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--24" value="On Boot&lt;div&gt;(Via&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Raco original services.sh)&lt;/span&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="-350" y="110" width="145" height="47.5" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--24" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="On Boot&lt;div&gt;(Via&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Raco original services.sh)&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="47.5" width="145" x="-290" y="122.5" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--55" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--25" target="BlSGJZnd2eMCj37Jkbx--53">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--55" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="BlSGJZnd2eMCj37Jkbx--53">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--25" value="Manual" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="-195" y="110" width="120" height="47.5" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--25" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Manual" vertex="1">
+          <mxGeometry height="47.5" width="120" x="-135" y="122.5" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--29" target="BlSGJZnd2eMCj37Jkbx--31">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--34" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="BlSGJZnd2eMCj37Jkbx--31">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--29" value="See Plugin.txt&lt;div&gt;Defined on /data/ProjectRaco/Plugin.txt&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="-361.25" y="182.5" width="167.5" height="55" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--29" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="See Plugin.txt&lt;div&gt;Defined on /data/ProjectRaco/Plugin.txt&lt;/div&gt;" vertex="1">
+          <mxGeometry height="55" width="167.5" x="-301.25" y="195" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--51" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--31" target="BlSGJZnd2eMCj37Jkbx--35">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--51" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="BlSGJZnd2eMCj37Jkbx--35">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--52" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--31" target="BlSGJZnd2eMCj37Jkbx--36">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--52" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="BlSGJZnd2eMCj37Jkbx--36">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--31" value="On Plugin.txt.&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Plugin must defined as 1&lt;/span&gt;&lt;div&gt;&lt;div&gt;Ex:&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;RacoNyan=1&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="-383.75" y="267.5" width="212.5" height="82.5" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--31" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="On Plugin.txt.&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Plugin must defined as 1&lt;/span&gt;&lt;div&gt;&lt;div&gt;Ex:&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;RacoNyan=1&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="82.5" width="212.5" x="-323.75" y="280" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--35" target="BlSGJZnd2eMCj37Jkbx--39">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--43" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="BlSGJZnd2eMCj37Jkbx--39">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--57" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--35" target="BlSGJZnd2eMCj37Jkbx--53">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--57" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="BlSGJZnd2eMCj37Jkbx--53">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="-315" y="565" />
+              <mxPoint x="-255" y="577.5" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--35" value="1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="-345" y="397.5" width="60" height="34" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--35" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="1" vertex="1">
+          <mxGeometry height="34" width="60" x="-285" y="410" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--45" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--36" target="BlSGJZnd2eMCj37Jkbx--44">
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--45" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="BlSGJZnd2eMCj37Jkbx--44">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--36" value="0" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="-270" y="397.5" width="60" height="34" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--36" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="0" vertex="1">
+          <mxGeometry height="34" width="60" x="-210" y="410" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--39" value="Run the service.sh inside Plugin&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Ex:&lt;/div&gt;&lt;div&gt;Plugin/RacoNyan/services.sh&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="-600" y="358.25" width="205" height="72.5" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--39" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Run the service.sh inside Plugin&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Ex:&lt;/div&gt;&lt;div&gt;Plugin/RacoNyan/services.sh&lt;/div&gt;" vertex="1">
+          <mxGeometry height="72.5" width="205" x="-540" y="370.75" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--44" value="Do Not Run" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="-286.25" y="467.5" width="92.5" height="32.5" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--44" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Do Not Run" vertex="1">
+          <mxGeometry height="32.5" width="92.5" x="-226.25" y="480" as="geometry" />
         </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--53" value="Run service.sh" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="-171.25" y="550" width="120" height="30" as="geometry" />
+        <mxCell id="BlSGJZnd2eMCj37Jkbx--53" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Run service.sh" vertex="1">
+          <mxGeometry height="30" width="120" x="-111.25" y="562.5" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Delete Plugin" vertex="1">
+          <mxGeometry height="50" width="145" x="-510" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-11" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="d1gLv-eZ_kltYxL5Xl-B-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-12" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="d1gLv-eZ_kltYxL5Xl-B-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Confirm Delete Plugin" vertex="1">
+          <mxGeometry height="50" width="145" x="-510" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-8" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-7" style="endArrow=none;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="d1gLv-eZ_kltYxL5Xl-B-1" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="-365" y="550" as="sourcePoint" />
+            <mxPoint x="-315" y="500" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-17" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="d1gLv-eZ_kltYxL5Xl-B-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Yes" vertex="1">
+          <mxGeometry height="40" width="120" x="-562.5" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-15" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="d1gLv-eZ_kltYxL5Xl-B-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="No" vertex="1">
+          <mxGeometry height="40" width="120" x="-432.5" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-27" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="d1gLv-eZ_kltYxL5Xl-B-25">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Cancel" vertex="1">
+          <mxGeometry height="40" width="120" x="-432.5" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-22" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="d1gLv-eZ_kltYxL5Xl-B-18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Run&amp;nbsp;&lt;span style=&quot;text-align: left;&quot;&gt;uninstall.sh&lt;/span&gt;" vertex="1">
+          <mxGeometry height="40" width="120" x="-562.5" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-24" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="d1gLv-eZ_kltYxL5Xl-B-23">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-18" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Delete The PluginID from Plugin.txt" vertex="1">
+          <mxGeometry height="40" width="120" x="-562.5" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-19" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Add PluginID to Plugin.txt" vertex="1">
+          <mxGeometry height="30" width="220" x="-10" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-21" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-19" style="endArrow=none;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="T7zYG6sHnA1AOEGuWey4-24" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="140" y="400" as="sourcePoint" />
+            <mxPoint x="190" y="350" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-26" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="d1gLv-eZ_kltYxL5Xl-B-25">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-23" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Delete The Plugin Directory from&lt;div&gt;/data/ProjectRaco/Plugins/(plugin id)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="237.5" x="-621.25" y="840" as="geometry" />
+        </mxCell>
+        <mxCell id="d1gLv-eZ_kltYxL5Xl-B-25" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Done" vertex="1">
+          <mxGeometry height="30" width="92.5" x="-393.75" y="940" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
