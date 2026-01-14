@@ -24,19 +24,6 @@ kill_thermal_services() {
 
 # Module 2: Filesystem & Permissions (Heavy I/O)
 disable_fs_protections() {
-    # Batch permission removal (Much faster than loops)
-    find /sys/devices/virtual/thermal/thermal_zone*/ \
-        /sys/firmware/devicetree/base/soc/*/ \
-        /sys/devices/virtual/hwmon/hwmon*/ \
-        \( -name '*temp*' -o -name '*trip_point_*' -o -name '*type*' -o -name '*limit_info*' \) \
-        -exec chmod 000 {} + 2>/dev/null
-
-    # Disable Thermal Zones Mode
-    for mode in /sys/devices/virtual/thermal/thermal_zone*/mode; do
-        write_val "$mode" "disabled"
-        chmod 644 "$mode" 2>/dev/null
-    done
-    
     # Bind mount blocks
     mount -o bind /dev/null /vendor/bin/hw/thermal-hal-2-0 2>/dev/null
     mount -o bind /dev/null /vendor/bin/thermald 2>/dev/null
@@ -80,18 +67,6 @@ disable_cpu_limits() {
 
 # Module 4: GPU Optimization
 disable_gpu_limits() {
-    # Trip Points
-    for ZONE in /sys/class/thermal/thermal_zone*; do 
-        read -r TYPE < "$ZONE/type" 2>/dev/null
-        case "$TYPE" in 
-            *gpu*|*ddr*) 
-                for TP in "$ZONE"/trip_point_*_temp; do 
-                    [ -f "$TP" ] && echo 95000 > "$TP" 2>/dev/null
-                done 
-            ;; 
-        esac 
-    done
-
     # KGSL & GPU Freq
     for kgsl in /sys/class/kgsl/kgsl-3d0; do
         if [ -d "$kgsl" ]; then

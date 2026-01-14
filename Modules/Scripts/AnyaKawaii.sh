@@ -18,40 +18,22 @@ restore_filesystem() {
     # 1. Unmount blocked binaries
     umount /vendor/bin/hw/thermal-hal-2-0 2>/dev/null
     umount /vendor/bin/thermald 2>/dev/null
-
-    # 2. Batch Restore Permissions (Files -> 644, Dirs -> 755)
-    find /sys/devices/virtual/thermal/thermal_zone*/ \
-         /sys/firmware/devicetree/base/soc/*/ \
-         \( -name '*temp*' -o -name '*trip_point_*' -o -name '*type*' -o -name '*thermal*' \) \
-         -type f -exec chmod 644 {} + 2>/dev/null
-
-    find /sys/devices/virtual/thermal/thermal_zone*/ \
-         -type d -exec chmod 755 {} + 2>/dev/null
-
-    # 3. Restore Hwmon permissions
-    chmod -R 755 /sys/devices/virtual/hwmon/hwmon* 2>/dev/null
-    find /sys/devices/virtual/hwmon/hwmon* -type f -exec chmod 644 {} + 2>/dev/null
 }
 
 # Module 2: Hardware & Kernel Controls
 restore_hardware() {
-    # 1. Re-enable Thermal Modes
-    for thermmode in /sys/devices/virtual/thermal/thermal_zone*/mode; do
-        write_val "$thermmode" "enabled"
-    done
-
-    # 2. Re-enable CPU Core Control
+    # 1. Re-enable CPU Core Control
     for cpu in /sys/devices/system/cpu/cpu*/core_ctl/enable; do
         write_val "$cpu" "1"
     done
 
-    # 3. Re-enable MSM Thermal
+    # 2. Re-enable MSM Thermal
     find /sys/ -name enabled | grep 'msm_thermal' | while read -r msm; do
         write_val "$msm" "Y"
         write_val "$msm" "1"
     done
 
-    # 4. Re-enable GPU Throttling
+    # 3. Re-enable GPU Throttling
     for kgsl in /sys/class/kgsl/kgsl-3d0; do
         if [ -d "$kgsl" ]; then
             write_val "$kgsl/throttling" "1"
