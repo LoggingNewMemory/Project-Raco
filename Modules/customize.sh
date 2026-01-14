@@ -293,7 +293,7 @@ fi
 if [ -f "$SOURCE_BIN" ]; then
   ui_print "- Installing HamadaAI binary..."
   mv "$SOURCE_BIN" "$TARGET_BIN_PATH/HamadaAI" >/dev/null 2>&1 || abort "! Failed to move HamadaAI binary"
-  set_perm "$TARGET_BIN_PATH/HamadaAI" 0 0 0755
+  set_perm_recursive "$TARGET_BIN_PATH" 0 0 0755 0755
 else
   ui_print "! ERROR: Source binary not found at $SOURCE_BIN"
   abort "! Aborting installation."
