@@ -171,7 +171,7 @@ ui_print "------------------------------------"
 ui_print "            MODULE INFO             "
 ui_print "------------------------------------"
 ui_print "Name : Project Raco"
-ui_print "Version : 3.0"
+ui_print "Version : 4.0"
 ui_print " "
 sleep 1.5
 
@@ -284,10 +284,10 @@ TARGET_BIN_PATH="$MODPATH/Binaries"
 ARCH=$(getprop ro.product.cpu.abi)
 if [[ "$ARCH" == *"arm64"* ]]; then
   ui_print "- Detected 64-bit ARM architecture ($ARCH)"
-  SOURCE_BIN=$MODPATH/Binaries/hamadaAI_arm64
+  SOURCE_BIN=$MODPATH/HamadaAI/hamadaAI_arm64
 else
   ui_print "- Detected 32-bit ARM architecture or other ($ARCH)"
-  SOURCE_BIN=$MODPATH/Binaries/hamadaAI_arm32
+  SOURCE_BIN=$MODPATH/HamadaAI/hamadaAI_arm32
 fi
 
 if [ -f "$SOURCE_BIN" ]; then
