@@ -133,12 +133,8 @@ class _HamadaAiCardState extends State<HamadaAiCard>
 
   final String _serviceFilePath = '/data/adb/modules/ProjectRaco/service.sh';
 
-  // FIXED: Use absolute path to module binary to avoid mount issues
-  final String _binaryPath =
-      '/data/adb/modules/ProjectRaco/system/bin/HamadaAI';
+  final String _binaryPath = '/data/adb/modules/ProjectRaco/Binaries/HamadaAI';
 
-  // FIXED: Added nohup, stderr/stdout redirection, and backgrounding (&)
-  // This prevents the shell from hanging waiting for the infinite loop to finish.
   String get _hamadaStartCommand => 'nohup $_binaryPath > /dev/null 2>&1 &';
 
   @override
