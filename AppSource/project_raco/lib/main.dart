@@ -39,26 +39,49 @@ final List<Language> supportedLanguages = [
 ];
 
 class ConfigManager {
-  static const String _modeKey = 'current_mode';
   static const String _defaultMode = 'NONE';
+  static const String _configPath = '/data/ProjectRaco/raco.txt';
 
   static Future<Map<String, String>> readConfig() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      String currentMode = prefs.getString(_modeKey) ?? _defaultMode;
-      return {'current_mode': currentMode};
+      // Read the STATE= line directly from raco.txt using root
+      final result = await run('su', [
+        '-c',
+        'grep "^STATE=" $_configPath | cut -d= -f2',
+      ], verbose: false);
+
+      if (result.exitCode == 0) {
+        String stateValue = result.stdout.toString().trim();
+        String currentMode = _mapStateToMode(stateValue);
+        return {'current_mode': currentMode};
+      } else {
+        return {'current_mode': _defaultMode};
+      }
     } catch (e) {
       return {'current_mode': _defaultMode};
     }
   }
 
-  static Future<void> saveMode(String mode) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_modeKey, mode.toUpperCase());
-    } catch (e) {
-      // Error saving mode
+  static String _mapStateToMode(String stateValue) {
+    switch (stateValue) {
+      case '1':
+        return 'PERFORMANCE';
+      case '2':
+        return 'BALANCED';
+      case '3':
+        return 'POWER_SAVE';
+      case '4':
+        return 'GAMING_PRO';
+      case '5':
+        return 'COOLDOWN';
+      default:
+        return _defaultMode;
     }
+  }
+
+  static Future<void> saveMode(String mode) async {
+    // Deprecated: Mode is now saved by Raco.sh directly into raco.txt
+    // Kept for compatibility if needed, or can be removed.
   }
 }
 
@@ -431,7 +454,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     }
 
     try {
-      await ConfigManager.saveMode(targetMode);
       // Added redirection > /dev/null 2>&1
       await run('su', [
         '-c',
@@ -441,6 +463,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       await _refreshDynamicState();
     } finally {
       if (mounted) setState(() => _executingScript = '');
+      // Refresh state to reflect the file change made by Raco.sh
+      _refreshDynamicState();
     }
   }
 

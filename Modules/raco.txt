@@ -1,3 +1,6 @@
+[Raco State]
+STATE=
+
 [Raco Installer Config]
 INCLUDE_ANYA=
 INCLUDE_KOBO=

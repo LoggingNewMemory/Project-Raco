@@ -6,6 +6,11 @@ while [ -z "$(getprop sys.boot_completed)" ]; do
 done
 
 CONFIG_FILE="/data/ProjectRaco/raco.txt"
+
+if [ -f "$CONFIG_FILE" ]; then
+    sed -i 's/^STATE=.*/STATE=/' "$CONFIG_FILE"
+fi
+
 LEGACY_NOTIF=$(grep '^LEGACY_NOTIF=' "$CONFIG_FILE" | cut -d'=' -f2)
 
 send_notif() {

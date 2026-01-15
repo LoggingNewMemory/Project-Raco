@@ -47,6 +47,13 @@ fi
 # Begin Functions
 ##############################
 
+set_state() {
+    local new_state=$1
+    if [ -f "$RACO_CONFIG" ]; then
+        sed -i "s/^STATE=.*/STATE=$new_state/" "$RACO_CONFIG"
+    fi
+}
+
 anyamelfissa() {
     if [ "$INCLUDE_ANYA" = "1" ] && [ "$ANYA" = "1" ]; then
         sh /data/adb/modules/ProjectRaco/Scripts/AnyaMelfissa.sh &
@@ -968,26 +975,32 @@ MODE=$1
 case $MODE in
     1)
         performance_basic
+        set_state 1
         notification "Performance Mode Activated 🔥"
         ;;
     2)
         balanced_basic
+        set_state 2
         notification "Balanced Mode Activated ⚖️"
         ;;
     3)
         powersave_basic
+        set_state 3
         notification "Powersave Mode Activated 🔋"
         ;;
     4)
         performance_basic
         kill_all
+        set_state 4
         notification "Gaming Pro Mode Activated 🚀"
         ;;
     5)
+        set_state 5
         powersave_basic
         notification "Cool Down initiated for 2 minutes... ❄️"
         sleep 120
         balanced_basic
+        set_state 2
         notification "Cool Down finished. Switched to Balanced Mode."
         ;;
     6)
