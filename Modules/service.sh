@@ -90,6 +90,10 @@ fi
 # Facur.sh
 sh /data/adb/modules/ProjectRaco/Scripts/Facur.sh
 
+# CloudFare DNS From XianTian Pro (Change to resetprop)
+resetprop net.dns1 1.1.1.1
+resetprop net.dns2 1.0.0.1
+
 send_notif "Project Raco" "Project Raco - オンライン" "TagRaco" "/data/local/tmp/logo.png"
 
 # Revert CPU governor to default after 20 seconds, only if INCLUDE_SANDEV=1
