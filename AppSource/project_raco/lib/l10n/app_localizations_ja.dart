@@ -440,4 +440,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get execution_cancelled => '実行がキャンセルされました';
+
+  @override
+  String get toast_title => 'トースト通知';
+
+  @override
+  String get toast_description => '通知の代わりにトーストを使用 (HamadaAIを使用している場合に推奨)';
 }

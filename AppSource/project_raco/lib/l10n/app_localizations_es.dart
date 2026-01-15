@@ -460,4 +460,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get execution_cancelled => 'Ejecución cancelada';
+
+  @override
+  String get toast_title => 'Notificación Toast';
+
+  @override
+  String get toast_description =>
+      'Usar toast en lugar de notificación (Recomendado si usa HamadaAI)';
 }
