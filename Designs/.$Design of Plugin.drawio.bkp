@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.2.9 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.2.9">
   <diagram name="Page-1" id="Dr9NLq6jSTpD4ir3QxBL">
-    <mxGraphModel dx="1833" dy="673" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1178" dy="224" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -80,11 +80,6 @@
         </mxCell>
         <mxCell id="BlSGJZnd2eMCj37Jkbx--21" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="BlSGJZnd2eMCj37Jkbx--19">
           <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="BlSGJZnd2eMCj37Jkbx--49" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=default;endArrow=none;endFill=0;">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="384" y="437.01724137931046" as="targetPoint" />
-          </mxGeometry>
         </mxCell>
         <mxCell id="BlSGJZnd2eMCj37Jkbx--2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Script Error" vertex="1">
           <mxGeometry height="50" width="120" x="227.5" y="416" as="geometry" />
@@ -178,7 +173,7 @@
           <mxGeometry height="30" width="120" x="-111.25" y="562.5" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Delete Plugin" vertex="1">
-          <mxGeometry height="50" width="145" x="-510" y="480" as="geometry" />
+          <mxGeometry height="50" width="145" x="-510" y="475" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-11" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="d1gLv-eZ_kltYxL5Xl-B-9">
           <mxGeometry relative="1" as="geometry" />
@@ -187,43 +182,43 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Confirm Delete Plugin" vertex="1">
-          <mxGeometry height="50" width="145" x="-510" y="550" as="geometry" />
+          <mxGeometry height="50" width="145" x="-510" y="545" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-8" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-7" style="endArrow=none;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="d1gLv-eZ_kltYxL5Xl-B-1" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
-            <mxPoint x="-365" y="550" as="sourcePoint" />
-            <mxPoint x="-315" y="500" as="targetPoint" />
+            <mxPoint x="-365" y="545" as="sourcePoint" />
+            <mxPoint x="-315" y="495" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-17" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="d1gLv-eZ_kltYxL5Xl-B-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Yes" vertex="1">
-          <mxGeometry height="40" width="120" x="-562.5" y="640" as="geometry" />
+          <mxGeometry height="40" width="120" x="-562.5" y="635" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-15" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="d1gLv-eZ_kltYxL5Xl-B-14">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="No" vertex="1">
-          <mxGeometry height="40" width="120" x="-432.5" y="640" as="geometry" />
+          <mxGeometry height="40" width="120" x="-432.5" y="635" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-27" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="d1gLv-eZ_kltYxL5Xl-B-25">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Cancel" vertex="1">
-          <mxGeometry height="40" width="120" x="-432.5" y="710" as="geometry" />
+          <mxGeometry height="40" width="120" x="-432.5" y="705" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-22" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="d1gLv-eZ_kltYxL5Xl-B-18">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Run&amp;nbsp;&lt;span style=&quot;text-align: left;&quot;&gt;uninstall.sh&lt;/span&gt;" vertex="1">
-          <mxGeometry height="40" width="120" x="-562.5" y="710" as="geometry" />
+          <mxGeometry height="40" width="120" x="-562.5" y="705" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-24" edge="1" parent="1" source="d1gLv-eZ_kltYxL5Xl-B-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="d1gLv-eZ_kltYxL5Xl-B-23">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-18" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Delete The PluginID from Plugin.txt" vertex="1">
-          <mxGeometry height="40" width="120" x="-562.5" y="770" as="geometry" />
+          <mxGeometry height="40" width="120" x="-562.5" y="765" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-19" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Add PluginID to Plugin.txt" vertex="1">
           <mxGeometry height="30" width="220" x="-10" y="370" as="geometry" />
@@ -238,10 +233,16 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-23" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Delete The Plugin Directory from&lt;div&gt;/data/ProjectRaco/Plugins/(plugin id)&lt;/div&gt;" vertex="1">
-          <mxGeometry height="60" width="237.5" x="-621.25" y="840" as="geometry" />
+          <mxGeometry height="60" width="237.5" x="-621.25" y="835" as="geometry" />
         </mxCell>
         <mxCell id="d1gLv-eZ_kltYxL5Xl-B-25" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Done" vertex="1">
-          <mxGeometry height="30" width="92.5" x="-393.75" y="940" as="geometry" />
+          <mxGeometry height="30" width="92.5" x="-393.75" y="935" as="geometry" />
+        </mxCell>
+        <mxCell id="8QPvijXgZpX9dSJe_m9h-1" edge="1" parent="1" source="BlSGJZnd2eMCj37Jkbx--2" style="endArrow=none;html=1;rounded=0;exitX=1.003;exitY=0.562;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.002;entryY=0.454;entryDx=0;entryDy=0;entryPerimeter=0;" target="T7zYG6sHnA1AOEGuWey4-13" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="350" y="440" as="sourcePoint" />
+            <mxPoint x="400" y="390" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
