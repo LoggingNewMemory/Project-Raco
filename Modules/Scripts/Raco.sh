@@ -812,7 +812,9 @@ performance_basic() {
 ##########################################
 balanced_basic() {
     sync
-    
+    performance_basic # Dirty Fix to fix Locked GPU
+    wait
+
     (
         if [ -f /sys/module/battery_saver/parameters/enabled ]; then
             if grep -qo '[0-9]\+' /sys/module/battery_saver/parameters/enabled; then
