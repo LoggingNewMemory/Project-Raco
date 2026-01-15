@@ -83,36 +83,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Project Raco es grátis, código abierto y libre para modificar y mejorar!';
 
   @override
-  String get credits_1 => 'Rem01 Gaming';
-
-  @override
-  String get credits_2 => 'MiAzami';
-
-  @override
-  String get credits_3 => 'Kazuyoo';
-
-  @override
-  String get credits_4 => 'RiProG';
-
-  @override
-  String get credits_5 => 'HoyoSlave';
-
-  @override
-  String get credits_6 => 'Koneko_dev';
-
-  @override
-  String get credits_7 => 'Not_ValentineSTCV';
-
-  @override
-  String get credits_8 => 'Andreyka4_45';
-
-  @override
-  String get credits_9 => 'Zexshia';
-
-  @override
-  String get credits_10 => 'KanaDev_IS';
-
-  @override
   String get credits_11 => 'Y a todos los testers que aportaron su feedback!';
 
   @override

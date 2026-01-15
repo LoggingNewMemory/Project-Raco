@@ -242,66 +242,6 @@ abstract class AppLocalizations {
   /// **'Project Raco Is Always Free, Open Source, and Open For Improvement'**
   String get about_note;
 
-  /// No description provided for @credits_1.
-  ///
-  /// In en, this message translates to:
-  /// **'Rem01 Gaming'**
-  String get credits_1;
-
-  /// No description provided for @credits_2.
-  ///
-  /// In en, this message translates to:
-  /// **'MiAzami'**
-  String get credits_2;
-
-  /// No description provided for @credits_3.
-  ///
-  /// In en, this message translates to:
-  /// **'Kazuyoo'**
-  String get credits_3;
-
-  /// No description provided for @credits_4.
-  ///
-  /// In en, this message translates to:
-  /// **'RiProG'**
-  String get credits_4;
-
-  /// No description provided for @credits_5.
-  ///
-  /// In en, this message translates to:
-  /// **'HoyoSlave'**
-  String get credits_5;
-
-  /// No description provided for @credits_6.
-  ///
-  /// In en, this message translates to:
-  /// **'Koneko_dev'**
-  String get credits_6;
-
-  /// No description provided for @credits_7.
-  ///
-  /// In en, this message translates to:
-  /// **'Not_ValentineSTCV'**
-  String get credits_7;
-
-  /// No description provided for @credits_8.
-  ///
-  /// In en, this message translates to:
-  /// **'Andreyka4_45'**
-  String get credits_8;
-
-  /// No description provided for @credits_9.
-  ///
-  /// In en, this message translates to:
-  /// **'Zexshia'**
-  String get credits_9;
-
-  /// No description provided for @credits_10.
-  ///
-  /// In en, this message translates to:
-  /// **'KanaDev_IS'**
-  String get credits_10;
-
   /// No description provided for @credits_11.
   ///
   /// In en, this message translates to:
