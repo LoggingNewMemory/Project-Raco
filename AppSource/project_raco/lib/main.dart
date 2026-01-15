@@ -149,13 +149,24 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       if (checkResult.exitCode == 0) {
         String message = checkResult.stdout.toString().trim();
         if (message.isNotEmpty) {
+          // Calculate the color scheme locally to match the app theme
+          ColorScheme toastScheme;
+          if (_seedColorFromBanner != null) {
+            toastScheme = ColorScheme.fromSeed(
+              seedColor: _seedColorFromBanner!,
+              brightness: Brightness.dark,
+            );
+          } else {
+            toastScheme = _defaultDarkColorScheme;
+          }
+
           Fluttertoast.showToast(
             msg: message,
             toastLength: Toast.LENGTH_LONG,
             gravity: ToastGravity.BOTTOM,
             timeInSecForIosWeb: 3,
-            backgroundColor: Colors.black.withOpacity(0.8),
-            textColor: Colors.white,
+            backgroundColor: toastScheme.primaryContainer,
+            textColor: toastScheme.onPrimaryContainer,
             fontSize: 16.0,
           );
         }
