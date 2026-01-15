@@ -36,7 +36,6 @@ ipv4="/proc/sys/net/ipv4"
 # ADDED: Source External Script
 ##############################
 SCRIPT_PATH="/data/adb/modules/ProjectRaco/Scripts"
-STAR_PATH="$SCRIPT_PATH/STAR"
 MODULE_PATH="/data/adb/modules/ProjectRaco"
 source "$MODULE_PATH/Scripts/corin.sh"
 
@@ -98,7 +97,7 @@ kill_all() {
     echo 3 > /proc/sys/vm/drop_caches
     logcat -c
     logcat -b all -c
-    sh $STAR_PATH/KILL.sh &
+    star_kill &
 }
 
 bypass_on() {
@@ -813,8 +812,6 @@ performance_basic() {
     esac
     wait
 
-    sh $STAR_PATH/BATTERY_RESTORE.sh &
-    sh $STAR_PATH/CPU_DBPerformance.sh &
     dnd_on &
     corin_perf &
     bypass_on &
@@ -888,8 +885,6 @@ balanced_basic() {
     esac
     wait
     
-    sh $STAR_PATH/BATTERY_RESTORE.sh &
-    sh $STAR_PATH/CPU_DBBalance.sh &
     dnd_off &
     corin_balanced &
     bypass_off &
@@ -961,7 +956,6 @@ powersave_basic() {
     esac
     wait
 
-    sh $STAR_PATH/BATTERY_SAVER.sh &
     dnd_off &
     corin_powersave &
     bypass_off &
