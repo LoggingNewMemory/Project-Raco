@@ -119,9 +119,14 @@ notification() {
     local TITLE="Project Raco"
     local MESSAGE="$1"
     local LOGO="/data/local/tmp/logo.png"
-        local CURRENT_TOAST=$(grep '^TOAST=' "$RACO_CONFIG" | cut -d'=' -f2)
+    
+    local CURRENT_TOAST=$(grep '^TOAST=' "$RACO_CONFIG" | cut -d'=' -f2)
 
     if [ "$CURRENT_TOAST" = "1" ]; then
+        if [ ! -d "/data/ProjectRaco" ]; then
+            mkdir -p "/data/ProjectRaco"
+            chmod 777 "/data/ProjectRaco"
+        fi
         echo "$MESSAGE" > /data/ProjectRaco/toast.txt
         chmod 666 /data/ProjectRaco/toast.txt
         am start -n com.kanagawa.yamada.project.raco/com.kanagawa.yamada.project.raco.MainActivity > /dev/null 2>&1 &

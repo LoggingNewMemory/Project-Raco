@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -137,15 +136,21 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   Future<void> _checkPendingToast() async {
+    // Small delay to ensure context is ready
     await Future.delayed(const Duration(milliseconds: 500));
 
     try {
-      final toastFile = File('/data/ProjectRaco/toast.txt');
-      if (await toastFile.exists()) {
-        String message = await toastFile.readAsString();
+      // Use su to check and read because /data/ProjectRaco is owned by root
+      final checkResult = await run('su', [
+        '-c',
+        'if [ -f /data/ProjectRaco/toast.txt ]; then cat /data/ProjectRaco/toast.txt; rm /data/ProjectRaco/toast.txt; fi',
+      ], verbose: false);
+
+      if (checkResult.exitCode == 0) {
+        String message = checkResult.stdout.toString().trim();
         if (message.isNotEmpty) {
           Fluttertoast.showToast(
-            msg: message.trim(),
+            msg: message,
             toastLength: Toast.LENGTH_LONG,
             gravity: ToastGravity.BOTTOM,
             timeInSecForIosWeb: 3,
@@ -154,12 +159,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             fontSize: 16.0,
           );
         }
-        await toastFile.delete();
       }
-    } catch (e) {}
+    } catch (e) {
+      // Fail silently
+    }
   }
 
-  // This method is called whenever a new banner color is set anywhere in the app.
   void _onThemeChanged() {
     if (mounted) {
       setState(() {
@@ -175,7 +180,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final int? seedValue = prefs.getInt('banner_seed_color');
     final Color? bannerColor = seedValue != null ? Color(seedValue) : null;
 
-    // Set initial value for the notifier and local state
     _seedColorFromBanner = bannerColor;
     themeNotifier.value = bannerColor;
 
@@ -204,7 +208,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ColorScheme lightColorScheme;
         ColorScheme darkColorScheme;
 
-        // The logic remains the same, but now it's driven by the listener.
         if (_seedColorFromBanner != null) {
           lightColorScheme = ColorScheme.fromSeed(
             seedColor: _seedColorFromBanner!,
@@ -263,6 +266,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                       backgroundImagePath: _backgroundImagePath,
                       backgroundOpacity: _backgroundOpacity,
                       backgroundBlur: _backgroundBlur,
+                      checkToastCallback: _checkPendingToast,
                     ),
                   ],
                 ),
@@ -284,6 +288,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 class MainScreen extends StatefulWidget {
   final Function(Locale) onLocaleChange;
   final VoidCallback onSettingsChanged;
+  final VoidCallback checkToastCallback; // Added callback
   final String? bannerImagePath;
   final String? backgroundImagePath;
   final double backgroundOpacity;
@@ -293,6 +298,7 @@ class MainScreen extends StatefulWidget {
     Key? key,
     required this.onLocaleChange,
     required this.onSettingsChanged,
+    required this.checkToastCallback,
     required this.bannerImagePath,
     required this.backgroundImagePath,
     required this.backgroundOpacity,
@@ -314,7 +320,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   bool _isHamadaAiRunning = false;
   bool _isContentVisible = false;
 
-  // Variables for Swipe to Cancel
   int _swipeRightCount = 0;
   Timer? _swipeResetTimer;
 
@@ -457,7 +462,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     final languageCode = prefs.getString('language_code') ?? 'en';
     final selectedLang = supportedLanguages.firstWhere(
       (lang) => lang.code == languageCode,
-      orElse: () => supportedLanguages.first, // Default to English
+      orElse: () => supportedLanguages.first,
     );
     setState(() {
       _selectedLanguage = selectedLang.displayName;
@@ -480,13 +485,11 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       setState(() {
         _executingScript = scriptArg;
         _currentMode = targetMode;
-        // Reset swipe counter when starting a new script
         _swipeRightCount = 0;
       });
     }
 
     try {
-      // Added redirection > /dev/null 2>&1
       await run('su', [
         '-c',
         'sh /data/adb/modules/ProjectRaco/Scripts/Raco.sh $scriptArg > /dev/null 2>&1',
@@ -495,23 +498,23 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       await _refreshDynamicState();
     } finally {
       if (mounted) setState(() => _executingScript = '');
-      // Refresh state to reflect the file change made by Raco.sh
       _refreshDynamicState();
+
+      // Explicitly check for toast here.
+      // This covers the case where the app is already open and standard activity launch doesn't trigger lifecycle changes.
+      widget.checkToastCallback();
     }
   }
 
-  /// Handles the "Swipe Right 2 Times to Cancel" logic
   void _onHorizontalDragEnd(DragEndDetails details) {
-    if (_executingScript.isEmpty) return; // Only cancel if something is running
+    if (_executingScript.isEmpty) return;
 
-    // Check velocity to ensure it's a swipe (positive = Right)
     if (details.primaryVelocity! > 500) {
       if (_swipeRightCount == 0) {
         setState(() {
           _swipeRightCount++;
         });
 
-        // Show feedback: "Swipe again to cancel"
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -520,7 +523,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           ),
         );
 
-        // Reset counter if second swipe doesn't happen quickly
         _swipeResetTimer?.cancel();
         _swipeResetTimer = Timer(const Duration(seconds: 2), () {
           if (mounted) {
@@ -530,7 +532,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           }
         });
       } else {
-        // Second swipe detected
         _cancelExecution();
       }
     }
@@ -543,10 +544,9 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     });
 
     try {
-      // Force kill the script process
       await run('su', ['-c', 'pkill -f Raco.sh'], verbose: false);
     } catch (e) {
-      // Ignore errors during kill command
+      // Ignore errors
     }
 
     if (mounted) {
@@ -560,7 +560,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
-      // Refresh state to ensure UI is consistent
       _refreshDynamicState();
     }
   }
@@ -650,7 +649,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         },
       ),
     );
-    // Reload settings that aren't handled by the notifier (like background image)
     widget.onSettingsChanged();
     _refreshDynamicState();
   }
@@ -691,7 +689,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: GestureDetector(
-        // Detects swipes anywhere on the main screen area
         onHorizontalDragEnd: _onHorizontalDragEnd,
         behavior: HitTestBehavior.translucent,
         child: SafeArea(
@@ -1080,7 +1077,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                   onChanged: (String? newLocaleCode) {
                     if (newLocaleCode != null) {
                       _changeLanguage(newLocaleCode);
-                      Navigator.of(context).pop(); // Close the dialog
+                      Navigator.of(context).pop();
                     }
                   },
                 );
