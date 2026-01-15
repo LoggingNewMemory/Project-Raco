@@ -13,6 +13,7 @@ ANYA=$(grep '^ANYA=' "$RACO_CONFIG" | cut -d'=' -f2)
 INCLUDE_ANYA=$(grep '^INCLUDE_ANYA=' "$RACO_CONFIG" | cut -d'=' -f2)
 KCPU_MITIGATE=$(grep '^KCPU_MITIGATE=' "$RACO_CONFIG" | cut -d'=' -f2)
 LEGACY_NOTIF=$(grep '^LEGACY_NOTIF=' "$RACO_CONFIG" | cut -d'=' -f2)
+TOAST=$(grep '^TOAST=' "$RACO_CONFIG" | cut -d'=' -f2)
 
 DEFAULT_CPU_GOV=$(grep '^GOV=' "$RACO_CONFIG" | cut -d'=' -f2)
 if [ -z "$DEFAULT_CPU_GOV" ]; then
@@ -118,11 +119,18 @@ notification() {
     local TITLE="Project Raco"
     local MESSAGE="$1"
     local LOGO="/data/local/tmp/logo.png"
-    
-    if [ "$LEGACY_NOTIF" = "1" ]; then
-        su -lp 2000 -c "cmd notification post -S bigtext -t '$TITLE' TagRaco '$MESSAGE'" &
+        local CURRENT_TOAST=$(grep '^TOAST=' "$RACO_CONFIG" | cut -d'=' -f2)
+
+    if [ "$CURRENT_TOAST" = "1" ]; then
+        echo "$MESSAGE" > /data/ProjectRaco/toast.txt
+        chmod 666 /data/ProjectRaco/toast.txt
+        am start -n com.kanagawa.yamada.project.raco/com.kanagawa.yamada.project.raco.MainActivity > /dev/null 2>&1 &
     else
-        su -lp 2000 -c "cmd notification post -S bigtext -t '$TITLE' -i file://$LOGO -I file://$LOGO TagRaco '$MESSAGE'" &
+        if [ "$LEGACY_NOTIF" = "1" ]; then
+            su -lp 2000 -c "cmd notification post -S bigtext -t '$TITLE' TagRaco '$MESSAGE'" &
+        else
+            su -lp 2000 -c "cmd notification post -S bigtext -t '$TITLE' -i file://$LOGO -I file://$LOGO TagRaco '$MESSAGE'" &
+        fi
     fi
 }
 

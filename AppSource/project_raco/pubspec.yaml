@@ -27,6 +27,7 @@ dependencies:
   shared_preferences: ^2.2.3
   url_launcher: ^6.3.1
   installed_apps: ^1.1.0
+  fluttertoast: ^8.2.8
 
 dev_dependencies:
   flutter_test:

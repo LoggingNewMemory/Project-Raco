@@ -80,6 +80,12 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
               multiLine: true,
             ).firstMatch(content)?.group(1) ==
             '1',
+        'toastEnabled':
+            RegExp(
+              r'^TOAST=(\d)',
+              multiLine: true,
+            ).firstMatch(content)?.group(1) ==
+            '1',
       };
     }
     return {
@@ -89,6 +95,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
       'betterPowersave': false,
       'carlottaCpu': false,
       'legacyNotif': false,
+      'toastEnabled': false,
     };
   }
 
@@ -153,6 +160,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
                 _encoreState?['betterPowersave'] ?? false,
             initialCarlottaCpuValue: _encoreState?['carlottaCpu'] ?? false,
             initialLegacyNotifValue: _encoreState?['legacyNotif'] ?? false,
+            initialToastValue: _encoreState?['toastEnabled'] ?? false,
           ),
           GovernorCard(
             initialAvailableGovernors: _governorState?['available'] ?? [],
@@ -205,6 +213,7 @@ class FixAndTweakCard extends StatefulWidget {
   final bool initialBetterPowersaveValue;
   final bool initialCarlottaCpuValue;
   final bool initialLegacyNotifValue;
+  final bool initialToastValue;
 
   const FixAndTweakCard({
     Key? key,
@@ -214,6 +223,7 @@ class FixAndTweakCard extends StatefulWidget {
     required this.initialBetterPowersaveValue,
     required this.initialCarlottaCpuValue,
     required this.initialLegacyNotifValue,
+    required this.initialToastValue,
   }) : super(key: key);
 
   @override
@@ -228,6 +238,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
   late bool _betterPowersaveEnabled;
   late bool _carlottaCpuEnabled;
   late bool _legacyNotifEnabled;
+  late bool _toastEnabled;
 
   bool _isUpdatingMitigation = false;
   bool _isUpdatingLiteMode = false;
@@ -235,6 +246,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
   bool _isUpdatingBetterPowersave = false;
   bool _isUpdatingCarlottaCpu = false;
   bool _isUpdatingLegacyNotif = false;
+  bool _isUpdatingToast = false;
 
   final String _racoConfigFilePath = '/data/ProjectRaco/raco.txt';
 
@@ -250,6 +262,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
     _betterPowersaveEnabled = widget.initialBetterPowersaveValue;
     _carlottaCpuEnabled = widget.initialCarlottaCpuValue;
     _legacyNotifEnabled = widget.initialLegacyNotifValue;
+    _toastEnabled = widget.initialToastValue;
   }
 
   Future<void> _updateTweak({
@@ -301,7 +314,8 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
         _isUpdatingLifeMode ||
         _isUpdatingBetterPowersave ||
         _isUpdatingCarlottaCpu ||
-        _isUpdatingLegacyNotif;
+        _isUpdatingLegacyNotif ||
+        _isUpdatingToast;
 
     return Card(
       elevation: 2.0,
@@ -505,6 +519,37 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.notifications_active_outlined),
+              activeColor: colorScheme.primary,
+              contentPadding: EdgeInsets.zero,
+            ),
+            SwitchListTile(
+              title: const Text(
+                "Toast Notification",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                "Use toast instead of notification (Recommended if you use HamadaAI). It will change TOAST=0 (Disabled) to TOAST=1 (Enabled)",
+                style: textTheme.bodySmall?.copyWith(
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              value: _toastEnabled,
+              onChanged: isBusy
+                  ? null
+                  : (bool enable) => _updateTweak(
+                      key: 'TOAST',
+                      enable: enable,
+                      stateSetter: (val) => _toastEnabled = val,
+                      isUpdatingSetter: (val) => _isUpdatingToast = val,
+                      initialValue: widget.initialToastValue,
+                    ),
+              secondary: _isUpdatingToast
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.message_outlined),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),

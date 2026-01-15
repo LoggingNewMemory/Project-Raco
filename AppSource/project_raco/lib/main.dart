@@ -3,7 +3,9 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:process_run/process_run.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -81,7 +83,6 @@ class ConfigManager {
 
   static Future<void> saveMode(String mode) async {
     // Deprecated: Mode is now saved by Raco.sh directly into raco.txt
-    // Kept for compatibility if needed, or can be removed.
   }
 }
 
@@ -96,7 +97,7 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Locale? _locale;
   String? _backgroundImagePath;
   double _backgroundOpacity = 0.2;
@@ -115,16 +116,47 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // Load initial preferences and set up a listener for theme changes.
+    WidgetsBinding.instance.addObserver(this);
     _loadAllPreferences();
     themeNotifier.addListener(_onThemeChanged);
+    _checkPendingToast();
   }
 
   @override
   void dispose() {
-    // Clean up the listener when the app is closed.
+    WidgetsBinding.instance.removeObserver(this);
     themeNotifier.removeListener(_onThemeChanged);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkPendingToast();
+    }
+  }
+
+  Future<void> _checkPendingToast() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    try {
+      final toastFile = File('/data/ProjectRaco/toast.txt');
+      if (await toastFile.exists()) {
+        String message = await toastFile.readAsString();
+        if (message.isNotEmpty) {
+          Fluttertoast.showToast(
+            msg: message.trim(),
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 3,
+            backgroundColor: Colors.black.withOpacity(0.8),
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+        }
+        await toastFile.delete();
+      }
+    } catch (e) {}
   }
 
   // This method is called whenever a new banner color is set anywhere in the app.
