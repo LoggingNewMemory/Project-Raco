@@ -160,5 +160,7 @@
     "preload_mode": "Preload Mode",
     "start_preload": "Start Preload",
     "swipe_again_to_cancel": "Swipe Right Again To Cancel",
-    "execution_cancelled": "Execution Cancelled"
+    "execution_cancelled": "Execution Cancelled",
+    "toast_title": "Toast Notification",
+    "toast_description": "Use toast instead of notification (Recommended if you use HamadaAI)"
 }

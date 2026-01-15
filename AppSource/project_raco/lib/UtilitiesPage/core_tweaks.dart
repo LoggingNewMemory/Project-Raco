@@ -274,7 +274,8 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
     bool invertLogic = false,
   }) async {
     if (!await checkRootAccess()) return;
-    if (mounted) setState(() => isUpdatingSetter(true));
+    // Loading indicator removal: We no longer set isUpdatingSetter(true/false)
+    // or block the UI.
 
     try {
       // If invertLogic is true: Enable(true) writes '0', Disable(false) writes '1'
@@ -297,8 +298,6 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
         );
         setState(() => stateSetter(initialValue));
       }
-    } finally {
-      if (mounted) setState(() => isUpdatingSetter(false));
     }
   }
 
@@ -308,14 +307,6 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final bool isBusy =
-        _isUpdatingMitigation ||
-        _isUpdatingLiteMode ||
-        _isUpdatingLifeMode ||
-        _isUpdatingBetterPowersave ||
-        _isUpdatingCarlottaCpu ||
-        _isUpdatingLegacyNotif ||
-        _isUpdatingToast;
 
     return Card(
       elevation: 2.0,
@@ -345,22 +336,14 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
                 ),
               ),
               value: _deviceMitigationEnabled,
-              onChanged: isBusy
-                  ? null
-                  : (bool enable) => _updateTweak(
-                      key: 'DEVICE_MITIGATION',
-                      enable: enable,
-                      stateSetter: (val) => _deviceMitigationEnabled = val,
-                      isUpdatingSetter: (val) => _isUpdatingMitigation = val,
-                      initialValue: widget.initialDeviceMitigationValue,
-                    ),
-              secondary: _isUpdatingMitigation
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.security_update_warning_outlined),
+              onChanged: (bool enable) => _updateTweak(
+                key: 'DEVICE_MITIGATION',
+                enable: enable,
+                stateSetter: (val) => _deviceMitigationEnabled = val,
+                isUpdatingSetter: (val) => _isUpdatingMitigation = val,
+                initialValue: widget.initialDeviceMitigationValue,
+              ),
+              secondary: const Icon(Icons.security_update_warning_outlined),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
@@ -376,22 +359,14 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
                 ),
               ),
               value: _liteModeEnabled,
-              onChanged: isBusy
-                  ? null
-                  : (bool enable) => _updateTweak(
-                      key: 'LITE_MODE',
-                      enable: enable,
-                      stateSetter: (val) => _liteModeEnabled = val,
-                      isUpdatingSetter: (val) => _isUpdatingLiteMode = val,
-                      initialValue: widget.initialLiteModeValue,
-                    ),
-              secondary: _isUpdatingLiteMode
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.energy_savings_leaf_outlined),
+              onChanged: (bool enable) => _updateTweak(
+                key: 'LITE_MODE',
+                enable: enable,
+                stateSetter: (val) => _liteModeEnabled = val,
+                isUpdatingSetter: (val) => _isUpdatingLiteMode = val,
+                initialValue: widget.initialLiteModeValue,
+              ),
+              secondary: const Icon(Icons.energy_savings_leaf_outlined),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
@@ -407,22 +382,14 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
                 ),
               ),
               value: _lifeModeEnabled,
-              onChanged: isBusy
-                  ? null
-                  : (bool enable) => _updateTweak(
-                      key: 'LIFE_MODE',
-                      enable: enable,
-                      stateSetter: (val) => _lifeModeEnabled = val,
-                      isUpdatingSetter: (val) => _isUpdatingLifeMode = val,
-                      initialValue: widget.initialLifeModeValue,
-                    ),
-              secondary: _isUpdatingLifeMode
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.monitor_heart_outlined),
+              onChanged: (bool enable) => _updateTweak(
+                key: 'LIFE_MODE',
+                enable: enable,
+                stateSetter: (val) => _lifeModeEnabled = val,
+                isUpdatingSetter: (val) => _isUpdatingLifeMode = val,
+                initialValue: widget.initialLifeModeValue,
+              ),
+              secondary: const Icon(Icons.monitor_heart_outlined),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
@@ -438,23 +405,14 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
                 ),
               ),
               value: _betterPowersaveEnabled,
-              onChanged: isBusy
-                  ? null
-                  : (bool enable) => _updateTweak(
-                      key: 'BETTER_POWERAVE',
-                      enable: enable,
-                      stateSetter: (val) => _betterPowersaveEnabled = val,
-                      isUpdatingSetter: (val) =>
-                          _isUpdatingBetterPowersave = val,
-                      initialValue: widget.initialBetterPowersaveValue,
-                    ),
-              secondary: _isUpdatingBetterPowersave
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.battery_saver_outlined),
+              onChanged: (bool enable) => _updateTweak(
+                key: 'BETTER_POWERAVE',
+                enable: enable,
+                stateSetter: (val) => _betterPowersaveEnabled = val,
+                isUpdatingSetter: (val) => _isUpdatingBetterPowersave = val,
+                initialValue: widget.initialBetterPowersaveValue,
+              ),
+              secondary: const Icon(Icons.battery_saver_outlined),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
@@ -471,23 +429,15 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
                 ),
               ),
               value: _carlottaCpuEnabled,
-              onChanged: isBusy
-                  ? null
-                  : (bool enable) => _updateTweak(
-                      key: 'KCPU_MITIGATE',
-                      enable: enable,
-                      stateSetter: (val) => _carlottaCpuEnabled = val,
-                      isUpdatingSetter: (val) => _isUpdatingCarlottaCpu = val,
-                      initialValue: widget.initialCarlottaCpuValue,
-                      invertLogic: true, // Enable writes 0, Disable writes 1
-                    ),
-              secondary: _isUpdatingCarlottaCpu
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.memory),
+              onChanged: (bool enable) => _updateTweak(
+                key: 'KCPU_MITIGATE',
+                enable: enable,
+                stateSetter: (val) => _carlottaCpuEnabled = val,
+                isUpdatingSetter: (val) => _isUpdatingCarlottaCpu = val,
+                initialValue: widget.initialCarlottaCpuValue,
+                invertLogic: true, // Enable writes 0, Disable writes 1
+              ),
+              secondary: const Icon(Icons.memory),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
@@ -503,53 +453,37 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
                 ),
               ),
               value: _legacyNotifEnabled,
-              onChanged: isBusy
-                  ? null
-                  : (bool enable) => _updateTweak(
-                      key: 'LEGACY_NOTIF',
-                      enable: enable,
-                      stateSetter: (val) => _legacyNotifEnabled = val,
-                      isUpdatingSetter: (val) => _isUpdatingLegacyNotif = val,
-                      initialValue: widget.initialLegacyNotifValue,
-                    ),
-              secondary: _isUpdatingLegacyNotif
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.notifications_active_outlined),
+              onChanged: (bool enable) => _updateTweak(
+                key: 'LEGACY_NOTIF',
+                enable: enable,
+                stateSetter: (val) => _legacyNotifEnabled = val,
+                isUpdatingSetter: (val) => _isUpdatingLegacyNotif = val,
+                initialValue: widget.initialLegacyNotifValue,
+              ),
+              secondary: const Icon(Icons.notifications_active_outlined),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
             SwitchListTile(
-              title: const Text(
-                "Toast Notification",
-                style: TextStyle(fontWeight: FontWeight.bold),
+              title: Text(
+                localization.toast_title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
-                "Use toast instead of notification (Recommended if you use HamadaAI). It will change TOAST=0 (Disabled) to TOAST=1 (Enabled)",
+                localization.toast_description,
                 style: textTheme.bodySmall?.copyWith(
                   fontStyle: FontStyle.italic,
                 ),
               ),
               value: _toastEnabled,
-              onChanged: isBusy
-                  ? null
-                  : (bool enable) => _updateTweak(
-                      key: 'TOAST',
-                      enable: enable,
-                      stateSetter: (val) => _toastEnabled = val,
-                      isUpdatingSetter: (val) => _isUpdatingToast = val,
-                      initialValue: widget.initialToastValue,
-                    ),
-              secondary: _isUpdatingToast
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.message_outlined),
+              onChanged: (bool enable) => _updateTweak(
+                key: 'TOAST',
+                enable: enable,
+                stateSetter: (val) => _toastEnabled = val,
+                isUpdatingSetter: (val) => _isUpdatingToast = val,
+                initialValue: widget.initialToastValue,
+              ),
+              secondary: const Icon(Icons.message_outlined),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),

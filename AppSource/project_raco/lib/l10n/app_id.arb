@@ -160,5 +160,7 @@
     "preload_mode": "Mode Preload",
     "start_preload": "Mulai",
     "swipe_again_to_cancel": "Geser Kanan Lagi Untuk Membatalkan",
-    "execution_cancelled": "Eksekusi Dibatalkan"
+    "execution_cancelled": "Eksekusi Dibatalkan",
+    "toast_title": "Notifikasi Toast",
+    "toast_description": "Gunakan toast daripada notifikasi (Disarankan jika menggunakan HamadaAI)"
 }

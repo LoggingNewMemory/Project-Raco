@@ -134,7 +134,7 @@
     "@build_by_title": {
         "placeholders": {
             "builderName": {
-                 "type": "String"
+                "type": "String"
             }
         }
     },
@@ -160,5 +160,7 @@
     "preload_mode": "Modo de Preload",
     "start_preload": "Iniciar",
     "swipe_again_to_cancel": "Desliza a la derecha de nuevo para cancelar",
-    "execution_cancelled": "Ejecución cancelada"
+    "execution_cancelled": "Ejecución cancelada",
+    "toast_title": "Notificación Toast",
+    "toast_description": "Usar toast en lugar de notificación (Recomendado si usa HamadaAI)"
 }

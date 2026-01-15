@@ -56,7 +56,7 @@
     "selected_resolution": "選択済み: {resolution}",
     "@selected_resolution": {
         "placeholders": {
-           "resolution": {
+            "resolution": {
                 "type": "String"
             }
         }
@@ -135,7 +135,7 @@
         "placeholders": {
             "builderName": {
                 "type": "String"
-             }
+            }
         }
     },
     "screen_modifier_title": "スクリーンモディファイア",
@@ -160,5 +160,7 @@
     "preload_mode": "プリロードモード",
     "start_preload": "開始",
     "swipe_again_to_cancel": "もう一度右にスワイプしてキャンセル",
-    "execution_cancelled": "実行がキャンセルされました"
+    "execution_cancelled": "実行がキャンセルされました",
+    "toast_title": "トースト通知",
+    "toast_description": "通知の代わりにトーストを使用 (HamadaAIを使用している場合に推奨)"
 }

@@ -160,5 +160,7 @@
     "preload_mode": "Режим предзагрузки",
     "start_preload": "Начать",
     "swipe_again_to_cancel": "Свайпните вправо еще раз для отмены",
-    "execution_cancelled": "Выполнение отменено"
+    "execution_cancelled": "Выполнение отменено",
+    "toast_title": "Toast уведомления",
+    "toast_description": "Использовать toast вместо уведомлений (Рекомендуется при использовании HamadaAI)"
 }
