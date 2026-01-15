@@ -167,16 +167,17 @@ class _AboutPageState extends State<AboutPage> {
 
   List<String> _getCredits(AppLocalizations localization) {
     return [
-      localization.credits_1,
-      localization.credits_2,
-      localization.credits_3,
-      localization.credits_4,
-      localization.credits_5,
-      localization.credits_6,
-      localization.credits_7,
-      localization.credits_8,
-      localization.credits_9,
-      localization.credits_10,
+      "Rem01 Gaming",
+      "MiAzami",
+      "Kazuyoo",
+      "RiProG",
+      "HoyoSlave",
+      "Koneko_dev",
+      "Not_ValentineSTCV",
+      "Andreyka4_45",
+      "Zexshia",
+      "Java_nih_deks",
+      "KanaDev_IS",
       localization.credits_11,
     ];
   }
