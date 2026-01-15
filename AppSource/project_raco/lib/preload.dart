@@ -277,7 +277,7 @@ class _PreloadPageState extends State<PreloadPage> {
     // Run for single package
     await Process.run('su', [
       '-c',
-      'kasane -a $_selectedAppPackage -m $_selectedMode -l',
+      '/data/adb/modules/ProjectRaco/Binaries/kasane -a $_selectedAppPackage -m $_selectedMode -l',
     ]);
 
     if (!mounted) return;
