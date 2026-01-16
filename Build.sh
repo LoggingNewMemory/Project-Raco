@@ -77,6 +77,78 @@ build_flutter_apk() {
     cd "$current_dir"
 }
 
+# Function to build HamadaAI
+build_hamada_ai() {
+    echo "---------------------------------"
+    echo "       HamadaAI Build            "
+    echo "---------------------------------"
+    echo "1. Build HamadaAI"
+    echo "0. Skip"
+    local hamada_choice
+    while true; do
+        read -p "Enter your choice (1/0): " hamada_choice
+        case "$hamada_choice" in
+            1)
+                echo "Building HamadaAI..."
+
+                # Verify directory exists
+                if [ -d "HamadaAI" ]; then
+                    local root_dir=$(pwd)
+
+                    # Enter directory to run build script so it finds sources
+                    echo "Entering HamadaAI directory..."
+                    cd "HamadaAI" || { echo "Failed to enter HamadaAI directory"; break; }
+
+                    if [ -f "build.sh" ]; then
+                        bash build.sh
+                    else
+                        echo "Error: build.sh not found inside HamadaAI directory!"
+                    fi
+
+                    # Return to root for file moving operations
+                    cd "$root_dir"
+
+                    # Define paths (relative to root)
+                    local dest_dir="$MODULES_DIR/HamadaAI"
+                    local src_dir="HamadaAI/bin"
+
+                    # Ensure destination directory exists and is clean
+                    if [ ! -d "$dest_dir" ]; then
+                        mkdir -p "$dest_dir"
+                    else
+                        echo "Cleaning $dest_dir..."
+                        rm -rf "$dest_dir"/*
+                    fi
+
+                    # Move files from bin to Modules
+                    if [ -d "$src_dir" ]; then
+                        echo "Moving files from $src_dir to $dest_dir..."
+                        if [ "$(ls -A $src_dir)" ]; then
+                            mv "$src_dir"/* "$dest_dir"/
+                            echo "✓ HamadaAI files updated."
+                        else
+                            echo "Warning: $src_dir is empty (Build might have failed)."
+                        fi
+                    else
+                        echo "Error: Source directory '$src_dir' not found!"
+                    fi
+                else
+                    echo "Error: HamadaAI directory not found!"
+                fi
+                break
+                ;;
+            0)
+                echo "Skipping HamadaAI build..."
+                echo ""
+                break
+                ;;
+            *)
+                echo "Invalid choice. Please enter 1 or 0."
+                ;;
+        esac
+    done
+}
+
 # Function to send file to Telegram
 send_to_telegram() {
     local file_path="$1"
@@ -249,6 +321,10 @@ prompt_telegram_post() {
 build_modules() {
     rm -rf "$BUILD_DIR"/*
 
+    # --- HAMADAAI BUILD START ---
+    build_hamada_ai
+    # --- HAMADAAI BUILD END ---
+
     # --- APK Build Selection ---
     echo "APK Build Options:"
     echo "1. Build the apk"
@@ -313,7 +389,7 @@ build_modules() {
         fi
 
         echo "Creating new build identifier file: $PROPER_CASE_BUILD_TYPE"
-        
+
         # Prompt for Developer Name and write it to the identifier file
         read -p "Enter Developer Name: " DEV_NAME
         echo "$DEV_NAME" > "$MODULES_DIR/$PROPER_CASE_BUILD_TYPE"
