@@ -440,4 +440,14 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get toast_description =>
       'Gunakan toast daripada notifikasi (Disarankan jika menggunakan HamadaAI)';
+
+  @override
+  String get sandevistan_duration_title => 'Durasi Sandevistan';
+
+  @override
+  String get sandevistan_duration_description =>
+      'Ubah Durasi Sandevistan (Detik)';
+
+  @override
+  String get sandevistan_duration_hint => 'Masukkan durasi dalam detik';
 }

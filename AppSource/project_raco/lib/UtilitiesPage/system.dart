@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '/l10n/app_localizations.dart';
 import 'utils.dart';
 
@@ -25,10 +26,12 @@ class _SystemPageState extends State<SystemPage> {
   bool? _dndEnabled;
   bool? _anyaThermalEnabled;
   bool _isAnyaIncluded = true;
+  bool _isSandevistanIncluded = false;
   Map<String, dynamic>? _bypassChargingState;
   Map<String, dynamic>? _resolutionState;
   Map<String, dynamic>? _screenModifierState;
   int _graphicsDriverValue = 0; // 0: Default, 1: Game, 2: Developer
+  int _sandevistanDuration = 10;
 
   @override
   void initState() {
@@ -77,6 +80,34 @@ class _SystemPageState extends State<SystemPage> {
       return match?.group(1) != '0';
     }
     return true;
+  }
+
+  Future<Map<String, dynamic>> _loadSandevistanState() async {
+    final result = await runRootCommandAndWait(
+      'cat /data/ProjectRaco/raco.txt',
+    );
+    bool included = false;
+    int duration = 10;
+
+    if (result.exitCode == 0) {
+      final content = result.stdout.toString();
+
+      final includeMatch = RegExp(
+        r'^INCLUDE_SANDEV=(\d)',
+        multiLine: true,
+      ).firstMatch(content);
+      // Strictly check for '1'. '0' or anything else will return false.
+      included = includeMatch?.group(1) == '1';
+
+      final durMatch = RegExp(
+        r'^SANDEV_DUR=(\d+)',
+        multiLine: true,
+      ).firstMatch(content);
+      if (durMatch != null) {
+        duration = int.tryParse(durMatch.group(1)!) ?? 10;
+      }
+    }
+    return {'included': included, 'duration': duration};
   }
 
   Future<Map<String, dynamic>> _loadResolutionState() async {
@@ -237,6 +268,7 @@ class _SystemPageState extends State<SystemPage> {
       _loadResolutionState(),
       _loadScreenModifierState(),
       _loadGraphicsDriverState(),
+      _loadSandevistanState(),
     ]);
 
     if (!mounted) return;
@@ -248,6 +280,9 @@ class _SystemPageState extends State<SystemPage> {
       _resolutionState = results[4] as Map<String, dynamic>;
       _screenModifierState = results[5] as Map<String, dynamic>;
       _graphicsDriverValue = results[6] as int;
+      final sandevResult = results[7] as Map<String, dynamic>;
+      _isSandevistanIncluded = sandevResult['included'];
+      _sandevistanDuration = sandevResult['duration'];
       _isLoading = false;
     });
   }
@@ -272,6 +307,9 @@ class _SystemPageState extends State<SystemPage> {
             AnyaThermalCard(
               initialAnyaThermalEnabled: _anyaThermalEnabled ?? false,
             ),
+          // Visibility governed by INCLUDE_SANDEV=1
+          if (_isSandevistanIncluded)
+            SandevistanDurationCard(initialDuration: _sandevistanDuration),
           BypassChargingCard(
             isSupported: _bypassChargingState?['isSupported'] ?? false,
             isEnabled: _bypassChargingState?['isEnabled'] ?? false,
@@ -387,7 +425,7 @@ class _DndCardState extends State<DndCard> with AutomaticKeepAliveClientMixin {
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Important for KeepAlive
+    super.build(context);
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -532,6 +570,151 @@ class _AnyaThermalCardState extends State<AnyaThermalCard>
                   : const Icon(Icons.thermostat_outlined),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SandevistanDurationCard extends StatefulWidget {
+  final int initialDuration;
+  const SandevistanDurationCard({Key? key, required this.initialDuration})
+    : super(key: key);
+
+  @override
+  _SandevistanDurationCardState createState() =>
+      _SandevistanDurationCardState();
+}
+
+class _SandevistanDurationCardState extends State<SandevistanDurationCard>
+    with AutomaticKeepAliveClientMixin {
+  late TextEditingController _controller;
+  bool _isSaving = false;
+  final String _configFilePath = '/data/ProjectRaco/raco.txt';
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: widget.initialDuration.toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveDuration() async {
+    final text = _controller.text;
+    final newDuration = int.tryParse(text);
+
+    if (newDuration == null || newDuration < 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invalid duration')));
+      return;
+    }
+
+    if (!await checkRootAccess()) return;
+    if (mounted) setState(() => _isSaving = true);
+
+    try {
+      final sedCheckCommand = "grep -q '^SANDEV_DUR=' $_configFilePath";
+      final checkResult = await runRootCommandAndWait(sedCheckCommand);
+
+      if (checkResult.exitCode == 0) {
+        await runRootCommandAndWait(
+          "sed -i 's|^SANDEV_DUR=.*|SANDEV_DUR=$newDuration|' $_configFilePath",
+        );
+      } else {
+        await runRootCommandAndWait(
+          "echo 'SANDEV_DUR=$newDuration' >> $_configFilePath",
+        );
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.command_executed),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to save duration: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      elevation: 2.0,
+      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              localization.sandevistan_duration_title,
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              localization.sandevistan_duration_description,
+              style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      labelText: localization.sandevistan_duration_hint,
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: _isSaving ? null : _saveDuration,
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.save),
+                ),
+              ],
             ),
           ],
         ),

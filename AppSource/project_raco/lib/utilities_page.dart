@@ -315,6 +315,13 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
         searchKeywords: 'anya thermal flowstate disable heat control',
       ),
       SearchResultItem(
+        title: localization.sandevistan_duration_title,
+        subtitle: localization.system_title,
+        icon: Icons.timer,
+        navigationTarget: systemPage,
+        searchKeywords: 'sandevistan duration time cpu governor',
+      ),
+      SearchResultItem(
         title: localization.bypass_charging_title,
         subtitle: localization.system_title,
         icon: Icons.power_off_outlined,

@@ -907,6 +907,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use toast instead of notification (Recommended if you use HamadaAI)'**
   String get toast_description;
+
+  /// No description provided for @sandevistan_duration_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sandevistan Duration'**
+  String get sandevistan_duration_title;
+
+  /// No description provided for @sandevistan_duration_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Modify the Sandevistan Duration (Seconds)'**
+  String get sandevistan_duration_description;
+
+  /// No description provided for @sandevistan_duration_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter duration in seconds'**
+  String get sandevistan_duration_hint;
 }
 
 class _AppLocalizationsDelegate

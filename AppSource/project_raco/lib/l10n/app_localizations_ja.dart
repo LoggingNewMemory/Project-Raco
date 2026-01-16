@@ -423,4 +423,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get toast_description => '通知の代わりにトーストを使用 (HamadaAIを使用している場合に推奨)';
+
+  @override
+  String get sandevistan_duration_title => 'サンデヴィスタン持続時間';
+
+  @override
+  String get sandevistan_duration_description => 'サンデヴィスタンの持続時間を変更 (秒)';
+
+  @override
+  String get sandevistan_duration_hint => '秒数を入力してください';
 }

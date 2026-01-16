@@ -446,4 +446,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get toast_description =>
       'Usar toast en lugar de notificación (Recomendado si usa HamadaAI)';
+
+  @override
+  String get sandevistan_duration_title => 'Duración Sandevistan';
+
+  @override
+  String get sandevistan_duration_description =>
+      'Modificar la Duración Sandevistan (Segundos)';
+
+  @override
+  String get sandevistan_duration_hint => 'Ingrese la duración en segundos';
 }

@@ -444,4 +444,14 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get toast_description =>
       'Использовать toast вместо уведомлений (Рекомендуется при использовании HamadaAI)';
+
+  @override
+  String get sandevistan_duration_title => 'Длительность Sandevistan';
+
+  @override
+  String get sandevistan_duration_description =>
+      'Изменить длительность Sandevistan (Секунды)';
+
+  @override
+  String get sandevistan_duration_hint => 'Введите длительность в секундах';
 }

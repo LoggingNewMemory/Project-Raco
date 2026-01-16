@@ -106,9 +106,10 @@ fi
 
 send_notif "Project Raco" "Project Raco - オンライン" "TagRaco" "/data/local/tmp/logo.png"
 
-# Revert CPU governor to default after 20 seconds, only if INCLUDE_SANDEV=1
+# Revert CPU governor to default after configured duration, only if INCLUDE_SANDEV=1
 if grep -q "INCLUDE_SANDEV=1" "$CONFIG_FILE"; then
-    sleep 10
+    SANDEV_DUR=$(grep '^SANDEV_DUR=' "$CONFIG_FILE" | cut -d'=' -f2)
+    sleep "$SANDEV_DUR"
     
     DEFAULT_CPU_GOV=$(grep '^GOV=' "$CONFIG_FILE" | cut -d'=' -f2)
 

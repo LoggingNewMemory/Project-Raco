@@ -154,5 +154,8 @@
     "swipe_again_to_cancel": "Desliza a la derecha de nuevo para cancelar",
     "execution_cancelled": "Ejecución cancelada",
     "toast_title": "Notificación Toast",
-    "toast_description": "Usar toast en lugar de notificación (Recomendado si usa HamadaAI)"
+    "toast_description": "Usar toast en lugar de notificación (Recomendado si usa HamadaAI)",
+    "sandevistan_duration_title": "Duración Sandevistan",
+    "sandevistan_duration_description": "Modificar la Duración Sandevistan (Segundos)",
+    "sandevistan_duration_hint": "Ingrese la duración en segundos"
 }
