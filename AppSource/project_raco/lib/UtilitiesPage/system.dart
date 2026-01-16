@@ -610,6 +610,7 @@ class _SandevistanDurationCardState extends State<SandevistanDurationCard>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // Update message on load or locale change
     _updateEasterEgg();
   }
 
@@ -749,7 +750,6 @@ class _SandevistanDurationCardState extends State<SandevistanDurationCard>
                 _easterEggMessage,
                 style: textTheme.labelMedium?.copyWith(
                   color: colorScheme.secondary,
-                  fontStyle: FontStyle.italic,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
