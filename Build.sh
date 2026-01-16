@@ -27,6 +27,56 @@ success() {
     echo "---------------------------------"
 }
 
+# Function to build Flutter APK
+build_flutter_apk() {
+    echo "---------------------------------"
+    echo "      Building Flutter APK       "
+    echo "---------------------------------"
+
+    # Save current directory to return later
+    local current_dir=$(pwd)
+    local flutter_project_dir="AppSource/project_raco"
+
+    if [ ! -d "$flutter_project_dir" ]; then
+        echo "Error: Flutter project directory '$flutter_project_dir' not found!"
+        return 1
+    fi
+
+    echo "Navigating to $flutter_project_dir..."
+    cd "$flutter_project_dir" || return 1
+
+    echo "Running flutter clean..."
+    if ! flutter clean; then
+        echo "Error: flutter clean failed!"
+        cd "$current_dir"
+        return 1
+    fi
+
+    echo "Running flutter build apk..."
+    if ! flutter build apk; then
+        echo "Error: flutter build apk failed!"
+        cd "$current_dir"
+        return 1
+    fi
+
+    # Define paths
+    local built_apk="build/app/outputs/flutter-apk/app-release.apk"
+    local dest_apk="$current_dir/$MODULES_DIR/ProjectRaco.apk"
+
+    if [ -f "$built_apk" ]; then
+        echo "Moving APK to Modules directory..."
+        cp "$built_apk" "$dest_apk"
+        echo "✓ Updated ProjectRaco.apk in $MODULES_DIR/"
+    else
+        echo "Error: Built APK not found at $built_apk"
+        cd "$current_dir"
+        return 1
+    fi
+
+    # Return to original directory
+    cd "$current_dir"
+}
+
 # Function to send file to Telegram
 send_to_telegram() {
     local file_path="$1"
@@ -198,6 +248,21 @@ prompt_telegram_post() {
 
 build_modules() {
     rm -rf "$BUILD_DIR"/*
+
+    # --- APK Build Selection ---
+    echo "APK Build Options:"
+    echo "1. Build the apk"
+    echo "2. Skip apk build"
+    local apk_choice
+    while true; do
+        read -p "Enter your choice (1/2): " apk_choice
+        case "$apk_choice" in
+            1) build_flutter_apk; break ;;
+            2) echo "Skipping APK build..."; echo ""; break ;;
+            *) echo "Invalid choice. Please enter 1 or 2." ;;
+        esac
+    done
+    # ---------------------------
 
     read -p "Enter Version (e.g., V1.0): " VERSION
 
