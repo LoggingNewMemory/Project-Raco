@@ -90,9 +90,19 @@ fi
 # Facur.sh
 sh /data/adb/modules/ProjectRaco/Scripts/Facur.sh
 
-# CloudFare DNS From XianTian Pro (Change to resetprop)
-resetprop net.dns1 1.1.1.1
-resetprop net.dns2 1.0.0.1
+# Cloudflare DNS
+iptables -t nat -D OUTPUT -p udp --dport 53 -j DNAT --to-destination 1.1.1.1:53 2>/dev/null
+iptables -t nat -D OUTPUT -p tcp --dport 53 -j DNAT --to-destination 1.1.1.1:53 2>/dev/null
+iptables -t nat -A OUTPUT -p udp --dport 53 -j DNAT --to-destination 1.1.1.1:53
+iptables -t nat -A OUTPUT -p tcp --dport 53 -j DNAT --to-destination 1.1.1.1:53
+
+if settings get global private_dns_mode > /dev/null 2>&1; then
+    settings put global private_dns_mode hostname
+    settings put global private_dns_specifier 1dot1dot1dot1.cloudflare-dns.com
+else
+    setprop net.dns1 1.1.1.1
+    setprop net.dns2 1.0.0.1
+fi
 
 send_notif "Project Raco" "Project Raco - オンライン" "TagRaco" "/data/local/tmp/logo.png"
 
