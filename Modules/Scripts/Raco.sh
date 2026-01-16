@@ -1,3 +1,4 @@
+#!/system/bin/sh
 ###############################
 # DEFINE CONFIG
 ###############################
@@ -66,19 +67,17 @@ anyakawaii() {
     fi
 }
 
-# Optimized to check writeability first
 tweak() {
-    if [ -f "$2" ]; then
-        chmod 644 "$2" 2>/dev/null
+    if [ -e "$2" ]; then
+        chmod 644 "$2" >/dev/null 2>&1
         echo "$1" > "$2" 2>/dev/null
-        chmod 444 "$2" 2>/dev/null
+        chmod 444 "$2" >/dev/null 2>&1
     fi
 }
 
-# Optimized to suppress errors
 kakangkuh() {
     [ ! -f "$2" ] && return 1
-    chmod 644 "$2" 2>/dev/null
+    chmod 644 "$2" >/dev/null 2>&1
     echo "$1" >"$2" 2>/dev/null
 }
 
@@ -153,77 +152,6 @@ dnd_on() {
 }
 
 ###################################
-# Optimized Helper Functions
-###################################
-
-# Consolidates frequency logic to avoid repetitive piping
-get_freq() {
-    local mode=$1
-    local file=$2
-    [ ! -f "$file" ] && return
-    
-    case "$mode" in
-        max) tr ' ' '\n' <"$file" | sort -nr | head -n 1 ;;
-        min) tr ' ' '\n' <"$file" | grep -v '^[[:space:]]*$' | sort -n | head -n 1 ;;
-        mid)
-            local list=$(tr ' ' '\n' <"$file" | grep -v '^[[:space:]]*$' | sort -nr)
-            local count=$(echo "$list" | wc -l)
-            local mid=$(((count + 1) / 2))
-            echo "$list" | head -n $mid | tail -n 1
-            ;;
-    esac
-}
-
-mtk_gpufreq_index() {
-    local mode=$1
-    local file=$2
-    [ ! -f "$file" ] && return
-
-    case "$mode" in
-        min) awk -F'[][]' '{print $2}' "$file" | tail -n 1 ;;
-        mid)
-            local count=$(wc -l <"$file")
-            local mid=$(((count + 1) / 2))
-            awk -F'[][]' '{print $2}' "$file" | head -n $mid | tail -n 1
-            ;;
-    esac
-}
-
-# Generic Devfreq setter to handle Race Conditions
-set_devfreq() {
-    local path=$1
-    local mode=$2 # max, mid, min, unlock
-    [ ! -f "$path/available_frequencies" ] && return
-
-    local max=$(get_freq max "$path/available_frequencies")
-    local min=$(get_freq min "$path/available_frequencies")
-    local mid=$(get_freq mid "$path/available_frequencies")
-
-    # Race Condition Fix:
-    # Increasing: Max first, then Min
-    # Decreasing: Min first, then Max
-    
-    case "$mode" in
-        max)
-            tweak "$max" "$path/max_freq"
-            tweak "$max" "$path/min_freq"
-            ;;
-        mid)
-            tweak "$max" "$path/max_freq"
-            tweak "$mid" "$path/min_freq"
-            ;;
-        unlock)
-            kakangkuh "$max" "$path/max_freq"
-            kakangkuh "$min" "$path/min_freq"
-            ;;
-        min)
-            tweak "$min" "$path/min_freq"
-            tweak "$min" "$path/max_freq"
-            ;;
-    esac
-}
-
-###################################
 # MTKVest Functions 
 ###################################
 
@@ -258,8 +186,85 @@ mtkvest_normal() {
 }
 
 ###################################
-# CPU Frequency Logic (Fixed Race Condition)
+# Frequency fetching & setting
 ###################################
+
+which_maxfreq() {
+    tr ' ' '\n' <"$1" | sort -nr | head -n 1
+}
+
+which_minfreq() {
+    tr ' ' '\n' <"$1" | grep -v '^[[:space:]]*$' | sort -n | head -n 1
+}
+
+which_midfreq() {
+    total_opp=$(wc -w <"$1")
+    mid_opp=$(((total_opp + 1) / 2))
+    tr ' ' '\n' <"$1" | grep -v '^[[:space:]]*$' | sort -nr | head -n $mid_opp | tail -n 1
+}
+
+mtk_gpufreq_minfreq_index() {
+    awk -F'[][]' '{print $2}' "$1" | tail -n 1
+}
+
+mtk_gpufreq_midfreq_index() {
+    total_opp=$(wc -l <"$1")
+    mid_opp=$(((total_opp + 1) / 2))
+    awk -F'[][]' '{print $2}' "$1" | head -n $mid_opp | tail -n 1
+}
+
+devfreq_max_perf() {
+    [ ! -f "$1/available_frequencies" ] && return 1
+    max_freq=$(which_maxfreq "$1/available_frequencies")
+    tweak "$max_freq" "$1/max_freq"
+    tweak "$max_freq" "$1/min_freq"
+}
+
+devfreq_mid_perf() {
+    [ ! -f "$1/available_frequencies" ] && return 1
+    max_freq=$(which_maxfreq "$1/available_frequencies")
+    mid_freq=$(which_midfreq "$1/available_frequencies")
+    tweak "$max_freq" "$1/max_freq"
+    tweak "$mid_freq" "$1/min_freq"
+}
+
+devfreq_unlock() {
+    [ ! -f "$1/available_frequencies" ] && return 1
+    max_freq=$(which_maxfreq "$1/available_frequencies")
+    min_freq=$(which_minfreq "$1/available_frequencies")
+    kakangkuh "$max_freq" "$1/max_freq"
+    kakangkuh "$min_freq" "$1/min_freq"
+}
+
+devfreq_min_perf() {
+    [ ! -f "$1/available_frequencies" ] && return 1
+    freq=$(which_minfreq "$1/available_frequencies")
+    tweak "$freq" "$1/min_freq"
+    tweak "$freq" "$1/max_freq"
+}
+
+qcom_cpudcvs_max_perf() {
+    [ ! -f "$1/available_frequencies" ] && return 1
+    freq=$(which_maxfreq "$1/available_frequencies")
+    tweak "$freq" "$1/hw_max_freq"
+    tweak "$freq" "$1/hw_min_freq"
+}
+
+qcom_cpudcvs_mid_perf() {
+    [ ! -f "$1/available_frequencies" ] && return 1
+    max_freq=$(which_maxfreq "$1/available_frequencies")
+    mid_freq=$(which_midfreq "$1/available_frequencies")
+    tweak "$max_freq" "$1/hw_max_freq"
+    tweak "$mid_freq" "$1/hw_min_freq"
+}
+
+qcom_cpudcvs_unlock() {
+    [ ! -f "$1/available_frequencies" ] && return 1
+    max_freq=$(which_maxfreq "$1/available_frequencies")
+    min_freq=$(which_minfreq "$1/available_frequencies")
+    kakangkuh "$max_freq" "$1/hw_max_freq"
+    kakangkuh "$min_freq" "$1/hw_min_freq"
+}
 
 change_cpu_gov() {
     chmod 644 /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor 2>/dev/null
@@ -268,83 +273,112 @@ change_cpu_gov() {
     chmod 444 /sys/devices/system/cpu/cpufreq/policy*/scaling_governor 2>/dev/null
 }
 
-cpufreq_apply_perf() {
+cpufreq_ppm_max_perf() {
     local cluster=0
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
-        [ ! -d "$path" ] && continue
-        local max=$(<"$path/cpuinfo_max_freq")
-        local mid=$(get_freq mid "$path/scaling_available_frequencies")
-        
-        # 1. Set PPM Limits
-        if [ "$LITE_MODE" -eq 1 ]; then
-            tweak "$cluster $mid" /proc/ppm/policy/hard_userlimit_min_cpu_freq
-        else
-            tweak "$cluster $max" /proc/ppm/policy/hard_userlimit_min_cpu_freq
-        fi
-        tweak "$cluster $max" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+        (
+            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
 
-        # 2. Set Scaling Limits (MAX FIRST to avoid lock)
-        tweak "$max" "$path/scaling_max_freq"
-        
-        if [ "$LITE_MODE" -eq 1 ]; then
-            tweak "$mid" "$path/scaling_min_freq"
-        else
-            tweak "$max" "$path/scaling_min_freq"
-        fi
-        
+            tweak "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+
+            if [ "$LITE_MODE" -eq 1 ]; then
+                local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
+                tweak "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+            else
+                tweak "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+            fi
+        ) &
         ((cluster++))
     done
 }
 
-cpufreq_apply_unlock() {
+cpufreq_max_perf() {
+    for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        (
+            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
+            
+            tweak "$cpu_maxfreq" "$path/scaling_max_freq"
+
+            if [ "$LITE_MODE" -eq 1 ]; then
+                local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
+                tweak "$cpu_midfreq" "$path/scaling_min_freq"
+            else
+                tweak "$cpu_maxfreq" "$path/scaling_min_freq"
+            fi
+        ) &
+    done
+    wait
+    chmod -f 444 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
+}
+
+cpufreq_ppm_unlock() {
     local cluster=0
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
-        [ ! -d "$path" ] && continue
-        local max=$(<"$path/cpuinfo_max_freq")
-        local min=$(<"$path/cpuinfo_min_freq")
-        
-        # PPM
-        kakangkuh "$cluster $max" /proc/ppm/policy/hard_userlimit_max_cpu_freq
-        kakangkuh "$cluster $min" /proc/ppm/policy/hard_userlimit_min_cpu_freq
-
-        # Scaling (MAX FIRST)
-        kakangkuh "$max" "$path/scaling_max_freq"
-        kakangkuh "$min" "$path/scaling_min_freq"
-        
+        (
+            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
+            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+            
+            kakangkuh "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+            kakangkuh "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+        ) &
         ((cluster++))
     done
 }
 
-cpufreq_apply_powersave() {
+cpufreq_unlock() {
+    for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        (
+            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
+            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+            
+            kakangkuh "$cpu_maxfreq" "$path/scaling_max_freq"
+            kakangkuh "$cpu_minfreq" "$path/scaling_min_freq"
+        ) &
+    done
+    wait
+    chmod -f 644 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
+}
+
+cpufreq_ppm_min_perf() {
     local cluster=0
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
-        [ ! -d "$path" ] && continue
-        local min=$(<"$path/cpuinfo_min_freq")
-        local mid=$(get_freq mid "$path/scaling_available_frequencies")
-        
-        # PPM
-        if [ "$BETTER_POWERAVE" -eq 1 ]; then
-            tweak "$cluster $mid" /proc/ppm/policy/hard_userlimit_max_cpu_freq
-        else
-            tweak "$cluster $min" /proc/ppm/policy/hard_userlimit_max_cpu_freq
-        fi
-        tweak "$cluster $min" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+        (
+            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
 
-        # Scaling (MIN FIRST to avoid lock when dropping high max)
-        tweak "$min" "$path/scaling_min_freq"
-
-        if [ "$BETTER_POWERAVE" -eq 1 ]; then
-            tweak "$mid" "$path/scaling_max_freq"
-        else
-            tweak "$min" "$path/scaling_max_freq"
-        fi
-        
+            if [ "$BETTER_POWERAVE" -eq 1 ]; then
+                local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
+                tweak "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+                tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+            else
+                tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+                tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+            fi
+        ) &
         ((cluster++))
     done
+}
+
+cpufreq_min_perf() {
+    for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        (
+            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+            
+            if [ "$BETTER_POWERAVE" -eq 1 ]; then
+                local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
+                tweak "$cpu_midfreq" "$path/scaling_max_freq"
+                tweak "$cpu_minfreq" "$path/scaling_min_freq"
+            else
+                tweak "$cpu_minfreq" "$path/scaling_max_freq"
+                tweak "$cpu_minfreq" "$path/scaling_min_freq"
+            fi
+        ) &
+    done
+    wait
+    chmod -f 444 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
 }
 
 ###################################
-# Device Profiles
+# Device Profiles (Updated for Raco 3.0)
 ###################################
 
 mediatek_performance() {
@@ -371,9 +405,9 @@ mediatek_performance() {
             tweak -1 /proc/gpufreqv2/fix_target_opp_index
             local mid_oppfreq
             if [ -d /proc/gpufreqv2 ]; then
-                mid_oppfreq=$(mtk_gpufreq_index mid /proc/gpufreqv2/gpu_working_opp_table)
+                mid_oppfreq=$(mtk_gpufreq_midfreq_index /proc/gpufreqv2/gpu_working_opp_table)
             else
-                mid_oppfreq=$(mtk_gpufreq_index mid /proc/gpufreq/gpufreq_opp_dump)
+                mid_oppfreq=$(mtk_gpufreq_midfreq_index /proc/gpufreq/gpufreq_opp_dump)
             fi
             tweak "$mid_oppfreq" /sys/kernel/ged/hal/custom_boost_gpu_freq
         fi
@@ -381,8 +415,9 @@ mediatek_performance() {
 
     [ -f "/proc/gpufreq/gpufreq_power_limited" ] && {
         for setting in ignore_batt_oc ignore_batt_percent ignore_low_batt ignore_thermal_protect ignore_pbm_limited; do
-            tweak "$setting 1" /proc/gpufreq/gpufreq_power_limited
+            tweak "$setting 1" /proc/gpufreq/gpufreq_power_limited &
         done
+        wait
     } &
 
     (
@@ -391,11 +426,11 @@ mediatek_performance() {
         if [ "$LITE_MODE" -eq 0 ]; then
             tweak 0 /sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp
             tweak 0 /sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp
-            set_devfreq /sys/class/devfreq/mtk-dvfsrc-devfreq max
+            devfreq_max_perf /sys/class/devfreq/mtk-dvfsrc-devfreq
         else
             tweak -1 /sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp
             tweak -1 /sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp
-            set_devfreq /sys/class/devfreq/mtk-dvfsrc-devfreq mid
+            devfreq_mid_perf /sys/class/devfreq/mtk-dvfsrc-devfreq
         fi
     ) &
 
@@ -405,9 +440,6 @@ mediatek_performance() {
 
 snapdragon_performance() {
     if [ "$DEVICE_MITIGATION" -eq 0 ]; then
-        local mode="max"
-        [ "$LITE_MODE" -eq 1 ] && mode="mid"
-
         for path in /sys/class/devfreq/*cpu*-lat \
             /sys/class/devfreq/*cpu*-bw \
             /sys/class/devfreq/*llccbw* \
@@ -416,30 +448,29 @@ snapdragon_performance() {
             /sys/class/devfreq/*memlat* \
             /sys/class/devfreq/*cpubw* \
             /sys/class/devfreq/*kgsl-ddr-qos*; do
-            set_devfreq "$path" "$mode"
+            if [ "$LITE_MODE" -eq 1 ]; then
+                devfreq_mid_perf "$path"
+            else
+                devfreq_max_perf "$path"
+            fi
         done &
 
         for component in DDR LLCC L3; do
             local path="/sys/devices/system/cpu/bus_dcvs/$component"
-            [ -f "$path/available_frequencies" ] && {
-                 local max=$(get_freq max "$path/available_frequencies")
-                 tweak "$max" "$path/hw_max_freq"
-                 if [ "$LITE_MODE" -eq 1 ]; then
-                    local mid=$(get_freq mid "$path/available_frequencies")
-                    tweak "$mid" "$path/hw_min_freq"
-                 else
-                    tweak "$max" "$path/hw_min_freq"
-                 fi
-            }
+            if [ "$LITE_MODE" -eq 1 ]; then
+                qcom_cpudcvs_mid_perf "$path"
+            else
+                qcom_cpudcvs_max_perf "$path"
+            fi
         done &
     fi
 
     (
         local gpu_path="/sys/class/kgsl/kgsl-3d0/devfreq"
         if [ "$LITE_MODE" -eq 0 ]; then
-            set_devfreq "$gpu_path" max
+            devfreq_max_perf "$gpu_path"
         else
-            set_devfreq "$gpu_path" mid
+            devfreq_mid_perf "$gpu_path"
         fi
         tweak 0 /sys/class/kgsl/kgsl-3d0/bus_split
         tweak 1 /sys/class/kgsl/kgsl-3d0/force_clk_on
@@ -449,27 +480,27 @@ snapdragon_performance() {
 
 exynos_performance() {
     (
-        gpu_path="/sys/kernel/gpu"
+        local gpu_path="/sys/kernel/gpu"
         if [ -d "$gpu_path" ]; then
-            max_freq=$(get_freq max "$gpu_path/gpu_available_frequencies")
+            local max_freq=$(which_maxfreq "$gpu_path/gpu_available_frequencies")
             tweak "$max_freq" "$gpu_path/gpu_max_clock"
             if [ "$LITE_MODE" -eq 1 ]; then
-                mid_freq=$(get_freq mid "$gpu_path/gpu_available_frequencies")
+                local mid_freq=$(which_midfreq "$gpu_path/gpu_available_frequencies")
                 tweak "$mid_freq" "$gpu_path/gpu_min_clock"
             else
                 tweak "$max_freq" "$gpu_path/gpu_min_clock"
             fi
         fi
-        mali_sysfs=$(find /sys/devices/platform/ -iname "*.mali" -print -quit 2>/dev/null)
+        local mali_sysfs=$(find /sys/devices/platform/ -iname "*.mali" -print -quit 2>/dev/null)
         tweak always_on "$mali_sysfs/power_policy"
     ) &
 
     if [ "$DEVICE_MITIGATION" -eq 0 ]; then
         for path in /sys/class/devfreq/*devfreq_mif*; do
             if [ "$LITE_MODE" -eq 1 ]; then
-                set_devfreq "$path" mid
+                devfreq_mid_perf "$path"
             else
-                set_devfreq "$path" max
+                devfreq_max_perf "$path"
             fi
         done &
     fi
@@ -477,24 +508,24 @@ exynos_performance() {
 }
 
 unisoc_performance() {
-    gpu_path=$(find /sys/class/devfreq/ -type d -iname "*.gpu" -print -quit 2>/dev/null)
+    local gpu_path=$(find /sys/class/devfreq/ -type d -iname "*.gpu" -print -quit 2>/dev/null)
     [ -n "$gpu_path" ] && {
         if [ "$LITE_MODE" -eq 0 ]; then
-            set_devfreq "$gpu_path" max
+            devfreq_max_perf "$gpu_path"
         else
-            set_devfreq "$gpu_path" mid
+            devfreq_mid_perf "$gpu_path"
         fi
     }
 }
 
 tensor_performance() {
-    gpu_path=$(find /sys/devices/platform/ -type d -iname "*.mali" -print -quit 2>/dev/null)
+    local gpu_path=$(find /sys/devices/platform/ -type d -iname "*.mali" -print -quit 2>/dev/null)
     [ -n "$gpu_path" ] && {
-        max_freq=$(get_freq max "$gpu_path/available_frequencies")
+        local max_freq=$(which_maxfreq "$gpu_path/available_frequencies")
         tweak "$max_freq" "$gpu_path/scaling_max_freq"
 
         if [ "$LITE_MODE" -eq 1 ]; then
-            mid_freq=$(get_freq mid "$gpu_path/available_frequencies")
+            local mid_freq=$(which_midfreq "$gpu_path/available_frequencies")
             tweak "$mid_freq" "$gpu_path/scaling_min_freq"
         else
             tweak "$max_freq" "$gpu_path/scaling_min_freq"
@@ -504,9 +535,9 @@ tensor_performance() {
     if [ "$DEVICE_MITIGATION" -eq 0 ]; then
         for path in /sys/class/devfreq/*devfreq_mif*; do
             if [ "$LITE_MODE" -eq 1 ]; then
-                set_devfreq "$path" mid
+                devfreq_mid_perf "$path"
             else
-                set_devfreq "$path" max
+                devfreq_max_perf "$path"
             fi
         done &
     fi
@@ -514,12 +545,12 @@ tensor_performance() {
 }
 
 tegra_performance() {
-    gpu_path="/sys/kernel/tegra_gpu"
+    local gpu_path="/sys/kernel/tegra_gpu"
     if [ -d "$gpu_path" ]; then
-        max_freq=$(get_freq max "$gpu_path/available_frequencies")
+        local max_freq=$(which_maxfreq "$gpu_path/available_frequencies")
         tweak "$max_freq" "$gpu_path/gpu_cap_rate"
         if [ "$LITE_MODE" -eq 1 ]; then
-            mid_freq=$(get_freq mid "$gpu_path/available_frequencies")
+            local mid_freq=$(which_midfreq "$gpu_path/available_frequencies")
             tweak "$mid_freq" "$gpu_path/gpu_floor_rate"
         else
             tweak "$max_freq" "$gpu_path/gpu_floor_rate"
@@ -539,35 +570,39 @@ mediatek_normal() {
         tweak 0 /sys/devices/platform/boot_dramboost/dramboost/dramboost
         tweak 2 /sys/devices/system/cpu/eas/enable
         tweak 1 /sys/module/sspm_v3/holders/ged/parameters/is_GED_KPI_enabled
-        
+    ) &
+
+    (
         kakangkuh 0 /proc/gpufreq/gpufreq_opp_freq
         kakangkuh -1 /proc/gpufreqv2/fix_target_opp_index
 
         if [ -d /proc/gpufreqv2 ]; then
-            min_oppfreq=$(mtk_gpufreq_index min /proc/gpufreqv2/gpu_working_opp_table)
+            local min_oppfreq=$(mtk_gpufreq_minfreq_index /proc/gpufreqv2/gpu_working_opp_table)
         else
-            min_oppfreq=$(mtk_gpufreq_index min /proc/gpufreq/gpufreq_opp_dump)
+            local min_oppfreq=$(mtk_gpufreq_minfreq_index /proc/gpufreq/gpufreq_opp_dump)
         fi
         tweak "$min_oppfreq" /sys/kernel/ged/hal/custom_boost_gpu_freq
     ) &
 
     if [[ -f "/proc/gpufreq/gpufreq_limit_table" ]]; then
         for id in {0..8}; do
-            tweak "$id 1 1" /proc/gpufreq/gpufreq_limit_table
+            tweak "$id 1 1" /proc/gpufreq/gpufreq_limit_table &
         done
+        wait
     fi &
 
     [ -f "/proc/gpufreq/gpufreq_power_limited" ] && {
         for setting in ignore_batt_oc ignore_batt_percent ignore_low_batt ignore_thermal_protect ignore_pbm_limited; do
-            tweak "$setting 0" /proc/gpufreq/gpufreq_power_limited
+            tweak "$setting 0" /proc/gpufreq/gpufreq_power_limited &
         done
+        wait
     } &
 
     (
         tweak "stop 0" /proc/mtk_batoc_throttling/battery_oc_protect_stop
         kakangkuh -1 /sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp
         kakangkuh -1 /sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp
-        set_devfreq /sys/class/devfreq/mtk-dvfsrc-devfreq unlock
+        devfreq_unlock /sys/class/devfreq/mtk-dvfsrc-devfreq
         tweak 1 /sys/kernel/eara_thermal/enable
     ) &
 
@@ -577,75 +612,79 @@ mediatek_normal() {
 
 snapdragon_normal() {
     if [ "$DEVICE_MITIGATION" -eq 0 ]; then
-        for path in /sys/class/devfreq/*cpu*-lat /sys/class/devfreq/*cpu*-bw /sys/class/devfreq/*llccbw* /sys/class/devfreq/*bus_llcc* /sys/class/devfreq/*bus_ddr* /sys/class/devfreq/*memlat* /sys/class/devfreq/*cpubw* /sys/class/devfreq/*kgsl-ddr-qos*; do
-            set_devfreq "$path" unlock
-        done &
+        for path in /sys/class/devfreq/*cpu*-lat \
+            /sys/class/devfreq/*cpu*-bw \
+            /sys/class/devfreq/*llccbw* \
+            /sys/class/devfreq/*bus_llcc* \
+            /sys/class/devfreq/*bus_ddr* \
+            /sys/class/devfreq/*memlat* \
+            /sys/class/devfreq/*cpubw* \
+            /sys/class/devfreq/*kgsl-ddr-qos*; do
+            devfreq_unlock "$path" &
+        done
 
         for component in DDR LLCC L3; do
-            path="/sys/devices/system/cpu/bus_dcvs/$component"
-            [ -f "$path/available_frequencies" ] && {
-                 local max=$(get_freq max "$path/available_frequencies")
-                 local min=$(get_freq min "$path/available_frequencies")
-                 kakangkuh "$max" "$path/hw_max_freq"
-                 kakangkuh "$min" "$path/hw_min_freq"
-            }
-        done &
+            qcom_cpudcvs_unlock /sys/devices/system/cpu/bus_dcvs/$component &
+        done
         wait
     fi
 
-    set_devfreq /sys/class/kgsl/kgsl-3d0/devfreq unlock
-    tweak 1 /sys/class/kgsl/kgsl-3d0/bus_split
-    tweak 0 /sys/class/kgsl/kgsl-3d0/force_clk_on
+    devfreq_unlock /sys/class/kgsl/kgsl-3d0/devfreq &
+    tweak 1 /sys/class/kgsl/kgsl-3d0/bus_split &
+    tweak 0 /sys/class/kgsl/kgsl-3d0/force_clk_on &
+    wait
 }
 
 exynos_normal() {
     (
-        gpu_path="/sys/kernel/gpu"
+        local gpu_path="/sys/kernel/gpu"
         if [ -d "$gpu_path" ]; then
-            max_freq=$(get_freq max "$gpu_path/gpu_available_frequencies")
-            min_freq=$(get_freq min "$gpu_path/available_frequencies")
+            local max_freq=$(which_maxfreq "$gpu_path/gpu_available_frequencies")
+            local min_freq=$(which_minfreq "$gpu_path/available_frequencies")
             kakangkuh "$max_freq" "$gpu_path/gpu_max_clock"
             kakangkuh "$min_freq" "$gpu_path/gpu_min_clock"
         fi
-        mali_sysfs=$(find /sys/devices/platform/ -iname "*.mali" -print -quit 2>/dev/null)
+        local mali_sysfs=$(find /sys/devices/platform/ -iname "*.mali" -print -quit 2>/dev/null)
         tweak coarse_demand "$mali_sysfs/power_policy"
     ) &
 
     if [ "$DEVICE_MITIGATION" -eq 0 ]; then
         for path in /sys/class/devfreq/*devfreq_mif*; do
-            set_devfreq "$path" unlock
-        done &
+            devfreq_unlock "$path" &
+        done
+        wait
     fi
     wait
 }
 
 unisoc_normal() {
-    gpu_path=$(find /sys/class/devfreq/ -type d -iname "*.gpu" -print -quit 2>/dev/null)
-    [ -n "$gpu_path" ] && set_devfreq "$gpu_path" unlock
+    local gpu_path=$(find /sys/class/devfreq/ -type d -iname "*.gpu" -print -quit 2>/dev/null)
+    [ -n "$gpu_path" ] && devfreq_unlock "$gpu_path"
 }
 
 tensor_normal() {
-    gpu_path=$(find /sys/devices/platform/ -type d -iname "*.mali" -print -quit 2>/dev/null)
+    local gpu_path=$(find /sys/devices/platform/ -type d -iname "*.mali" -print -quit 2>/dev/null)
     [ -n "$gpu_path" ] && {
-        max_freq=$(get_freq max "$gpu_path/available_frequencies")
-        min_freq=$(get_freq min "$gpu_path/available_frequencies")
+        local max_freq=$(which_maxfreq "$gpu_path/available_frequencies")
+        local min_freq=$(which_minfreq "$gpu_path/available_frequencies")
         kakangkuh "$max_freq" "$gpu_path/scaling_max_freq"
         kakangkuh "$min_freq" "$gpu_path/scaling_min_freq"
     } &
 
     if [ "$DEVICE_MITIGATION" -eq 0 ]; then
         for path in /sys/class/devfreq/*devfreq_mif*; do
-            set_devfreq "$path" unlock
-        done &
+            devfreq_unlock "$path" &
+        done
+        wait
     fi
     wait
 }
 
 tegra_normal() {
-    gpu_path="/sys/kernel/tegra_gpu"
+    local gpu_path="/sys/kernel/tegra_gpu"
     [ -d "$gpu_path" ] && {
-        max_freq=$(get_freq max "$gpu_path/available_frequencies")
-        min_freq=$(get_freq min "$gpu_path/available_frequencies")
+        local max_freq=$(which_maxfreq "$gpu_path/available_frequencies")
+        local min_freq=$(which_minfreq "$gpu_path/available_frequencies")
         kakangkuh "$max_freq" "$gpu_path/gpu_cap_rate"
         kakangkuh "$min_freq" "$gpu_path/gpu_floor_rate"
     }
@@ -658,45 +697,45 @@ tegra_normal() {
 mediatek_powersave() {
     tweak 1 /proc/cpufreq/cpufreq_power_mode
     if [ -d /proc/gpufreqv2 ]; then
-        min_gpufreq_index=$(mtk_gpufreq_index min /proc/gpufreqv2/gpu_working_opp_table)
+        local min_gpufreq_index=$(mtk_gpufreq_minfreq_index /proc/gpufreqv2/gpu_working_opp_table)
         tweak "$min_gpufreq_index" /proc/gpufreqv2/fix_target_opp_index
     else
-        gpu_freq=$(sed -n 's/.*freq = \([0-9]\{1,\}\).*/\1/p' /proc/gpufreq/gpufreq_opp_dump | tail -n 1)
+        local gpu_freq=$(sed -n 's/.*freq = \([0-9]\{1,\}\).*/\1/p' /proc/gpufreq/gpufreq_opp_dump | tail -n 1)
         tweak "$gpu_freq" /proc/gpufreq/gpufreq_opp_freq
     fi
 }
 
 snapdragon_powersave() {
-    set_devfreq /sys/class/kgsl/kgsl-3d0/devfreq min
+    devfreq_min_perf /sys/class/kgsl/kgsl-3d0/devfreq
 }
 
 exynos_powersave() {
-    gpu_path="/sys/kernel/gpu"
+    local gpu_path="/sys/kernel/gpu"
     [ -d "$gpu_path" ] && {
-        freq=$(get_freq min "$gpu_path/gpu_available_frequencies")
+        local freq=$(which_minfreq "$gpu_path/gpu_available_frequencies")
         tweak "$freq" "$gpu_path/gpu_min_clock"
         tweak "$freq" "$gpu_path/gpu_max_clock"
     }
 }
 
 unisoc_powersave() {
-    gpu_path=$(find /sys/class/devfreq/ -type d -iname "*.gpu" -print -quit 2>/dev/null)
-    [ -n "$gpu_path" ] && set_devfreq "$gpu_path" min
+    local gpu_path=$(find /sys/class/devfreq/ -type d -iname "*.gpu" -print -quit 2>/dev/null)
+    [ -n "$gpu_path" ] && devfreq_min_perf "$gpu_path"
 }
 
 tensor_powersave() {
-    gpu_path=$(find /sys/devices/platform/ -type d -iname "*.mali" -print -quit 2>/dev/null)
+    local gpu_path=$(find /sys/devices/platform/ -type d -iname "*.mali" -print -quit 2>/dev/null)
     [ -n "$gpu_path" ] && {
-        freq=$(get_freq min "$gpu_path/available_frequencies")
+        local freq=$(which_minfreq "$gpu_path/available_frequencies")
         tweak "$freq" "$gpu_path/scaling_min_freq"
         tweak "$freq" "$gpu_path/scaling_max_freq"
     }
 }
 
 tegra_powersave() {
-    gpu_path="/sys/kernel/tegra_gpu"
+    local gpu_path="/sys/kernel/tegra_gpu"
     [ -d "$gpu_path" ] && {
-        freq=$(get_freq min "$gpu_path/available_frequencies")
+        local freq=$(which_minfreq "$gpu_path/available_frequencies")
         tweak "$freq" "$gpu_path/gpu_floor_rate"
         tweak "$freq" "$gpu_path/gpu_cap_rate"
     }
@@ -708,7 +747,7 @@ tegra_powersave() {
 performance_basic() {
     sync
     
-    # Combined Sysfs Tweaks to reduce subshells
+    # Combined Sysfs Tweaks
     (
         for dir in /sys/block/*; do
             tweak 0 "$dir/queue/iostats"
@@ -776,10 +815,14 @@ performance_basic() {
         fi
 
         for path in /sys/class/devfreq/*.ufshc /sys/class/devfreq/mmc*; do
-            if [ "$LITE_MODE" -eq 1 ]; then
-                set_devfreq "$path" mid
-            else
-                set_devfreq "$path" max
+            if [ -d "$path" ]; then
+                (
+                    if [ "$LITE_MODE" -eq 1 ]; then
+                        devfreq_mid_perf "$path"
+                    else
+                        devfreq_max_perf "$path"
+                    fi
+                ) &
             fi
         done
 
@@ -789,16 +832,19 @@ performance_basic() {
         done
     ) &
 
-    # CPU Freq (Concurrent)
-    (
+    # CPU Freq (Updated for Raco 3.0 Logic)
+    {
         if [ "$LITE_MODE" -eq 0 ] && [ "$DEVICE_MITIGATION" -eq 0 ]; then
             change_cpu_gov "performance"
         else
             change_cpu_gov "$DEFAULT_CPU_GOV"
         fi
         
-        cpufreq_apply_perf
-    ) &
+        if [ -d "/proc/ppm" ]; then
+            cpufreq_ppm_max_perf
+        fi
+        cpufreq_max_perf
+    } &
     
     wait 
 
@@ -829,7 +875,8 @@ performance_basic() {
 ##########################################
 balanced_basic() {
     sync
-    performance_basic # Dirty Fix to fix Locked GPU
+    performance_basic 
+    # Workaround from Raco 3.0 to fix locked GPU Freq
     wait
 
     (
@@ -864,14 +911,19 @@ balanced_basic() {
         fi
 
         for path in /sys/class/devfreq/*.ufshc /sys/class/devfreq/mmc*; do
-            set_devfreq "$path" unlock
+             devfreq_unlock "$path" &
         done
     ) &
 
-    (
+    # CPU Freq (Updated for Raco 3.0 Logic)
+    {
         change_cpu_gov "$DEFAULT_CPU_GOV"
-        cpufreq_apply_unlock
-    ) &
+        if [ -d "/proc/ppm" ]; then
+            cpufreq_ppm_unlock
+        fi
+        
+        cpufreq_unlock
+    } &
     
     wait 
 
@@ -935,14 +987,18 @@ powersave_basic() {
         fi
         
         for path in /sys/class/devfreq/*.ufshc /sys/class/devfreq/mmc*; do
-            set_devfreq "$path" min
+            devfreq_min_perf "$path" &
         done
     ) &
 
-    (
+    # CPU Freq (Updated for Raco 3.0 Logic)
+    {
         change_cpu_gov "powersave"
-        cpufreq_apply_powersave
-    ) &
+        if [ -d "/proc/ppm" ]; then
+            cpufreq_ppm_min_perf
+        fi
+        cpufreq_min_perf
+    } &
 
     wait
 
