@@ -163,7 +163,7 @@ get_freq() {
     [ ! -f "$file" ] && return
     
     case "$mode" in
-        max) tr ' ' '\n' <"$file" | sort -nr | head -n 1 ;;
+        max) tr ' ' '\n' <"$file" | grep -v '^[[:space:]]*$' | sort -nr | head -n 1 ;;
         min) tr ' ' '\n' <"$file" | grep -v '^[[:space:]]*$' | sort -n | head -n 1 ;;
         mid)
             local list=$(tr ' ' '\n' <"$file" | grep -v '^[[:space:]]*$' | sort -nr)
@@ -272,7 +272,10 @@ cpufreq_apply_perf() {
     local cluster=0
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
         [ ! -d "$path" ] && continue
-        local max=$(<"$path/cpuinfo_max_freq")
+        
+        local max=$(get_freq max "$path/scaling_available_frequencies")
+        [ -z "$max" ] && max=$(<"$path/cpuinfo_max_freq")
+        
         local mid=$(get_freq mid "$path/scaling_available_frequencies")
         
         # 1. Set PPM Limits
@@ -300,8 +303,12 @@ cpufreq_apply_unlock() {
     local cluster=0
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
         [ ! -d "$path" ] && continue
-        local max=$(<"$path/cpuinfo_max_freq")
-        local min=$(<"$path/cpuinfo_min_freq")
+        
+        local max=$(get_freq max "$path/scaling_available_frequencies")
+        [ -z "$max" ] && max=$(<"$path/cpuinfo_max_freq")
+        
+        local min=$(get_freq min "$path/scaling_available_frequencies")
+        [ -z "$min" ] && min=$(<"$path/cpuinfo_min_freq")
         
         # PPM
         kakangkuh "$cluster $max" /proc/ppm/policy/hard_userlimit_max_cpu_freq
@@ -319,7 +326,10 @@ cpufreq_apply_powersave() {
     local cluster=0
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
         [ ! -d "$path" ] && continue
-        local min=$(<"$path/cpuinfo_min_freq")
+        
+        local min=$(get_freq min "$path/scaling_available_frequencies")
+        [ -z "$min" ] && min=$(<"$path/cpuinfo_min_freq")
+        
         local mid=$(get_freq mid "$path/scaling_available_frequencies")
         
         # PPM

@@ -789,15 +789,6 @@ class _ResolutionCardState extends State<ResolutionCard>
     _currentValue = (_percentages.length - 1).toDouble();
   }
 
-  @override
-  void dispose() {
-    if (widget.isAvailable &&
-        _currentValue != (_percentages.length - 1).toDouble()) {
-      _resetResolution(showSnackbar: false);
-    }
-    super.dispose();
-  }
-
   String _getCurrentPercentageLabel() {
     int idx = _currentValue.round().clamp(0, _percentages.length - 1);
     return '${_percentages[idx]}%';
