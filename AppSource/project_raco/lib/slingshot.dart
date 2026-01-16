@@ -34,7 +34,6 @@ class SlingshotPage extends StatefulWidget {
 }
 
 class _SlingshotPageState extends State<SlingshotPage> {
-  // Kasane Settings
   String _selectedMode = 'n';
   final Map<String, String> _modes = {
     'n': 'Normal (fadvise hint)',
@@ -43,18 +42,15 @@ class _SlingshotPageState extends State<SlingshotPage> {
     'r': 'Recursive (looped deep check)',
   };
 
-  // ANGLE Settings
   bool _isAngleSupported = false;
   bool _useAngle = false;
 
-  // App List Cache & State
   List<AppItem> _installedApps = [];
   String? _selectedAppPackage;
   bool _isLoadingApps = true;
   String _searchQuery = "";
   final TextEditingController _searchController = TextEditingController();
 
-  // Persistence keys
   static const String _prefsKeyApps = 'preload_cached_apps';
   static const String _prefsKeySelected = 'preload_selected_single_app';
   static const String _prefsKeyUseAngle = 'preload_use_angle';
@@ -62,8 +58,23 @@ class _SlingshotPageState extends State<SlingshotPage> {
   @override
   void initState() {
     super.initState();
+    _cleanupAngleSettings();
     _checkAngleSupport();
     _initData();
+  }
+
+  Future<void> _cleanupAngleSettings() async {
+    try {
+      await Process.run('su', [
+        '-c',
+        'settings delete global angle_debug_package; '
+            'settings delete global angle_gl_driver_all_angle; '
+            'settings delete global angle_gl_driver_selection_pkgs; '
+            'settings delete global angle_gl_driver_selection_values',
+      ]);
+    } catch (e) {
+      debugPrint("Angle cleanup error: $e");
+    }
   }
 
   Future<void> _checkAngleSupport() async {
@@ -92,8 +103,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
     _searchController.dispose();
     super.dispose();
   }
-
-  // --- Persistence Logic ---
 
   Future<void> _loadFromCache() async {
     try {
@@ -158,8 +167,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
       debugPrint("Selection save error: $e");
     }
   }
-
-  // --- Core Logic ---
 
   Future<void> _fetchInstalledApps({bool forceRefresh = false}) async {
     if (_installedApps.isEmpty && mounted) {
@@ -244,7 +251,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
       SnackBar(content: Text("Slingshoting $_selectedAppPackage...")),
     );
 
-    // Apply ANGLE settings if enabled and supported
     if (_useAngle && _isAngleSupported) {
       await Process.run('su', [
         '-c',
@@ -252,7 +258,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
       ]);
     }
 
-    // Run Kasane binary
     await Process.run('su', [
       '-c',
       '/data/adb/modules/ProjectRaco/Binaries/kasane -a $_selectedAppPackage -m $_selectedMode -l',
@@ -301,14 +306,12 @@ class _SlingshotPageState extends State<SlingshotPage> {
           onRefresh: () async {
             await _fetchInstalledApps(forceRefresh: true);
           },
-          // Using CustomScrollView to allow the whole page to scroll
           child: CustomScrollView(
             slivers: [
               SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. Info Card
                     Card(
                       elevation: 0,
                       color: Colors.black.withValues(alpha: 0.3),
@@ -327,7 +330,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
                     ),
                     const SizedBox(height: 20),
 
-                    // 2. Preload Mode
                     Text(
                       localization.preload_mode,
                       style: textTheme.bodySmall?.copyWith(
@@ -368,7 +370,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
 
                     const SizedBox(height: 10),
 
-                    // 3. ANGLE Toggle
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(
@@ -396,7 +397,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
 
                     const SizedBox(height: 10),
 
-                    // 4. Search Bar
                     Row(
                       children: [
                         Expanded(
@@ -455,7 +455,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
                 ),
               ),
 
-              // 5. App List Logic within Slivers
               if (_isLoadingApps && _installedApps.isEmpty)
                 const SliverFillRemaining(
                   child: Center(child: CircularProgressIndicator()),
@@ -476,7 +475,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
                     final pkg = app.packageName;
                     final isSelected = _selectedAppPackage == pkg;
 
-                    // Apply padding to create separation between items
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8.0),
                       child: GestureDetector(
@@ -503,7 +501,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
                           ),
                           child: Row(
                             children: [
-                              // Icon
                               Container(
                                 width: 48,
                                 height: 48,
@@ -523,7 +520,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
                               ),
                               const SizedBox(width: 16),
 
-                              // Texts
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -557,7 +553,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
                                 ),
                               ),
 
-                              // Selection Indicator
                               if (isSelected)
                                 Padding(
                                   padding: const EdgeInsets.only(left: 8.0),
@@ -573,7 +568,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
                     );
                   }, childCount: filteredApps.length),
                 ),
-              // Extra padding at the bottom for FAB
               const SliverToBoxAdapter(child: SizedBox(height: 80)),
             ],
           ),
