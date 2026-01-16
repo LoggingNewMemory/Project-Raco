@@ -166,9 +166,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sync_changes => 'Sincronizar cambios';
 
   @override
-  String get save_button => 'Guardar';
-
-  @override
   String get executing_command => 'Ejecutando...';
 
   @override

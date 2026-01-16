@@ -166,9 +166,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sync_changes => 'Синхронизовать изменения';
 
   @override
-  String get save_button => 'Сохранить';
-
-  @override
   String get executing_command => 'Выполнение...';
 
   @override

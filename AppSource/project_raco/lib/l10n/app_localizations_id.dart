@@ -166,9 +166,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get sync_changes => 'Sinkronkan Perubahan';
 
   @override
-  String get save_button => 'Simpan';
-
-  @override
   String get executing_command => 'Menjalankan...';
 
   @override

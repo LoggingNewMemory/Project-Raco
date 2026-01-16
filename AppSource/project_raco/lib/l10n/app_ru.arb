@@ -56,7 +56,6 @@
     "hamada_ai_start_on_boot": "Запускать при загрузке устройтсва",
     "edit_game_txt_title": "Изменить game.txt",
     "sync_changes": "Синхронизовать изменения",
-    "save_button": "Сохранить",
     "executing_command": "Выполнение...",
     "command_executed": "Команда выполнена Успешно.",
     "command_failed": "Ошибка.",

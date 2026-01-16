@@ -398,12 +398,6 @@ abstract class AppLocalizations {
   /// **'Sync Changes'**
   String get sync_changes;
 
-  /// No description provided for @save_button.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get save_button;
-
   /// No description provided for @executing_command.
   ///
   /// In en, this message translates to:

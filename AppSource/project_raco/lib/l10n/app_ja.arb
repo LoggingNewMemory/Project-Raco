@@ -56,7 +56,6 @@
     "hamada_ai_start_on_boot": "起動時に開始",
     "edit_game_txt_title": "game.txt を編集",
     "sync_changes": "変更を同期",
-    "save_button": "保存",
     "executing_command": "実行中...",
     "command_executed": "コマンドが実行されました。",
     "command_failed": "コマンドが失敗しました。",

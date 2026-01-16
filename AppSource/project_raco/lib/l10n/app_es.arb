@@ -56,7 +56,6 @@
     "hamada_ai_start_on_boot": "Iniciar al arrancar",
     "edit_game_txt_title": "Editar game.txt",
     "sync_changes": "Sincronizar cambios",
-    "save_button": "Guardar",
     "executing_command": "Ejecutando...",
     "command_executed": "Comando ejecutado.",
     "command_failed": "Comando fallido.",

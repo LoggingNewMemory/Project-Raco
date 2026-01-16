@@ -56,7 +56,6 @@
     "hamada_ai_start_on_boot": "Mulai saat Boot",
     "edit_game_txt_title": "Edit game.txt",
     "sync_changes": "Sinkronkan Perubahan",
-    "save_button": "Simpan",
     "executing_command": "Menjalankan...",
     "command_executed": "Perintah dijalankan.",
     "command_failed": "Perintah gagal.",

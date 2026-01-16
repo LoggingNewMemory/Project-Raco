@@ -639,13 +639,7 @@ class _SandevistanDurationCardState extends State<SandevistanDurationCard>
         );
       }
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.command_executed),
-          ),
-        );
-      }
+      // Removed snackbar here
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(

@@ -158,9 +158,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sync_changes => '変更を同期';
 
   @override
-  String get save_button => '保存';
-
-  @override
   String get executing_command => '実行中...';
 
   @override
