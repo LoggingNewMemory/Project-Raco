@@ -86,20 +86,37 @@ class _SystemPageState extends State<SystemPage> {
     ]);
     final sr = results[0];
     final dr = results[1];
+
+    // Check basic availability based on Physical size/density presence
     bool available =
         sr.exitCode == 0 &&
         sr.stdout.toString().contains('Physical size:') &&
         dr.exitCode == 0 &&
         (dr.stdout.toString().contains('Physical density:') ||
             dr.stdout.toString().contains('Override density:'));
+
     String originalSize = '';
+    String currentSize = '';
     int originalDensity = 0;
+
     if (available) {
+      final srOutput = sr.stdout.toString();
+
+      // Parse Physical Size (Original)
       originalSize =
           RegExp(
             r'Physical size:\s*([0-9]+x[0-9]+)',
-          ).firstMatch(sr.stdout.toString())?.group(1) ??
+          ).firstMatch(srOutput)?.group(1) ??
           '';
+
+      // Parse Override Size (Current - if modified)
+      final overrideMatch = RegExp(
+        r'Override size:\s*([0-9]+x[0-9]+)',
+      ).firstMatch(srOutput);
+
+      // If override exists, that is the current size. Otherwise, current is original.
+      currentSize = overrideMatch?.group(1) ?? originalSize;
+
       originalDensity =
           int.tryParse(
             RegExp(
@@ -108,11 +125,14 @@ class _SystemPageState extends State<SystemPage> {
                 '',
           ) ??
           0;
+
       if (originalSize.isEmpty || originalDensity == 0) available = false;
     }
+
     return {
       'isAvailable': available,
       'originalSize': originalSize,
+      'currentSize': currentSize,
       'originalDensity': originalDensity,
     };
   }
@@ -245,8 +265,6 @@ class _SystemPageState extends State<SystemPage> {
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(8, 8, 8, 32),
-        // Add cacheExtent to keep items alive just outside the viewport,
-        // though AutomaticKeepAliveClientMixin is the primary fix.
         cacheExtent: 1000,
         children: [
           DndCard(initialDndEnabled: _dndEnabled ?? false),
@@ -265,6 +283,7 @@ class _SystemPageState extends State<SystemPage> {
           ResolutionCard(
             isAvailable: _resolutionState?['isAvailable'] ?? false,
             originalSize: _resolutionState?['originalSize'] ?? '',
+            currentSize: _resolutionState?['currentSize'] ?? '',
             originalDensity: _resolutionState?['originalDensity'] ?? 0,
           ),
           ScreenModifierCard(
@@ -763,11 +782,13 @@ class _GraphicsDriverCardState extends State<GraphicsDriverCard>
 class ResolutionCard extends StatefulWidget {
   final bool isAvailable;
   final String originalSize;
+  final String currentSize;
   final int originalDensity;
   const ResolutionCard({
     Key? key,
     required this.isAvailable,
     required this.originalSize,
+    required this.currentSize,
     required this.originalDensity,
   }) : super(key: key);
   @override
@@ -786,7 +807,38 @@ class _ResolutionCardState extends State<ResolutionCard>
   @override
   void initState() {
     super.initState();
-    _currentValue = (_percentages.length - 1).toDouble();
+    _calculateInitialValue();
+  }
+
+  void _calculateInitialValue() {
+    // Default to max if data invalid
+    if (!widget.isAvailable ||
+        widget.originalSize.isEmpty ||
+        widget.currentSize.isEmpty) {
+      _currentValue = (_percentages.length - 1).toDouble();
+      return;
+    }
+
+    try {
+      // Parse width from strings "WxH"
+      final originalWidth = int.parse(widget.originalSize.split('x')[0]);
+      final currentWidth = int.parse(widget.currentSize.split('x')[0]);
+
+      // Calculate current percentage
+      final currentPct = ((currentWidth / originalWidth) * 100).round();
+
+      // Find the closest supported percentage in our list
+      final closestPct = _percentages.reduce((a, b) {
+        return (a - currentPct).abs() < (b - currentPct).abs() ? a : b;
+      });
+
+      final index = _percentages.indexOf(closestPct);
+      _currentValue = index >= 0
+          ? index.toDouble()
+          : (_percentages.length - 1).toDouble();
+    } catch (e) {
+      _currentValue = (_percentages.length - 1).toDouble();
+    }
   }
 
   String _getCurrentPercentageLabel() {
