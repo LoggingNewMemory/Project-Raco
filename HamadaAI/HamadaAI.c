@@ -44,26 +44,24 @@ void execute_cmd(const char *cmd, char *buffer, size_t size) {
 }
 
 // Helper function to read integer config values from raco.txt
-// Returns default_val if key not found or file error
-int get_config_int(const char *key, int default_val) {
+// Updates the target integer only if the key is found
+void get_config_int(const char *key, int *target) {
     FILE *fp = fopen(CONFIG_FILE, "r");
-    if (!fp) return default_val;
+    if (!fp) return;
 
     char line[256];
-    int value = default_val;
     size_t key_len = strlen(key);
 
     while (fgets(line, sizeof(line), fp)) {
         // Look for lines starting with key
         if (strncmp(line, key, key_len) == 0 && line[key_len] == '=') {
             // Parse the integer after the '='
-            value = atoi(line + key_len + 1);
+            *target = atoi(line + key_len + 1);
             break; 
         }
     }
 
     fclose(fp);
-    return value;
 }
 
 int main(void) {
@@ -78,12 +76,17 @@ int main(void) {
     int delay_seconds = 5;
     char buffer[BUFFER_SIZE]; 
 
+    // Initialize config variables once
+    int conf_enable_powersave = 1;
+    int conf_loop_normal = 5;
+    int conf_loop_off = 7;
+
     while (1) {
         // --- 0. Read Config ---
         // Read configuration dynamically to allow live updates
-        int conf_enable_powersave = get_config_int("HAMADA_ENABLE_POWERSAVE", 1);
-        int conf_loop_normal = get_config_int("HAMADA_LOOP", 5);
-        int conf_loop_off = get_config_int("HAMADA_LOOP_OFF", 7);
+        get_config_int("HAMADA_ENABLE_POWERSAVE", &conf_enable_powersave);
+        get_config_int("HAMADA_LOOP", &conf_loop_normal);
+        get_config_int("HAMADA_LOOP_OFF", &conf_loop_off);
 
         // --- 1. Screen State Detection ---
         bool current_screen_on = false;
@@ -120,8 +123,7 @@ int main(void) {
                 target_mode_arg = MODE_POWERSAVE;
                 target_mode_name = "Powersave";
             } else {
-                // If powersave is disabled on screen off, treat as Normal (or maintain current if game was running? 
-                // usually 'Normal' is safer to ensure we don't get stuck in high perf mode if screen goes off)
+                // If powersave is disabled on screen off, treat as Normal
                 target_state = EXEC_NORMAL;
                 target_mode_arg = MODE_NORMAL;
                 target_mode_name = "Normal (Powersave Disabled)";
