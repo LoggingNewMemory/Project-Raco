@@ -97,7 +97,6 @@ corin_perf() {
     cmd power set-adaptive-power-saver-enabled false
     cmd power set-fixed-performance-mode-enabled true
     cmd looper_stats disable
-    settings put global low_power 0
 
     # Merged STAR Logic
     star_battery_restore &
@@ -123,7 +122,6 @@ corin_balanced() {
     cmd power set-adaptive-power-saver-enabled false
     cmd power set-fixed-performance-mode-enabled false
     cmd looper_stats enable
-    settings put global low_power 0
 
     # Merged STAR Logic
     star_battery_restore &
@@ -149,7 +147,6 @@ corin_powersave() {
     cmd power set-adaptive-power-saver-enabled true
     cmd power set-fixed-performance-mode-enabled false
     cmd looper_stats enable
-    settings put global low_power 1
 
     # Merged STAR Logic
     star_battery_saver &
