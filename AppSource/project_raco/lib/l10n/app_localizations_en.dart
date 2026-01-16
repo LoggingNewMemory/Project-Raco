@@ -445,4 +445,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sandevistan_duration_hint => 'Enter duration in seconds';
+
+  @override
+  String get sandev_egg_useless =>
+      'NAH MAN! IT\'S USELESS! JUST DISABLE IT DAWG';
+
+  @override
+  String get sandev_egg_original =>
+      'Bro is original, either have no idea or too scared to modify';
+
+  @override
+  String get sandev_egg_better =>
+      'Alright Choom that\'s better, go more higher if you want';
+
+  @override
+  String get sandev_egg_david =>
+      'What dawg? Try to be David Martinez? Ain\'t gonna work';
+
+  @override
+  String get sandev_egg_smasher =>
+      'NAH BRO GONNA SOLO ADAM SMASHER AT THIS POINT!';
 }

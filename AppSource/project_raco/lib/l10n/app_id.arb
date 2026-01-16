@@ -156,5 +156,10 @@
     "toast_description": "Gunakan toast daripada notifikasi (Disarankan jika menggunakan HamadaAI)",
     "sandevistan_duration_title": "Durasi Sandevistan",
     "sandevistan_duration_description": "Ubah Durasi Sandevistan (Detik)",
-    "sandevistan_duration_hint": "Masukkan durasi dalam detik"
+    "sandevistan_duration_hint": "Masukkan durasi dalam detik",
+    "sandev_egg_useless": "GAK GUNA BRO! MATIIN AJA UDAH",
+    "sandev_egg_original": "Bro original banget, entah gak tau atau takut ubah",
+    "sandev_egg_better": "Nah gitu dong Choom, lebih tinggi lagi kalo berani",
+    "sandev_egg_david": "Apaan bro? Mau jadi David Martinez? Gak bakal bisa",
+    "sandev_egg_smasher": "ANJIR BRO MAU SOLO ADAM SMASHER INI MAH!"
 }

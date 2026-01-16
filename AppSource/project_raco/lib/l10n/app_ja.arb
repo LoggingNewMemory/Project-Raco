@@ -156,5 +156,10 @@
     "toast_description": "通知の代わりにトーストを使用 (HamadaAIを使用している場合に推奨)",
     "sandevistan_duration_title": "サンデヴィスタン持続時間",
     "sandevistan_duration_description": "サンデヴィスタンの持続時間を変更 (秒)",
-    "sandevistan_duration_hint": "秒数を入力してください"
+    "sandevistan_duration_hint": "秒数を入力してください",
+    "sandev_egg_useless": "おいおい！意味ないぜ！無効にしな！",
+    "sandev_egg_original": "オリジナル重視か？何も知らないか、変えるのが怖いのか？",
+    "sandev_egg_better": "いいぜチューム、もっと上げてもいいんだぜ",
+    "sandev_egg_david": "なんだ？デイビッド・マルティネスにでもなるつもりか？無理だぜ",
+    "sandev_egg_smasher": "おいおい、アダム・スマッシャーをソロで倒す気かよ！"
 }

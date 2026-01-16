@@ -451,4 +451,24 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get sandevistan_duration_hint => 'Введите длительность в секундах';
+
+  @override
+  String get sandev_egg_useless =>
+      'НЕ ЧУВАК! ЭТО БЕСПОЛЕЗНО! ПРОСТО ВЫРУБИ ЭТО!';
+
+  @override
+  String get sandev_egg_original =>
+      'Бро оригинален, либо понятия не имеет, либо боится менять';
+
+  @override
+  String get sandev_egg_better =>
+      'Во, так-то лучше Чумба, давай выше если хочешь';
+
+  @override
+  String get sandev_egg_david =>
+      'Чего? Пытаешься быть Дэвидом Мартинесом? Не прокатит';
+
+  @override
+  String get sandev_egg_smasher =>
+      'НЕ НУ ТЫ РЕШИЛ В СОЛО АДАМА СМЭШЕРА ВЫНЕСТИ!';
 }

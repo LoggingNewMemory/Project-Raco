@@ -447,4 +447,22 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get sandevistan_duration_hint => 'Masukkan durasi dalam detik';
+
+  @override
+  String get sandev_egg_useless => 'GAK GUNA BRO! MATIIN AJA UDAH';
+
+  @override
+  String get sandev_egg_original =>
+      'Bro original banget, entah gak tau atau takut ubah';
+
+  @override
+  String get sandev_egg_better =>
+      'Nah gitu dong Choom, lebih tinggi lagi kalo berani';
+
+  @override
+  String get sandev_egg_david =>
+      'Apaan bro? Mau jadi David Martinez? Gak bakal bisa';
+
+  @override
+  String get sandev_egg_smasher => 'ANJIR BRO MAU SOLO ADAM SMASHER INI MAH!';
 }

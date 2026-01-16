@@ -156,5 +156,10 @@
     "toast_description": "Использовать toast вместо уведомлений (Рекомендуется при использовании HamadaAI)",
     "sandevistan_duration_title": "Длительность Sandevistan",
     "sandevistan_duration_description": "Изменить длительность Sandevistan (Секунды)",
-    "sandevistan_duration_hint": "Введите длительность в секундах"
+    "sandevistan_duration_hint": "Введите длительность в секундах",
+    "sandev_egg_useless": "НЕ ЧУВАК! ЭТО БЕСПОЛЕЗНО! ПРОСТО ВЫРУБИ ЭТО!",
+    "sandev_egg_original": "Бро оригинален, либо понятия не имеет, либо боится менять",
+    "sandev_egg_better": "Во, так-то лучше Чумба, давай выше если хочешь",
+    "sandev_egg_david": "Чего? Пытаешься быть Дэвидом Мартинесом? Не прокатит",
+    "sandev_egg_smasher": "НЕ НУ ТЫ РЕШИЛ В СОЛО АДАМА СМЭШЕРА ВЫНЕСТИ!"
 }

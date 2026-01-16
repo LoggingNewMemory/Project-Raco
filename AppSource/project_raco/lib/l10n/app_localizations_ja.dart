@@ -429,4 +429,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get sandevistan_duration_hint => '秒数を入力してください';
+
+  @override
+  String get sandev_egg_useless => 'おいおい！意味ないぜ！無効にしな！';
+
+  @override
+  String get sandev_egg_original => 'オリジナル重視か？何も知らないか、変えるのが怖いのか？';
+
+  @override
+  String get sandev_egg_better => 'いいぜチューム、もっと上げてもいいんだぜ';
+
+  @override
+  String get sandev_egg_david => 'なんだ？デイビッド・マルティネスにでもなるつもりか？無理だぜ';
+
+  @override
+  String get sandev_egg_smasher => 'おいおい、アダム・スマッシャーをソロで倒す気かよ！';
 }

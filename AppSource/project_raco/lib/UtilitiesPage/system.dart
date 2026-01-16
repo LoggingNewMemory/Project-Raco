@@ -593,6 +593,7 @@ class _SandevistanDurationCardState extends State<SandevistanDurationCard>
   late TextEditingController _controller;
   bool _isSaving = false;
   final String _configFilePath = '/data/ProjectRaco/raco.txt';
+  String _easterEggMessage = '';
 
   @override
   bool get wantKeepAlive => true;
@@ -603,12 +604,46 @@ class _SandevistanDurationCardState extends State<SandevistanDurationCard>
     _controller = TextEditingController(
       text: widget.initialDuration.toString(),
     );
+    _controller.addListener(_updateEasterEgg);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateEasterEgg();
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_updateEasterEgg);
     _controller.dispose();
     super.dispose();
+  }
+
+  void _updateEasterEgg() {
+    final text = _controller.text;
+    final value = int.tryParse(text);
+    if (value == null) {
+      if (mounted) setState(() => _easterEggMessage = '');
+      return;
+    }
+
+    final loc = AppLocalizations.of(context)!;
+    String message = '';
+
+    if (value < 10) {
+      message = loc.sandev_egg_useless;
+    } else if (value == 10) {
+      message = loc.sandev_egg_original;
+    } else if (value <= 30) {
+      message = loc.sandev_egg_better;
+    } else if (value <= 60) {
+      message = loc.sandev_egg_david;
+    } else {
+      message = loc.sandev_egg_smasher;
+    }
+
+    if (mounted) setState(() => _easterEggMessage = message);
   }
 
   Future<void> _saveDuration() async {
@@ -638,8 +673,6 @@ class _SandevistanDurationCardState extends State<SandevistanDurationCard>
           "echo 'SANDEV_DUR=$newDuration' >> $_configFilePath",
         );
       }
-
-      // Removed snackbar here
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -710,6 +743,18 @@ class _SandevistanDurationCardState extends State<SandevistanDurationCard>
                 ),
               ],
             ),
+            if (_easterEggMessage.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                _easterEggMessage,
+                style: textTheme.labelMedium?.copyWith(
+                  color: colorScheme.secondary,
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ],
         ),
       ),

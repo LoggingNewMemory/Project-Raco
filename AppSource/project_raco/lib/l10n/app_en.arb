@@ -156,5 +156,10 @@
     "toast_description": "Use toast instead of notification (Recommended if you use HamadaAI)",
     "sandevistan_duration_title": "Sandevistan Duration",
     "sandevistan_duration_description": "Modify the Sandevistan Duration (Seconds)",
-    "sandevistan_duration_hint": "Enter duration in seconds"
+    "sandevistan_duration_hint": "Enter duration in seconds",
+    "sandev_egg_useless": "NAH MAN! IT'S USELESS! JUST DISABLE IT DAWG",
+    "sandev_egg_original": "Bro is original, either have no idea or too scared to modify",
+    "sandev_egg_better": "Alright Choom that's better, go more higher if you want",
+    "sandev_egg_david": "What dawg? Try to be David Martinez? Ain't gonna work",
+    "sandev_egg_smasher": "NAH BRO GONNA SOLO ADAM SMASHER AT THIS POINT!"
 }

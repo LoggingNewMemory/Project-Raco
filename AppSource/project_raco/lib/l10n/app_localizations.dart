@@ -919,6 +919,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter duration in seconds'**
   String get sandevistan_duration_hint;
+
+  /// No description provided for @sandev_egg_useless.
+  ///
+  /// In en, this message translates to:
+  /// **'NAH MAN! IT\'S USELESS! JUST DISABLE IT DAWG'**
+  String get sandev_egg_useless;
+
+  /// No description provided for @sandev_egg_original.
+  ///
+  /// In en, this message translates to:
+  /// **'Bro is original, either have no idea or too scared to modify'**
+  String get sandev_egg_original;
+
+  /// No description provided for @sandev_egg_better.
+  ///
+  /// In en, this message translates to:
+  /// **'Alright Choom that\'s better, go more higher if you want'**
+  String get sandev_egg_better;
+
+  /// No description provided for @sandev_egg_david.
+  ///
+  /// In en, this message translates to:
+  /// **'What dawg? Try to be David Martinez? Ain\'t gonna work'**
+  String get sandev_egg_david;
+
+  /// No description provided for @sandev_egg_smasher.
+  ///
+  /// In en, this message translates to:
+  /// **'NAH BRO GONNA SOLO ADAM SMASHER AT THIS POINT!'**
+  String get sandev_egg_smasher;
 }
 
 class _AppLocalizationsDelegate

@@ -453,4 +453,22 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sandevistan_duration_hint => 'Ingrese la duración en segundos';
+
+  @override
+  String get sandev_egg_useless => '¡NAH TÍO! ¡ES INÚTIL! ¡MEJOR DESACTÍVALO!';
+
+  @override
+  String get sandev_egg_original =>
+      'Puro original, o no tienes idea o te da miedo modificarlo';
+
+  @override
+  String get sandev_egg_better => 'Así me gusta Choom, súbele más si quieres';
+
+  @override
+  String get sandev_egg_david =>
+      '¿Qué pasa? ¿Intentas ser David Martinez? No va a funcionar';
+
+  @override
+  String get sandev_egg_smasher =>
+      '¡NAH BRO, A ESTE PUNTO TE SOLEAS A ADAM SMASHER!';
 }
