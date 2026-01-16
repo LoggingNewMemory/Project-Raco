@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '/l10n/app_localizations.dart';
 import 'utils.dart';
 
@@ -36,7 +37,6 @@ class _AutomationPageState extends State<AutomationPage> {
       runRootCommandAndWait('pgrep -x HamadaAI'),
       runRootCommandAndWait('cat /data/adb/modules/ProjectRaco/service.sh'),
     ]);
-    // Check if the file content contains the specific binary path to determine if it's enabled on boot
     return {
       'enabled': results[0].exitCode == 0,
       'onBoot': results[1].stdout.toString().contains('Binaries/HamadaAI'),
@@ -129,15 +129,25 @@ class _HamadaAiCardState extends State<HamadaAiCard>
     with AutomaticKeepAliveClientMixin {
   late bool _hamadaAiEnabled;
   late bool _hamadaStartOnBoot;
+
+  // Config states
+  bool _powersaveScreenOff = true;
+  String _normalLoop = "5";
+  String _offLoop = "7";
+  bool _loadingConfig = true;
+
   bool _isTogglingProcess = false;
   bool _isTogglingBoot = false;
+  bool _isSavingConfig = false;
 
   final String _serviceFilePath = '/data/adb/modules/ProjectRaco/service.sh';
-
-  // Updated Binary Path
   final String _binaryPath = '/data/adb/modules/ProjectRaco/Binaries/HamadaAI';
+  final String _configPath = '/data/ProjectRaco/raco.txt';
 
   String get _hamadaStartCommand => 'nohup $_binaryPath > /dev/null 2>&1 &';
+
+  final TextEditingController _normalLoopCtrl = TextEditingController();
+  final TextEditingController _offLoopCtrl = TextEditingController();
 
   @override
   bool get wantKeepAlive => true;
@@ -147,6 +157,136 @@ class _HamadaAiCardState extends State<HamadaAiCard>
     super.initState();
     _hamadaAiEnabled = widget.initialHamadaAiEnabled;
     _hamadaStartOnBoot = widget.initialHamadaStartOnBoot;
+    _loadConfig();
+  }
+
+  @override
+  void dispose() {
+    _normalLoopCtrl.dispose();
+    _offLoopCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadConfig() async {
+    if (!await checkRootAccess()) {
+      setState(() => _loadingConfig = false);
+      return;
+    }
+
+    try {
+      final result = await runRootCommandAndWait('cat $_configPath');
+      if (result.exitCode == 0) {
+        final content = result.stdout.toString();
+        final lines = content.split('\n');
+
+        bool psEnabled = true; // Default 1
+        String loop = "5";
+        String loopOff = "7";
+
+        for (var line in lines) {
+          line = line.trim();
+          if (line.startsWith('HAMADA_ENABLE_POWERSAVE=')) {
+            psEnabled = line.split('=')[1].trim() == '1';
+          } else if (line.startsWith('HAMADA_LOOP=')) {
+            loop = line.split('=')[1].trim();
+          } else if (line.startsWith('HAMADA_LOOP_OFF=')) {
+            loopOff = line.split('=')[1].trim();
+          }
+        }
+
+        if (mounted) {
+          setState(() {
+            _powersaveScreenOff = psEnabled;
+            _normalLoop = loop;
+            _offLoop = loopOff;
+            _normalLoopCtrl.text = _normalLoop;
+            _offLoopCtrl.text = _offLoop;
+          });
+        }
+      }
+    } catch (e) {
+      // debugPrint('Error reading raco.txt: $e');
+    } finally {
+      if (mounted) setState(() => _loadingConfig = false);
+    }
+  }
+
+  Future<void> _saveConfig({
+    bool? powersave,
+    String? loop,
+    String? loopOff,
+  }) async {
+    if (!await checkRootAccess()) return;
+    if (mounted) setState(() => _isSavingConfig = true);
+
+    try {
+      // 1. Read existing
+      final readRes = await runRootCommandAndWait('cat $_configPath');
+      String content = "";
+      if (readRes.exitCode == 0) {
+        content = readRes.stdout.toString();
+      }
+
+      List<String> lines = content.split('\n');
+
+      // Update values
+      final newPs = powersave ?? _powersaveScreenOff;
+      final newLoop = loop ?? _normalLoopCtrl.text;
+      final newLoopOff = loopOff ?? _offLoopCtrl.text;
+
+      // Helper to update or append key
+      void updateKey(String key, String val) {
+        int idx = lines.indexWhere((l) => l.startsWith('$key='));
+        if (idx != -1) {
+          lines[idx] = '$key=$val';
+        } else {
+          // If [HamadaAI] section exists, append there, else append end
+          int secIdx = lines.indexWhere((l) => l.trim() == '[HamadaAI]');
+          if (secIdx != -1) {
+            lines.insert(secIdx + 1, '$key=$val');
+          } else {
+            lines.add('$key=$val');
+          }
+        }
+      }
+
+      // Ensure min value 2
+      String validate(String v) {
+        int? i = int.tryParse(v);
+        if (i == null || i < 2) return "2";
+        return v;
+      }
+
+      updateKey('HAMADA_ENABLE_POWERSAVE', newPs ? '1' : '0');
+      updateKey('HAMADA_LOOP', validate(newLoop));
+      updateKey('HAMADA_LOOP_OFF', validate(newLoopOff));
+
+      // Reconstruct
+      String newContent = lines.join('\n');
+
+      // Write back
+      String base64Content = base64Encode(utf8.encode(newContent));
+      await runRootCommandAndWait(
+        "echo '$base64Content' | base64 -d > $_configPath",
+      );
+
+      // Update local state
+      if (mounted) {
+        setState(() {
+          _powersaveScreenOff = newPs;
+          _normalLoop = validate(newLoop);
+          _offLoop = validate(newLoopOff);
+          // Sync text fields if validation changed values
+          if (_normalLoopCtrl.text != _normalLoop)
+            _normalLoopCtrl.text = _normalLoop;
+          if (_offLoopCtrl.text != _offLoop) _offLoopCtrl.text = _offLoop;
+        });
+      }
+    } catch (e) {
+      // Handle error
+    } finally {
+      if (mounted) setState(() => _isSavingConfig = false);
+    }
   }
 
   Future<Map<String, bool>> _fetchCurrentState() async {
@@ -178,7 +318,6 @@ class _HamadaAiCardState extends State<HamadaAiCard>
     if (mounted) setState(() => _isTogglingProcess = true);
     try {
       if (enable) {
-        // We wrap in su -c explicitly here for the runtime toggle
         await runRootCommandFireAndForget('su -c "$_hamadaStartCommand"');
         await Future.delayed(const Duration(milliseconds: 500));
       } else {
@@ -197,16 +336,13 @@ class _HamadaAiCardState extends State<HamadaAiCard>
       String content = (await runRootCommandAndWait(
         'cat $_serviceFilePath',
       )).stdout.toString();
-
       List<String> lines = content.replaceAll('\r\n', '\n').split('\n');
-
       lines.removeWhere((line) => line.contains(_binaryPath));
 
       if (enable) {
         int markerIndex = lines.indexWhere(
           (line) => line.trim() == '# HamadaAI',
         );
-
         if (markerIndex != -1) {
           lines.insert(markerIndex + 1, _hamadaStartCommand);
         } else {
@@ -216,24 +352,17 @@ class _HamadaAiCardState extends State<HamadaAiCard>
       }
 
       String newContent = lines.join('\n');
-      if (newContent.isNotEmpty && !newContent.endsWith('\n')) {
+      if (newContent.isNotEmpty && !newContent.endsWith('\n'))
         newContent += '\n';
-      }
 
       String base64Content = base64Encode(utf8.encode(newContent));
       final writeCmd =
           '''echo '$base64Content' | base64 -d > $_serviceFilePath''';
-      final result = await runRootCommandAndWait(writeCmd);
+      await runRootCommandAndWait(writeCmd);
 
-      if (result.exitCode == 0) {
-        if (mounted) setState(() => _hamadaStartOnBoot = enable);
-      } else {
-        throw Exception('Failed to write to service file');
-      }
+      if (mounted) setState(() => _hamadaStartOnBoot = enable);
     } catch (e) {
-      if (mounted) {
-        await _refreshState();
-      }
+      if (mounted) await _refreshState();
     } finally {
       if (mounted) setState(() => _isTogglingBoot = false);
     }
@@ -245,7 +374,11 @@ class _HamadaAiCardState extends State<HamadaAiCard>
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final isBusy = _isTogglingProcess || _isTogglingBoot;
+    final isBusy =
+        _isTogglingProcess ||
+        _isTogglingBoot ||
+        _isSavingConfig ||
+        _loadingConfig;
 
     return Card(
       elevation: 2.0,
@@ -297,6 +430,67 @@ class _HamadaAiCardState extends State<HamadaAiCard>
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
+            const Divider(),
+            // --- New Config Controls ---
+            SwitchListTile(
+              title: Text(localization.hamada_powersave_screen_off_title),
+              value: _powersaveScreenOff,
+              onChanged: isBusy ? null : (val) => _saveConfig(powersave: val),
+              secondary: const Icon(Icons.screen_lock_portrait_outlined),
+              activeColor: colorScheme.primary,
+              contentPadding: EdgeInsets.zero,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _normalLoopCtrl,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      labelText: localization.hamada_normal_interval_title,
+                      hintText: "Min 2",
+                      border: const OutlineInputBorder(),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                    ),
+                    onSubmitted: (val) => _saveConfig(loop: val),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _offLoopCtrl,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      labelText: localization.hamada_screen_off_interval_title,
+                      hintText: "Min 2",
+                      border: const OutlineInputBorder(),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                    ),
+                    onSubmitted: (val) => _saveConfig(loopOff: val),
+                  ),
+                ),
+              ],
+            ),
+            if (!_isSavingConfig)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  localization.hamada_interval_hint,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            if (_isSavingConfig) const LinearProgressIndicator(),
           ],
         ),
       ),
@@ -330,7 +524,6 @@ class _GameTxtEditorPageState extends State<GameTxtEditorPage> {
     super.dispose();
   }
 
-  /// Pops the navigator, returning the current text to the previous screen.
   void _saveAndExit() {
     Navigator.pop(context, _controller.text);
   }
@@ -353,8 +546,8 @@ class _GameTxtEditorPageState extends State<GameTxtEditorPage> {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
         child: TextField(
           controller: _controller,
-          maxLines: null, // Allows for unlimited lines
-          expands: true, // Expands to fill the available space
+          maxLines: null,
+          expands: true,
           keyboardType: TextInputType.multiline,
           autofocus: true,
           decoration: const InputDecoration(
@@ -383,11 +576,8 @@ class _GameTxtCardState extends State<GameTxtCard>
   @override
   bool get wantKeepAlive => true;
 
-  /// Reads the content of game.txt, navigates to the built-in editor,
-  /// and saves the content back if it was changed.
   Future<void> _editGameTxt() async {
     if (!await checkRootAccess()) {
-      // You can show a SnackBar here to inform the user about root access.
       return;
     }
     if (!mounted) return;
@@ -395,49 +585,39 @@ class _GameTxtCardState extends State<GameTxtCard>
 
     String originalContent = '';
     try {
-      // 1. Read the original file using a root command.
       final result = await runRootCommandAndWait('cat $_originalFilePath');
 
-      // If the file doesn't exist, we start with an empty string.
-      // Otherwise, we populate with the file's content.
       if (result.exitCode == 0) {
         originalContent = result.stdout.toString();
       } else if (!result.stderr.toString().contains(
         'No such file or directory',
       )) {
-        // If there's an error other than "file not found", throw it.
         throw Exception('Failed to read file: ${result.stderr}');
       }
 
       if (!mounted) return;
 
-      // 2. Navigate to the editor page and wait for it to be closed.
-      // The result will be the new text content, or null if nothing was returned.
       final newContent = await Navigator.push<String?>(
         context,
         MaterialPageRoute(
-          fullscreenDialog: true, // Presents as a modal page for better UX
+          fullscreenDialog: true,
           builder: (context) =>
               GameTxtEditorPage(initialContent: originalContent),
         ),
       );
 
-      // 3. If new content was returned and it's different from the original, save it.
       if (newContent != null && newContent != originalContent) {
         await _saveGameTxt(newContent);
-        // Optionally show a "Saved successfully" SnackBar here.
       }
     } catch (e) {
-      // Optionally show an error SnackBar here.
+      // Error handling
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
   }
 
-  /// Writes the given string content to the original game.txt file using root.
   Future<void> _saveGameTxt(String content) async {
     try {
-      // Use Base64 to safely handle special characters, newlines, and permissions.
       final base64Content = base64Encode(utf8.encode(content));
       final writeCmd = "echo '$base64Content' | base64 -d > $_originalFilePath";
       final result = await runRootCommandAndWait(writeCmd);
@@ -446,7 +626,6 @@ class _GameTxtCardState extends State<GameTxtCard>
         throw Exception('Failed to write to file: ${result.stderr}');
       }
     } catch (e) {
-      // Rethrow to be caught by the calling function's error handler.
       rethrow;
     }
   }

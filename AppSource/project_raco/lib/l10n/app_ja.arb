@@ -161,5 +161,9 @@
     "sandev_egg_original": "オリジナル重視か？何も知らないか、変えるのが怖いのか？",
     "sandev_egg_better": "いいぜチューム、もっと上げてもいいんだぜ",
     "sandev_egg_david": "なんだ？デイビッド・マルティネスにでもなるつもりか？無理だぜ",
-    "sandev_egg_smasher": "おいおい、アダム・スマッシャーをソロで倒す気かよ！"
+    "sandev_egg_smasher": "おいおい、アダム・スマッシャーをソロで倒す気かよ！",
+    "hamada_powersave_screen_off_title": "画面オフ時に省電力",
+    "hamada_normal_interval_title": "通常間隔",
+    "hamada_screen_off_interval_title": "画面オフ時の間隔",
+    "hamada_interval_hint": "秒数を入力 (最小 2)"
 }

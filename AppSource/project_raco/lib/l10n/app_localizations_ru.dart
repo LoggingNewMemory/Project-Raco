@@ -471,4 +471,17 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get sandev_egg_smasher =>
       'НЕ НУ ТЫ РЕШИЛ В СОЛО АДАМА СМЭШЕРА ВЫНЕСТИ!';
+
+  @override
+  String get hamada_powersave_screen_off_title =>
+      'Энергосбережение при выключенном экране';
+
+  @override
+  String get hamada_normal_interval_title => 'Обычный интервал';
+
+  @override
+  String get hamada_screen_off_interval_title => 'Интервал при выкл. экране';
+
+  @override
+  String get hamada_interval_hint => 'Введите секунды (мин 2)';
 }

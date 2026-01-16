@@ -949,6 +949,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'NAH BRO GONNA SOLO ADAM SMASHER AT THIS POINT!'**
   String get sandev_egg_smasher;
+
+  /// No description provided for @hamada_powersave_screen_off_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Powersave When Screen Off'**
+  String get hamada_powersave_screen_off_title;
+
+  /// No description provided for @hamada_normal_interval_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal Interval'**
+  String get hamada_normal_interval_title;
+
+  /// No description provided for @hamada_screen_off_interval_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen Off Interval'**
+  String get hamada_screen_off_interval_title;
+
+  /// No description provided for @hamada_interval_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter seconds (min 2)'**
+  String get hamada_interval_hint;
 }
 
 class _AppLocalizationsDelegate

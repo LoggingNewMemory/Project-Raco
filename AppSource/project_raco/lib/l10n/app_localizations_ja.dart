@@ -444,4 +444,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get sandev_egg_smasher => 'おいおい、アダム・スマッシャーをソロで倒す気かよ！';
+
+  @override
+  String get hamada_powersave_screen_off_title => '画面オフ時に省電力';
+
+  @override
+  String get hamada_normal_interval_title => '通常間隔';
+
+  @override
+  String get hamada_screen_off_interval_title => '画面オフ時の間隔';
+
+  @override
+  String get hamada_interval_hint => '秒数を入力 (最小 2)';
 }

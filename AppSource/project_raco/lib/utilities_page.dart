@@ -278,6 +278,20 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
         searchKeywords: 'hamada ai automation bot auto performance game',
       ),
       SearchResultItem(
+        title: localization.hamada_powersave_screen_off_title,
+        subtitle: localization.automation_title,
+        icon: Icons.screen_lock_portrait_outlined,
+        navigationTarget: automationPage,
+        searchKeywords: 'screen off powersave hamada toggle',
+      ),
+      SearchResultItem(
+        title: localization.hamada_normal_interval_title,
+        subtitle: localization.automation_title,
+        icon: Icons.timer,
+        navigationTarget: automationPage,
+        searchKeywords: 'hamada loop interval normal time',
+      ),
+      SearchResultItem(
         title: localization.edit_game_txt_title,
         subtitle: localization.automation_title,
         icon: Icons.edit_note,

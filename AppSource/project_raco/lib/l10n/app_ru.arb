@@ -49,7 +49,7 @@
             "resolution": {
                 "type": "String"
             }
-        }
+         }
     },
     "reset_resolution": "Вернуться к родному разрешению",
     "hamada_ai_toggle_title": "Включить HAMADA AI",
@@ -115,7 +115,7 @@
     "@build_version_title": {
         "placeholders": {
             "buildName": {
-                "type": "String"
+                 "type": "String"
             }
         }
     },
@@ -125,7 +125,7 @@
             "builderName": {
                 "type": "String"
             }
-        }
+         }
     },
     "screen_modifier_title": "Модификатор экрана",
     "screen_modifier_description": "Настройте цветовую матрицу и насыщенность экрана для индивидуального отображения.",
@@ -161,5 +161,9 @@
     "sandev_egg_original": "Бро оригинален, либо понятия не имеет, либо боится менять",
     "sandev_egg_better": "Во, так-то лучше Чумба, давай выше если хочешь",
     "sandev_egg_david": "Чего? Пытаешься быть Дэвидом Мартинесом? Не прокатит",
-    "sandev_egg_smasher": "НЕ НУ ТЫ РЕШИЛ В СОЛО АДАМА СМЭШЕРА ВЫНЕСТИ!"
+    "sandev_egg_smasher": "НЕ НУ ТЫ РЕШИЛ В СОЛО АДАМА СМЭШЕРА ВЫНЕСТИ!",
+    "hamada_powersave_screen_off_title": "Энергосбережение при выключенном экране",
+    "hamada_normal_interval_title": "Обычный интервал",
+    "hamada_screen_off_interval_title": "Интервал при выкл. экране",
+    "hamada_interval_hint": "Введите секунды (мин 2)"
 }

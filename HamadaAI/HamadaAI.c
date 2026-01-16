@@ -6,6 +6,7 @@
 
 // Define constants for file paths and buffer size
 #define GAME_LIST "/data/ProjectRaco/game.txt"
+#define CONFIG_FILE "/data/ProjectRaco/raco.txt"
 #define RACO_SCRIPT "/data/adb/modules/ProjectRaco/Scripts/Raco.sh"
 #define BUFFER_SIZE 1024
 
@@ -21,7 +22,7 @@ typedef enum {
     EXEC_NORMAL
 } ExecType;
 
-// Helper function to check if the game list file exists
+// Helper function to check if a file exists
 bool file_exists(const char *filename) {
     return access(filename, F_OK) == 0;
 }
@@ -42,6 +43,29 @@ void execute_cmd(const char *cmd, char *buffer, size_t size) {
     }
 }
 
+// Helper function to read integer config values from raco.txt
+// Returns default_val if key not found or file error
+int get_config_int(const char *key, int default_val) {
+    FILE *fp = fopen(CONFIG_FILE, "r");
+    if (!fp) return default_val;
+
+    char line[256];
+    int value = default_val;
+    size_t key_len = strlen(key);
+
+    while (fgets(line, sizeof(line), fp)) {
+        // Look for lines starting with key
+        if (strncmp(line, key, key_len) == 0 && line[key_len] == '=') {
+            // Parse the integer after the '='
+            value = atoi(line + key_len + 1);
+            break; 
+        }
+    }
+
+    fclose(fp);
+    return value;
+}
+
 int main(void) {
     // Check for game.txt at startup
     if (!file_exists(GAME_LIST)) {
@@ -55,6 +79,12 @@ int main(void) {
     char buffer[BUFFER_SIZE]; 
 
     while (1) {
+        // --- 0. Read Config ---
+        // Read configuration dynamically to allow live updates
+        int conf_enable_powersave = get_config_int("HAMADA_ENABLE_POWERSAVE", 1);
+        int conf_loop_normal = get_config_int("HAMADA_LOOP", 5);
+        int conf_loop_off = get_config_int("HAMADA_LOOP_OFF", 7);
+
         // --- 1. Screen State Detection ---
         bool current_screen_on = false;
         
@@ -65,15 +95,16 @@ int main(void) {
             current_screen_on = true;
         }
 
-        // Adjust delay based on screen state (Slower checks when screen is off to save battery)
+        // Adjust delay based on screen state and config
+        if (current_screen_on) {
+            delay_seconds = conf_loop_normal;
+        } else {
+            delay_seconds = conf_loop_off;
+        }
+
+        // Log only on state transition to avoid spamming logcat
         if (current_screen_on != prev_screen_on) {
-            if (current_screen_on) {
-                printf("Screen turned on - check interval: 5 seconds\n");
-                delay_seconds = 5;
-            } else {
-                printf("Screen turned off - check interval: 10 seconds\n");
-                delay_seconds = 10;
-            }
+            printf("Screen state changed. New interval: %d seconds\n", delay_seconds);
             prev_screen_on = current_screen_on;
         }
 
@@ -83,14 +114,24 @@ int main(void) {
         const char* target_mode_name = "";
 
         if (!current_screen_on) {
-            // Priority 1: If Screen is OFF, force Powersave
-            target_state = EXEC_POWERSAVE;
-            target_mode_arg = MODE_POWERSAVE;
-            target_mode_name = "Powersave";
+            // Priority 1: Screen OFF
+            if (conf_enable_powersave == 1) {
+                target_state = EXEC_POWERSAVE;
+                target_mode_arg = MODE_POWERSAVE;
+                target_mode_name = "Powersave";
+            } else {
+                // If powersave is disabled on screen off, treat as Normal (or maintain current if game was running? 
+                // usually 'Normal' is safer to ensure we don't get stuck in high perf mode if screen goes off)
+                target_state = EXEC_NORMAL;
+                target_mode_arg = MODE_NORMAL;
+                target_mode_name = "Normal (Powersave Disabled)";
+            }
         } else {
-            // Priority 2: If Screen is ON, check for Games
+            // Priority 2: Screen ON, check for Games
             bool is_game_running = false;
             char package_name[BUFFER_SIZE] = "";
+            
+            // Optimized command to get the top visible activity's package
             const char *focused_app_cmd = "cmd activity stack list | sed -n '/visible=true/{s/.*://;s:/.*::;s/^[ \t]*//;p;q}'";
 
             execute_cmd(focused_app_cmd, package_name, sizeof(package_name));

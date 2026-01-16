@@ -465,4 +465,16 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get sandev_egg_smasher => 'ANJIR BRO MAU SOLO ADAM SMASHER INI MAH!';
+
+  @override
+  String get hamada_powersave_screen_off_title => 'Hemat Daya Saat Layar Mati';
+
+  @override
+  String get hamada_normal_interval_title => 'Interval Normal';
+
+  @override
+  String get hamada_screen_off_interval_title => 'Interval Layar Mati';
+
+  @override
+  String get hamada_interval_hint => 'Masukkan detik (min 2)';
 }

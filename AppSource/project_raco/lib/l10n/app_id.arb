@@ -123,7 +123,7 @@
     "@build_by_title": {
         "placeholders": {
             "builderName": {
-                "type": "String"
+                 "type": "String"
             }
         }
     },
@@ -161,5 +161,9 @@
     "sandev_egg_original": "Bro original banget, entah gak tau atau takut ubah",
     "sandev_egg_better": "Nah gitu dong Choom, lebih tinggi lagi kalo berani",
     "sandev_egg_david": "Apaan bro? Mau jadi David Martinez? Gak bakal bisa",
-    "sandev_egg_smasher": "ANJIR BRO MAU SOLO ADAM SMASHER INI MAH!"
+    "sandev_egg_smasher": "ANJIR BRO MAU SOLO ADAM SMASHER INI MAH!",
+    "hamada_powersave_screen_off_title": "Hemat Daya Saat Layar Mati",
+    "hamada_normal_interval_title": "Interval Normal",
+    "hamada_screen_off_interval_title": "Interval Layar Mati",
+    "hamada_interval_hint": "Masukkan detik (min 2)"
 }

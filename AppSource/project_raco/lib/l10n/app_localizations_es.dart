@@ -471,4 +471,17 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get sandev_egg_smasher =>
       '¡NAH BRO, A ESTE PUNTO TE SOLEAS A ADAM SMASHER!';
+
+  @override
+  String get hamada_powersave_screen_off_title =>
+      'Ahorro de batería al apagar pantalla';
+
+  @override
+  String get hamada_normal_interval_title => 'Intervalo Normal';
+
+  @override
+  String get hamada_screen_off_interval_title => 'Intervalo Pantalla Apagada';
+
+  @override
+  String get hamada_interval_hint => 'Introduce segundos (min 2)';
 }
