@@ -122,3 +122,5 @@ if grep -q "INCLUDE_SANDEV=1" "$CONFIG_FILE"; then
 
     change_cpu_gov "$DEFAULT_CPU_GOV"
 fi
+
+# HamadaAI

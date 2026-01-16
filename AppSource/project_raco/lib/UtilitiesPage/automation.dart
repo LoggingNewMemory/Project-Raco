@@ -36,9 +36,10 @@ class _AutomationPageState extends State<AutomationPage> {
       runRootCommandAndWait('pgrep -x HamadaAI'),
       runRootCommandAndWait('cat /data/adb/modules/ProjectRaco/service.sh'),
     ]);
+    // Check if the file content contains the specific binary path to determine if it's enabled on boot
     return {
       'enabled': results[0].exitCode == 0,
-      'onBoot': results[1].stdout.toString().contains('HamadaAI'),
+      'onBoot': results[1].stdout.toString().contains('Binaries/HamadaAI'),
     };
   }
 
@@ -133,6 +134,7 @@ class _HamadaAiCardState extends State<HamadaAiCard>
 
   final String _serviceFilePath = '/data/adb/modules/ProjectRaco/service.sh';
 
+  // Updated Binary Path
   final String _binaryPath = '/data/adb/modules/ProjectRaco/Binaries/HamadaAI';
 
   String get _hamadaStartCommand => 'nohup $_binaryPath > /dev/null 2>&1 &';
@@ -157,7 +159,7 @@ class _HamadaAiCardState extends State<HamadaAiCard>
     ]);
     return {
       'enabled': results[0].exitCode == 0,
-      'onBoot': results[1].stdout.toString().contains('HamadaAI'),
+      'onBoot': results[1].stdout.toString().contains('Binaries/HamadaAI'),
     };
   }
 
@@ -198,20 +200,19 @@ class _HamadaAiCardState extends State<HamadaAiCard>
 
       List<String> lines = content.replaceAll('\r\n', '\n').split('\n');
 
-      // Cleanup: Remove ANY line that tries to start HamadaAI (old blocking ones AND new ones)
-      // This fixes the issue for users who have the old blocking command saved.
-      lines.removeWhere((line) => line.contains('HamadaAI'));
-
-      while (lines.isNotEmpty && lines.last.trim().isEmpty) {
-        lines.removeLast();
-      }
+      lines.removeWhere((line) => line.contains(_binaryPath));
 
       if (enable) {
-        // For service.sh, we don't strictly need "su -c" as it runs as root,
-        // but using the consistent command string is safer.
-        // We strip the outer 'su -c' if we want cleaner service.sh,
-        // but sticking to the variable is fine as long as it has the '&'.
-        lines.add(_hamadaStartCommand);
+        int markerIndex = lines.indexWhere(
+          (line) => line.trim() == '# HamadaAI',
+        );
+
+        if (markerIndex != -1) {
+          lines.insert(markerIndex + 1, _hamadaStartCommand);
+        } else {
+          lines.add('# HamadaAI');
+          lines.add(_hamadaStartCommand);
+        }
       }
 
       String newContent = lines.join('\n');
