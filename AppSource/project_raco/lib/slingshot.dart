@@ -297,271 +297,286 @@ class _SlingshotPageState extends State<SlingshotPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Info Card
-            Card(
-              elevation: 0,
-              color: Colors.black.withValues(alpha: 0.3),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await _fetchInstalledApps(forceRefresh: true);
+          },
+          // Using CustomScrollView to allow the whole page to scroll
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, color: Colors.white70, size: 24),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        localization.slingshot_description,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: Colors.white,
+                    // 1. Info Card
+                    Card(
+                      elevation: 0,
+                      color: Colors.black.withValues(alpha: 0.3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          localization.slingshot_description,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
+                    const SizedBox(height: 20),
+
+                    // 2. Preload Mode
+                    Text(
+                      localization.preload_mode,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: Colors.white70,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedMode,
+                          isExpanded: true,
+                          dropdownColor: const Color(0xFF1E1E1E),
+                          icon: const Icon(
+                            Icons.arrow_drop_down,
+                            color: Colors.white70,
+                          ),
+                          style: const TextStyle(color: Colors.white),
+                          items: _modes.entries.map((e) {
+                            return DropdownMenuItem(
+                              value: e.key,
+                              child: Text(e.value),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null)
+                              setState(() => _selectedMode = val);
+                          },
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // 3. ANGLE Toggle
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        localization.angle_title,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        _isAngleSupported
+                            ? localization.angle_description
+                            : localization.angle_not_supported,
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 12,
+                        ),
+                      ),
+                      value: _useAngle,
+                      onChanged: _isAngleSupported
+                          ? (val) {
+                              setState(() => _useAngle = val);
+                              _saveSelection();
+                            }
+                          : null,
+                      activeColor: colorScheme.primary,
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // 4. Search Bar
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              hintText: "Search apps...",
+                              hintStyle: const TextStyle(color: Colors.white54),
+                              prefixIcon: const Icon(
+                                Icons.search,
+                                color: Colors.white54,
+                              ),
+                              filled: true,
+                              fillColor: Colors.transparent,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Colors.white24,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                            ),
+                            onChanged: (val) =>
+                                setState(() => _searchQuery = val),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white24),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.refresh),
+                            color: Colors.white70,
+                            tooltip: "Reload App List",
+                            onPressed: () {
+                              _fetchInstalledApps(forceRefresh: true);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
 
-            // 2. Preload Mode
-            Text(
-              localization.preload_mode,
-              style: textTheme.bodySmall?.copyWith(color: Colors.white70),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white24),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedMode,
-                  isExpanded: true,
-                  dropdownColor: const Color(0xFF1E1E1E),
-                  icon: const Icon(
-                    Icons.arrow_drop_down,
-                    color: Colors.white70,
-                  ),
-                  style: const TextStyle(color: Colors.white),
-                  items: _modes.entries.map((e) {
-                    return DropdownMenuItem(value: e.key, child: Text(e.value));
-                  }).toList(),
-                  onChanged: (val) {
-                    if (val != null) setState(() => _selectedMode = val);
-                  },
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // 3. ANGLE Toggle
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(
-                localization.angle_title,
-                style: const TextStyle(color: Colors.white),
-              ),
-              subtitle: Text(
-                _isAngleSupported
-                    ? localization.angle_description
-                    : localization.angle_not_supported,
-                style: const TextStyle(color: Colors.white54, fontSize: 12),
-              ),
-              value: _useAngle,
-              onChanged: _isAngleSupported
-                  ? (val) {
-                      setState(() => _useAngle = val);
-                      _saveSelection();
-                    }
-                  : null,
-              activeColor: colorScheme.primary,
-            ),
-
-            const SizedBox(height: 10),
-
-            // 4. Search Bar
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: "Search apps...",
-                      hintStyle: const TextStyle(color: Colors.white54),
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        color: Colors.white54,
-                      ),
-                      filled: true,
-                      fillColor: Colors.transparent,
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.white24),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: colorScheme.primary),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                      ),
+              // 5. App List Logic within Slivers
+              if (_isLoadingApps && _installedApps.isEmpty)
+                const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (filteredApps.isEmpty)
+                const SliverFillRemaining(
+                  child: Center(
+                    child: Text(
+                      "No apps found",
+                      style: TextStyle(color: Colors.white54),
                     ),
-                    onChanged: (val) => setState(() => _searchQuery = val),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white24),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.refresh),
-                    color: Colors.white70,
-                    tooltip: "Reload App List",
-                    onPressed: () {
-                      _fetchInstalledApps(forceRefresh: true);
-                    },
-                  ),
-                ),
-              ],
-            ),
+                )
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final app = filteredApps[index];
+                    final pkg = app.packageName;
+                    final isSelected = _selectedAppPackage == pkg;
 
-            const SizedBox(height: 16),
+                    // Apply padding to create separation between items
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedAppPackage = pkg;
+                          });
+                          _saveSelection();
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? colorScheme.primary.withValues(alpha: 0.2)
+                                : Colors.white.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected
+                                  ? colorScheme.primary
+                                  : Colors.transparent,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              // Icon
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: Colors.black12,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: app.icon != null && app.icon!.isNotEmpty
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.memory(app.icon!),
+                                      )
+                                    : const Icon(
+                                        Icons.android,
+                                        color: Colors.white54,
+                                      ),
+                              ),
+                              const SizedBox(width: 16),
 
-            // 5. App List
-            Expanded(
-              child: _isLoadingApps && _installedApps.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : filteredApps.isEmpty
-                  ? const Center(
-                      child: Text(
-                        "No apps found",
-                        style: TextStyle(color: Colors.white54),
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () async {
-                        await _fetchInstalledApps(forceRefresh: true);
-                      },
-                      child: ListView.separated(
-                        itemCount: filteredApps.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 8),
-                        itemBuilder: (context, index) {
-                          final app = filteredApps[index];
-                          final pkg = app.packageName;
-                          final isSelected = _selectedAppPackage == pkg;
-
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _selectedAppPackage = pkg;
-                              });
-                              _saveSelection();
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? colorScheme.primary.withValues(alpha: 0.2)
-                                    : Colors.white.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? colorScheme.primary
-                                      : Colors.transparent,
-                                  width: 1.5,
+                              // Texts
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      app.name,
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.white70,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                        fontSize: 16,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      pkg,
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white70
+                                            : Colors.white38,
+                                        fontSize: 12,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
                               ),
-                              child: Row(
-                                children: [
-                                  // Icon
-                                  Container(
-                                    width: 48,
-                                    height: 48,
-                                    decoration: BoxDecoration(
-                                      color: Colors.black12,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child:
-                                        app.icon != null && app.icon!.isNotEmpty
-                                        ? ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            child: Image.memory(app.icon!),
-                                          )
-                                        : const Icon(
-                                            Icons.android,
-                                            color: Colors.white54,
-                                          ),
-                                  ),
-                                  const SizedBox(width: 16),
 
-                                  // Texts
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          app.name,
-                                          style: TextStyle(
-                                            color: isSelected
-                                                ? Colors.white
-                                                : Colors.white70,
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            fontSize: 16,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        Text(
-                                          pkg,
-                                          style: TextStyle(
-                                            color: isSelected
-                                                ? Colors.white70
-                                                : Colors.white38,
-                                            fontSize: 12,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
+                              // Selection Indicator
+                              if (isSelected)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  child: Icon(
+                                    Icons.check_circle,
+                                    color: colorScheme.primary,
                                   ),
-
-                                  // Selection Indicator
-                                  if (isSelected)
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 8.0),
-                                      child: Icon(
-                                        Icons.check_circle,
-                                        color: colorScheme.primary,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-            ),
-          ],
+                    );
+                  }, childCount: filteredApps.length),
+                ),
+              // Extra padding at the bottom for FAB
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            ],
+          ),
         ),
       ),
     );
