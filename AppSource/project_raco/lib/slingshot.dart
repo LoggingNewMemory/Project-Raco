@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,12 +17,12 @@ class AppItem {
   AppItem({required this.name, required this.packageName, this.icon});
 }
 
-class PreloadPage extends StatefulWidget {
+class SlingshotPage extends StatefulWidget {
   final String? backgroundImagePath;
   final double backgroundOpacity;
   final double backgroundBlur;
 
-  const PreloadPage({
+  const SlingshotPage({
     super.key,
     required this.backgroundImagePath,
     required this.backgroundOpacity,
@@ -30,17 +30,10 @@ class PreloadPage extends StatefulWidget {
   });
 
   @override
-  State<PreloadPage> createState() => _PreloadPageState();
+  State<SlingshotPage> createState() => _SlingshotPageState();
 }
 
-class _PreloadPageState extends State<PreloadPage> {
-  // RAM Stats
-  String _freeRam = "...";
-  String _usedRam = "...";
-  String _totalRam = "...";
-  double _ramProgress = 0.0;
-  Timer? _ramTimer;
-
+class _SlingshotPageState extends State<SlingshotPage> {
   // Kasane Settings
   String _selectedMode = 'n';
   final Map<String, String> _modes = {
@@ -50,30 +43,43 @@ class _PreloadPageState extends State<PreloadPage> {
     'r': 'Recursive (looped deep check)',
   };
 
+  // ANGLE Settings
+  bool _isAngleSupported = false;
+  bool _useAngle = false;
+
   // App List Cache & State
   List<AppItem> _installedApps = [];
-
-  // CHANGED: Single string for single selection
   String? _selectedAppPackage;
-
   bool _isLoadingApps = true;
   String _searchQuery = "";
   final TextEditingController _searchController = TextEditingController();
 
   // Persistence keys
   static const String _prefsKeyApps = 'preload_cached_apps';
-  static const String _prefsKeySelected =
-      'preload_selected_single_app'; // Changed Key
+  static const String _prefsKeySelected = 'preload_selected_single_app';
+  static const String _prefsKeyUseAngle = 'preload_use_angle';
 
   @override
   void initState() {
     super.initState();
-    _fetchRamInfo();
+    _checkAngleSupport();
     _initData();
+  }
 
-    _ramTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      _fetchRamInfo();
-    });
+  Future<void> _checkAngleSupport() async {
+    try {
+      final result = await Process.run('getprop', ['ro.gfx.angle.supported']);
+      if (result.exitCode == 0) {
+        final output = result.stdout.toString().trim();
+        if (mounted) {
+          setState(() {
+            _isAngleSupported = output == 'true';
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Angle check error: $e");
+    }
   }
 
   Future<void> _initData() async {
@@ -83,7 +89,6 @@ class _PreloadPageState extends State<PreloadPage> {
 
   @override
   void dispose() {
-    _ramTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -94,11 +99,13 @@ class _PreloadPageState extends State<PreloadPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // CHANGED: Load single string
       final String? savedPackage = prefs.getString(_prefsKeySelected);
-      if (savedPackage != null) {
+      final bool? savedAngle = prefs.getBool(_prefsKeyUseAngle);
+
+      if (mounted) {
         setState(() {
-          _selectedAppPackage = savedPackage;
+          if (savedPackage != null) _selectedAppPackage = savedPackage;
+          if (savedAngle != null) _useAngle = savedAngle;
         });
       }
 
@@ -146,49 +153,13 @@ class _PreloadPageState extends State<PreloadPage> {
       } else {
         await prefs.remove(_prefsKeySelected);
       }
+      await prefs.setBool(_prefsKeyUseAngle, _useAngle);
     } catch (e) {
       debugPrint("Selection save error: $e");
     }
   }
 
   // --- Core Logic ---
-
-  Future<void> _fetchRamInfo() async {
-    try {
-      final result = await Process.run('cat', ['/proc/meminfo']);
-      if (result.exitCode == 0) {
-        final content = result.stdout.toString();
-
-        int parseMem(String key) {
-          final regex = RegExp('$key:\\s+(\\d+)\\s+kB');
-          final match = regex.firstMatch(content);
-          return match != null ? int.parse(match.group(1)!) : 0;
-        }
-
-        final total = parseMem('MemTotal');
-        final available = parseMem('MemAvailable');
-        final used = total - available;
-
-        if (mounted) {
-          setState(() {
-            _totalRam = "${(total / 1024).toStringAsFixed(0)} MB";
-            _freeRam = "${(available / 1024).toStringAsFixed(0)} MB";
-            _usedRam = "${(used / 1024).toStringAsFixed(0)} MB";
-            _ramProgress = total > 0 ? used / total : 0.0;
-          });
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _freeRam = "Unknown";
-          _totalRam = "Unknown";
-          _usedRam = "Unknown";
-          _ramProgress = 0.0;
-        });
-      }
-    }
-  }
 
   Future<void> _fetchInstalledApps({bool forceRefresh = false}) async {
     if (_installedApps.isEmpty && mounted) {
@@ -259,8 +230,7 @@ class _PreloadPageState extends State<PreloadPage> {
     }
   }
 
-  Future<void> _runKasane() async {
-    // CHANGED: Check single selection
+  Future<void> _runSlingshot() async {
     if (_selectedAppPackage == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -271,10 +241,18 @@ class _PreloadPageState extends State<PreloadPage> {
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Preloading $_selectedAppPackage...")),
+      SnackBar(content: Text("Slingshoting $_selectedAppPackage...")),
     );
 
-    // Run for single package
+    // Apply ANGLE settings if enabled and supported
+    if (_useAngle && _isAngleSupported) {
+      await Process.run('su', [
+        '-c',
+        'settings put global angle_gl_driver_selection_pkgs $_selectedAppPackage && settings put global angle_gl_driver_selection_values angle',
+      ]);
+    }
+
+    // Run Kasane binary
     await Process.run('su', [
       '-c',
       '/data/adb/modules/ProjectRaco/Binaries/kasane -a $_selectedAppPackage -m $_selectedMode -l',
@@ -283,8 +261,7 @@ class _PreloadPageState extends State<PreloadPage> {
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text("Preload Complete")));
-    _fetchRamInfo();
+    ).showSnackBar(const SnackBar(content: Text("Slingshot Complete")));
   }
 
   @override
@@ -306,13 +283,13 @@ class _PreloadPageState extends State<PreloadPage> {
     final Widget pageContent = Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text(localization.kasane_title),
+        title: Text(localization.slingshot_title),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _runKasane,
+        onPressed: _runSlingshot,
         backgroundColor: const Color(0xFF8B4513),
         foregroundColor: Colors.white,
         icon: const Icon(Icons.rocket_launch),
@@ -332,43 +309,15 @@ class _PreloadPageState extends State<PreloadPage> {
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Free RAM:",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        Text(
-                          _freeRam,
-                          style: const TextStyle(
-                            color: Color(0xFFE5AA70),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: _ramProgress,
-                        minHeight: 6,
-                        backgroundColor: Colors.white10,
-                        color: Colors.orange,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.center,
+                    Icon(Icons.info_outline, color: Colors.white70, size: 24),
+                    const SizedBox(width: 16),
+                    Expanded(
                       child: Text(
-                        "$_usedRam / $_totalRam",
-                        style: textTheme.bodySmall?.copyWith(
-                          color: Colors.white54,
+                        localization.slingshot_description,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -380,7 +329,7 @@ class _PreloadPageState extends State<PreloadPage> {
 
             // 2. Preload Mode
             Text(
-              "Preload Mode",
+              localization.preload_mode,
               style: textTheme.bodySmall?.copyWith(color: Colors.white70),
             ),
             const SizedBox(height: 8),
@@ -411,9 +360,34 @@ class _PreloadPageState extends State<PreloadPage> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
 
-            // 3. Search Bar
+            // 3. ANGLE Toggle
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                localization.angle_title,
+                style: const TextStyle(color: Colors.white),
+              ),
+              subtitle: Text(
+                _isAngleSupported
+                    ? localization.angle_description
+                    : localization.angle_not_supported,
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+              value: _useAngle,
+              onChanged: _isAngleSupported
+                  ? (val) {
+                      setState(() => _useAngle = val);
+                      _saveSelection();
+                    }
+                  : null,
+              activeColor: colorScheme.primary,
+            ),
+
+            const SizedBox(height: 10),
+
+            // 4. Search Bar
             Row(
               children: [
                 Expanded(
@@ -464,7 +438,7 @@ class _PreloadPageState extends State<PreloadPage> {
 
             const SizedBox(height: 16),
 
-            // 4. App List (Redesigned for Single Selection)
+            // 5. App List
             Expanded(
               child: _isLoadingApps && _installedApps.isEmpty
                   ? const Center(child: CircularProgressIndicator())

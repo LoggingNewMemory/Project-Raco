@@ -842,23 +842,35 @@ abstract class AppLocalizations {
   /// **'Use Legacy Notification In Case Notification Doesn\'t Show In Some ROMs'**
   String get legacy_notif_description;
 
-  /// No description provided for @kasane_title.
+  /// No description provided for @slingshot_title.
   ///
   /// In en, this message translates to:
-  /// **'Kasane Preload'**
-  String get kasane_title;
+  /// **'Raco Slingshot'**
+  String get slingshot_title;
 
-  /// No description provided for @kasane_by.
+  /// No description provided for @slingshot_description.
   ///
   /// In en, this message translates to:
-  /// **'By: Koneko_Dev'**
-  String get kasane_by;
+  /// **'Preload your app files before launching the app, this may speed up the loading time and improve performance'**
+  String get slingshot_description;
 
-  /// No description provided for @free_ram.
+  /// No description provided for @angle_title.
   ///
   /// In en, this message translates to:
-  /// **'Free RAM:'**
-  String get free_ram;
+  /// **'Launch using ANGLE Graphics'**
+  String get angle_title;
+
+  /// No description provided for @angle_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch the app using ANGLE Graphics driver'**
+  String get angle_description;
+
+  /// No description provided for @angle_not_supported.
+  ///
+  /// In en, this message translates to:
+  /// **'ANGLE Graphics is not supported on this device'**
+  String get angle_not_supported;
 
   /// No description provided for @preload_mode.
   ///
@@ -869,7 +881,7 @@ abstract class AppLocalizations {
   /// No description provided for @start_preload.
   ///
   /// In en, this message translates to:
-  /// **'Start Preload'**
+  /// **'Start Slingshot'**
   String get start_preload;
 
   /// No description provided for @swipe_again_to_cancel.

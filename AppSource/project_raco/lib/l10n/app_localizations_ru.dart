@@ -409,19 +409,28 @@ class AppLocalizationsRu extends AppLocalizations {
       'Используйте это, если уведомления не отображаются на некоторых прошивках';
 
   @override
-  String get kasane_title => 'Kasane Предзагрузка';
+  String get slingshot_title => 'Raco Slingshot';
 
   @override
-  String get kasane_by => 'Автор: Koneko_Dev';
+  String get slingshot_description =>
+      'Предварительно загрузите файлы вашего приложения перед запуском, это может ускорить время загрузки и повысить производительность';
 
   @override
-  String get free_ram => 'Свободная RAM:';
+  String get angle_title => 'Запуск с графикой ANGLE';
+
+  @override
+  String get angle_description =>
+      'Запуск приложения с использованием графического драйвера ANGLE';
+
+  @override
+  String get angle_not_supported =>
+      'Графика ANGLE не поддерживается на этом устройстве';
 
   @override
   String get preload_mode => 'Режим предзагрузки';
 
   @override
-  String get start_preload => 'Начать';
+  String get start_preload => 'Начать Slingshot';
 
   @override
   String get swipe_again_to_cancel => 'Свайпните вправо еще раз для отмены';

@@ -410,19 +410,28 @@ class AppLocalizationsEs extends AppLocalizations {
       'Use la notificación heredada si la notificación no aparece en algunas ROMs';
 
   @override
-  String get kasane_title => 'Kasane Preload';
+  String get slingshot_title => 'Raco Slingshot';
 
   @override
-  String get kasane_by => 'Por: Koneko_Dev';
+  String get slingshot_description =>
+      'Precarga los archivos de tu aplicación antes de iniciarla, esto puede acelerar el tiempo de carga y mejorar el rendimiento';
 
   @override
-  String get free_ram => 'RAM Libre:';
+  String get angle_title => 'Iniciar usando gráficos ANGLE';
+
+  @override
+  String get angle_description =>
+      'Iniciar la aplicación usando el controlador de gráficos ANGLE';
+
+  @override
+  String get angle_not_supported =>
+      'Los gráficos ANGLE no son compatibles con este dispositivo';
 
   @override
   String get preload_mode => 'Modo de Preload';
 
   @override
-  String get start_preload => 'Iniciar';
+  String get start_preload => 'Iniciar Slingshot';
 
   @override
   String get swipe_again_to_cancel =>

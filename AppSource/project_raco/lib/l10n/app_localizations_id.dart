@@ -405,19 +405,28 @@ class AppLocalizationsId extends AppLocalizations {
       'Gunakan Notifikasi Legacy Jika Notifikasi Tidak Muncul Di Beberapa ROM';
 
   @override
-  String get kasane_title => 'Kasane Preload';
+  String get slingshot_title => 'Raco Slingshot';
 
   @override
-  String get kasane_by => 'Oleh: Koneko_Dev';
+  String get slingshot_description =>
+      'Preload file aplikasi Anda sebelum meluncurkan aplikasi, ini dapat mempercepat waktu memuat dan meningkatkan performa';
 
   @override
-  String get free_ram => 'RAM Bebas:';
+  String get angle_title => 'Jalankan dengan Grafis ANGLE';
+
+  @override
+  String get angle_description =>
+      'Jalankan aplikasi menggunakan driver Grafis ANGLE';
+
+  @override
+  String get angle_not_supported =>
+      'Grafis ANGLE tidak didukung di perangkat ini';
 
   @override
   String get preload_mode => 'Mode Preload';
 
   @override
-  String get start_preload => 'Mulai';
+  String get start_preload => 'Mulai Slingshot';
 
   @override
   String get swipe_again_to_cancel => 'Geser Kanan Lagi Untuk Membatalkan';

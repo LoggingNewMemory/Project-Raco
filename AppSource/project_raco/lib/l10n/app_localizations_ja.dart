@@ -391,19 +391,26 @@ class AppLocalizationsJa extends AppLocalizations {
   String get legacy_notif_description => '一部のROMで通知が表示されない場合にレガシー通知を使用する';
 
   @override
-  String get kasane_title => 'Kasane プリロード';
+  String get slingshot_title => 'Raco Slingshot';
 
   @override
-  String get kasane_by => '作成者: Koneko_Dev';
+  String get slingshot_description =>
+      'アプリを起動する前にファイルをプリロードします。これにより、読み込み時間が短縮され、パフォーマンスが向上する可能性があります';
 
   @override
-  String get free_ram => '空き RAM:';
+  String get angle_title => 'ANGLE グラフィックスを使用して起動';
+
+  @override
+  String get angle_description => 'ANGLE グラフィックスドライバを使用してアプリを起動します';
+
+  @override
+  String get angle_not_supported => 'このデバイスは ANGLE グラフィックスをサポートしていません';
 
   @override
   String get preload_mode => 'プリロードモード';
 
   @override
-  String get start_preload => '開始';
+  String get start_preload => 'Slingshot 開始';
 
   @override
   String get swipe_again_to_cancel => 'もう一度右にスワイプしてキャンセル';

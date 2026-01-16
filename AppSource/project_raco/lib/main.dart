@@ -12,7 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '/l10n/app_localizations.dart';
 import 'about_page.dart';
 import 'utilities_page.dart';
-import 'preload.dart';
+import 'slingshot.dart';
 
 // A simple global notifier to broadcast theme changes instantly.
 final themeNotifier = ValueNotifier<Color?>(null);
@@ -664,12 +664,12 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     _refreshDynamicState();
   }
 
-  void _navigateToPreloadPage() {
+  void _navigateToSlingshotPage() {
     Navigator.push(
       context,
       PageRouteBuilder(
         opaque: false,
-        pageBuilder: (context, animation, secondaryAnimation) => PreloadPage(
+        pageBuilder: (context, animation, secondaryAnimation) => SlingshotPage(
           backgroundImagePath: widget.backgroundImagePath,
           backgroundOpacity: widget.backgroundOpacity,
           backgroundBlur: widget.backgroundBlur,
@@ -766,7 +766,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                             Icons.clear_all_outlined,
                             'CLEAR',
                           ),
-                          _buildPreloadCard(localization),
+                          _buildSlingshotCard(localization),
                           const SizedBox(height: 10),
                           _buildUtilitiesCard(localization),
                           const SizedBox(height: 10),
@@ -1022,7 +1022,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildPreloadCard(AppLocalizations localization) {
+  Widget _buildSlingshotCard(AppLocalizations localization) {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
       elevation: 2.0,
@@ -1031,7 +1031,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: _navigateToPreloadPage,
+        onTap: _navigateToSlingshotPage,
         child: Container(
           height: 56.0,
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -1046,7 +1046,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    localization.kasane_title,
+                    localization.slingshot_title,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
