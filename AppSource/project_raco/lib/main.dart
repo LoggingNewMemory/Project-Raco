@@ -130,7 +130,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   Future<void> _checkPendingToast() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Small delay to ensure file write is complete before reading
+    await Future.delayed(const Duration(milliseconds: 300));
 
     try {
       final checkResult = await run('su', [
@@ -141,19 +142,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       if (checkResult.exitCode == 0) {
         String message = checkResult.stdout.toString().trim();
         if (message.isNotEmpty) {
-          // Always use standard System Toast
-          // No backgroundColor or textColor defined means it uses the native Android style
-          // This allows it to show even when the app is in the background
           Fluttertoast.showToast(
             msg: message,
             toastLength: Toast.LENGTH_LONG,
             gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 3,
+            backgroundColor: Theme.of(context).colorScheme.inverseSurface,
+            textColor: Theme.of(context).colorScheme.onInverseSurface,
           );
         }
       }
-    } catch (e) {
-      // Fail silently
-    }
+    } catch (e) {}
   }
 
   void _onThemeChanged() {
@@ -490,8 +489,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     } finally {
       if (mounted) setState(() => _executingScript = '');
       _refreshDynamicState();
-
-      // Explicitly check for toast here.
       widget.checkToastCallback();
     }
   }
@@ -535,9 +532,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
     try {
       await run('su', ['-c', 'pkill -f Raco.sh'], verbose: false);
-    } catch (e) {
-      // Ignore errors
-    }
+    } catch (e) {}
 
     if (mounted) {
       setState(() {
