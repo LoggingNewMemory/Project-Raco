@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '/l10n/app_localizations.dart';
 
@@ -124,6 +125,25 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   }
 
   // --- Installation Logic (Based on Diagram) ---
+
+  Future<void> _openFilePicker() async {
+    try {
+      // Open external system file picker (like KernelSU)
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['zip'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        // Proceed with installation flow using the selected path
+        _handleInstallFlow(result.files.single.path!);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error picking file: $e')));
+    }
+  }
 
   Future<void> _handleInstallFlow(String zipPath) async {
     final loc = AppLocalizations.of(context)!;
@@ -361,19 +381,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     );
   }
 
-  void _openFilePicker() {
-    showDialog(
-      context: context,
-      builder: (context) => SimpleFilePickerDialog(
-        rootPath: '/sdcard',
-        onFilePicked: (path) {
-          Navigator.pop(context);
-          _handleInstallFlow(path);
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
@@ -389,7 +396,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: loc.install_plugin,
-            onPressed: _openFilePicker,
+            onPressed: _openFilePicker, // Uses external file picker
           ),
         ],
       ),
@@ -504,114 +511,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
           )
         else
           pageContent,
-      ],
-    );
-  }
-}
-
-// Simple File Picker to avoid external dependencies for zip selection
-class SimpleFilePickerDialog extends StatefulWidget {
-  final String rootPath;
-  final Function(String) onFilePicked;
-
-  const SimpleFilePickerDialog({
-    Key? key,
-    required this.rootPath,
-    required this.onFilePicked,
-  }) : super(key: key);
-
-  @override
-  _SimpleFilePickerDialogState createState() => _SimpleFilePickerDialogState();
-}
-
-class _SimpleFilePickerDialogState extends State<SimpleFilePickerDialog> {
-  late Directory _currentDir;
-  List<FileSystemEntity> _files = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _currentDir = Directory(widget.rootPath);
-    _listDir();
-  }
-
-  void _listDir() {
-    try {
-      final files = _currentDir.listSync()
-        ..sort((a, b) {
-          if (a is Directory && b is File) return -1;
-          if (a is File && b is Directory) return 1;
-          return a.path.compareTo(b.path);
-        });
-      setState(() {
-        _files = files
-            .where((e) => e is Directory || e.path.endsWith('.zip'))
-            .toList();
-      });
-    } catch (e) {
-      // Permission denied or other error
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(
-        _currentDir.path.split('/').last.isEmpty
-            ? "/"
-            : _currentDir.path.split('/').last,
-      ),
-      content: SizedBox(
-        width: double.maxFinite,
-        height: 300,
-        child: Column(
-          children: [
-            if (_currentDir.path != '/sdcard')
-              ListTile(
-                leading: const Icon(Icons.arrow_upward),
-                title: const Text(".."),
-                onTap: () {
-                  setState(() {
-                    _currentDir = _currentDir.parent;
-                    _listDir();
-                  });
-                },
-              ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _files.length,
-                itemBuilder: (context, index) {
-                  final entity = _files[index];
-                  final name = entity.path.split('/').last;
-                  final isDir = entity is Directory;
-                  return ListTile(
-                    leading: Icon(
-                      isDir ? Icons.folder : Icons.description,
-                      color: isDir ? Colors.amber : Colors.blue,
-                    ),
-                    title: Text(name),
-                    onTap: () {
-                      if (isDir) {
-                        setState(() {
-                          _currentDir = entity as Directory;
-                          _listDir();
-                        });
-                      } else {
-                        widget.onFilePicked(entity.path);
-                      }
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel"),
-        ),
       ],
     );
   }

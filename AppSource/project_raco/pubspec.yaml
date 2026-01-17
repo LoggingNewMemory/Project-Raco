@@ -28,7 +28,8 @@ dependencies:
   url_launcher: ^6.3.1
   installed_apps: ^1.1.0
   fluttertoast: ^8.2.8
-
+  file_picker: ^8.0.0
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
