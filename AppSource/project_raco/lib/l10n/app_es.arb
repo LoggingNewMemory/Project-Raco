@@ -47,7 +47,7 @@
     "@selected_resolution": {
         "placeholders": {
             "resolution": {
-                 "type": "String"
+                "type": "String"
             }
         }
     },
@@ -117,7 +117,7 @@
             "buildName": {
                 "type": "String"
             }
-         }
+        }
     },
     "build_by_title": "Compilacion por: {builderName}",
     "@build_by_title": {
@@ -146,8 +146,8 @@
     "slingshot_title": "Raco Slingshot",
     "slingshot_description": "Precarga los archivos de tu aplicación antes de iniciarla, esto puede acelerar el tiempo de carga y mejorar el rendimiento",
     "angle_title": "Iniciar usando gráficos ANGLE",
-    "angle_description": "Iniciar la aplicación usando el controlador de gráficos ANGLE",
     "angle_not_supported": "Los gráficos ANGLE no son compatibles con este dispositivo",
+    "skia_title": "Usar SkiaVK como motor Skia predeterminado",
     "preload_mode": "Modo de Preload",
     "start_preload": "Iniciar Slingshot",
     "swipe_again_to_cancel": "Desliza a la derecha de nuevo para cancelar",

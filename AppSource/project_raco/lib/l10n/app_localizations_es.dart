@@ -417,12 +417,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get angle_title => 'Iniciar usando gráficos ANGLE';
 
   @override
-  String get angle_description =>
-      'Iniciar la aplicación usando el controlador de gráficos ANGLE';
-
-  @override
   String get angle_not_supported =>
       'Los gráficos ANGLE no son compatibles con este dispositivo';
+
+  @override
+  String get skia_title => 'Usar SkiaVK como motor Skia predeterminado';
 
   @override
   String get preload_mode => 'Modo de Preload';

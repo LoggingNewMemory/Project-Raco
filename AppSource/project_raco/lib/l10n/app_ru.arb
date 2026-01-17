@@ -49,7 +49,7 @@
             "resolution": {
                 "type": "String"
             }
-         }
+        }
     },
     "reset_resolution": "Вернуться к родному разрешению",
     "hamada_ai_toggle_title": "Включить HAMADA AI",
@@ -115,7 +115,7 @@
     "@build_version_title": {
         "placeholders": {
             "buildName": {
-                 "type": "String"
+                "type": "String"
             }
         }
     },
@@ -125,7 +125,7 @@
             "builderName": {
                 "type": "String"
             }
-         }
+        }
     },
     "screen_modifier_title": "Модификатор экрана",
     "screen_modifier_description": "Настройте цветовую матрицу и насыщенность экрана для индивидуального отображения.",
@@ -146,8 +146,8 @@
     "slingshot_title": "Raco Slingshot",
     "slingshot_description": "Предварительно загрузите файлы вашего приложения перед запуском, это может ускорить время загрузки и повысить производительность",
     "angle_title": "Запуск с графикой ANGLE",
-    "angle_description": "Запуск приложения с использованием графического драйвера ANGLE",
     "angle_not_supported": "Графика ANGLE не поддерживается на этом устройстве",
+    "skia_title": "Использовать SkiaVK как Skia бэкенд по умолчанию",
     "preload_mode": "Режим предзагрузки",
     "start_preload": "Начать Slingshot",
     "swipe_again_to_cancel": "Свайпните вправо еще раз для отмены",

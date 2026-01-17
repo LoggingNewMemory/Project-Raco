@@ -44,6 +44,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
 
   bool _isAngleSupported = false;
   bool _useAngle = false;
+  bool _useSkia = false;
 
   List<AppItem> _installedApps = [];
   String? _selectedAppPackage;
@@ -51,9 +52,10 @@ class _SlingshotPageState extends State<SlingshotPage> {
   String _searchQuery = "";
   final TextEditingController _searchController = TextEditingController();
 
+  static const String _racoConfigPath =
+      '/data/adb/modules/ProjectRaco/raco.txt';
   static const String _prefsKeyApps = 'preload_cached_apps';
   static const String _prefsKeySelected = 'preload_selected_single_app';
-  static const String _prefsKeyUseAngle = 'preload_use_angle';
   static const String _prefsKeyMode = 'preload_selected_mode';
 
   @override
@@ -96,7 +98,68 @@ class _SlingshotPageState extends State<SlingshotPage> {
 
   Future<void> _initData() async {
     await _loadFromCache();
+    await _loadRacoConfig();
     _fetchInstalledApps(forceRefresh: true);
+  }
+
+  Future<void> _loadRacoConfig() async {
+    try {
+      // Read SKIAVK
+      final skiaResult = await Process.run('su', [
+        '-c',
+        'grep "^SKIAVK=" $_racoConfigPath | cut -d= -f2',
+      ]);
+      if (skiaResult.exitCode == 0) {
+        final val = skiaResult.stdout.toString().trim();
+        if (mounted) {
+          setState(() {
+            _useSkia = val == '1';
+          });
+        }
+      }
+
+      // Read ANGLE
+      final angleResult = await Process.run('su', [
+        '-c',
+        'grep "^ANGLE=" $_racoConfigPath | cut -d= -f2',
+      ]);
+      if (angleResult.exitCode == 0) {
+        final val = angleResult.stdout.toString().trim();
+        if (mounted) {
+          setState(() {
+            _useAngle = val == '1';
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Raco config load error: $e");
+    }
+  }
+
+  Future<void> _toggleSkia(bool value) async {
+    setState(() => _useSkia = value);
+    try {
+      final int intVal = value ? 1 : 0;
+      await Process.run('su', [
+        '-c',
+        'sed -i "s/^SKIAVK=.*/SKIAVK=$intVal/" $_racoConfigPath',
+      ]);
+    } catch (e) {
+      debugPrint("Skia toggle error: $e");
+    }
+  }
+
+  Future<void> _toggleAngle(bool value) async {
+    setState(() => _useAngle = value);
+    try {
+      final int intVal = value ? 1 : 0;
+      await Process.run('su', [
+        '-c',
+        'sed -i "s/^ANGLE=.*/ANGLE=$intVal/" $_racoConfigPath',
+      ]);
+    } catch (e) {
+      debugPrint("Angle toggle error: $e");
+    }
   }
 
   @override
@@ -110,13 +173,11 @@ class _SlingshotPageState extends State<SlingshotPage> {
       final prefs = await SharedPreferences.getInstance();
 
       final String? savedPackage = prefs.getString(_prefsKeySelected);
-      final bool? savedAngle = prefs.getBool(_prefsKeyUseAngle);
       final String? savedMode = prefs.getString(_prefsKeyMode);
 
       if (mounted) {
         setState(() {
           if (savedPackage != null) _selectedAppPackage = savedPackage;
-          if (savedAngle != null) _useAngle = savedAngle;
           if (savedMode != null && _modes.containsKey(savedMode)) {
             _selectedMode = savedMode;
           }
@@ -167,7 +228,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
       } else {
         await prefs.remove(_prefsKeySelected);
       }
-      await prefs.setBool(_prefsKeyUseAngle, _useAngle);
       await prefs.setString(_prefsKeyMode, _selectedMode);
     } catch (e) {
       debugPrint("Selection save error: $e");
@@ -257,6 +317,12 @@ class _SlingshotPageState extends State<SlingshotPage> {
       SnackBar(content: Text("Slingshoting $_selectedAppPackage...")),
     );
 
+    // Apply SkiaVK setting if enabled
+    if (_useSkia) {
+      await Process.run('su', ['-c', 'setprop debug.hwui.renderer skiavk']);
+    }
+
+    // Apply ANGLE settings if enabled and supported
     if (_useAngle && _isAngleSupported) {
       await Process.run('su', [
         '-c',
@@ -384,22 +450,36 @@ class _SlingshotPageState extends State<SlingshotPage> {
                         localization.angle_title,
                         style: const TextStyle(color: Colors.white),
                       ),
-                      subtitle: Text(
-                        _isAngleSupported
-                            ? localization.angle_description
-                            : localization.angle_not_supported,
-                        style: const TextStyle(
-                          color: Colors.white54,
-                          fontSize: 12,
-                        ),
-                      ),
+                      subtitle: _isAngleSupported
+                          ? null
+                          : Text(
+                              localization.angle_not_supported,
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
+                            ),
                       value: _useAngle,
                       onChanged: _isAngleSupported
                           ? (val) {
-                              setState(() => _useAngle = val);
-                              _saveSelection();
+                              _toggleAngle(val);
                             }
                           : null,
+                      activeColor: colorScheme.primary,
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        localization.skia_title,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      value: _useSkia,
+                      onChanged: (val) {
+                        _toggleSkia(val);
+                      },
                       activeColor: colorScheme.primary,
                     ),
 

@@ -854,17 +854,17 @@ abstract class AppLocalizations {
   /// **'Launch using ANGLE Graphics'**
   String get angle_title;
 
-  /// No description provided for @angle_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Launch the app using ANGLE Graphics driver'**
-  String get angle_description;
-
   /// No description provided for @angle_not_supported.
   ///
   /// In en, this message translates to:
   /// **'ANGLE Graphics is not supported on this device'**
   String get angle_not_supported;
+
+  /// No description provided for @skia_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Use SkiaVK as default Skia backend'**
+  String get skia_title;
 
   /// No description provided for @preload_mode.
   ///

@@ -398,10 +398,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get angle_title => 'ANGLE グラフィックスを使用して起動';
 
   @override
-  String get angle_description => 'ANGLE グラフィックスドライバを使用してアプリを起動します';
+  String get angle_not_supported => 'このデバイスは ANGLE グラフィックスをサポートしていません';
 
   @override
-  String get angle_not_supported => 'このデバイスは ANGLE グラフィックスをサポートしていません';
+  String get skia_title => 'SkiaVKをデフォルトのSkiaバックエンドとして使用';
 
   @override
   String get preload_mode => 'プリロードモード';

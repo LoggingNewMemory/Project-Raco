@@ -411,11 +411,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get angle_title => 'Launch using ANGLE Graphics';
 
   @override
-  String get angle_description => 'Launch the app using ANGLE Graphics driver';
-
-  @override
   String get angle_not_supported =>
       'ANGLE Graphics is not supported on this device';
+
+  @override
+  String get skia_title => 'Use SkiaVK as default Skia backend';
 
   @override
   String get preload_mode => 'Preload Mode';

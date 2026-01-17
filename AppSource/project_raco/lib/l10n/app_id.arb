@@ -123,7 +123,7 @@
     "@build_by_title": {
         "placeholders": {
             "builderName": {
-                 "type": "String"
+                "type": "String"
             }
         }
     },
@@ -146,8 +146,8 @@
     "slingshot_title": "Raco Slingshot",
     "slingshot_description": "Preload file aplikasi Anda sebelum meluncurkan aplikasi, ini dapat mempercepat waktu memuat dan meningkatkan performa",
     "angle_title": "Jalankan dengan Grafis ANGLE",
-    "angle_description": "Jalankan aplikasi menggunakan driver Grafis ANGLE",
     "angle_not_supported": "Grafis ANGLE tidak didukung di perangkat ini",
+    "skia_title": "Gunakan SkiaVK sebagai backend Skia default",
     "preload_mode": "Mode Preload",
     "start_preload": "Mulai Slingshot",
     "swipe_again_to_cancel": "Geser Kanan Lagi Untuk Membatalkan",

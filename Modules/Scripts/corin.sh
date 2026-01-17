@@ -123,6 +123,9 @@ corin_balanced() {
     cmd power set-fixed-performance-mode-enabled false
     cmd looper_stats enable
 
+    # Revert to Default Skia Backend
+    setprop debug.hwui.renderer none
+
     # Merged STAR Logic
     star_battery_restore &
     star_db_balance &
@@ -147,6 +150,9 @@ corin_powersave() {
     cmd power set-adaptive-power-saver-enabled true
     cmd power set-fixed-performance-mode-enabled false
     cmd looper_stats enable
+
+    # Revert to Default Skia Backend
+    setprop debug.hwui.renderer none
 
     # Merged STAR Logic
     star_battery_saver &

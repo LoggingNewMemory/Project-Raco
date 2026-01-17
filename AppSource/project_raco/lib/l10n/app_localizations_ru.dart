@@ -416,12 +416,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get angle_title => 'Запуск с графикой ANGLE';
 
   @override
-  String get angle_description =>
-      'Запуск приложения с использованием графического драйвера ANGLE';
-
-  @override
   String get angle_not_supported =>
       'Графика ANGLE не поддерживается на этом устройстве';
+
+  @override
+  String get skia_title => 'Использовать SkiaVK как Skia бэкенд по умолчанию';
 
   @override
   String get preload_mode => 'Режим предзагрузки';
