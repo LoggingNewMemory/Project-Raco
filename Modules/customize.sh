@@ -4,23 +4,7 @@
 # Configuration Functions
 # ------------------------------------
 
-check_for_config_changes() {
-  local new_config_template="$1"
-  local saved_config="$2"
-  
-  get_keys() {
-    grep -vE '^#|^\[|^$' "$1" | cut -d'=' -f1 | sort
-  }
-
-  new_keys=$(get_keys "$new_config_template")
-  saved_keys=$(get_keys "$saved_config")
-  
-  if ! diff <(echo "$new_keys") <(echo "$saved_keys") >/dev/null 2>&1; then
-    return 0 # 0 means true (changes detected)
-  fi
-  
-  return 1 # 1 means false (no changes)
-}
+# Note: check_for_config_changes removed/unused to force structure updates
 
 merge_configs() {
   local new_template="$1"
@@ -28,16 +12,24 @@ merge_configs() {
   local temp_config="$MODPATH/raco.tmp"
 
   ui_print "- Merging your previous settings..."
+  
+  # 1. Start with the clean/tidy template
   cp "$new_template" "$temp_config"
 
+  # 2. Read values from the old (potentially untidy) file
   while IFS='=' read -r key value || [ -n "$key" ]; do
     [[ "$key" =~ ^# ]] || [ -z "$key" ] && continue    
+    
+    # Escape special characters for sed
     local escaped_key=$(echo "$key" | sed -e 's/[]\/$*.^[]/\\&/g')
+    
+    # 3. Inject old values into the clean template
     if grep -q "^${escaped_key}=" "$temp_config"; then
       sed -i "s/^${escaped_key}=.*/${key}=${value}/" "$temp_config"
     fi
   done < "$persistent_config"
 
+  # 4. Overwrite persistent file with the clean, updated version
   mv "$temp_config" "$persistent_config"
   ui_print "- Settings merged successfully."
 }
@@ -229,13 +221,12 @@ else
   # Case 2: Existing installation.
   ui_print "- Saved configuration found."
 
-  if check_for_config_changes "$RACO_MODULE_TEMPLATE" "$RACO_PERSIST_CONFIG"; then
-    merge_configs "$RACO_MODULE_TEMPLATE" "$RACO_PERSIST_CONFIG"
-  fi
+  # FORCE MERGE: Always merge to ensure the latest file structure is applied
+  merge_configs "$RACO_MODULE_TEMPLATE" "$RACO_PERSIST_CONFIG"
 
   ui_print " "
   ui_print "  Use your saved settings?"
-  ui_print "  (New options from updates are already merged)."
+  ui_print "  (Configuration structure has been refreshed)."
   ui_print " "
   ui_print "  Vol+ = Yes, use saved settings"
   ui_print "  Vol- = No, re-configure addons"
