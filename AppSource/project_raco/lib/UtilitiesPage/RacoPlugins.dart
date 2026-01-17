@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'dart:typed_data'; // Added for Uint8List
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '/l10n/app_localizations.dart';
@@ -13,6 +14,7 @@ class RacoPluginModel {
   final String author;
   final String path;
   final bool isBootEnabled;
+  final Uint8List? logoBytes; // Added to store the image data
 
   RacoPluginModel({
     required this.id,
@@ -22,6 +24,7 @@ class RacoPluginModel {
     required this.author,
     required this.path,
     required this.isBootEnabled,
+    this.logoBytes,
   });
 }
 
@@ -68,6 +71,27 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     }
   }
 
+  // New helper to read image bytes safely from restricted directories
+  Future<Uint8List?> _readRootFileBytes(String path) async {
+    try {
+      // Use stdoutEncoding: null to get raw bytes
+      final result = await Process.run('su', [
+        '-c',
+        'cat "$path"',
+      ], stdoutEncoding: null);
+
+      if (result.exitCode == 0 && result.stdout != null) {
+        List<int> data = result.stdout as List<int>;
+        if (data.isNotEmpty) {
+          return Uint8List.fromList(data);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error reading logo bytes: $e');
+    }
+    return null;
+  }
+
   Future<void> _loadPlugins() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
@@ -88,12 +112,18 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         .toList();
 
     for (String folderName in folders) {
-      final String propPath = '$_pluginBasePath/$folderName/raco.prop';
+      final String currentPath = '$_pluginBasePath/$folderName';
+      final String propPath = '$currentPath/raco.prop';
       final String propContent = await _runRootCommand('cat $propPath');
 
       if (propContent.isNotEmpty) {
         Map<String, String> props = _parseProp(propContent);
         String id = props['id'] ?? folderName;
+
+        // Try to load Logo.png
+        Uint8List? logoBytes = await _readRootFileBytes(
+          '$currentPath/Logo.png',
+        );
 
         loadedPlugins.add(
           RacoPluginModel(
@@ -102,8 +132,9 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
             description: props['description'] ?? 'No description',
             version: props['version'] ?? '1.0',
             author: props['author'] ?? 'Unknown',
-            path: '$_pluginBasePath/$folderName',
+            path: currentPath,
             isBootEnabled: bootStatusMap[id] ?? false,
+            logoBytes: logoBytes,
           ),
         );
       }
@@ -483,7 +514,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   }
 }
 
-// --- UPDATED WIDGET: Buttons Always Visible, Text Expands on Click ---
+// --- WIDGET: Expandable Plugin Card (Updated with Logo Support) ---
 
 class _PluginCard extends StatefulWidget {
   final RacoPluginModel plugin;
@@ -525,7 +556,7 @@ class _PluginCardState extends State<_PluginCard>
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: InkWell(
-        onTap: _toggleExpand, // Tapping anywhere toggles text expansion
+        onTap: _toggleExpand,
         highlightColor: theme.colorScheme.primary.withOpacity(0.1),
         splashColor: theme.colorScheme.primary.withOpacity(0.1),
         child: Padding(
@@ -541,7 +572,7 @@ class _PluginCardState extends State<_PluginCard>
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Icon
+                    // Icon / Logo
                     Container(
                       width: 48,
                       height: 48,
@@ -549,16 +580,20 @@ class _PluginCardState extends State<_PluginCard>
                         color: theme.colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Center(
-                        child: Text(
-                          plugin.name.substring(0, 1).toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                      ),
+                      clipBehavior:
+                          Clip.antiAlias, // Important for image corner radius
+                      child: plugin.logoBytes != null
+                          ? Image.memory(plugin.logoBytes!, fit: BoxFit.cover)
+                          : Center(
+                              child: Text(
+                                plugin.name.substring(0, 1).toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                            ),
                     ),
                     const SizedBox(width: 16),
                     // Title & Version (Expandable)
@@ -571,7 +606,6 @@ class _PluginCardState extends State<_PluginCard>
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
-                            // If collapsed: 1 line with ellipsis. If expanded: wrap.
                             maxLines: _isExpanded ? null : 1,
                             overflow: _isExpanded
                                 ? TextOverflow.visible
@@ -607,7 +641,6 @@ class _PluginCardState extends State<_PluginCard>
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  // If collapsed: 2 lines. If expanded: wrap.
                   maxLines: _isExpanded ? null : 2,
                   overflow: _isExpanded
                       ? TextOverflow.visible
