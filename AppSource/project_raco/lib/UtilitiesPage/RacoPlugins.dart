@@ -59,8 +59,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     _loadPlugins();
   }
 
-  // --- Helper Methods ---
-
   Future<String> _runRootCommand(String command) async {
     try {
       final result = await Process.run('su', ['-c', command]);
@@ -71,7 +69,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     }
   }
 
-  // New Helper: Runs a command and streams output to a log callback
   Future<int> _runLiveRootCommand(
     String command,
     Function(String) logCallback,
@@ -79,7 +76,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     try {
       final process = await Process.start('su', ['-c', command]);
 
-      // Pipe stdout and stderr to the log
       process.stdout.transform(utf8.decoder).listen((data) {
         logCallback(data.trimRight());
       });
@@ -194,8 +190,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     return status;
   }
 
-  // --- Logic Actions ---
-
   Future<void> _togglePluginBoot(RacoPluginModel plugin, bool newValue) async {
     final int intVal = newValue ? 1 : 0;
     final String cmd =
@@ -210,30 +204,29 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   }
 
   Future<void> _runManualPlugin(RacoPluginModel plugin) async {
-    // We can also use the TerminalDialog for manual runs if desired,
-    // but for now keeping "Run" simple or redirecting to dialog?
-    // Let's use the new Terminal Dialog for "Run" as well to show output!
+    try {
+      final String servicePath = '${plugin.path}/service.sh';
+      await _runRootCommand('chmod +x $servicePath');
+      final result = await _runRootCommand('sh $servicePath');
 
-    _showTerminalDialog(
-      context: context,
-      title: "Executing ${plugin.name}...",
-      task: (log) async {
-        log("Checking service script...");
-        final String servicePath = '${plugin.path}/service.sh';
-        await _runRootCommand('chmod +x $servicePath');
-
-        log("Executing service.sh...");
-        log("--------------------------------------------------");
-        int code = await _runLiveRootCommand('sh $servicePath', log);
-        log("--------------------------------------------------");
-
-        if (code == 0) {
-          log("Success: Command executed.");
-        } else {
-          log("Error: Process exited with code $code");
-        }
-      },
-    );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Executed ${plugin.name}'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error executing ${plugin.name}: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _openFilePicker() async {
@@ -246,12 +239,10 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         _handleInstallFlow(result.files.single.path!);
       }
     } catch (e) {
-      // Snackbar removed as requested
       debugPrint('Error: $e');
     }
   }
 
-  // --- Install Flow with Terminal Log ---
   Future<void> _handleInstallFlow(String zipPath) async {
     final loc = AppLocalizations.of(context)!;
 
@@ -275,7 +266,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
 
     if (confirm != true) return;
 
-    // Show Terminal Dialog and run logic inside it
     await _showTerminalDialog(
       context: context,
       title: "Installing Module",
@@ -289,8 +279,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
           await _runRootCommand('cp "$zipPath" $_tmpInstallPath/plugin.zip');
 
           log("- Extracting...");
-          // Using runLive mainly to show if unzip throws verbose errors,
-          // or just simple run is enough. Let's use live for detailed feel.
           await _runLiveRootCommand(
             'unzip -o $_tmpInstallPath/plugin.zip -d $_tmpInstallPath/extracted',
             log,
@@ -353,18 +341,15 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
           await _runRootCommand('rm -rf $_tmpInstallPath');
 
           log("- Done!");
-          // Refresh UI list in background
           _loadPlugins();
         } catch (e) {
           log("! INSTALLATION FAILED");
           log(e.toString());
-          // We assume the dialog stays open so user can see the error
         }
       },
     );
   }
 
-  // --- Uninstall Flow with Terminal Log ---
   Future<void> _handleUninstallFlow(RacoPluginModel plugin) async {
     final loc = AppLocalizations.of(context)!;
     bool? confirm = await showDialog<bool>(
@@ -387,41 +372,19 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
 
     if (confirm != true) return;
 
-    await _showTerminalDialog(
-      context: context,
-      title: "Uninstalling ${plugin.name}",
-      task: (log) async {
-        try {
-          log("- Running uninstall script...");
-          await _runRootCommand('chmod +x ${plugin.path}/uninstall.sh');
+    await _runRootCommand('chmod +x ${plugin.path}/uninstall.sh');
+    await _runRootCommand('sh "${plugin.path}/uninstall.sh"');
+    await _runRootCommand("sed -i '/^${plugin.id}=/d' $_pluginTxtPath");
+    await _runRootCommand('rm -rf "${plugin.path}"');
 
-          log("**************************************************");
-          await _runLiveRootCommand('su -c "${plugin.path}/uninstall.sh"', log);
-          log("**************************************************");
-
-          log("- Removing from registry...");
-          await _runRootCommand("sed -i '/^${plugin.id}=/d' $_pluginTxtPath");
-
-          log("- Deleting files...");
-          await _runRootCommand('rm -rf "${plugin.path}"');
-
-          log("- Success!");
-          _loadPlugins();
-        } catch (e) {
-          log("! Error removing plugin: $e");
-        }
-      },
-    );
+    _loadPlugins();
   }
-
-  // --- UI Methods ---
 
   Future<void> _showTerminalDialog({
     required BuildContext context,
     required String title,
     required Future<void> Function(Function(String) log) task,
   }) {
-    // Navigate to full screen page instead of showDialog
     return Navigator.of(context).push(
       MaterialPageRoute(
         fullscreenDialog: true,
@@ -522,11 +485,9 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   }
 }
 
-// --- WIDGETS ---
-
 class _PluginCard extends StatefulWidget {
   final RacoPluginModel plugin;
-  final VoidCallback onRun;
+  final Future<void> Function() onRun;
   final ValueChanged<bool> onBootToggle;
   final VoidCallback onDelete;
 
@@ -545,11 +506,20 @@ class _PluginCard extends StatefulWidget {
 class _PluginCardState extends State<_PluginCard>
     with SingleTickerProviderStateMixin {
   bool _isExpanded = false;
+  bool _isRunning = false;
 
   void _toggleExpand() {
     setState(() {
       _isExpanded = !_isExpanded;
     });
+  }
+
+  void _handleRun() async {
+    setState(() => _isRunning = true);
+    await widget.onRun();
+    if (mounted) {
+      setState(() => _isRunning = false);
+    }
   }
 
   @override
@@ -655,9 +625,18 @@ class _PluginCardState extends State<_PluginCard>
                 Row(
                   children: [
                     FilledButton.tonalIcon(
-                      onPressed: widget.onRun,
-                      icon: const Icon(Icons.play_arrow_rounded),
-                      label: const Text("Run"),
+                      onPressed: _isRunning ? null : _handleRun,
+                      icon: _isRunning
+                          ? SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: theme.colorScheme.onSecondaryContainer,
+                              ),
+                            )
+                          : const Icon(Icons.play_arrow_rounded),
+                      label: Text(_isRunning ? "Running..." : "Run"),
                     ),
                     const Spacer(),
                     Row(
@@ -688,8 +667,6 @@ class _PluginCardState extends State<_PluginCard>
   }
 }
 
-// --- NEW WIDGET: Terminal Style Full Screen Page ---
-
 class TerminalPage extends StatefulWidget {
   final String title;
   final Future<void> Function(Function(String) log) task;
@@ -709,7 +686,6 @@ class _TerminalPageState extends State<TerminalPage> {
   @override
   void initState() {
     super.initState();
-    // Start the task immediately
     widget.task(_addLog).then((_) {
       if (mounted) {
         setState(() => _isFinished = true);
@@ -722,7 +698,6 @@ class _TerminalPageState extends State<TerminalPage> {
     setState(() {
       _logs.add(message);
     });
-    // Auto scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -737,7 +712,7 @@ class _TerminalPageState extends State<TerminalPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E), // Dark terminal bg
+      backgroundColor: const Color(0xFF1E1E1E),
       appBar: AppBar(
         title: Text(widget.title),
         backgroundColor: Colors.transparent,
@@ -773,18 +748,15 @@ class _TerminalPageState extends State<TerminalPage> {
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(16),
+              // UPDATED PADDING: Added 80 at the bottom to avoid overlap
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
               itemCount: _logs.length,
               itemBuilder: (context, index) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 2.0),
                   child: Text(
                     _logs[index],
-                    style: const TextStyle(
-                      // Default font
-                      color: Colors.white, // White text
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 );
               },
