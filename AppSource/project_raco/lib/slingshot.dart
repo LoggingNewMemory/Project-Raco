@@ -54,6 +54,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
   static const String _prefsKeyApps = 'preload_cached_apps';
   static const String _prefsKeySelected = 'preload_selected_single_app';
   static const String _prefsKeyUseAngle = 'preload_use_angle';
+  static const String _prefsKeyMode = 'preload_selected_mode';
 
   @override
   void initState() {
@@ -110,11 +111,15 @@ class _SlingshotPageState extends State<SlingshotPage> {
 
       final String? savedPackage = prefs.getString(_prefsKeySelected);
       final bool? savedAngle = prefs.getBool(_prefsKeyUseAngle);
+      final String? savedMode = prefs.getString(_prefsKeyMode);
 
       if (mounted) {
         setState(() {
           if (savedPackage != null) _selectedAppPackage = savedPackage;
           if (savedAngle != null) _useAngle = savedAngle;
+          if (savedMode != null && _modes.containsKey(savedMode)) {
+            _selectedMode = savedMode;
+          }
         });
       }
 
@@ -163,6 +168,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
         await prefs.remove(_prefsKeySelected);
       }
       await prefs.setBool(_prefsKeyUseAngle, _useAngle);
+      await prefs.setString(_prefsKeyMode, _selectedMode);
     } catch (e) {
       debugPrint("Selection save error: $e");
     }
@@ -361,8 +367,10 @@ class _SlingshotPageState extends State<SlingshotPage> {
                             );
                           }).toList(),
                           onChanged: (val) {
-                            if (val != null)
+                            if (val != null) {
                               setState(() => _selectedMode = val);
+                              _saveSelection();
+                            }
                           },
                         ),
                       ),
