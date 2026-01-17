@@ -45,7 +45,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   bool _isLoading = true;
   List<RacoPluginModel> _plugins = [];
 
-  // Paths defined in design
+  // Paths
   final String _pluginBasePath = '/data/ProjectRaco/Plugins';
   final String _pluginTxtPath = '/data/ProjectRaco/Plugin.txt';
   final String _tmpInstallPath = '/data/local/tmp/raco_plugin_install';
@@ -56,16 +56,12 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     _loadPlugins();
   }
 
+  // --- Root & File Logic ---
+
   Future<String> _runRootCommand(String command) async {
     try {
       final result = await Process.run('su', ['-c', command]);
-      if (result.exitCode == 0) {
-        return result.stdout.toString().trim();
-      } else {
-        // We log stderr but return empty string or throw depending on logic needs
-        debugPrint('Root Command Error: ${result.stderr}');
-        return '';
-      }
+      return result.exitCode == 0 ? result.stdout.toString().trim() : '';
     } catch (e) {
       debugPrint('Root Exec Error: $e');
       return '';
@@ -77,20 +73,14 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     setState(() => _isLoading = true);
     List<RacoPluginModel> loadedPlugins = [];
 
-    // Check if Plugins directory exists
     await _runRootCommand('mkdir -p $_pluginBasePath');
-
-    // Ensure Plugin.txt exists
     await _runRootCommand('touch $_pluginTxtPath');
 
-    // Read Plugin.txt to determine boot status
-    // Format: PluginID=1 (Enabled) or PluginID=0 (Disabled)
     final String pluginTxtContent = await _runRootCommand(
       'cat $_pluginTxtPath',
     );
     final Map<String, bool> bootStatusMap = _parsePluginTxt(pluginTxtContent);
 
-    // List directories in Plugins folder
     final String lsResult = await _runRootCommand('ls $_pluginBasePath');
     final List<String> folders = lsResult
         .split('\n')
@@ -99,7 +89,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
 
     for (String folderName in folders) {
       final String propPath = '$_pluginBasePath/$folderName/raco.prop';
-      // Read raco.prop
       final String propContent = await _runRootCommand('cat $propPath');
 
       if (propContent.isNotEmpty) {
@@ -114,7 +103,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
             version: props['version'] ?? '1.0',
             author: props['author'] ?? 'Unknown',
             path: '$_pluginBasePath/$folderName',
-            // Default to false if not found in Plugin.txt
             isBootEnabled: bootStatusMap[id] ?? false,
           ),
         );
@@ -143,7 +131,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     return props;
   }
 
-  // Parse Plugin.txt: PluginID=1 -> true
   Map<String, bool> _parsePluginTxt(String content) {
     Map<String, bool> status = {};
     List<String> lines = content.split('\n');
@@ -160,14 +147,10 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     return status;
   }
 
-  // --- Features: Toggle Boot & Manual Run ---
+  // --- Actions ---
 
   Future<void> _togglePluginBoot(RacoPluginModel plugin, bool newValue) async {
     final int intVal = newValue ? 1 : 0;
-
-    // Logic: Use grep to check if entry exists.
-    // If exists: Use sed to replace line.
-    // If not exists: Echo new line.
     final String cmd =
         'if grep -q "^${plugin.id}=" $_pluginTxtPath; then '
         'sed -i "s/^${plugin.id}=.*/${plugin.id}=$intVal/" $_pluginTxtPath; '
@@ -176,8 +159,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         'fi';
 
     await _runRootCommand(cmd);
-
-    // Refresh list to update UI
     await _loadPlugins();
   }
 
@@ -185,30 +166,24 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     final loc = AppLocalizations.of(context)!;
     _showLoadingDialog(loc.executing_command);
 
-    // Diagram: "Manual -> Run service.sh"
     final String servicePath = '${plugin.path}/service.sh';
-
-    // Ensure executable
     await _runRootCommand('chmod +x $servicePath');
 
-    // Run
     final result = await Process.run('su', ['-c', 'sh $servicePath']);
 
     if (mounted) {
-      Navigator.pop(context); // Close loading
-      if (result.exitCode == 0) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(loc.command_executed)));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("${loc.command_failed}\n${result.stderr}")),
-        );
-      }
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.exitCode == 0
+                ? loc.command_executed
+                : "${loc.command_failed}\n${result.stderr}",
+          ),
+        ),
+      );
     }
   }
-
-  // --- Installation Logic ---
 
   Future<void> _openFilePicker() async {
     try {
@@ -216,14 +191,13 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         type: FileType.custom,
         allowedExtensions: ['zip'],
       );
-
       if (result != null && result.files.single.path != null) {
         _handleInstallFlow(result.files.single.path!);
       }
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error picking file: $e')));
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -249,7 +223,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     );
 
     if (confirm != true) return;
-
     _showLoadingDialog(loc.executing_command);
 
     try {
@@ -272,13 +245,12 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
       }
 
       final String pluginId = props['id'] ?? 'unknown_plugin';
-
       await _runRootCommand('chmod +x $_tmpInstallPath/extracted/install.sh');
+
       final ProcessResult installResult = await Process.run('su', [
         '-c',
         'cd $_tmpInstallPath/extracted && ./install.sh',
       ]);
-
       if (installResult.exitCode != 0) {
         Navigator.pop(context);
         await _handleInstallError(
@@ -288,8 +260,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         return;
       }
 
-      // Add PluginID=1 to Plugin.txt (Default enabled upon install per diagram implication?)
-      // Actually diagram says "Add PluginID to Plugin.txt", usually enabled by default is friendly.
       String currentPluginTxt = await _runRootCommand('cat $_pluginTxtPath');
       if (!currentPluginTxt.contains('$pluginId=')) {
         await _runRootCommand('echo "$pluginId=1" >> $_pluginTxtPath');
@@ -302,7 +272,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
       await _runRootCommand('rm -rf $_tmpInstallPath');
 
       Navigator.pop(context);
-
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(loc.plugin_installed_success)));
@@ -334,14 +303,12 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     );
 
     if (saveLogs == true) {
-      final String downloadPath = '/sdcard/Download';
       final String logFile =
-          '$downloadPath/raco_plugin_error_${pluginId ?? "unknown"}_${DateTime.now().millisecondsSinceEpoch}.txt';
+          '/sdcard/Download/raco_plugin_error_${pluginId}_${DateTime.now().millisecondsSinceEpoch}.txt';
       await _runRootCommand('echo "$errorMsg" > $logFile');
       await _runRootCommand(
         'cat $_tmpInstallPath/extracted/install.log >> $logFile',
       );
-
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(loc.logs_saved)));
@@ -349,11 +316,8 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     await _runRootCommand('rm -rf $_tmpInstallPath');
   }
 
-  // --- Uninstallation Logic ---
-
   Future<void> _handleUninstallFlow(RacoPluginModel plugin) async {
     final loc = AppLocalizations.of(context)!;
-
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -373,18 +337,12 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     );
 
     if (confirm != true) return;
-
     _showLoadingDialog(loc.executing_command);
 
     try {
-      final String uninstallScript = '${plugin.path}/uninstall.sh';
-      await _runRootCommand('chmod +x $uninstallScript');
-      await _runRootCommand('su -c "$uninstallScript"');
-
-      // Delete from Plugin.txt
+      await _runRootCommand('chmod +x ${plugin.path}/uninstall.sh');
+      await _runRootCommand('su -c "${plugin.path}/uninstall.sh"');
       await _runRootCommand("sed -i '/^${plugin.id}=/d' $_pluginTxtPath");
-
-      // Delete directory
       await _runRootCommand('rm -rf "${plugin.path}"');
 
       Navigator.pop(context);
@@ -398,8 +356,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     }
   }
 
-  // --- Helper Widgets ---
-
   void _showLoadingDialog(String message) {
     showDialog(
       context: context,
@@ -408,7 +364,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
               const CircularProgressIndicator(),
               const SizedBox(width: 20),
@@ -439,6 +394,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
 
     final Widget pageContent = Scaffold(
       backgroundColor: Colors.transparent,
@@ -462,12 +418,12 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
                   Icon(
                     Icons.extension_off_outlined,
                     size: 64,
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: theme.colorScheme.secondary,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     loc.no_plugins_installed,
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: theme.textTheme.titleMedium,
                   ),
                   const SizedBox(height: 16),
                   FilledButton.icon(
@@ -479,74 +435,15 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
               ),
             )
           : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
               itemCount: _plugins.length,
               itemBuilder: (context, index) {
                 final plugin = _plugins[index];
-                return Card(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.8),
-                  margin: const EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    leading: CircleAvatar(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      child: Text(
-                        plugin.name.substring(0, 1).toUpperCase(),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      plugin.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(plugin.description),
-                        const SizedBox(height: 4),
-                        Text(
-                          "v${plugin.version} • by ${plugin.author}",
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                    // Updated Trailing: Manual Run, Boot Switch, Delete
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Manual Run Button
-                        IconButton(
-                          icon: const Icon(Icons.play_arrow),
-                          tooltip: "Run Manual",
-                          onPressed: () => _runManualPlugin(plugin),
-                        ),
-                        // Boot Toggle Switch
-                        Switch(
-                          value: plugin.isBootEnabled,
-                          onChanged: (val) => _togglePluginBoot(plugin, val),
-                          activeColor: Theme.of(context).colorScheme.primary,
-                        ),
-                        // Delete Button
-                        IconButton(
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Colors.redAccent,
-                          ),
-                          onPressed: () => _handleUninstallFlow(plugin),
-                        ),
-                      ],
-                    ),
-                  ),
+                return _PluginCard(
+                  plugin: plugin,
+                  onRun: () => _runManualPlugin(plugin),
+                  onBootToggle: (val) => _togglePluginBoot(plugin, val),
+                  onDelete: () => _handleUninstallFlow(plugin),
                 );
               },
             ),
@@ -555,7 +452,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Container(color: Theme.of(context).colorScheme.background),
+        Container(color: theme.colorScheme.background),
         if (widget.backgroundImagePath != null &&
             widget.backgroundImagePath!.isNotEmpty)
           ImageFiltered(
@@ -568,8 +465,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
               child: Image.file(
                 File(widget.backgroundImagePath!),
                 fit: BoxFit.cover,
-                errorBuilder: (ctx, err, stack) =>
-                    Container(color: Colors.transparent),
+                errorBuilder: (_, __, ___) => Container(),
               ),
             ),
           ),
@@ -583,6 +479,181 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         else
           pageContent,
       ],
+    );
+  }
+}
+
+// --- UPDATED WIDGET: Buttons Always Visible, Text Expands on Click ---
+
+class _PluginCard extends StatefulWidget {
+  final RacoPluginModel plugin;
+  final VoidCallback onRun;
+  final ValueChanged<bool> onBootToggle;
+  final VoidCallback onDelete;
+
+  const _PluginCard({
+    Key? key,
+    required this.plugin,
+    required this.onRun,
+    required this.onBootToggle,
+    required this.onDelete,
+  }) : super(key: key);
+
+  @override
+  _PluginCardState createState() => _PluginCardState();
+}
+
+class _PluginCardState extends State<_PluginCard>
+    with SingleTickerProviderStateMixin {
+  bool _isExpanded = false;
+
+  void _toggleExpand() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final plugin = widget.plugin;
+
+    return Card(
+      color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.8),
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: InkWell(
+        onTap: _toggleExpand, // Tapping anywhere toggles text expansion
+        highlightColor: theme.colorScheme.primary.withOpacity(0.1),
+        splashColor: theme.colorScheme.primary.withOpacity(0.1),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOutCubic,
+            alignment: Alignment.topCenter,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // --- Row 1: Icon, Title, Delete ---
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Icon
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          plugin.name.substring(0, 1).toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Title & Version (Expandable)
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            plugin.name,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            // If collapsed: 1 line with ellipsis. If expanded: wrap.
+                            maxLines: _isExpanded ? null : 1,
+                            overflow: _isExpanded
+                                ? TextOverflow.visible
+                                : TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            "v${plugin.version} • ${plugin.author}",
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: _isExpanded ? null : 1,
+                            overflow: _isExpanded
+                                ? TextOverflow.visible
+                                : TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Delete Button
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      color: theme.colorScheme.error,
+                      onPressed: widget.onDelete,
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // --- Row 2: Description (Expandable) ---
+                Text(
+                  plugin.description,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  // If collapsed: 2 lines. If expanded: wrap.
+                  maxLines: _isExpanded ? null : 2,
+                  overflow: _isExpanded
+                      ? TextOverflow.visible
+                      : TextOverflow.ellipsis,
+                ),
+
+                const SizedBox(height: 16),
+                Divider(
+                  height: 1,
+                  color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+                ),
+                const SizedBox(height: 12),
+
+                // --- Row 3: Action Buttons (Always Visible) ---
+                Row(
+                  children: [
+                    FilledButton.tonalIcon(
+                      onPressed: widget.onRun,
+                      icon: const Icon(Icons.play_arrow_rounded),
+                      label: const Text("Run"),
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Text(
+                          "Boot",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Switch(
+                          value: plugin.isBootEnabled,
+                          onChanged: widget.onBootToggle,
+                          activeColor: theme.colorScheme.primary,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
