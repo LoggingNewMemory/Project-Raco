@@ -12,6 +12,7 @@ class RacoPluginModel {
   final String version;
   final String author;
   final String path;
+  final bool isBootEnabled;
 
   RacoPluginModel({
     required this.id,
@@ -20,6 +21,7 @@ class RacoPluginModel {
     required this.version,
     required this.author,
     required this.path,
+    required this.isBootEnabled,
   });
 }
 
@@ -60,19 +62,33 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
       if (result.exitCode == 0) {
         return result.stdout.toString().trim();
       } else {
-        throw Exception(result.stderr.toString());
+        // We log stderr but return empty string or throw depending on logic needs
+        debugPrint('Root Command Error: ${result.stderr}');
+        return '';
       }
     } catch (e) {
+      debugPrint('Root Exec Error: $e');
       return '';
     }
   }
 
   Future<void> _loadPlugins() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     List<RacoPluginModel> loadedPlugins = [];
 
     // Check if Plugins directory exists
     await _runRootCommand('mkdir -p $_pluginBasePath');
+
+    // Ensure Plugin.txt exists
+    await _runRootCommand('touch $_pluginTxtPath');
+
+    // Read Plugin.txt to determine boot status
+    // Format: PluginID=1 (Enabled) or PluginID=0 (Disabled)
+    final String pluginTxtContent = await _runRootCommand(
+      'cat $_pluginTxtPath',
+    );
+    final Map<String, bool> bootStatusMap = _parsePluginTxt(pluginTxtContent);
 
     // List directories in Plugins folder
     final String lsResult = await _runRootCommand('ls $_pluginBasePath');
@@ -88,15 +104,18 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
 
       if (propContent.isNotEmpty) {
         Map<String, String> props = _parseProp(propContent);
+        String id = props['id'] ?? folderName;
 
         loadedPlugins.add(
           RacoPluginModel(
-            id: props['id'] ?? folderName,
+            id: id,
             name: props['name'] ?? folderName,
             description: props['description'] ?? 'No description',
             version: props['version'] ?? '1.0',
             author: props['author'] ?? 'Unknown',
             path: '$_pluginBasePath/$folderName',
+            // Default to false if not found in Plugin.txt
+            isBootEnabled: bootStatusMap[id] ?? false,
           ),
         );
       }
@@ -124,18 +143,81 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     return props;
   }
 
-  // --- Installation Logic (Based on Diagram) ---
+  // Parse Plugin.txt: PluginID=1 -> true
+  Map<String, bool> _parsePluginTxt(String content) {
+    Map<String, bool> status = {};
+    List<String> lines = content.split('\n');
+    for (var line in lines) {
+      if (line.contains('=')) {
+        var parts = line.split('=');
+        if (parts.length >= 2) {
+          String key = parts[0].trim();
+          String val = parts[1].trim();
+          status[key] = (val == '1');
+        }
+      }
+    }
+    return status;
+  }
+
+  // --- Features: Toggle Boot & Manual Run ---
+
+  Future<void> _togglePluginBoot(RacoPluginModel plugin, bool newValue) async {
+    final int intVal = newValue ? 1 : 0;
+
+    // Logic: Use grep to check if entry exists.
+    // If exists: Use sed to replace line.
+    // If not exists: Echo new line.
+    final String cmd =
+        'if grep -q "^${plugin.id}=" $_pluginTxtPath; then '
+        'sed -i "s/^${plugin.id}=.*/${plugin.id}=$intVal/" $_pluginTxtPath; '
+        'else '
+        'echo "${plugin.id}=$intVal" >> $_pluginTxtPath; '
+        'fi';
+
+    await _runRootCommand(cmd);
+
+    // Refresh list to update UI
+    await _loadPlugins();
+  }
+
+  Future<void> _runManualPlugin(RacoPluginModel plugin) async {
+    final loc = AppLocalizations.of(context)!;
+    _showLoadingDialog(loc.executing_command);
+
+    // Diagram: "Manual -> Run service.sh"
+    final String servicePath = '${plugin.path}/service.sh';
+
+    // Ensure executable
+    await _runRootCommand('chmod +x $servicePath');
+
+    // Run
+    final result = await Process.run('su', ['-c', 'sh $servicePath']);
+
+    if (mounted) {
+      Navigator.pop(context); // Close loading
+      if (result.exitCode == 0) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(loc.command_executed)));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("${loc.command_failed}\n${result.stderr}")),
+        );
+      }
+    }
+  }
+
+  // --- Installation Logic ---
 
   Future<void> _openFilePicker() async {
     try {
-      // Open external system file picker (like KernelSU)
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['zip'],
       );
 
       if (result != null && result.files.single.path != null) {
-        // Proceed with installation flow using the selected path
         _handleInstallFlow(result.files.single.path!);
       }
     } catch (e) {
@@ -148,7 +230,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   Future<void> _handleInstallFlow(String zipPath) async {
     final loc = AppLocalizations.of(context)!;
 
-    // 1. Prompt User Install Confirmation
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -172,34 +253,26 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     _showLoadingDialog(loc.executing_command);
 
     try {
-      // Clean temp
       await _runRootCommand('rm -rf $_tmpInstallPath');
       await _runRootCommand('mkdir -p $_tmpInstallPath');
-
-      // Copy zip to tmp
       await _runRootCommand('cp "$zipPath" $_tmpInstallPath/plugin.zip');
-
-      // Unzip
       await _runRootCommand(
         'unzip -o $_tmpInstallPath/plugin.zip -d $_tmpInstallPath/extracted',
       );
 
-      // 2. Verify RacoPlugin=1 in raco.prop
       final String propContent = await _runRootCommand(
         'cat $_tmpInstallPath/extracted/raco.prop',
       );
       Map<String, String> props = _parseProp(propContent);
 
       if (props['RacoPlugin'] != '1') {
-        // Verification Failed
-        Navigator.pop(context); // Close loading
+        Navigator.pop(context);
         await _handleInstallError(loc.plugin_verification_failed, props['id']);
         return;
       }
 
       final String pluginId = props['id'] ?? 'unknown_plugin';
 
-      // 3. Run install.sh
       await _runRootCommand('chmod +x $_tmpInstallPath/extracted/install.sh');
       final ProcessResult installResult = await Process.run('su', [
         '-c',
@@ -207,8 +280,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
       ]);
 
       if (installResult.exitCode != 0) {
-        // Script Error
-        Navigator.pop(context); // Close loading
+        Navigator.pop(context);
         await _handleInstallError(
           "${loc.plugin_script_error}\n${installResult.stderr}",
           pluginId,
@@ -216,33 +288,25 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         return;
       }
 
-      // 4. Success Flow
-      // Add PluginID to Plugin.txt
-      // Check if Plugin.txt exists, if not create
-      await _runRootCommand('touch $_pluginTxtPath');
-      // Append PluginID=1 (as per "Run Plugin" diagram logic requiring "Plugin must defined as 1")
-      // We use grep to check if it exists to avoid duplicates, then sed or echo
+      // Add PluginID=1 to Plugin.txt (Default enabled upon install per diagram implication?)
+      // Actually diagram says "Add PluginID to Plugin.txt", usually enabled by default is friendly.
       String currentPluginTxt = await _runRootCommand('cat $_pluginTxtPath');
-      if (!currentPluginTxt.contains('$pluginId=1')) {
+      if (!currentPluginTxt.contains('$pluginId=')) {
         await _runRootCommand('echo "$pluginId=1" >> $_pluginTxtPath');
       }
 
-      // Copy all contents to /data/ProjectRaco/Plugins/(plugin id)
       final String targetPath = '$_pluginBasePath/$pluginId';
-      await _runRootCommand('rm -rf $targetPath'); // Clean old if exists
+      await _runRootCommand('rm -rf $targetPath');
       await _runRootCommand('mkdir -p $targetPath');
       await _runRootCommand('cp -r $_tmpInstallPath/extracted/* $targetPath/');
-
-      // Cleanup
       await _runRootCommand('rm -rf $_tmpInstallPath');
 
-      Navigator.pop(context); // Close loading
+      Navigator.pop(context);
 
-      // Done
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(loc.plugin_installed_success)));
-      _loadPlugins(); // Refresh list
+      _loadPlugins();
     } catch (e) {
       if (Navigator.canPop(context)) Navigator.pop(context);
       _showErrorDialog(e.toString());
@@ -251,7 +315,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
 
   Future<void> _handleInstallError(String errorMsg, String? pluginId) async {
     final loc = AppLocalizations.of(context)!;
-    // Prompt: Save Logs?
     bool? saveLogs = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -271,12 +334,10 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     );
 
     if (saveLogs == true) {
-      // Copy Logs
       final String downloadPath = '/sdcard/Download';
       final String logFile =
           '$downloadPath/raco_plugin_error_${pluginId ?? "unknown"}_${DateTime.now().millisecondsSinceEpoch}.txt';
       await _runRootCommand('echo "$errorMsg" > $logFile');
-      // If there was an install log in tmp
       await _runRootCommand(
         'cat $_tmpInstallPath/extracted/install.log >> $logFile',
       );
@@ -285,17 +346,14 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         context,
       ).showSnackBar(SnackBar(content: Text(loc.logs_saved)));
     }
-
-    // Delete folder containing plugin (temp folder in this case)
     await _runRootCommand('rm -rf $_tmpInstallPath');
   }
 
-  // --- Uninstallation Logic (Based on Diagram) ---
+  // --- Uninstallation Logic ---
 
   Future<void> _handleUninstallFlow(RacoPluginModel plugin) async {
     final loc = AppLocalizations.of(context)!;
 
-    // 1. Confirm Delete
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -319,20 +377,17 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     _showLoadingDialog(loc.executing_command);
 
     try {
-      // 2. Run uninstall.sh
       final String uninstallScript = '${plugin.path}/uninstall.sh';
       await _runRootCommand('chmod +x $uninstallScript');
-      // We run it but don't strictly fail if it errors, as we delete files anyway per diagram
       await _runRootCommand('su -c "$uninstallScript"');
 
-      // 3. Delete the PluginID from Plugin.txt
-      // We use sed to delete the line containing "PluginID="
+      // Delete from Plugin.txt
       await _runRootCommand("sed -i '/^${plugin.id}=/d' $_pluginTxtPath");
 
-      // 4. Delete the Plugin Directory
+      // Delete directory
       await _runRootCommand('rm -rf "${plugin.path}"');
 
-      Navigator.pop(context); // Close loading
+      Navigator.pop(context);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(loc.plugin_uninstall_success)));
@@ -385,7 +440,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
-    // Define the content in a transparent Scaffold
     final Widget pageContent = Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
@@ -396,7 +450,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: loc.install_plugin,
-            onPressed: _openFilePicker, // Uses external file picker
+            onPressed: _openFilePicker,
           ),
         ],
       ),
@@ -438,6 +492,10 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     leading: CircleAvatar(
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       child: Text(
@@ -462,12 +520,31 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
                         ),
                       ],
                     ),
-                    trailing: IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.redAccent,
-                      ),
-                      onPressed: () => _handleUninstallFlow(plugin),
+                    // Updated Trailing: Manual Run, Boot Switch, Delete
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Manual Run Button
+                        IconButton(
+                          icon: const Icon(Icons.play_arrow),
+                          tooltip: "Run Manual",
+                          onPressed: () => _runManualPlugin(plugin),
+                        ),
+                        // Boot Toggle Switch
+                        Switch(
+                          value: plugin.isBootEnabled,
+                          onChanged: (val) => _togglePluginBoot(plugin, val),
+                          activeColor: Theme.of(context).colorScheme.primary,
+                        ),
+                        // Delete Button
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.redAccent,
+                          ),
+                          onPressed: () => _handleUninstallFlow(plugin),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -475,14 +552,10 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
             ),
     );
 
-    // Return a Stack with the background layers and the page content on top
     return Stack(
       fit: StackFit.expand,
       children: [
-        // 1. Solid background color (Theme)
         Container(color: Theme.of(context).colorScheme.background),
-
-        // 2. Background Image with Blur (if available)
         if (widget.backgroundImagePath != null &&
             widget.backgroundImagePath!.isNotEmpty)
           ImageFiltered(
@@ -500,8 +573,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
               ),
             ),
           ),
-
-        // 3. Loading or Content
         if (_isLoading)
           const Center(
             child: Padding(

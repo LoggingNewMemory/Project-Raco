@@ -106,6 +106,30 @@ fi
 
 send_notif "Project Raco" "Project Raco - オンライン" "TagRaco" "/data/local/tmp/logo.png"
 
+# --- Project Raco Plugin Loader ---
+PLUGIN_TXT="/data/ProjectRaco/Plugin.txt"
+PLUGIN_DIR="/data/ProjectRaco/Plugins"
+
+if [ -f "$PLUGIN_TXT" ]; then
+    # Read Plugin.txt line by line (format: PluginID=1)
+    while IFS='=' read -r plugin_id enabled || [ -n "$plugin_id" ]; do
+        # Clean up whitespace/newlines just in case
+        plugin_id=$(echo "$plugin_id" | tr -d '[:space:]')
+        enabled=$(echo "$enabled" | tr -d '[:space:]')
+
+        # If plugin is enabled (1), execute its service.sh
+        if [ "$enabled" = "1" ]; then
+            plugin_service="$PLUGIN_DIR/$plugin_id/service.sh"
+            if [ -f "$plugin_service" ]; then
+                chmod +x "$plugin_service"
+                # Run in background (&) to ensure it doesn't block the main script loop
+                sh "$plugin_service" &
+            fi
+        fi
+    done < "$PLUGIN_TXT"
+fi
+# ----------------------------------
+
 # Revert CPU governor to default after configured duration, only if INCLUDE_SANDEV=1
 if grep -q "INCLUDE_SANDEV=1" "$CONFIG_FILE"; then
     SANDEV_DUR=$(grep '^SANDEV_DUR=' "$CONFIG_FILE" | cut -d'=' -f2)
