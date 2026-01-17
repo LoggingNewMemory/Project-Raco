@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
-import 'dart:typed_data'; // Added for Uint8List
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '/l10n/app_localizations.dart';
@@ -14,7 +15,7 @@ class RacoPluginModel {
   final String author;
   final String path;
   final bool isBootEnabled;
-  final Uint8List? logoBytes; // Added to store the image data
+  final Uint8List? logoBytes;
 
   RacoPluginModel({
     required this.id,
@@ -48,7 +49,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   bool _isLoading = true;
   List<RacoPluginModel> _plugins = [];
 
-  // Paths
   final String _pluginBasePath = '/data/ProjectRaco/Plugins';
   final String _pluginTxtPath = '/data/ProjectRaco/Plugin.txt';
   final String _tmpInstallPath = '/data/local/tmp/raco_plugin_install';
@@ -59,7 +59,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     _loadPlugins();
   }
 
-  // --- Root & File Logic ---
+  // --- Helper Methods ---
 
   Future<String> _runRootCommand(String command) async {
     try {
@@ -71,20 +71,38 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     }
   }
 
-  // New helper to read image bytes safely from restricted directories
+  // New Helper: Runs a command and streams output to a log callback
+  Future<int> _runLiveRootCommand(
+    String command,
+    Function(String) logCallback,
+  ) async {
+    try {
+      final process = await Process.start('su', ['-c', command]);
+
+      // Pipe stdout and stderr to the log
+      process.stdout.transform(utf8.decoder).listen((data) {
+        logCallback(data.trimRight());
+      });
+      process.stderr.transform(utf8.decoder).listen((data) {
+        logCallback("ERROR: ${data.trimRight()}");
+      });
+
+      return await process.exitCode;
+    } catch (e) {
+      logCallback("EXCEPTION: $e");
+      return -1;
+    }
+  }
+
   Future<Uint8List?> _readRootFileBytes(String path) async {
     try {
-      // Use stdoutEncoding: null to get raw bytes
       final result = await Process.run('su', [
         '-c',
         'cat "$path"',
       ], stdoutEncoding: null);
-
       if (result.exitCode == 0 && result.stdout != null) {
         List<int> data = result.stdout as List<int>;
-        if (data.isNotEmpty) {
-          return Uint8List.fromList(data);
-        }
+        if (data.isNotEmpty) return Uint8List.fromList(data);
       }
     } catch (e) {
       debugPrint('Error reading logo bytes: $e');
@@ -119,8 +137,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
       if (propContent.isNotEmpty) {
         Map<String, String> props = _parseProp(propContent);
         String id = props['id'] ?? folderName;
-
-        // Try to load Logo.png
         Uint8List? logoBytes = await _readRootFileBytes(
           '$currentPath/Logo.png',
         );
@@ -178,7 +194,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     return status;
   }
 
-  // --- Actions ---
+  // --- Logic Actions ---
 
   Future<void> _togglePluginBoot(RacoPluginModel plugin, bool newValue) async {
     final int intVal = newValue ? 1 : 0;
@@ -195,25 +211,30 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
 
   Future<void> _runManualPlugin(RacoPluginModel plugin) async {
     final loc = AppLocalizations.of(context)!;
-    _showLoadingDialog(loc.executing_command);
+    // We can also use the TerminalDialog for manual runs if desired,
+    // but for now keeping "Run" simple or redirecting to dialog?
+    // Let's use the new Terminal Dialog for "Run" as well to show output!
 
-    final String servicePath = '${plugin.path}/service.sh';
-    await _runRootCommand('chmod +x $servicePath');
+    _showTerminalDialog(
+      context: context,
+      title: "Executing ${plugin.name}...",
+      task: (log) async {
+        log("Checking service script...");
+        final String servicePath = '${plugin.path}/service.sh';
+        await _runRootCommand('chmod +x $servicePath');
 
-    final result = await Process.run('su', ['-c', 'sh $servicePath']);
+        log("Executing service.sh...");
+        log("--------------------------------------------------");
+        int code = await _runLiveRootCommand('sh $servicePath', log);
+        log("--------------------------------------------------");
 
-    if (mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result.exitCode == 0
-                ? loc.command_executed
-                : "${loc.command_failed}\n${result.stderr}",
-          ),
-        ),
-      );
-    }
+        if (code == 0) {
+          log("Success: Command executed.");
+        } else {
+          log("Error: Process exited with code $code");
+        }
+      },
+    );
   }
 
   Future<void> _openFilePicker() async {
@@ -232,6 +253,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     }
   }
 
+  // --- Install Flow with Terminal Log ---
   Future<void> _handleInstallFlow(String zipPath) async {
     final loc = AppLocalizations.of(context)!;
 
@@ -254,99 +276,99 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     );
 
     if (confirm != true) return;
-    _showLoadingDialog(loc.executing_command);
 
-    try {
-      await _runRootCommand('rm -rf $_tmpInstallPath');
-      await _runRootCommand('mkdir -p $_tmpInstallPath');
-      await _runRootCommand('cp "$zipPath" $_tmpInstallPath/plugin.zip');
-      await _runRootCommand(
-        'unzip -o $_tmpInstallPath/plugin.zip -d $_tmpInstallPath/extracted',
-      );
-
-      final String propContent = await _runRootCommand(
-        'cat $_tmpInstallPath/extracted/raco.prop',
-      );
-      Map<String, String> props = _parseProp(propContent);
-
-      if (props['RacoPlugin'] != '1') {
-        Navigator.pop(context);
-        await _handleInstallError(loc.plugin_verification_failed, props['id']);
-        return;
-      }
-
-      final String pluginId = props['id'] ?? 'unknown_plugin';
-      await _runRootCommand('chmod +x $_tmpInstallPath/extracted/install.sh');
-
-      final ProcessResult installResult = await Process.run('su', [
-        '-c',
-        'cd $_tmpInstallPath/extracted && ./install.sh',
-      ]);
-      if (installResult.exitCode != 0) {
-        Navigator.pop(context);
-        await _handleInstallError(
-          "${loc.plugin_script_error}\n${installResult.stderr}",
-          pluginId,
-        );
-        return;
-      }
-
-      String currentPluginTxt = await _runRootCommand('cat $_pluginTxtPath');
-      if (!currentPluginTxt.contains('$pluginId=')) {
-        await _runRootCommand('echo "$pluginId=1" >> $_pluginTxtPath');
-      }
-
-      final String targetPath = '$_pluginBasePath/$pluginId';
-      await _runRootCommand('rm -rf $targetPath');
-      await _runRootCommand('mkdir -p $targetPath');
-      await _runRootCommand('cp -r $_tmpInstallPath/extracted/* $targetPath/');
-      await _runRootCommand('rm -rf $_tmpInstallPath');
-
-      Navigator.pop(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(loc.plugin_installed_success)));
-      _loadPlugins();
-    } catch (e) {
-      if (Navigator.canPop(context)) Navigator.pop(context);
-      _showErrorDialog(e.toString());
-    }
-  }
-
-  Future<void> _handleInstallError(String errorMsg, String? pluginId) async {
-    final loc = AppLocalizations.of(context)!;
-    bool? saveLogs = await showDialog<bool>(
+    // Show Terminal Dialog and run logic inside it
+    await _showTerminalDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(loc.command_failed),
-        content: Text("$errorMsg\n\nSave Logs?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(loc.no),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(loc.yes),
-          ),
-        ],
-      ),
-    );
+      title: "Installing Module",
+      task: (log) async {
+        try {
+          log("- Preparing temporary directory...");
+          await _runRootCommand('rm -rf $_tmpInstallPath');
+          await _runRootCommand('mkdir -p $_tmpInstallPath');
 
-    if (saveLogs == true) {
-      final String logFile =
-          '/sdcard/Download/raco_plugin_error_${pluginId}_${DateTime.now().millisecondsSinceEpoch}.txt';
-      await _runRootCommand('echo "$errorMsg" > $logFile');
-      await _runRootCommand(
-        'cat $_tmpInstallPath/extracted/install.log >> $logFile',
-      );
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(loc.logs_saved)));
-    }
-    await _runRootCommand('rm -rf $_tmpInstallPath');
+          log("- Copying zip file...");
+          await _runRootCommand('cp "$zipPath" $_tmpInstallPath/plugin.zip');
+
+          log("- Extracting...");
+          // Using runLive mainly to show if unzip throws verbose errors,
+          // or just simple run is enough. Let's use live for detailed feel.
+          await _runLiveRootCommand(
+            'unzip -o $_tmpInstallPath/plugin.zip -d $_tmpInstallPath/extracted',
+            log,
+          );
+
+          log("- Verifying config...");
+          final String propContent = await _runRootCommand(
+            'cat $_tmpInstallPath/extracted/raco.prop',
+          );
+
+          if (propContent.isEmpty) {
+            log("! Error: raco.prop not found.");
+            throw Exception("Invalid Plugin: raco.prop missing");
+          }
+
+          Map<String, String> props = _parseProp(propContent);
+          if (props['RacoPlugin'] != '1') {
+            log("! Error: RacoPlugin flag missing or invalid.");
+            throw Exception("Verification failed");
+          }
+
+          final String pluginId = props['id'] ?? 'unknown_plugin';
+          final String pluginName = props['name'] ?? 'Unknown';
+          log("- Plugin: $pluginName (ID: $pluginId)");
+
+          log("- Setting permissions...");
+          await _runRootCommand(
+            'chmod +x $_tmpInstallPath/extracted/install.sh',
+          );
+
+          log("- Running install script...");
+          log("**************************************************");
+          int installCode = await _runLiveRootCommand(
+            'cd $_tmpInstallPath/extracted && sh ./install.sh',
+            log,
+          );
+          log("**************************************************");
+
+          if (installCode != 0) {
+            log("! Installation script failed (Exit Code: $installCode)");
+            throw Exception("Script Error");
+          }
+
+          log("- Finalizing installation...");
+          String currentPluginTxt = await _runRootCommand(
+            'cat $_pluginTxtPath',
+          );
+          if (!currentPluginTxt.contains('$pluginId=')) {
+            await _runRootCommand('echo "$pluginId=1" >> $_pluginTxtPath');
+            log("- Plugin enabled by default.");
+          }
+
+          log("- Installing files to $_pluginBasePath/$pluginId...");
+          final String targetPath = '$_pluginBasePath/$pluginId';
+          await _runRootCommand('rm -rf $targetPath');
+          await _runRootCommand('mkdir -p $targetPath');
+          await _runRootCommand(
+            'cp -r $_tmpInstallPath/extracted/* $targetPath/',
+          );
+          await _runRootCommand('rm -rf $_tmpInstallPath');
+
+          log("- Done!");
+          log("You may need to reboot for some changes to take effect.");
+
+          // Refresh UI list in background
+          _loadPlugins();
+        } catch (e) {
+          log("! INSTALLATION FAILED");
+          log(e.toString());
+          // We assume the dialog stays open so user can see the error
+        }
+      },
+    );
   }
 
+  // --- Uninstall Flow with Terminal Log ---
   Future<void> _handleUninstallFlow(RacoPluginModel plugin) async {
     final loc = AppLocalizations.of(context)!;
     bool? confirm = await showDialog<bool>(
@@ -368,26 +390,51 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     );
 
     if (confirm != true) return;
-    _showLoadingDialog(loc.executing_command);
 
-    try {
-      await _runRootCommand('chmod +x ${plugin.path}/uninstall.sh');
-      await _runRootCommand('su -c "${plugin.path}/uninstall.sh"');
-      await _runRootCommand("sed -i '/^${plugin.id}=/d' $_pluginTxtPath");
-      await _runRootCommand('rm -rf "${plugin.path}"');
+    await _showTerminalDialog(
+      context: context,
+      title: "Uninstalling ${plugin.name}",
+      task: (log) async {
+        try {
+          log("- Running uninstall script...");
+          await _runRootCommand('chmod +x ${plugin.path}/uninstall.sh');
 
-      Navigator.pop(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(loc.plugin_uninstall_success)));
-      _loadPlugins();
-    } catch (e) {
-      Navigator.pop(context);
-      _showErrorDialog(e.toString());
-    }
+          log("**************************************************");
+          await _runLiveRootCommand('su -c "${plugin.path}/uninstall.sh"', log);
+          log("**************************************************");
+
+          log("- Removing from registry...");
+          await _runRootCommand("sed -i '/^${plugin.id}=/d' $_pluginTxtPath");
+
+          log("- Deleting files...");
+          await _runRootCommand('rm -rf "${plugin.path}"');
+
+          log("- Success!");
+          _loadPlugins();
+        } catch (e) {
+          log("! Error removing plugin: $e");
+        }
+      },
+    );
+  }
+
+  // --- UI Methods ---
+
+  Future<void> _showTerminalDialog({
+    required BuildContext context,
+    required String title,
+    required Future<void> Function(Function(String) log) task,
+  }) {
+    return showDialog(
+      context: context,
+      barrierDismissible:
+          false, // User must wait or use the close button when done
+      builder: (ctx) => TerminalDialog(title: title, task: task),
+    );
   }
 
   void _showLoadingDialog(String message) {
+    // Kept for legacy uses if any, but mostly replaced by TerminalDialog
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -402,22 +449,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Error"),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
-          ),
-        ],
       ),
     );
   }
@@ -514,7 +545,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   }
 }
 
-// --- WIDGET: Expandable Plugin Card (Updated with Logo Support) ---
+// --- WIDGETS ---
 
 class _PluginCard extends StatefulWidget {
   final RacoPluginModel plugin;
@@ -568,11 +599,9 @@ class _PluginCardState extends State<_PluginCard>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // --- Row 1: Icon, Title, Delete ---
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Icon / Logo
                     Container(
                       width: 48,
                       height: 48,
@@ -580,8 +609,7 @@ class _PluginCardState extends State<_PluginCard>
                         color: theme.colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      clipBehavior:
-                          Clip.antiAlias, // Important for image corner radius
+                      clipBehavior: Clip.antiAlias,
                       child: plugin.logoBytes != null
                           ? Image.memory(plugin.logoBytes!, fit: BoxFit.cover)
                           : Center(
@@ -596,7 +624,6 @@ class _PluginCardState extends State<_PluginCard>
                             ),
                     ),
                     const SizedBox(width: 16),
-                    // Title & Version (Expandable)
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -624,7 +651,6 @@ class _PluginCardState extends State<_PluginCard>
                         ],
                       ),
                     ),
-                    // Delete Button
                     IconButton(
                       icon: const Icon(Icons.delete_outline),
                       color: theme.colorScheme.error,
@@ -632,10 +658,7 @@ class _PluginCardState extends State<_PluginCard>
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 12),
-
-                // --- Row 2: Description (Expandable) ---
                 Text(
                   plugin.description,
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -646,15 +669,12 @@ class _PluginCardState extends State<_PluginCard>
                       ? TextOverflow.visible
                       : TextOverflow.ellipsis,
                 ),
-
                 const SizedBox(height: 16),
                 Divider(
                   height: 1,
                   color: theme.colorScheme.outlineVariant.withOpacity(0.5),
                 ),
                 const SizedBox(height: 12),
-
-                // --- Row 3: Action Buttons (Always Visible) ---
                 Row(
                   children: [
                     FilledButton.tonalIcon(
@@ -686,6 +706,133 @@ class _PluginCardState extends State<_PluginCard>
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// --- NEW WIDGET: Terminal Style Dialog ---
+
+class TerminalDialog extends StatefulWidget {
+  final String title;
+  final Future<void> Function(Function(String) log) task;
+
+  const TerminalDialog({Key? key, required this.title, required this.task})
+    : super(key: key);
+
+  @override
+  _TerminalDialogState createState() => _TerminalDialogState();
+}
+
+class _TerminalDialogState extends State<TerminalDialog> {
+  final List<String> _logs = [];
+  final ScrollController _scrollController = ScrollController();
+  bool _isFinished = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start the task immediately
+    widget.task(_addLog).then((_) {
+      if (mounted) {
+        setState(() => _isFinished = true);
+      }
+    });
+  }
+
+  void _addLog(String message) {
+    if (!mounted) return;
+    setState(() {
+      _logs.add(message);
+    });
+    // Auto scroll to bottom
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: const Color(0xFF1E1E1E), // Dark terminal bg
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              widget.title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const Divider(height: 1, color: Colors.grey),
+
+          // Terminal Output
+          SizedBox(
+            height: 300, // Fixed height for log area
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16),
+              itemCount: _logs.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Text(
+                    _logs[index],
+                    style: const TextStyle(
+                      fontFamily: 'monospace', // Terminal look
+                      color: Color(0xFF00FF00), // Green text
+                      fontSize: 12,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Footer / Close Button
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (_isFinished)
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      "Close",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )
+                else
+                  const Padding(
+                    padding: EdgeInsets.only(right: 16, bottom: 8),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
