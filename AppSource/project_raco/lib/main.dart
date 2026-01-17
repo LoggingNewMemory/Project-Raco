@@ -14,10 +14,8 @@ import 'about_page.dart';
 import 'utilities_page.dart';
 import 'slingshot.dart';
 
-// A simple global notifier to broadcast theme changes instantly.
 final themeNotifier = ValueNotifier<Color?>(null);
 
-// Data structure for managing supported languages
 class Language {
   final String code;
   final String name;
@@ -30,7 +28,6 @@ class Language {
   });
 }
 
-// List of supported languages for the selection menu
 final List<Language> supportedLanguages = [
   const Language(code: 'en', name: 'English', displayName: 'EN'),
   const Language(code: 'id', name: 'Bahasa Indonesia', displayName: 'ID'),
@@ -45,7 +42,6 @@ class ConfigManager {
 
   static Future<Map<String, String>> readConfig() async {
     try {
-      // Read the STATE= line directly from raco.txt using root
       final result = await run('su', [
         '-c',
         'grep "^STATE=" $_configPath | cut -d= -f2',
@@ -80,9 +76,7 @@ class ConfigManager {
     }
   }
 
-  static Future<void> saveMode(String mode) async {
-    // Deprecated: Mode is now saved by Raco.sh directly into raco.txt
-  }
+  static Future<void> saveMode(String mode) async {}
 }
 
 void main() {
@@ -136,11 +130,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   Future<void> _checkPendingToast() async {
-    // Small delay to ensure context is ready
     await Future.delayed(const Duration(milliseconds: 500));
 
     try {
-      // Use su to check and read because /data/ProjectRaco is owned by root
       final checkResult = await run('su', [
         '-c',
         'if [ -f /data/ProjectRaco/toast.txt ]; then cat /data/ProjectRaco/toast.txt; rm /data/ProjectRaco/toast.txt; fi',
@@ -149,25 +141,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       if (checkResult.exitCode == 0) {
         String message = checkResult.stdout.toString().trim();
         if (message.isNotEmpty) {
-          // Calculate the color scheme locally to match the app theme
-          ColorScheme toastScheme;
-          if (_seedColorFromBanner != null) {
-            toastScheme = ColorScheme.fromSeed(
-              seedColor: _seedColorFromBanner!,
-              brightness: Brightness.dark,
-            );
-          } else {
-            toastScheme = _defaultDarkColorScheme;
-          }
-
+          // Always use standard System Toast
+          // No backgroundColor or textColor defined means it uses the native Android style
+          // This allows it to show even when the app is in the background
           Fluttertoast.showToast(
             msg: message,
             toastLength: Toast.LENGTH_LONG,
             gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 3,
-            backgroundColor: toastScheme.primaryContainer,
-            textColor: toastScheme.onPrimaryContainer,
-            fontSize: 16.0,
           );
         }
       }
@@ -299,7 +279,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 class MainScreen extends StatefulWidget {
   final Function(Locale) onLocaleChange;
   final VoidCallback onSettingsChanged;
-  final VoidCallback checkToastCallback; // Added callback
+  final VoidCallback checkToastCallback;
   final String? bannerImagePath;
   final String? backgroundImagePath;
   final double backgroundOpacity;
@@ -512,7 +492,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       _refreshDynamicState();
 
       // Explicitly check for toast here.
-      // This covers the case where the app is already open and standard activity launch doesn't trigger lifecycle changes.
       widget.checkToastCallback();
     }
   }

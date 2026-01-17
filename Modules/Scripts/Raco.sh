@@ -127,7 +127,6 @@ notification() {
         fi
         echo "$MESSAGE" > /data/ProjectRaco/toast.txt
         chmod 666 /data/ProjectRaco/toast.txt
-        am start -n com.kanagawa.yamada.project.raco/com.kanagawa.yamada.project.raco.MainActivity > /dev/null 2>&1 &
     else
         if [ "$LEGACY_NOTIF" = "1" ]; then
             su -lp 2000 -c "cmd notification post -S bigtext -t '$TITLE' TagRaco '$MESSAGE'" &
