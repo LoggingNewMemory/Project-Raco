@@ -165,5 +165,25 @@
     "hamada_powersave_screen_off_title": "画面オフ時に省電力",
     "hamada_normal_interval_title": "通常間隔",
     "hamada_screen_off_interval_title": "画面オフ時の間隔",
-    "hamada_interval_hint": "秒数を入力 (最小 2)"
+    "hamada_interval_hint": "秒数を入力 (最小 2)",
+    "plugins_title": "プラグイン",
+    "plugins_description": "Project Racoの外部モジュールを管理およびインストール",
+    "install_plugin": "プラグインをインストール",
+    "no_plugins_installed": "プラグインはインストールされていません",
+    "plugin_installer": "プラグインインストーラー",
+    "install_question": "このプラグインをインストールしますか？",
+    "delete_plugin_title": "プラグインの削除",
+    "delete_plugin_confirm": "{pluginName} を削除してもよろしいですか？",
+    "@delete_plugin_confirm": {
+        "placeholders": {
+            "pluginName": {
+                "type": "String"
+            }
+        }
+    },
+    "plugin_verification_failed": "検証失敗: prop内に RacoPlugin=1 が見つかりません。",
+    "plugin_script_error": "インストールスクリプトエラー。",
+    "logs_saved": "ログがダウンロードに保存されました。",
+    "plugin_installed_success": "プラグインが正常にインストールされました。",
+    "plugin_uninstall_success": "プラグインがアンインストールされました。"
 }

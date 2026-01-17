@@ -165,5 +165,25 @@
     "hamada_powersave_screen_off_title": "Ahorro de batería al apagar pantalla",
     "hamada_normal_interval_title": "Intervalo Normal",
     "hamada_screen_off_interval_title": "Intervalo Pantalla Apagada",
-    "hamada_interval_hint": "Introduce segundos (min 2)"
+    "hamada_interval_hint": "Introduce segundos (min 2)",
+    "plugins_title": "Plugins",
+    "plugins_description": "Administrar e instalar módulos externos para Project Raco",
+    "install_plugin": "Instalar Plugin",
+    "no_plugins_installed": "No hay plugins instalados",
+    "plugin_installer": "Instalador de Plugins",
+    "install_question": "¿Quieres instalar este plugin?",
+    "delete_plugin_title": "Eliminar Plugin",
+    "delete_plugin_confirm": "¿Estás seguro de que deseas eliminar {pluginName}?",
+    "@delete_plugin_confirm": {
+        "placeholders": {
+            "pluginName": {
+                "type": "String"
+            }
+        }
+    },
+    "plugin_verification_failed": "Verificación fallida: RacoPlugin=1 no encontrado en prop.",
+    "plugin_script_error": "Error en el script de instalación.",
+    "logs_saved": "Registros guardados en Descargas.",
+    "plugin_installed_success": "Plugin instalado con éxito.",
+    "plugin_uninstall_success": "Plugin desinstalado."
 }

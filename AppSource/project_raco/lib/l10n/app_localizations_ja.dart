@@ -456,4 +456,46 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get hamada_interval_hint => '秒数を入力 (最小 2)';
+
+  @override
+  String get plugins_title => 'プラグイン';
+
+  @override
+  String get plugins_description => 'Project Racoの外部モジュールを管理およびインストール';
+
+  @override
+  String get install_plugin => 'プラグインをインストール';
+
+  @override
+  String get no_plugins_installed => 'プラグインはインストールされていません';
+
+  @override
+  String get plugin_installer => 'プラグインインストーラー';
+
+  @override
+  String get install_question => 'このプラグインをインストールしますか？';
+
+  @override
+  String get delete_plugin_title => 'プラグインの削除';
+
+  @override
+  String delete_plugin_confirm(String pluginName) {
+    return '$pluginName を削除してもよろしいですか？';
+  }
+
+  @override
+  String get plugin_verification_failed =>
+      '検証失敗: prop内に RacoPlugin=1 が見つかりません。';
+
+  @override
+  String get plugin_script_error => 'インストールスクリプトエラー。';
+
+  @override
+  String get logs_saved => 'ログがダウンロードに保存されました。';
+
+  @override
+  String get plugin_installed_success => 'プラグインが正常にインストールされました。';
+
+  @override
+  String get plugin_uninstall_success => 'プラグインがアンインストールされました。';
 }

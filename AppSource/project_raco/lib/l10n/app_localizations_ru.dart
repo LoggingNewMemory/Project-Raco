@@ -483,4 +483,47 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get hamada_interval_hint => 'Введите секунды (мин 2)';
+
+  @override
+  String get plugins_title => 'Плагины';
+
+  @override
+  String get plugins_description =>
+      'Управление и установка внешних модулей для Project Raco';
+
+  @override
+  String get install_plugin => 'Установить плагин';
+
+  @override
+  String get no_plugins_installed => 'Плагины не установлены';
+
+  @override
+  String get plugin_installer => 'Установщик плагинов';
+
+  @override
+  String get install_question => 'Вы хотите установить этот плагин?';
+
+  @override
+  String get delete_plugin_title => 'Удалить плагин';
+
+  @override
+  String delete_plugin_confirm(String pluginName) {
+    return 'Вы уверены, что хотите удалить $pluginName?';
+  }
+
+  @override
+  String get plugin_verification_failed =>
+      'Ошибка проверки: RacoPlugin=1 не найден в prop.';
+
+  @override
+  String get plugin_script_error => 'Ошибка скрипта установки.';
+
+  @override
+  String get logs_saved => 'Журналы сохранены в Загрузки.';
+
+  @override
+  String get plugin_installed_success => 'Плагин успешно установлен.';
+
+  @override
+  String get plugin_uninstall_success => 'Плагин удален.';
 }

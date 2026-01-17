@@ -10,6 +10,7 @@ import 'UtilitiesPage/automation.dart';
 import 'UtilitiesPage/core_tweaks.dart';
 import 'UtilitiesPage/system.dart';
 import 'UtilitiesPage/utils.dart';
+import 'UtilitiesPage/RacoPlugins.dart'; // Import the new file
 
 //region Models for Search and Navigation
 class UtilityCategory {
@@ -406,6 +407,29 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
         icon: Icons.palette_outlined,
         navigationTarget: appearancePage,
         searchKeywords: 'screen modifier color saturation red green blue',
+      ),
+    ]);
+
+    // --- Raco Plugins (New) ---
+    final pluginsPage = RacoPluginsPage(
+      backgroundImagePath: _backgroundImagePath,
+      backgroundOpacity: _backgroundOpacity,
+      backgroundBlur: _backgroundBlur,
+    );
+    _allCategories.add(
+      UtilityCategory(
+        title: localization.plugins_title,
+        icon: Icons.extension_outlined,
+        page: pluginsPage,
+      ),
+    );
+    _allSearchableItems.addAll([
+      SearchResultItem(
+        title: localization.plugins_title,
+        subtitle: localization.plugins_description,
+        icon: Icons.extension_outlined,
+        navigationTarget: pluginsPage,
+        searchKeywords: 'plugin addon module install extension',
       ),
     ]);
   }

@@ -477,4 +477,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hamada_interval_hint => 'Enter seconds (min 2)';
+
+  @override
+  String get plugins_title => 'Plugins';
+
+  @override
+  String get plugins_description =>
+      'Manage and install external modules for Project Raco';
+
+  @override
+  String get install_plugin => 'Install Plugin';
+
+  @override
+  String get no_plugins_installed => 'No plugins installed';
+
+  @override
+  String get plugin_installer => 'Plugin Installer';
+
+  @override
+  String get install_question => 'Do you want to install this plugin?';
+
+  @override
+  String get delete_plugin_title => 'Delete Plugin';
+
+  @override
+  String delete_plugin_confirm(String pluginName) {
+    return 'Are you sure you want to delete $pluginName?';
+  }
+
+  @override
+  String get plugin_verification_failed =>
+      'Verification Failed: RacoPlugin=1 not found in prop.';
+
+  @override
+  String get plugin_script_error => 'Install Script Error.';
+
+  @override
+  String get logs_saved => 'Logs saved to Downloads.';
+
+  @override
+  String get plugin_installed_success => 'Plugin installed successfully.';
+
+  @override
+  String get plugin_uninstall_success => 'Plugin uninstalled.';
 }

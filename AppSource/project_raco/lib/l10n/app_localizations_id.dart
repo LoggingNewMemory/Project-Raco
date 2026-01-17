@@ -476,4 +476,47 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get hamada_interval_hint => 'Masukkan detik (min 2)';
+
+  @override
+  String get plugins_title => 'Plugin';
+
+  @override
+  String get plugins_description =>
+      'Kelola dan pasang modul eksternal untuk Project Raco';
+
+  @override
+  String get install_plugin => 'Pasang Plugin';
+
+  @override
+  String get no_plugins_installed => 'Tidak ada plugin terpasang';
+
+  @override
+  String get plugin_installer => 'Pemasang Plugin';
+
+  @override
+  String get install_question => 'Apakah Anda ingin memasang plugin ini?';
+
+  @override
+  String get delete_plugin_title => 'Hapus Plugin';
+
+  @override
+  String delete_plugin_confirm(String pluginName) {
+    return 'Apakah Anda yakin ingin menghapus $pluginName?';
+  }
+
+  @override
+  String get plugin_verification_failed =>
+      'Verifikasi Gagal: RacoPlugin=1 tidak ditemukan di prop.';
+
+  @override
+  String get plugin_script_error => 'Kesalahan Skrip Pemasangan.';
+
+  @override
+  String get logs_saved => 'Log disimpan ke Unduhan.';
+
+  @override
+  String get plugin_installed_success => 'Plugin berhasil dipasang.';
+
+  @override
+  String get plugin_uninstall_success => 'Plugin dihapus.';
 }

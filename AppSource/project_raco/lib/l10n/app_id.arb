@@ -165,5 +165,25 @@
     "hamada_powersave_screen_off_title": "Hemat Daya Saat Layar Mati",
     "hamada_normal_interval_title": "Interval Normal",
     "hamada_screen_off_interval_title": "Interval Layar Mati",
-    "hamada_interval_hint": "Masukkan detik (min 2)"
+    "hamada_interval_hint": "Masukkan detik (min 2)",
+    "plugins_title": "Plugin",
+    "plugins_description": "Kelola dan pasang modul eksternal untuk Project Raco",
+    "install_plugin": "Pasang Plugin",
+    "no_plugins_installed": "Tidak ada plugin terpasang",
+    "plugin_installer": "Pemasang Plugin",
+    "install_question": "Apakah Anda ingin memasang plugin ini?",
+    "delete_plugin_title": "Hapus Plugin",
+    "delete_plugin_confirm": "Apakah Anda yakin ingin menghapus {pluginName}?",
+    "@delete_plugin_confirm": {
+        "placeholders": {
+            "pluginName": {
+                "type": "String"
+            }
+        }
+    },
+    "plugin_verification_failed": "Verifikasi Gagal: RacoPlugin=1 tidak ditemukan di prop.",
+    "plugin_script_error": "Kesalahan Skrip Pemasangan.",
+    "logs_saved": "Log disimpan ke Unduhan.",
+    "plugin_installed_success": "Plugin berhasil dipasang.",
+    "plugin_uninstall_success": "Plugin dihapus."
 }

@@ -165,5 +165,25 @@
     "hamada_powersave_screen_off_title": "Энергосбережение при выключенном экране",
     "hamada_normal_interval_title": "Обычный интервал",
     "hamada_screen_off_interval_title": "Интервал при выкл. экране",
-    "hamada_interval_hint": "Введите секунды (мин 2)"
+    "hamada_interval_hint": "Введите секунды (мин 2)",
+    "plugins_title": "Плагины",
+    "plugins_description": "Управление и установка внешних модулей для Project Raco",
+    "install_plugin": "Установить плагин",
+    "no_plugins_installed": "Плагины не установлены",
+    "plugin_installer": "Установщик плагинов",
+    "install_question": "Вы хотите установить этот плагин?",
+    "delete_plugin_title": "Удалить плагин",
+    "delete_plugin_confirm": "Вы уверены, что хотите удалить {pluginName}?",
+    "@delete_plugin_confirm": {
+        "placeholders": {
+            "pluginName": {
+                "type": "String"
+            }
+        }
+    },
+    "plugin_verification_failed": "Ошибка проверки: RacoPlugin=1 не найден в prop.",
+    "plugin_script_error": "Ошибка скрипта установки.",
+    "logs_saved": "Журналы сохранены в Загрузки.",
+    "plugin_installed_success": "Плагин успешно установлен.",
+    "plugin_uninstall_success": "Плагин удален."
 }

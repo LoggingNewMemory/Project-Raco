@@ -973,6 +973,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter seconds (min 2)'**
   String get hamada_interval_hint;
+
+  /// No description provided for @plugins_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugins'**
+  String get plugins_title;
+
+  /// No description provided for @plugins_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage and install external modules for Project Raco'**
+  String get plugins_description;
+
+  /// No description provided for @install_plugin.
+  ///
+  /// In en, this message translates to:
+  /// **'Install Plugin'**
+  String get install_plugin;
+
+  /// No description provided for @no_plugins_installed.
+  ///
+  /// In en, this message translates to:
+  /// **'No plugins installed'**
+  String get no_plugins_installed;
+
+  /// No description provided for @plugin_installer.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin Installer'**
+  String get plugin_installer;
+
+  /// No description provided for @install_question.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to install this plugin?'**
+  String get install_question;
+
+  /// No description provided for @delete_plugin_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Plugin'**
+  String get delete_plugin_title;
+
+  /// No description provided for @delete_plugin_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete {pluginName}?'**
+  String delete_plugin_confirm(String pluginName);
+
+  /// No description provided for @plugin_verification_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Failed: RacoPlugin=1 not found in prop.'**
+  String get plugin_verification_failed;
+
+  /// No description provided for @plugin_script_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Install Script Error.'**
+  String get plugin_script_error;
+
+  /// No description provided for @logs_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Logs saved to Downloads.'**
+  String get logs_saved;
+
+  /// No description provided for @plugin_installed_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin installed successfully.'**
+  String get plugin_installed_success;
+
+  /// No description provided for @plugin_uninstall_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin uninstalled.'**
+  String get plugin_uninstall_success;
 }
 
 class _AppLocalizationsDelegate
