@@ -52,8 +52,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
   String _searchQuery = "";
   final TextEditingController _searchController = TextEditingController();
 
-  static const String _racoConfigPath =
-      '/data/adb/modules/ProjectRaco/raco.txt';
+  static const String _racoConfigPath = '/data/ProjectRaco/raco.txt';
   static const String _prefsKeyApps = 'preload_cached_apps';
   static const String _prefsKeySelected = 'preload_selected_single_app';
   static const String _prefsKeyMode = 'preload_selected_mode';
