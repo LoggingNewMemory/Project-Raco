@@ -210,7 +210,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   }
 
   Future<void> _runManualPlugin(RacoPluginModel plugin) async {
-    final loc = AppLocalizations.of(context)!;
     // We can also use the TerminalDialog for manual runs if desired,
     // but for now keeping "Run" simple or redirecting to dialog?
     // Let's use the new Terminal Dialog for "Run" as well to show output!
@@ -247,9 +246,8 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         _handleInstallFlow(result.files.single.path!);
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      // Snackbar removed as requested
+      debugPrint('Error: $e');
     }
   }
 
@@ -355,8 +353,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
           await _runRootCommand('rm -rf $_tmpInstallPath');
 
           log("- Done!");
-          log("You may need to reboot for some changes to take effect.");
-
           // Refresh UI list in background
           _loadPlugins();
         } catch (e) {
@@ -425,30 +421,11 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     required String title,
     required Future<void> Function(Function(String) log) task,
   }) {
-    return showDialog(
-      context: context,
-      barrierDismissible:
-          false, // User must wait or use the close button when done
-      builder: (ctx) => TerminalDialog(title: title, task: task),
-    );
-  }
-
-  void _showLoadingDialog(String message) {
-    // Kept for legacy uses if any, but mostly replaced by TerminalDialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Row(
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(width: 20),
-              Text(message),
-            ],
-          ),
-        ),
+    // Navigate to full screen page instead of showDialog
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (ctx) => TerminalPage(title: title, task: task),
       ),
     );
   }
@@ -711,20 +688,20 @@ class _PluginCardState extends State<_PluginCard>
   }
 }
 
-// --- NEW WIDGET: Terminal Style Dialog ---
+// --- NEW WIDGET: Terminal Style Full Screen Page ---
 
-class TerminalDialog extends StatefulWidget {
+class TerminalPage extends StatefulWidget {
   final String title;
   final Future<void> Function(Function(String) log) task;
 
-  const TerminalDialog({Key? key, required this.title, required this.task})
+  const TerminalPage({Key? key, required this.title, required this.task})
     : super(key: key);
 
   @override
-  _TerminalDialogState createState() => _TerminalDialogState();
+  _TerminalPageState createState() => _TerminalPageState();
 }
 
-class _TerminalDialogState extends State<TerminalDialog> {
+class _TerminalPageState extends State<TerminalPage> {
   final List<String> _logs = [];
   final ScrollController _scrollController = ScrollController();
   bool _isFinished = false;
@@ -759,30 +736,41 @@ class _TerminalDialogState extends State<TerminalDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E), // Dark terminal bg
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              widget.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+      appBar: AppBar(
+        title: Text(widget.title),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        actions: [
+          if (_isFinished)
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.pop(context),
+            )
+          else
+            const Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
-          ),
+        ],
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
           const Divider(height: 1, color: Colors.grey),
-
-          // Terminal Output
-          SizedBox(
-            height: 300, // Fixed height for log area
+          Expanded(
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.all(16),
@@ -793,43 +781,13 @@ class _TerminalDialogState extends State<TerminalDialog> {
                   child: Text(
                     _logs[index],
                     style: const TextStyle(
-                      fontFamily: 'monospace', // Terminal look
-                      color: Color(0xFF00FF00), // Green text
-                      fontSize: 12,
+                      // Default font
+                      color: Colors.white, // White text
+                      fontSize: 14,
                     ),
                   ),
                 );
               },
-            ),
-          ),
-
-          // Footer / Close Button
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (_isFinished)
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      "Close",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  )
-                else
-                  const Padding(
-                    padding: EdgeInsets.only(right: 16, bottom: 8),
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-              ],
             ),
           ),
         ],
