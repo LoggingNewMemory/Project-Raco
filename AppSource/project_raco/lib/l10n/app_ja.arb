@@ -152,8 +152,6 @@
     "start_preload": "Slingshot 開始",
     "swipe_again_to_cancel": "もう一度右にスワイプしてキャンセル",
     "execution_cancelled": "実行がキャンセルされました",
-    "toast_title": "トースト通知",
-    "toast_description": "通知の代わりにトーストを使用 (HamadaAIを使用している場合に推奨)",
     "sandevistan_duration_title": "サンデヴィスタン持続時間",
     "sandevistan_duration_description": "サンデヴィスタンの持続時間を変更 (秒)",
     "sandevistan_duration_hint": "秒数を入力してください",

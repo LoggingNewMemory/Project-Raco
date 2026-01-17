@@ -248,13 +248,6 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
         navigationTarget: coreTweaksPage,
         searchKeywords: 'custom governor cpu scaling frequency control',
       ),
-      SearchResultItem(
-        title: localization.toast_title,
-        subtitle: localization.core_tweaks_title,
-        icon: Icons.message_outlined,
-        navigationTarget: coreTweaksPage,
-        searchKeywords: 'toast notification message alert enable disable',
-      ),
     ]);
 
     // --- Automation ---

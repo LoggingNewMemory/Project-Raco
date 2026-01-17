@@ -152,8 +152,6 @@
     "start_preload": "Start Slingshot",
     "swipe_again_to_cancel": "Swipe Right Again To Cancel",
     "execution_cancelled": "Execution Cancelled",
-    "toast_title": "Toast Notification",
-    "toast_description": "Use toast instead of notification (Recommended if you use HamadaAI)",
     "sandevistan_duration_title": "Sandevistan Duration",
     "sandevistan_duration_description": "Modify the Sandevistan Duration (Seconds)",
     "sandevistan_duration_hint": "Enter duration in seconds",

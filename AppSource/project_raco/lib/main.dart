@@ -131,7 +131,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   Future<void> _checkPendingToast() async {
     // Small delay to ensure file write is complete before reading
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     try {
       final checkResult = await run('su', [
@@ -147,8 +147,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             toastLength: Toast.LENGTH_LONG,
             gravity: ToastGravity.BOTTOM,
             timeInSecForIosWeb: 3,
-            backgroundColor: Theme.of(context).colorScheme.inverseSurface,
-            textColor: Theme.of(context).colorScheme.onInverseSurface,
+            fontSize: 16.0,
           );
         }
       }

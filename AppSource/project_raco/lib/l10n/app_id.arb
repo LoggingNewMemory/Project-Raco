@@ -152,8 +152,6 @@
     "start_preload": "Mulai Slingshot",
     "swipe_again_to_cancel": "Geser Kanan Lagi Untuk Membatalkan",
     "execution_cancelled": "Eksekusi Dibatalkan",
-    "toast_title": "Notifikasi Toast",
-    "toast_description": "Gunakan toast daripada notifikasi (Disarankan jika menggunakan HamadaAI)",
     "sandevistan_duration_title": "Durasi Sandevistan",
     "sandevistan_duration_description": "Ubah Durasi Sandevistan (Detik)",
     "sandevistan_duration_hint": "Masukkan durasi dalam detik",
