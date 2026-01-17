@@ -748,7 +748,6 @@ class _TerminalPageState extends State<TerminalPage> {
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              // UPDATED PADDING: Added 80 at the bottom to avoid overlap
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
               itemCount: _logs.length,
               itemBuilder: (context, index) {
