@@ -430,13 +430,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get execution_cancelled => 'Execution Cancelled';
 
   @override
-  String get toast_title => 'Toast Notification';
-
-  @override
-  String get toast_description =>
-      'Use toast instead of notification (Recommended if you use HamadaAI)';
-
-  @override
   String get sandevistan_duration_title => 'Sandevistan Duration';
 
   @override

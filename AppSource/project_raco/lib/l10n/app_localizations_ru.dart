@@ -435,13 +435,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get execution_cancelled => 'Выполнение отменено';
 
   @override
-  String get toast_title => 'Toast уведомления';
-
-  @override
-  String get toast_description =>
-      'Использовать toast вместо уведомлений (Рекомендуется при использовании HamadaAI)';
-
-  @override
   String get sandevistan_duration_title => 'Длительность Sandevistan';
 
   @override

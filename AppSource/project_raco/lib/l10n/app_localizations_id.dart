@@ -431,13 +431,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get execution_cancelled => 'Eksekusi Dibatalkan';
 
   @override
-  String get toast_title => 'Notifikasi Toast';
-
-  @override
-  String get toast_description =>
-      'Gunakan toast daripada notifikasi (Disarankan jika menggunakan HamadaAI)';
-
-  @override
   String get sandevistan_duration_title => 'Durasi Sandevistan';
 
   @override

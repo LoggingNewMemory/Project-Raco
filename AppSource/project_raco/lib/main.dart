@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:process_run/process_run.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -90,7 +89,7 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+class _MyAppState extends State<MyApp> {
   Locale? _locale;
   String? _backgroundImagePath;
   double _backgroundOpacity = 0.2;
@@ -109,49 +108,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _loadAllPreferences();
     themeNotifier.addListener(_onThemeChanged);
-    _checkPendingToast();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     themeNotifier.removeListener(_onThemeChanged);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _checkPendingToast();
-    }
-  }
-
-  Future<void> _checkPendingToast() async {
-    // Small delay to ensure file write is complete before reading
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    try {
-      final checkResult = await run('su', [
-        '-c',
-        'if [ -f /data/ProjectRaco/toast.txt ]; then cat /data/ProjectRaco/toast.txt; rm /data/ProjectRaco/toast.txt; fi',
-      ], verbose: false);
-
-      if (checkResult.exitCode == 0) {
-        String message = checkResult.stdout.toString().trim();
-        if (message.isNotEmpty) {
-          Fluttertoast.showToast(
-            msg: message,
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 3,
-            fontSize: 16.0,
-          );
-        }
-      }
-    } catch (e) {}
   }
 
   void _onThemeChanged() {
@@ -255,7 +219,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                       backgroundImagePath: _backgroundImagePath,
                       backgroundOpacity: _backgroundOpacity,
                       backgroundBlur: _backgroundBlur,
-                      checkToastCallback: _checkPendingToast,
                     ),
                   ],
                 ),
@@ -277,7 +240,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 class MainScreen extends StatefulWidget {
   final Function(Locale) onLocaleChange;
   final VoidCallback onSettingsChanged;
-  final VoidCallback checkToastCallback;
   final String? bannerImagePath;
   final String? backgroundImagePath;
   final double backgroundOpacity;
@@ -287,7 +249,6 @@ class MainScreen extends StatefulWidget {
     Key? key,
     required this.onLocaleChange,
     required this.onSettingsChanged,
-    required this.checkToastCallback,
     required this.bannerImagePath,
     required this.backgroundImagePath,
     required this.backgroundOpacity,
@@ -488,7 +449,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     } finally {
       if (mounted) setState(() => _executingScript = '');
       _refreshDynamicState();
-      widget.checkToastCallback();
     }
   }
 

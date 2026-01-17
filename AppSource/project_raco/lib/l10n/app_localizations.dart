@@ -890,18 +890,6 @@ abstract class AppLocalizations {
   /// **'Execution Cancelled'**
   String get execution_cancelled;
 
-  /// No description provided for @toast_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Toast Notification'**
-  String get toast_title;
-
-  /// No description provided for @toast_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Use toast instead of notification (Recommended if you use HamadaAI)'**
-  String get toast_description;
-
   /// No description provided for @sandevistan_duration_title.
   ///
   /// In en, this message translates to:
