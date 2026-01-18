@@ -1,0 +1,4 @@
+# Enable ANGLE so users don't need more ANGLE Modules
+# Defined on: https://android.googlesource.com/platform/packages/modules/ANGLE/
+
+ro.gfx.angle.supported=true
