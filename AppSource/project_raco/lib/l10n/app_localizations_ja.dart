@@ -495,4 +495,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get plugin_manually_executed => 'プラグインを手動で実行しました。';
+
+  @override
+  String get plugin_run => '実行';
+
+  @override
+  String get plugin_boot => 'ブート';
 }

@@ -184,5 +184,7 @@
     "logs_saved": "Registros guardados en Descargas.",
     "plugin_installed_success": "Plugin instalado con éxito.",
     "plugin_uninstall_success": "Plugin desinstalado.",
-    "plugin_manually_executed": "Plugin Ejecutado Manualmente."
+    "plugin_manually_executed": "Plugin Ejecutado Manualmente.",
+    "plugin_run": "Ejecutar",
+    "plugin_boot": "Arranque"
 }

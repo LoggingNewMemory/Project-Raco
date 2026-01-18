@@ -522,4 +522,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get plugin_manually_executed => 'Плагин запущен вручную.';
+
+  @override
+  String get plugin_run => 'Запустить';
+
+  @override
+  String get plugin_boot => 'Загрузка';
 }

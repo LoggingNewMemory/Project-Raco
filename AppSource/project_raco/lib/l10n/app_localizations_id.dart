@@ -515,4 +515,10 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get plugin_manually_executed => 'Plugin Dijalankan Secara Manual.';
+
+  @override
+  String get plugin_run => 'Jalankan';
+
+  @override
+  String get plugin_boot => 'Boot';
 }

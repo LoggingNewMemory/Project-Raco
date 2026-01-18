@@ -184,5 +184,7 @@
     "logs_saved": "Log disimpan ke Unduhan.",
     "plugin_installed_success": "Plugin berhasil dipasang.",
     "plugin_uninstall_success": "Plugin dihapus.",
-    "plugin_manually_executed": "Plugin Dijalankan Secara Manual."
+    "plugin_manually_executed": "Plugin Dijalankan Secara Manual.",
+    "plugin_run": "Jalankan",
+    "plugin_boot": "Boot"
 }

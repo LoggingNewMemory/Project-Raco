@@ -184,5 +184,7 @@
     "logs_saved": "Logs saved to Downloads.",
     "plugin_installed_success": "Plugin installed successfully.",
     "plugin_uninstall_success": "Plugin uninstalled.",
-    "plugin_manually_executed": "Plugin Manually Executed."
+    "plugin_manually_executed": "Plugin Manually Executed.",
+    "plugin_run": "Run",
+    "plugin_boot": "Boot"
 }

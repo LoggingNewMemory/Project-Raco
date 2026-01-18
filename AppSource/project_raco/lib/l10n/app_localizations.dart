@@ -1045,6 +1045,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Plugin Manually Executed.'**
   String get plugin_manually_executed;
+
+  /// No description provided for @plugin_run.
+  ///
+  /// In en, this message translates to:
+  /// **'Run'**
+  String get plugin_run;
+
+  /// No description provided for @plugin_boot.
+  ///
+  /// In en, this message translates to:
+  /// **'Boot'**
+  String get plugin_boot;
 }
 
 class _AppLocalizationsDelegate

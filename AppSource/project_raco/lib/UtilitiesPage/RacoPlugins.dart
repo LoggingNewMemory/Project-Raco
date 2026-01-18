@@ -201,7 +201,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
 
     await _runRootCommand(cmd);
 
-    // Update local state instead of reloading everything to prevent loading animation
     setState(() {
       final index = _plugins.indexWhere((p) => p.id == plugin.id);
       if (index != -1) {
@@ -224,8 +223,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
       final String servicePath = '${plugin.path}/service.sh';
       await _runRootCommand('chmod +x $servicePath');
 
-      // Execute in background using nohup inside subshell to prevent hanging on infinite loops
-      // The '&' ensures the command returns immediately.
+      // Execute in background using nohup
       await _runRootCommand('(nohup sh "$servicePath" > /dev/null 2>&1 &)');
 
       if (mounted) {
@@ -527,7 +525,6 @@ class _PluginCard extends StatefulWidget {
 class _PluginCardState extends State<_PluginCard>
     with SingleTickerProviderStateMixin {
   bool _isExpanded = false;
-  bool _isRunning = false;
 
   void _toggleExpand() {
     setState(() {
@@ -535,12 +532,9 @@ class _PluginCardState extends State<_PluginCard>
     });
   }
 
-  void _handleRun() async {
-    setState(() => _isRunning = true);
-    await widget.onRun();
-    if (mounted) {
-      setState(() => _isRunning = false);
-    }
+  void _handleRun() {
+    // Just trigger the run; the parent handles the async logic
+    widget.onRun();
   }
 
   @override
@@ -607,7 +601,6 @@ class _PluginCardState extends State<_PluginCard>
                                 : TextOverflow.ellipsis,
                           ),
                           Text(
-                            // Removed the 'v' prefix here
                             "${plugin.version} • ${plugin.author}",
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
@@ -647,24 +640,15 @@ class _PluginCardState extends State<_PluginCard>
                 Row(
                   children: [
                     FilledButton.tonalIcon(
-                      onPressed: _isRunning ? null : _handleRun,
-                      icon: _isRunning
-                          ? SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: theme.colorScheme.onSecondaryContainer,
-                              ),
-                            )
-                          : const Icon(Icons.play_arrow_rounded),
-                      label: Text(_isRunning ? "Running..." : "Run"),
+                      onPressed: _handleRun,
+                      icon: const Icon(Icons.play_arrow_rounded),
+                      label: Text(AppLocalizations.of(context)!.plugin_run),
                     ),
                     const Spacer(),
                     Row(
                       children: [
                         Text(
-                          "Boot",
+                          AppLocalizations.of(context)!.plugin_boot,
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: theme.colorScheme.onSurface,

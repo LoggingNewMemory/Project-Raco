@@ -522,4 +522,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plugin_manually_executed => 'Plugin Ejecutado Manualmente.';
+
+  @override
+  String get plugin_run => 'Ejecutar';
+
+  @override
+  String get plugin_boot => 'Arranque';
 }

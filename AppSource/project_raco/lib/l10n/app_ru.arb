@@ -184,5 +184,7 @@
     "logs_saved": "Журналы сохранены в Загрузки.",
     "plugin_installed_success": "Плагин успешно установлен.",
     "plugin_uninstall_success": "Плагин удален.",
-    "plugin_manually_executed": "Плагин запущен вручную."
+    "plugin_manually_executed": "Плагин запущен вручную.",
+    "plugin_run": "Запустить",
+    "plugin_boot": "Загрузка"
 }
