@@ -183,5 +183,6 @@
     "plugin_script_error": "インストールスクリプトエラー。",
     "logs_saved": "ログがダウンロードに保存されました。",
     "plugin_installed_success": "プラグインが正常にインストールされました。",
-    "plugin_uninstall_success": "プラグインがアンインストールされました。"
+    "plugin_uninstall_success": "プラグインがアンインストールされました。",
+    "plugin_manually_executed": "プラグインを手動で実行しました。"
 }

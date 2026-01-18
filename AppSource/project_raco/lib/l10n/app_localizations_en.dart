@@ -513,4 +513,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plugin_uninstall_success => 'Plugin uninstalled.';
+
+  @override
+  String get plugin_manually_executed => 'Plugin Manually Executed.';
 }

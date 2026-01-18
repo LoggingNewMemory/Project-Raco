@@ -1039,6 +1039,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Plugin uninstalled.'**
   String get plugin_uninstall_success;
+
+  /// No description provided for @plugin_manually_executed.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin Manually Executed.'**
+  String get plugin_manually_executed;
 }
 
 class _AppLocalizationsDelegate

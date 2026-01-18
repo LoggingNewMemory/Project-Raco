@@ -200,19 +200,40 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         'fi';
 
     await _runRootCommand(cmd);
-    await _loadPlugins();
+
+    // Update local state instead of reloading everything to prevent loading animation
+    setState(() {
+      final index = _plugins.indexWhere((p) => p.id == plugin.id);
+      if (index != -1) {
+        _plugins[index] = RacoPluginModel(
+          id: plugin.id,
+          name: plugin.name,
+          description: plugin.description,
+          version: plugin.version,
+          author: plugin.author,
+          path: plugin.path,
+          isBootEnabled: newValue,
+          logoBytes: plugin.logoBytes,
+        );
+      }
+    });
   }
 
   Future<void> _runManualPlugin(RacoPluginModel plugin) async {
     try {
       final String servicePath = '${plugin.path}/service.sh';
       await _runRootCommand('chmod +x $servicePath');
-      final result = await _runRootCommand('sh $servicePath');
+
+      // Execute in background using nohup inside subshell to prevent hanging on infinite loops
+      // The '&' ensures the command returns immediately.
+      await _runRootCommand('(nohup sh "$servicePath" > /dev/null 2>&1 &)');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Executed ${plugin.name}'),
+            content: Text(
+              AppLocalizations.of(context)!.plugin_manually_executed,
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -586,7 +607,8 @@ class _PluginCardState extends State<_PluginCard>
                                 : TextOverflow.ellipsis,
                           ),
                           Text(
-                            "v${plugin.version} • ${plugin.author}",
+                            // Removed the 'v' prefix here
+                            "${plugin.version} • ${plugin.author}",
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),

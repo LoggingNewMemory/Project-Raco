@@ -183,5 +183,6 @@
     "plugin_script_error": "Ошибка скрипта установки.",
     "logs_saved": "Журналы сохранены в Загрузки.",
     "plugin_installed_success": "Плагин успешно установлен.",
-    "plugin_uninstall_success": "Плагин удален."
+    "plugin_uninstall_success": "Плагин удален.",
+    "plugin_manually_executed": "Плагин запущен вручную."
 }

@@ -183,5 +183,6 @@
     "plugin_script_error": "Install Script Error.",
     "logs_saved": "Logs saved to Downloads.",
     "plugin_installed_success": "Plugin installed successfully.",
-    "plugin_uninstall_success": "Plugin uninstalled."
+    "plugin_uninstall_success": "Plugin uninstalled.",
+    "plugin_manually_executed": "Plugin Manually Executed."
 }

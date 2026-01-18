@@ -183,5 +183,6 @@
     "plugin_script_error": "Error en el script de instalación.",
     "logs_saved": "Registros guardados en Descargas.",
     "plugin_installed_success": "Plugin instalado con éxito.",
-    "plugin_uninstall_success": "Plugin desinstalado."
+    "plugin_uninstall_success": "Plugin desinstalado.",
+    "plugin_manually_executed": "Plugin Ejecutado Manualmente."
 }

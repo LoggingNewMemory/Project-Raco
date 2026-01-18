@@ -492,4 +492,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get plugin_uninstall_success => 'プラグインがアンインストールされました。';
+
+  @override
+  String get plugin_manually_executed => 'プラグインを手動で実行しました。';
 }

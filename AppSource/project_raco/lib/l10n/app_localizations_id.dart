@@ -512,4 +512,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get plugin_uninstall_success => 'Plugin dihapus.';
+
+  @override
+  String get plugin_manually_executed => 'Plugin Dijalankan Secara Manual.';
 }
