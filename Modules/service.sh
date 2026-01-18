@@ -7,9 +7,7 @@ done
 
 CONFIG_FILE="/data/ProjectRaco/raco.txt"
 
-if [ -f "$CONFIG_FILE" ]; then
-    sed -i 's/^STATE=.*/STATE=/' "$CONFIG_FILE"
-fi
+sed -i 's/^STATE=.*/STATE=/' "$CONFIG_FILE"
 
 LEGACY_NOTIF=$(grep '^LEGACY_NOTIF=' "$CONFIG_FILE" | cut -d'=' -f2)
 
