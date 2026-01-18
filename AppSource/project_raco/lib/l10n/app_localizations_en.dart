@@ -542,4 +542,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get slingshot_no_apps_found => 'No apps found';
+
+  @override
+  String get slingshot_mode_normal => 'Normal (fadvise hint)';
+
+  @override
+  String get slingshot_mode_deep => 'Deep (fadvise + dlopen)';
+
+  @override
+  String get slingshot_mode_extreme => 'Extreme (mmap + MAP_POPULATE)';
+
+  @override
+  String get slingshot_mode_recursive => 'Recursive (looped deep check)';
 }

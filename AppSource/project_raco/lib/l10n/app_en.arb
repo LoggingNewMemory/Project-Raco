@@ -199,5 +199,9 @@
     "slingshot_complete": "Slingshot Complete",
     "slingshot_search_hint": "Search apps...",
     "slingshot_reload_tooltip": "Reload App List",
-    "slingshot_no_apps_found": "No apps found"
+    "slingshot_no_apps_found": "No apps found",
+    "slingshot_mode_normal": "Normal (fadvise hint)",
+    "slingshot_mode_deep": "Deep (fadvise + dlopen)",
+    "slingshot_mode_extreme": "Extreme (mmap + MAP_POPULATE)",
+    "slingshot_mode_recursive": "Recursive (looped deep check)"
 }

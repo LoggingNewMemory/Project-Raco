@@ -1093,6 +1093,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No apps found'**
   String get slingshot_no_apps_found;
+
+  /// No description provided for @slingshot_mode_normal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal (fadvise hint)'**
+  String get slingshot_mode_normal;
+
+  /// No description provided for @slingshot_mode_deep.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep (fadvise + dlopen)'**
+  String get slingshot_mode_deep;
+
+  /// No description provided for @slingshot_mode_extreme.
+  ///
+  /// In en, this message translates to:
+  /// **'Extreme (mmap + MAP_POPULATE)'**
+  String get slingshot_mode_extreme;
+
+  /// No description provided for @slingshot_mode_recursive.
+  ///
+  /// In en, this message translates to:
+  /// **'Recursive (looped deep check)'**
+  String get slingshot_mode_recursive;
 }
 
 class _AppLocalizationsDelegate

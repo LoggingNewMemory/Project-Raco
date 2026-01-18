@@ -199,5 +199,9 @@
     "slingshot_complete": "Slingshot 完了",
     "slingshot_search_hint": "アプリを検索...",
     "slingshot_reload_tooltip": "アプリリストを更新",
-    "slingshot_no_apps_found": "アプリが見つかりません"
+    "slingshot_no_apps_found": "アプリが見つかりません",
+    "slingshot_mode_normal": "通常 (fadvise hint)",
+    "slingshot_mode_deep": "ディープ (fadvise + dlopen)",
+    "slingshot_mode_extreme": "エクストリーム (mmap + MAP_POPULATE)",
+    "slingshot_mode_recursive": "再帰的 (looped deep check)"
 }

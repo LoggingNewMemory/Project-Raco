@@ -34,14 +34,9 @@ class SlingshotPage extends StatefulWidget {
 }
 
 class _SlingshotPageState extends State<SlingshotPage> {
-  String _selectedMode = 'n';
-  final Map<String, String> _modes = {
-    'n': 'Normal (fadvise hint)',
-    'd': 'Deep (fadvise + dlopen)',
-    'x': 'Extreme (mmap + MAP_POPULATE)',
-    'r': 'Recursive (looped deep check)',
-  };
+  // Hardcoded _modes map removed from here
 
+  String _selectedMode = 'n';
   bool _isAngleSupported = false;
   bool _useAngle = false;
   bool _useSkia = false;
@@ -177,7 +172,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
       if (mounted) {
         setState(() {
           if (savedPackage != null) _selectedAppPackage = savedPackage;
-          if (savedMode != null && _modes.containsKey(savedMode)) {
+          if (savedMode != null) {
             _selectedMode = savedMode;
           }
         });
@@ -349,6 +344,17 @@ class _SlingshotPageState extends State<SlingshotPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    final Map<String, String> modes = {
+      'n': localization.slingshot_mode_normal,
+      'd': localization.slingshot_mode_deep,
+      'x': localization.slingshot_mode_extreme,
+      'r': localization.slingshot_mode_recursive,
+    };
+
+    if (!modes.containsKey(_selectedMode)) {
+      _selectedMode = 'n';
+    }
+
     final filteredApps = _installedApps.where((app) {
       final nameMatch = app.name.toLowerCase().contains(
         _searchQuery.toLowerCase(),
@@ -428,7 +434,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
                             color: Colors.white70,
                           ),
                           style: const TextStyle(color: Colors.white),
-                          items: _modes.entries.map((e) {
+                          items: modes.entries.map((e) {
                             return DropdownMenuItem(
                               value: e.key,
                               child: Text(e.value),

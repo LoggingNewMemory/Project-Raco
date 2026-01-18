@@ -199,5 +199,9 @@
     "slingshot_complete": "Slingshot завершен",
     "slingshot_search_hint": "Поиск приложений...",
     "slingshot_reload_tooltip": "Обновить список приложений",
-    "slingshot_no_apps_found": "Приложения не найдены"
+    "slingshot_no_apps_found": "Приложения не найдены",
+    "slingshot_mode_normal": "Обычный (fadvise hint)",
+    "slingshot_mode_deep": "Глубокий (fadvise + dlopen)",
+    "slingshot_mode_extreme": "Экстремальный (mmap + MAP_POPULATE)",
+    "slingshot_mode_recursive": "Рекурсивный (looped deep check)"
 }
