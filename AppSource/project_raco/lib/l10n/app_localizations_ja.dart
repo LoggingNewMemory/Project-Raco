@@ -501,4 +501,24 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get plugin_boot => 'ブート';
+
+  @override
+  String get slingshot_no_app_selected => 'アプリが選択されていません';
+
+  @override
+  String slingshot_executing(String package) {
+    return '$package をSlingshot中...';
+  }
+
+  @override
+  String get slingshot_complete => 'Slingshot 完了';
+
+  @override
+  String get slingshot_search_hint => 'アプリを検索...';
+
+  @override
+  String get slingshot_reload_tooltip => 'アプリリストを更新';
+
+  @override
+  String get slingshot_no_apps_found => 'アプリが見つかりません';
 }

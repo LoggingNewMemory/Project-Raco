@@ -186,5 +186,18 @@
     "plugin_uninstall_success": "Plugin dihapus.",
     "plugin_manually_executed": "Plugin Dijalankan Secara Manual.",
     "plugin_run": "Jalankan",
-    "plugin_boot": "Boot"
+    "plugin_boot": "Boot",
+    "slingshot_no_app_selected": "Tidak ada aplikasi dipilih",
+    "slingshot_executing": "Sedang Slingshot {package}...",
+    "@slingshot_executing": {
+        "placeholders": {
+            "package": {
+                "type": "String"
+            }
+        }
+    },
+    "slingshot_complete": "Slingshot Selesai",
+    "slingshot_search_hint": "Cari aplikasi...",
+    "slingshot_reload_tooltip": "Muat Ulang Daftar Aplikasi",
+    "slingshot_no_apps_found": "Aplikasi tidak ditemukan"
 }

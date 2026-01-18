@@ -528,4 +528,24 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plugin_boot => 'Arranque';
+
+  @override
+  String get slingshot_no_app_selected => 'Ninguna aplicación seleccionada';
+
+  @override
+  String slingshot_executing(String package) {
+    return 'Ejecutando Slingshot en $package...';
+  }
+
+  @override
+  String get slingshot_complete => 'Slingshot Completo';
+
+  @override
+  String get slingshot_search_hint => 'Buscar aplicaciones...';
+
+  @override
+  String get slingshot_reload_tooltip => 'Recargar lista de aplicaciones';
+
+  @override
+  String get slingshot_no_apps_found => 'No se encontraron aplicaciones';
 }

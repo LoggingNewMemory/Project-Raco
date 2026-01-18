@@ -1057,6 +1057,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Boot'**
   String get plugin_boot;
+
+  /// No description provided for @slingshot_no_app_selected.
+  ///
+  /// In en, this message translates to:
+  /// **'No app selected'**
+  String get slingshot_no_app_selected;
+
+  /// No description provided for @slingshot_executing.
+  ///
+  /// In en, this message translates to:
+  /// **'Slingshoting {package}...'**
+  String slingshot_executing(String package);
+
+  /// No description provided for @slingshot_complete.
+  ///
+  /// In en, this message translates to:
+  /// **'Slingshot Complete'**
+  String get slingshot_complete;
+
+  /// No description provided for @slingshot_search_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search apps...'**
+  String get slingshot_search_hint;
+
+  /// No description provided for @slingshot_reload_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload App List'**
+  String get slingshot_reload_tooltip;
+
+  /// No description provided for @slingshot_no_apps_found.
+  ///
+  /// In en, this message translates to:
+  /// **'No apps found'**
+  String get slingshot_no_apps_found;
 }
 
 class _AppLocalizationsDelegate

@@ -521,4 +521,24 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get plugin_boot => 'Boot';
+
+  @override
+  String get slingshot_no_app_selected => 'Tidak ada aplikasi dipilih';
+
+  @override
+  String slingshot_executing(String package) {
+    return 'Sedang Slingshot $package...';
+  }
+
+  @override
+  String get slingshot_complete => 'Slingshot Selesai';
+
+  @override
+  String get slingshot_search_hint => 'Cari aplikasi...';
+
+  @override
+  String get slingshot_reload_tooltip => 'Muat Ulang Daftar Aplikasi';
+
+  @override
+  String get slingshot_no_apps_found => 'Aplikasi tidak ditemukan';
 }

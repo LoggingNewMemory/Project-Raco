@@ -186,5 +186,18 @@
     "plugin_uninstall_success": "Плагин удален.",
     "plugin_manually_executed": "Плагин запущен вручную.",
     "plugin_run": "Запустить",
-    "plugin_boot": "Загрузка"
+    "plugin_boot": "Загрузка",
+    "slingshot_no_app_selected": "Приложение не выбрано",
+    "slingshot_executing": "Slingshot для {package}...",
+    "@slingshot_executing": {
+        "placeholders": {
+            "package": {
+                "type": "String"
+            }
+        }
+    },
+    "slingshot_complete": "Slingshot завершен",
+    "slingshot_search_hint": "Поиск приложений...",
+    "slingshot_reload_tooltip": "Обновить список приложений",
+    "slingshot_no_apps_found": "Приложения не найдены"
 }

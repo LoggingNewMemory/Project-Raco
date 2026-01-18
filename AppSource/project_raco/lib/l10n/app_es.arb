@@ -186,5 +186,18 @@
     "plugin_uninstall_success": "Plugin desinstalado.",
     "plugin_manually_executed": "Plugin Ejecutado Manualmente.",
     "plugin_run": "Ejecutar",
-    "plugin_boot": "Arranque"
+    "plugin_boot": "Arranque",
+    "slingshot_no_app_selected": "Ninguna aplicación seleccionada",
+    "slingshot_executing": "Ejecutando Slingshot en {package}...",
+    "@slingshot_executing": {
+        "placeholders": {
+            "package": {
+                "type": "String"
+            }
+        }
+    },
+    "slingshot_complete": "Slingshot Completo",
+    "slingshot_search_hint": "Buscar aplicaciones...",
+    "slingshot_reload_tooltip": "Recargar lista de aplicaciones",
+    "slingshot_no_apps_found": "No se encontraron aplicaciones"
 }

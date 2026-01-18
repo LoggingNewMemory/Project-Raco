@@ -186,5 +186,18 @@
     "plugin_uninstall_success": "プラグインがアンインストールされました。",
     "plugin_manually_executed": "プラグインを手動で実行しました。",
     "plugin_run": "実行",
-    "plugin_boot": "ブート"
+    "plugin_boot": "ブート",
+    "slingshot_no_app_selected": "アプリが選択されていません",
+    "slingshot_executing": "{package} をSlingshot中...",
+    "@slingshot_executing": {
+        "placeholders": {
+            "package": {
+                "type": "String"
+            }
+        }
+    },
+    "slingshot_complete": "Slingshot 完了",
+    "slingshot_search_hint": "アプリを検索...",
+    "slingshot_reload_tooltip": "アプリリストを更新",
+    "slingshot_no_apps_found": "アプリが見つかりません"
 }

@@ -303,17 +303,20 @@ class _SlingshotPageState extends State<SlingshotPage> {
   }
 
   Future<void> _runSlingshot() async {
+    if (!mounted) return;
+    final localization = AppLocalizations.of(context)!;
+
     if (_selectedAppPackage == null) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("No app selected")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(localization.slingshot_no_app_selected)),
+      );
       return;
     }
 
-    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Slingshoting $_selectedAppPackage...")),
+      SnackBar(
+        content: Text(localization.slingshot_executing(_selectedAppPackage!)),
+      ),
     );
 
     // Apply SkiaVK setting if enabled
@@ -337,7 +340,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text("Slingshot Complete")));
+    ).showSnackBar(SnackBar(content: Text(localization.slingshot_complete)));
   }
 
   @override
@@ -491,7 +494,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
                             controller: _searchController,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              hintText: "Search apps...",
+                              hintText: localization.slingshot_search_hint,
                               hintStyle: const TextStyle(color: Colors.white54),
                               prefixIcon: const Icon(
                                 Icons.search,
@@ -528,7 +531,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
                           child: IconButton(
                             icon: const Icon(Icons.refresh),
                             color: Colors.white70,
-                            tooltip: "Reload App List",
+                            tooltip: localization.slingshot_reload_tooltip,
                             onPressed: () {
                               _fetchInstalledApps(forceRefresh: true);
                             },
@@ -547,11 +550,11 @@ class _SlingshotPageState extends State<SlingshotPage> {
                   child: Center(child: CircularProgressIndicator()),
                 )
               else if (filteredApps.isEmpty)
-                const SliverFillRemaining(
+                SliverFillRemaining(
                   child: Center(
                     child: Text(
-                      "No apps found",
-                      style: TextStyle(color: Colors.white54),
+                      localization.slingshot_no_apps_found,
+                      style: const TextStyle(color: Colors.white54),
                     ),
                   ),
                 )

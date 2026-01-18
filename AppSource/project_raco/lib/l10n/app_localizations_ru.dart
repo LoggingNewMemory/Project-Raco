@@ -528,4 +528,24 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get plugin_boot => 'Загрузка';
+
+  @override
+  String get slingshot_no_app_selected => 'Приложение не выбрано';
+
+  @override
+  String slingshot_executing(String package) {
+    return 'Slingshot для $package...';
+  }
+
+  @override
+  String get slingshot_complete => 'Slingshot завершен';
+
+  @override
+  String get slingshot_search_hint => 'Поиск приложений...';
+
+  @override
+  String get slingshot_reload_tooltip => 'Обновить список приложений';
+
+  @override
+  String get slingshot_no_apps_found => 'Приложения не найдены';
 }
