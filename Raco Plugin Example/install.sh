@@ -8,11 +8,11 @@ echo ""
 echo "────────────────────────────────────────"
 echo "🔰  MODULE INFORMATION"
 echo "────────────────────────────────────────"
-echo "• Name       : $(grep_prop name "./module.prop")"
+echo "• Name       : $(grep_prop name "./raco.prop")"
 sleep 0.2
-echo "• Version    : $(grep_prop version "./module.prop")"
+echo "• Version    : $(grep_prop version "./raco.prop")"
 sleep 0.2
-echo "• Author     : $(grep_prop author "./module.prop")"
+echo "• Author     : $(grep_prop author "./raco.prop")"
 sleep 0.3
 echo ""
 echo "────────────────────────────────────────"
