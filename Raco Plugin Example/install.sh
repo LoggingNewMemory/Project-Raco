@@ -1,30 +1,34 @@
 #!/system/bin/sh
 
-ui_print ""
-ui_print "────────────────────────────────────────"
-ui_print "🔰  MODULE INFORMATION"
-ui_print "────────────────────────────────────────"
-ui_print "• Name       : $(grep_prop name "${TMPDIR}/module.prop")"
+grep_prop() {
+  grep "^$1=" "$2" | head -n 1 | cut -d= -f2-
+}
+
+echo ""
+echo "────────────────────────────────────────"
+echo "🔰  MODULE INFORMATION"
+echo "────────────────────────────────────────"
+echo "• Name       : $(grep_prop name "./module.prop")"
 sleep 0.2
-ui_print "• Version    : $(grep_prop version "${TMPDIR}/module.prop")"
+echo "• Version    : $(grep_prop version "./module.prop")"
 sleep 0.2
-ui_print "• Author     : $(grep_prop author "${TMPDIR}/module.prop")"
+echo "• Author     : $(grep_prop author "./module.prop")"
 sleep 0.3
-ui_print ""
-ui_print "────────────────────────────────────────"
-ui_print "📱  DEVICE INFORMATION"
-ui_print "────────────────────────────────────────"
-ui_print "• Model      : $(getprop ro.product.model)"
+echo ""
+echo "────────────────────────────────────────"
+echo "📱  DEVICE INFORMATION"
+echo "────────────────────────────────────────"
+echo "• Model      : $(getprop ro.product.model)"
 sleep 0.2
-ui_print "• Board      : $(getprop ro.product.board)"
+echo "• Board      : $(getprop ro.product.board)"
 sleep 0.2
-ui_print "• Brand      : $(getprop ro.product.manufacturer)"
+echo "• Brand      : $(getprop ro.product.manufacturer)"
 sleep 0.2
-ui_print "• Android    : $(getprop ro.build.version.release)"
+echo "• Android    : $(getprop ro.build.version.release)"
 sleep 0.2
-ui_print "• Kernel     : $(uname -r)"
+echo "• Kernel     : $(uname -r)"
 sleep 0.2
-ui_print "• CPU        : $(getprop ro.hardware)"
+echo "• CPU        : $(getprop ro.hardware)"
 sleep 0.2
-ui_print "• RAM        : $(free | grep Mem | awk '{print $2}') kB"
+echo "• RAM        : $(free | grep Mem | awk '{print $2}') kB"
 sleep 0.4
