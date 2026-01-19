@@ -52,8 +52,8 @@ Some modules may be compatible (e.g., SkiaVK/GL Module), but proceed with cautio
 
 ### Rendering Backend
 - **System Graphics Driver Switcher** - Switch between graphics drivers
-- **Set SkiaVK as Backend Render** - Vulkan-based Skia rendering
-- **Set ANGLE as Renderer** - OpenGL ES translation layer
+- **Raco Slingshot** - **Set SkiaVK as Backend Render** - Vulkan-based Skia rendering
+- **Raco Slingshot** - **Set ANGLE as Renderer** - OpenGL ES translation layer
 
 ### Intelligence & Automation
 - **Hamada AI** - Intelligent performance switching
