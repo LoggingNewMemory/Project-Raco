@@ -38,3 +38,7 @@ Use
 - Minor Kernel Tweaks
 - Disable Tracing
 - LMK Tweak
+- Raco Plugin
+- Set CloudFlare DNS as default
+- Set SkiaVK as Backend Render
+- Set ANGLE as Renderer
