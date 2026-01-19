@@ -32,8 +32,8 @@ Some modules may be compatible (e.g., SkiaVK/GL Module), but proceed with cautio
 
 ---
 
-## Addon Features
-- **Read Here** - (DOCUMENTATION)[https://github.com/LoggingNewMemory/Project-Raco/blob/main/PLUGIN.md]
+## Plugin Features
+- **Read Here** - [DOCUMENTATION](https://github.com/LoggingNewMemory/Project-Raco/blob/main/PLUGIN.md)
 
 ### Charging & Battery
 - **Fast Charge** - Accelerated charging speeds
@@ -84,4 +84,4 @@ Some modules may be compatible (e.g., SkiaVK/GL Module), but proceed with cautio
 
 ## Support & Troubleshooting
 
-For issues or questions, please refer to the main documentation or contact support through (official channels)[https://t.me/KLCGen2].
+For issues or questions, please refer to the main documentation or contact support through [official channels](https://t.me/KLCGen2).
