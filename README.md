@@ -36,7 +36,6 @@ If you want your tweaks merged into Project Raco, please adhere to the following
 ## 🤝 Support Me
 If you enjoy this project, consider supporting the development:
 
-* **ID / PH:** [Saweria](https://saweria.co/kanagawayamada)
 * **Global:** [SociaBuzz](https://sociabuzz.com/kanagawa_yamada/tribe)
 * **QRIS:** [Telegram](https://t.me/KLAGen2/86)
 
