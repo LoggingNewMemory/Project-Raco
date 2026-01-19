@@ -44,3 +44,10 @@ If this line is missing, the installation will fail.
 
 ## 🔗 Resources & Downloads
 
+**✅ Copy and paste this code:**
+
+```markdown
+| Resource | Description | Link |
+| :--- | :--- | :--- |
+| **Plugin Example** | A reference implementation (PingImp) | [View Example](https://github.com/LoggingNewMemory/Project-Raco/blob/main/Raco%20Plugin%20Example/Raco%20PingImp.zip) |
+| **Plugin Template** | Empty starter template | [Download Template](https://github.com/LoggingNewMemory/Project-Raco/blob/main/Raco%20Plugin%20Example/Raco%20Plugin%20Template.zip) |
