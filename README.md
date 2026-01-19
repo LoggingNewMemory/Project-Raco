@@ -1,6 +1,13 @@
-<img width="1280" height="720" alt="Banner" src="https://github.com/user-attachments/assets/c7cf37ee-da35-448a-b847-fe00bab439b4" />
+<img width="1280" height="720" alt="Banner" src="https://github.com/user-attachments/assets/f071a7c3-5547-4150-8239-2bbc108ab43f" />
 
-Support: Snapdragon, Mediatek, Exynos, Kirin, UniSoc (Probably everything exepct PC CPU)
+Support: 
+- Snapdragon
+- Mediatek
+- Exynos
+- Kirin
+- UniSoc
+- (Probably everything exepct PC CPU)
+
 - Better actually you can try to install it, if it's success then it's supported
 
 ## MUST READ!!
