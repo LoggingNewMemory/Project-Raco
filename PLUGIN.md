@@ -31,3 +31,16 @@ Raco Plugin.zip/
 ├── install.sh
 └── Logo.png (Optional)
 ```
+
+## 📝 Configuration (raco.prop)
+
+The `raco.prop` file is the heart of your plugin. You must define the following property for the plugin to be recognized by the system:
+
+```
+RacoPlugin=1
+```
+
+If this line is missing, the installation will fail.
+
+## 🔗 Resources & Downloads
+
