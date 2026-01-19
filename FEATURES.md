@@ -4,8 +4,7 @@
 
 **DO NOT combine this module with any other performance optimization modules.**
 
-Some modules may be compatible (e.g., SkiaVK/GL Module), but proceed with caution. Test thoroughly before deploying.
-
+Some modules may be compatible (e.g., SkiaVK/GL Module), but proceed with caution.
 ---
 
 ## Core Features
