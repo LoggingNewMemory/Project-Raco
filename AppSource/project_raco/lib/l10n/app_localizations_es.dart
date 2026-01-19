@@ -494,6 +494,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plugin_installer => 'Instalador de Plugins';
 
   @override
+  String get installing_module => 'Instalando Plugin Raco';
+
+  @override
   String get install_question => '¿Quieres instalar este plugin?';
 
   @override

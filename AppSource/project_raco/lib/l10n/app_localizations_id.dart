@@ -487,6 +487,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get plugin_installer => 'Pemasang Plugin';
 
   @override
+  String get installing_module => 'Memasang Plugin Raco';
+
+  @override
   String get install_question => 'Apakah Anda ingin memasang plugin ini?';
 
   @override

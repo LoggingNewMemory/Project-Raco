@@ -494,6 +494,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get plugin_installer => 'Установщик плагинов';
 
   @override
+  String get installing_module => 'Установка плагина Raco';
+
+  @override
   String get install_question => 'Вы хотите установить этот плагин?';
 
   @override

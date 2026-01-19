@@ -992,6 +992,12 @@ abstract class AppLocalizations {
   /// **'Plugin Installer'**
   String get plugin_installer;
 
+  /// No description provided for @installing_module.
+  ///
+  /// In en, this message translates to:
+  /// **'Installing Raco Plugin'**
+  String get installing_module;
+
   /// No description provided for @install_question.
   ///
   /// In en, this message translates to:

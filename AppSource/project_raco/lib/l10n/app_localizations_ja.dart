@@ -388,7 +388,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get legacy_notif_description => '一部のROMで通知が表示されない場合にレガシー通知を使用する';
 
   @override
-  String get slingshot_title => 'Raco Slingshot';
+  String get slingshot_title => 'Raco スリングショット';
 
   @override
   String get slingshot_description =>
@@ -465,6 +465,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get plugin_installer => 'プラグインインストーラー';
+
+  @override
+  String get installing_module => 'Racoプラグインをインストール';
 
   @override
   String get install_question => 'このプラグインをインストールしますか？';
