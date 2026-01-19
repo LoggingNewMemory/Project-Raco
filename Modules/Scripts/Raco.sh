@@ -261,6 +261,114 @@ change_cpu_gov() {
 }
 
 ###################################
+# RESTORED: CPUFreq Frequency Tweaks
+###################################
+
+cpufreq_ppm_max_perf() {
+    local cluster=0
+    for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        (
+            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
+
+            tweak "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+
+            if [ "$LITE_MODE" -eq 1 ]; then
+                local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
+                tweak "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+            else
+                tweak "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+            fi
+        ) &
+        ((cluster++))
+    done
+}
+
+cpufreq_max_perf() {
+    for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        (
+            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
+            
+            tweak "$cpu_maxfreq" "$path/scaling_max_freq"
+
+            if [ "$LITE_MODE" -eq 1 ]; then
+                local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
+                tweak "$cpu_midfreq" "$path/scaling_min_freq"
+            else
+                tweak "$cpu_maxfreq" "$path/scaling_min_freq"
+            fi
+        ) &
+    done
+    wait
+    chmod -f 444 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
+}
+
+cpufreq_ppm_unlock() {
+    local cluster=0
+    for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        (
+            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
+            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+            
+            kakangkuh "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+            kakangkuh "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+        ) &
+        ((cluster++))
+    done
+}
+
+cpufreq_unlock() {
+    for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        (
+            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
+            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+            
+            kakangkuh "$cpu_maxfreq" "$path/scaling_max_freq"
+            kakangkuh "$cpu_minfreq" "$path/scaling_min_freq"
+        ) &
+    done
+    wait
+    chmod -f 644 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
+}
+
+cpufreq_ppm_min_perf() {
+    local cluster=0
+    for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        (
+            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+
+            if [ "$BETTER_POWERAVE" -eq 1 ]; then
+                local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
+                tweak "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+                tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+            else
+                tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+                tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+            fi
+        ) &
+        ((cluster++))
+    done
+}
+
+cpufreq_min_perf() {
+    for path in /sys/devices/system/cpu/cpufreq/policy*; do
+        (
+            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+            
+            if [ "$BETTER_POWERAVE" -eq 1 ]; then
+                local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
+                tweak "$cpu_midfreq" "$path/scaling_max_freq"
+                tweak "$cpu_minfreq" "$path/scaling_min_freq"
+            else
+                tweak "$cpu_minfreq" "$path/scaling_max_freq"
+                tweak "$cpu_minfreq" "$path/scaling_min_freq"
+            fi
+        ) &
+    done
+    wait
+    chmod -f 444 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
+}
+
+###################################
 # Device Profiles (Updated for Raco 3.0)
 ###################################
 
@@ -715,13 +823,15 @@ performance_basic() {
         done
     ) &
 
-    # CPU Freq (Updated for Raco 3.0 Logic)
+    # CPU Freq (Gov -> Wait -> Lock/Half Freq logic)
     {
-        if [ "$LITE_MODE" -eq 0 ] && [ "$DEVICE_MITIGATION" -eq 0 ]; then
-            change_cpu_gov "performance"
-        else
-            change_cpu_gov "$DEFAULT_CPU_GOV"
+        change_cpu_gov "performance"
+        sleep 2
+        
+        if [ -d "/proc/ppm" ]; then
+            cpufreq_ppm_max_perf
         fi
+        cpufreq_max_perf
     } &
     
     wait 
@@ -793,8 +903,13 @@ balanced_basic() {
         done
     ) &
 
-    # CPU Freq (Updated for Raco 3.0 Logic)
+    # CPU Freq (Unlock -> Gov)
     {
+        if [ -d "/proc/ppm" ]; then
+            cpufreq_ppm_unlock
+        fi
+        cpufreq_unlock
+        
         change_cpu_gov "$DEFAULT_CPU_GOV"
     } &
     
@@ -864,9 +979,15 @@ powersave_basic() {
         done
     ) &
 
-    # CPU Freq (Updated for Raco 3.0 Logic)
+    # CPU Freq (Gov -> Wait -> Lock/Half Freq logic)
     {
         change_cpu_gov "powersave"
+        sleep 2
+        
+        if [ -d "/proc/ppm" ]; then
+            cpufreq_ppm_min_perf
+        fi
+        cpufreq_min_perf
     } &
 
     wait
