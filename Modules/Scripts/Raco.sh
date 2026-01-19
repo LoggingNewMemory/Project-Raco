@@ -177,14 +177,17 @@ mtkvest_normal() {
 ###################################
 
 which_maxfreq() {
-    tr ' ' '\n' <"$1" | sort -nr | head -n 1
+    # Get the most Right value (Tail)
+    tr ' ' '\n' <"$1" | grep -v '^[[:space:]]*$' | sort -n | tail -n 1
 }
 
 which_minfreq() {
+    # Get the most Left value (Head)
     tr ' ' '\n' <"$1" | grep -v '^[[:space:]]*$' | sort -n | head -n 1
 }
 
 which_midfreq() {
+    # Keep Mid Freq logic for LITE_MODE
     total_opp=$(wc -w <"$1")
     mid_opp=$(((total_opp + 1) / 2))
     tr ' ' '\n' <"$1" | grep -v '^[[:space:]]*$' | sort -nr | head -n $mid_opp | tail -n 1
@@ -261,22 +264,26 @@ change_cpu_gov() {
 }
 
 ###################################
-# RESTORED: CPUFreq Frequency Tweaks
+# CPUFreq Frequency Tweaks (Updated)
 ###################################
 
 cpufreq_ppm_max_perf() {
     local cluster=0
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
         (
-            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
-
-            tweak "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+            # Get the most Right value (Max)
+            local right_freq=$(which_maxfreq "$path/scaling_available_frequencies")
+            
+            # Set Max to Rightmost
+            tweak "$cluster $right_freq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
 
             if [ "$LITE_MODE" -eq 1 ]; then
-                local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
-                tweak "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+                # LITE_MODE: Mid Freq as Min
+                local mid_freq=$(which_midfreq "$path/scaling_available_frequencies")
+                tweak "$cluster $mid_freq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
             else
-                tweak "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+                # NORMAL: Lock Min to Rightmost
+                tweak "$cluster $right_freq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
             fi
         ) &
         ((cluster++))
@@ -286,15 +293,19 @@ cpufreq_ppm_max_perf() {
 cpufreq_max_perf() {
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
         (
-            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
+            # Get the most Right value (Max)
+            local right_freq=$(which_maxfreq "$path/scaling_available_frequencies")
             
-            tweak "$cpu_maxfreq" "$path/scaling_max_freq"
+            # Set Max to Rightmost
+            tweak "$right_freq" "$path/scaling_max_freq"
 
             if [ "$LITE_MODE" -eq 1 ]; then
-                local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
-                tweak "$cpu_midfreq" "$path/scaling_min_freq"
+                # LITE_MODE: Mid Freq as Min
+                local mid_freq=$(which_midfreq "$path/scaling_available_frequencies")
+                tweak "$mid_freq" "$path/scaling_min_freq"
             else
-                tweak "$cpu_maxfreq" "$path/scaling_min_freq"
+                # NORMAL: Lock Min to Rightmost
+                tweak "$right_freq" "$path/scaling_min_freq"
             fi
         ) &
     done
@@ -306,11 +317,13 @@ cpufreq_ppm_unlock() {
     local cluster=0
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
         (
-            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
-            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+            # Get Rightmost (Max) and Leftmost (Min)
+            local right_freq=$(which_maxfreq "$path/scaling_available_frequencies")
+            local left_freq=$(which_minfreq "$path/scaling_available_frequencies")
             
-            kakangkuh "$cluster $cpu_maxfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
-            kakangkuh "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+            # Unlock: Set Max to Right, Min to Left
+            kakangkuh "$cluster $right_freq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+            kakangkuh "$cluster $left_freq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
         ) &
         ((cluster++))
     done
@@ -319,11 +332,13 @@ cpufreq_ppm_unlock() {
 cpufreq_unlock() {
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
         (
-            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
-            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+            # Get Rightmost (Max) and Leftmost (Min)
+            local right_freq=$(which_maxfreq "$path/scaling_available_frequencies")
+            local left_freq=$(which_minfreq "$path/scaling_available_frequencies")
             
-            kakangkuh "$cpu_maxfreq" "$path/scaling_max_freq"
-            kakangkuh "$cpu_minfreq" "$path/scaling_min_freq"
+            # Unlock: Set Max to Right, Min to Left
+            kakangkuh "$right_freq" "$path/scaling_max_freq"
+            kakangkuh "$left_freq" "$path/scaling_min_freq"
         ) &
     done
     wait
@@ -334,15 +349,18 @@ cpufreq_ppm_min_perf() {
     local cluster=0
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
         (
-            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+            # Get the most Left value (Min)
+            local left_freq=$(which_minfreq "$path/scaling_available_frequencies")
 
             if [ "$BETTER_POWERAVE" -eq 1 ]; then
-                local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
-                tweak "$cluster $cpu_midfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
-                tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+                # BETTER_POWERAVE: Max to Mid, Min to Left
+                local mid_freq=$(which_midfreq "$path/scaling_available_frequencies")
+                tweak "$cluster $mid_freq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+                tweak "$cluster $left_freq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
             else
-                tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
-                tweak "$cluster $cpu_minfreq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
+                # NORMAL: Lock Max and Min to Leftmost
+                tweak "$cluster $left_freq" /proc/ppm/policy/hard_userlimit_max_cpu_freq
+                tweak "$cluster $left_freq" /proc/ppm/policy/hard_userlimit_min_cpu_freq
             fi
         ) &
         ((cluster++))
@@ -352,15 +370,18 @@ cpufreq_ppm_min_perf() {
 cpufreq_min_perf() {
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
         (
-            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
+            # Get the most Left value (Min)
+            local left_freq=$(which_minfreq "$path/scaling_available_frequencies")
             
             if [ "$BETTER_POWERAVE" -eq 1 ]; then
-                local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
-                tweak "$cpu_midfreq" "$path/scaling_max_freq"
-                tweak "$cpu_minfreq" "$path/scaling_min_freq"
+                # BETTER_POWERAVE: Max to Mid, Min to Left
+                local mid_freq=$(which_midfreq "$path/scaling_available_frequencies")
+                tweak "$mid_freq" "$path/scaling_max_freq"
+                tweak "$left_freq" "$path/scaling_min_freq"
             else
-                tweak "$cpu_minfreq" "$path/scaling_max_freq"
-                tweak "$cpu_minfreq" "$path/scaling_min_freq"
+                # NORMAL: Lock Max and Min to Leftmost
+                tweak "$left_freq" "$path/scaling_max_freq"
+                tweak "$left_freq" "$path/scaling_min_freq"
             fi
         ) &
     done
@@ -823,7 +844,7 @@ performance_basic() {
         done
     ) &
 
-    # CPU Freq (Gov -> Wait -> Lock/Half Freq logic)
+    # CPU Freq (Lock to Rightmost)
     {
         change_cpu_gov "performance"
         sleep 2
@@ -903,7 +924,7 @@ balanced_basic() {
         done
     ) &
 
-    # CPU Freq (Unlock -> Gov)
+    # CPU Freq (Unlock Freq)
     {
         if [ -d "/proc/ppm" ]; then
             cpufreq_ppm_unlock
@@ -979,7 +1000,7 @@ powersave_basic() {
         done
     ) &
 
-    # CPU Freq (Gov -> Wait -> Lock/Half Freq logic)
+    # CPU Freq (Lock to Leftmost)
     {
         change_cpu_gov "powersave"
         sleep 2
