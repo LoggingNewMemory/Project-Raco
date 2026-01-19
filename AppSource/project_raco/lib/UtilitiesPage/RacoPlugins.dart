@@ -287,7 +287,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
 
     await _showTerminalDialog(
       context: context,
-      title: "Installing Module",
+      title: loc.installing_module,
       task: (log) async {
         try {
           log("- Preparing temporary directory...");

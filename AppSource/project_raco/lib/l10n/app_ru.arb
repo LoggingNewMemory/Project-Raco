@@ -169,6 +169,7 @@
     "install_plugin": "Установить плагин",
     "no_plugins_installed": "Плагины не установлены",
     "plugin_installer": "Установщик плагинов",
+    "installing_module": "Установка плагина Raco",
     "install_question": "Вы хотите установить этот плагин?",
     "delete_plugin_title": "Удалить плагин",
     "delete_plugin_confirm": "Вы уверены, что хотите удалить {pluginName}?",

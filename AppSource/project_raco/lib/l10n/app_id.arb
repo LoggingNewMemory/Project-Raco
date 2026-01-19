@@ -169,6 +169,7 @@
     "install_plugin": "Pasang Plugin",
     "no_plugins_installed": "Tidak ada plugin terpasang",
     "plugin_installer": "Pemasang Plugin",
+    "installing_module": "Memasang Plugin Raco",
     "install_question": "Apakah Anda ingin memasang plugin ini?",
     "delete_plugin_title": "Hapus Plugin",
     "delete_plugin_confirm": "Apakah Anda yakin ingin menghapus {pluginName}?",

@@ -169,6 +169,7 @@
     "install_plugin": "Install Plugin",
     "no_plugins_installed": "No plugins installed",
     "plugin_installer": "Plugin Installer",
+    "installing_module": "Installing Raco Plugin",
     "install_question": "Do you want to install this plugin?",
     "delete_plugin_title": "Delete Plugin",
     "delete_plugin_confirm": "Are you sure you want to delete {pluginName}?",
