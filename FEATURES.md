@@ -33,6 +33,7 @@ Some modules may be compatible (e.g., SkiaVK/GL Module), but proceed with cautio
 ---
 
 ## Addon Features
+- **Read Here** - (DOCUMENTATION)[https://github.com/LoggingNewMemory/Project-Raco/blob/main/PLUGIN.md]
 
 ### Charging & Battery
 - **Fast Charge** - Accelerated charging speeds
@@ -47,7 +48,7 @@ Some modules may be compatible (e.g., SkiaVK/GL Module), but proceed with cautio
 - **AmeRender Gen II** *(Render & SurfaceFlinger Tweaks)*
   - Compatible with SkiaVK/GL render modules
   - Advanced rendering pipeline optimizations
-- **Disable Frame Rate Limit** - Remove FPS caps
+- **Disable Frame Rate Limit** - Remove FPS caps (Vestia Zeta Display)
 
 ### Rendering Backend
 - **System Graphics Driver Switcher** - Switch between graphics drivers
