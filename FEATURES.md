@@ -63,7 +63,7 @@ Some modules may be compatible, but proceed with caution.
 
 ### System Maintenance
 - **FStrim & Clear Cache** - Storage optimization and cleanup
-- **Kasane Preload** - Intelligent app preloading
+- **Raco Slingshot** - **Kasane Preload** - Preload apps file to improve loading screen and performance 
 - **Raco Plugin** - Extended functionality support
 
 ### Input & Network
