@@ -4,7 +4,7 @@
 
 **DO NOT combine this module with any other performance optimization modules.**
 
-Some modules may be compatible (e.g., SkiaVK/GL Module), but proceed with caution.
+Some modules may be compatible, but proceed with caution.
 ---
 
 ## Core Features
@@ -69,15 +69,6 @@ Some modules may be compatible (e.g., SkiaVK/GL Module), but proceed with cautio
 ### Input & Network
 - **Touch Improve Tweak** - Enhanced touchscreen responsiveness
 - **Set CloudFlare DNS as Default** - Improved DNS resolution (1.1.1.1)
-
----
-
-## Compatibility Notes
-
-- Test each feature individually before enabling multiple features
-- Some features are device-specific and may not work on all hardware
-- Project Raco Exclusive features require the full Project Raco package
-- Always create a backup before applying system-level tweaks
 
 ---
 
