@@ -17,6 +17,8 @@ Unlike standard Magisk Modules, Raco plugins have unique execution behaviors. A 
 > **Syntax Requirement:** All scripts (`install.sh`, `service.sh`, `uninstall.sh`) must be written in standard **Shell Language**.  
 > Do **not** use Magisk Module-specific syntax or functions, as they will cause the plugin to fail.
 
+### Plugins is on /data/ProjectRaco/Plugins
+
 ---
 
 ## 📂 Plugin Structure
@@ -48,3 +50,4 @@ If this line is missing, the installation will fail.
 | :--- | :--- | :--- |
 | **Plugin Example** | A reference implementation (PingImp) | [View Example](https://github.com/LoggingNewMemory/Project-Raco/blob/main/Raco%20Plugin%20Example/Raco%20PingImp.zip) |
 | **Plugin Template** | Empty starter template | [Download Template](https://github.com/LoggingNewMemory/Project-Raco/blob/main/Raco%20Plugin%20Example/Raco%20Plugin%20Template.zip) |
+
