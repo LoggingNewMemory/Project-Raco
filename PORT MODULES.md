@@ -18,4 +18,9 @@ install.sh > this is crucial, you must make it like you write service.sh (shell 
 uninstall.sh > executed during uninstallation, so you better not leave it empty if you change something -_-
 
 Ye I guess that's it Good luck Dev
+
 Want to submit your plugin? Send on the [Dormitory](https://t.me/YamadaDorm) and tag me @KanagawaYamadaVTeacher and I will foward it to the official Project Raco CH
+
+NOTE! (or more like WARNING)
+
+DO NOT MAKE ANY GIMMICK / FAKE / CLOSE SOURCED PLUGIN!
