@@ -32,6 +32,8 @@ If you want your tweaks merged into Project Raco, please adhere to the following
 6.  **Functionality:** Tweaks must offer real performance benefits (no gimmicks).
 
 ---
+**Project Raco Official Telegram is** [HERE](https://t.me/ProjectRacoOfficial)
+---
 
 ## 🤝 Support Me
 If you enjoy this project, consider supporting the development:
