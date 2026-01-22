@@ -31,7 +31,7 @@ Raco Plugin.zip/
 ├── service.sh
 ├── uninstall.sh
 ├── install.sh
-└── Logo.png (Optional)
+└── Logo.png (Optional) - Max 512x512
 ```
 
 ## 📝 Configuration (raco.prop)
