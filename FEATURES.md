@@ -66,9 +66,8 @@ Some modules may be compatible, but proceed with caution.
 - **Raco Slingshot** - **Kasane Preload** - Preload apps file to improve loading screen and performance 
 - **Raco Plugin** - Extended functionality support
 
-### Input & Network
+### Input
 - **Touch Improve Tweak** - Enhanced touchscreen responsiveness
-- **Set CloudFlare DNS as Default** - Improved DNS resolution (1.1.1.1)
 
 ---
 
