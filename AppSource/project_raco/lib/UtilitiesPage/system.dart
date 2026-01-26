@@ -45,10 +45,11 @@ class _SystemPageState extends State<SystemPage> {
     );
     if (result.exitCode == 0) {
       final match = RegExp(
-        r'^DND=(.*)$',
+        r'^DND=(\d)',
         multiLine: true,
       ).firstMatch(result.stdout.toString());
-      return match?.group(1)?.trim().toLowerCase() == 'yes';
+      // Updated: Check for '1'
+      return match?.group(1) == '1';
     }
     return false;
   }
@@ -182,12 +183,13 @@ class _SystemPageState extends State<SystemPage> {
     );
     bool isEnabled = false;
     if (configResult.exitCode == 0) {
+      // Updated: Check for '1'
       isEnabled =
-          RegExp(r'^ENABLE_BYPASS=(Yes|No)', multiLine: true)
-              .firstMatch(configResult.stdout.toString())
-              ?.group(1)
-              ?.toLowerCase() ==
-          'yes';
+          RegExp(
+            r'^ENABLE_BYPASS=(\d)',
+            multiLine: true,
+          ).firstMatch(configResult.stdout.toString())?.group(1) ==
+          '1';
     }
     return {'isSupported': isSupported, 'isEnabled': isEnabled};
   }
@@ -400,7 +402,8 @@ class _DndCardState extends State<DndCard> with AutomaticKeepAliveClientMixin {
   Future<void> _toggleDnd(bool enable) async {
     if (!await checkRootAccess()) return;
     if (mounted) setState(() => _isUpdating = true);
-    final valueString = enable ? 'Yes' : 'No';
+    // Updated: Write '1' for enabled, '0' for disabled
+    final valueString = enable ? '1' : '0';
 
     try {
       final sedCommand =
@@ -797,7 +800,8 @@ class _BypassChargingCardState extends State<BypassChargingCard>
     if (mounted) setState(() => _isToggling = true);
 
     try {
-      final value = enable ? 'Yes' : 'No';
+      // Updated: Write '1' for enabled, '0' for disabled
+      final value = enable ? '1' : '0';
       final sedCommand =
           "sed -i 's|^ENABLE_BYPASS=.*|ENABLE_BYPASS=$value|' $_configFilePath";
       await runRootCommandAndWait(sedCommand);
