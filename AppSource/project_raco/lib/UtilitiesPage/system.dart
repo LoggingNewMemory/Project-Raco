@@ -30,7 +30,7 @@ class _SystemPageState extends State<SystemPage> {
   Map<String, dynamic>? _bypassChargingState;
   Map<String, dynamic>? _resolutionState;
   Map<String, dynamic>? _screenModifierState;
-  int _graphicsDriverValue = 0;
+  int _graphicsDriverValue = 0; // 0: Default, 1: Game, 2: Developer
   int _sandevistanDuration = 10;
 
   @override
@@ -48,7 +48,7 @@ class _SystemPageState extends State<SystemPage> {
         r'^DND=(.*)$',
         multiLine: true,
       ).firstMatch(result.stdout.toString());
-      return match?.group(1)?.trim() == '1';
+      return match?.group(1)?.trim().toLowerCase() == 'yes';
     }
     return false;
   }
@@ -91,10 +91,12 @@ class _SystemPageState extends State<SystemPage> {
 
     if (result.exitCode == 0) {
       final content = result.stdout.toString();
+
       final includeMatch = RegExp(
         r'^INCLUDE_SANDEV=(\d)',
         multiLine: true,
       ).firstMatch(content);
+      // Strictly check for '1'. '0' or anything else will return false.
       included = includeMatch?.group(1) == '1';
 
       final durMatch = RegExp(
@@ -116,6 +118,7 @@ class _SystemPageState extends State<SystemPage> {
     final sr = results[0];
     final dr = results[1];
 
+    // Check basic availability based on Physical size/density presence
     bool available =
         sr.exitCode == 0 &&
         sr.stdout.toString().contains('Physical size:') &&
@@ -129,14 +132,20 @@ class _SystemPageState extends State<SystemPage> {
 
     if (available) {
       final srOutput = sr.stdout.toString();
+
+      // Parse Physical Size (Original)
       originalSize =
           RegExp(
             r'Physical size:\s*([0-9]+x[0-9]+)',
           ).firstMatch(srOutput)?.group(1) ??
           '';
+
+      // Parse Override Size (Current - if modified)
       final overrideMatch = RegExp(
         r'Override size:\s*([0-9]+x[0-9]+)',
       ).firstMatch(srOutput);
+
+      // If override exists, that is the current size. Otherwise, current is original.
       currentSize = overrideMatch?.group(1) ?? originalSize;
 
       originalDensity =
@@ -174,11 +183,11 @@ class _SystemPageState extends State<SystemPage> {
     bool isEnabled = false;
     if (configResult.exitCode == 0) {
       isEnabled =
-          RegExp(
-            r'^ENABLE_BYPASS=(\d)',
-            multiLine: true,
-          ).firstMatch(configResult.stdout.toString())?.group(1) ==
-          '1';
+          RegExp(r'^ENABLE_BYPASS=(Yes|No)', multiLine: true)
+              .firstMatch(configResult.stdout.toString())
+              ?.group(1)
+              ?.toLowerCase() ==
+          'yes';
     }
     return {'isSupported': isSupported, 'isEnabled': isEnabled};
   }
@@ -204,6 +213,7 @@ class _SystemPageState extends State<SystemPage> {
         r'^AYUNDA_RUSDI=([\d,]+,(?:Yes|No))$',
         multiLine: true,
       ).firstMatch(racoResult.stdout.toString());
+
       if (match != null) {
         final parts = match.group(1)!.split(',');
         if (parts.length >= 4) {
@@ -213,6 +223,21 @@ class _SystemPageState extends State<SystemPage> {
           saturation = double.tryParse(parts[3]) ?? 1000.0;
         }
       }
+    }
+
+    final valuesString =
+        '${red.round()},${green.round()},${blue.round()},${saturation.round()},${applyOnBoot ? "Yes" : "No"}';
+    final sedCheckCommand =
+        "grep -q '^AYUNDA_RUSDI=' /data/ProjectRaco/raco.txt";
+    final checkResult = await runRootCommandAndWait(sedCheckCommand);
+    if (checkResult.exitCode == 0) {
+      await runRootCommandAndWait(
+        "sed -i 's|^AYUNDA_RUSDI=.*|AYUNDA_RUSDI=$valuesString|' /data/ProjectRaco/raco.txt",
+      );
+    } else {
+      await runRootCommandAndWait(
+        "echo 'AYUNDA_RUSDI=$valuesString' >> /data/ProjectRaco/raco.txt",
+      );
     }
 
     return {
@@ -275,12 +300,14 @@ class _SystemPageState extends State<SystemPage> {
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(8, 8, 8, 32),
+        cacheExtent: 1000,
         children: [
           DndCard(initialDndEnabled: _dndEnabled ?? false),
           if (_isAnyaIncluded)
             AnyaThermalCard(
               initialAnyaThermalEnabled: _anyaThermalEnabled ?? false,
             ),
+          // Visibility governed by INCLUDE_SANDEV=1
           if (_isSandevistanIncluded)
             SandevistanDurationCard(initialDuration: _sandevistanDuration),
           BypassChargingCard(
@@ -329,7 +356,9 @@ class _SystemPageState extends State<SystemPage> {
               child: Image.file(
                 File(widget.backgroundImagePath!),
                 fit: BoxFit.cover,
-                errorBuilder: (c, e, s) => Container(),
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(color: Colors.transparent);
+                },
               ),
             ),
           ),
@@ -371,18 +400,24 @@ class _DndCardState extends State<DndCard> with AutomaticKeepAliveClientMixin {
   Future<void> _toggleDnd(bool enable) async {
     if (!await checkRootAccess()) return;
     if (mounted) setState(() => _isUpdating = true);
-    final valueString = enable ? '1' : '0';
+    final valueString = enable ? 'Yes' : 'No';
 
     try {
-      await runRootCommandAndWait(
-        "sed -i 's|^DND=.*|DND=$valueString|' $_configFilePath",
-      );
-      if (mounted) setState(() => _dndEnabled = enable);
+      final sedCommand =
+          "sed -i 's|^DND=.*|DND=$valueString|' $_configFilePath";
+      final result = await runRootCommandAndWait(sedCommand);
+      if (result.exitCode == 0) {
+        if (mounted) setState(() => _dndEnabled = enable);
+      } else {
+        throw Exception('Failed to write to config file.');
+      }
     } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update DND setting: $e')),
+        );
+        setState(() => _dndEnabled = widget.initialDndEnabled);
+      }
     } finally {
       if (mounted) setState(() => _isUpdating = false);
     }
@@ -392,9 +427,14 @@ class _DndCardState extends State<DndCard> with AutomaticKeepAliveClientMixin {
   Widget build(BuildContext context) {
     super.build(context);
     final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
+      elevation: 2.0,
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerHighest,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -402,16 +442,28 @@ class _DndCardState extends State<DndCard> with AutomaticKeepAliveClientMixin {
           children: [
             Text(
               localization.dnd_title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              localization.dnd_description,
+              style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
             ),
             const SizedBox(height: 8),
             SwitchListTile(
               title: Text(localization.dnd_toggle_title),
               value: _dndEnabled,
               onChanged: _isUpdating ? null : _toggleDnd,
-              secondary: const Icon(Icons.do_not_disturb_on_outlined),
+              secondary: _isUpdating
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.do_not_disturb_on_outlined),
+              activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
           ],
@@ -447,22 +499,30 @@ class _AnyaThermalCardState extends State<AnyaThermalCard>
   Future<void> _toggleAnyaThermal(bool enable) async {
     if (!await checkRootAccess()) return;
     if (mounted) setState(() => _isUpdating = true);
+
     final valueString = enable ? '1' : '0';
-    final script = enable ? 'AnyaMelfissa.sh' : 'AnyaKawaii.sh';
+    final scriptPath = enable
+        ? '/data/adb/modules/ProjectRaco/Scripts/AnyaMelfissa.sh'
+        : '/data/adb/modules/ProjectRaco/Scripts/AnyaKawaii.sh';
 
     try {
-      await runRootCommandAndWait(
-        'sh /data/adb/modules/ProjectRaco/Scripts/$script',
-      );
-      await runRootCommandAndWait(
-        "sed -i 's|^ANYA=.*|ANYA=$valueString|' $_configFilePath",
-      );
-      if (mounted) setState(() => _isEnabled = enable);
+      await runRootCommandAndWait(scriptPath);
+      final sedCommand =
+          "sed -i 's|^ANYA=.*|ANYA=$valueString|' $_configFilePath";
+      final result = await runRootCommandAndWait(sedCommand);
+
+      if (result.exitCode == 0) {
+        if (mounted) setState(() => _isEnabled = enable);
+      } else {
+        throw Exception('Failed to write to config file.');
+      }
     } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update thermal setting: $e')),
+        );
+        setState(() => _isEnabled = widget.initialAnyaThermalEnabled);
+      }
     } finally {
       if (mounted) setState(() => _isUpdating = false);
     }
@@ -472,9 +532,14 @@ class _AnyaThermalCardState extends State<AnyaThermalCard>
   Widget build(BuildContext context) {
     super.build(context);
     final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
+      elevation: 2.0,
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerHighest,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -482,16 +547,28 @@ class _AnyaThermalCardState extends State<AnyaThermalCard>
           children: [
             Text(
               localization.anya_thermal_title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              localization.anya_thermal_description,
+              style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
             ),
             const SizedBox(height: 8),
             SwitchListTile(
               title: Text(localization.anya_thermal_toggle_title),
               value: _isEnabled,
               onChanged: _isUpdating ? null : _toggleAnyaThermal,
-              secondary: const Icon(Icons.thermostat_outlined),
+              secondary: _isUpdating
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.thermostat_outlined),
+              activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
           ],
@@ -505,6 +582,7 @@ class SandevistanDurationCard extends StatefulWidget {
   final int initialDuration;
   const SandevistanDurationCard({Key? key, required this.initialDuration})
     : super(key: key);
+
   @override
   _SandevistanDurationCardState createState() =>
       _SandevistanDurationCardState();
@@ -514,6 +592,7 @@ class _SandevistanDurationCardState extends State<SandevistanDurationCard>
     with AutomaticKeepAliveClientMixin {
   late TextEditingController _controller;
   bool _isSaving = false;
+  final String _configFilePath = '/data/ProjectRaco/raco.txt';
   String _easterEggMessage = '';
 
   @override
@@ -528,47 +607,81 @@ class _SandevistanDurationCardState extends State<SandevistanDurationCard>
     _controller.addListener(_updateEasterEgg);
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Update message on load or locale change
+    _updateEasterEgg();
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_updateEasterEgg);
+    _controller.dispose();
+    super.dispose();
+  }
+
   void _updateEasterEgg() {
-    final value = int.tryParse(_controller.text);
+    final text = _controller.text;
+    final value = int.tryParse(text);
     if (value == null) {
       if (mounted) setState(() => _easterEggMessage = '');
       return;
     }
+
     final loc = AppLocalizations.of(context)!;
-    String msg = '';
-    if (value < 10)
-      msg = loc.sandev_egg_useless;
-    else if (value == 10)
-      msg = loc.sandev_egg_original;
-    else if (value <= 30)
-      msg = loc.sandev_egg_better;
-    else if (value <= 60)
-      msg = loc.sandev_egg_david;
-    else
-      msg = loc.sandev_egg_smasher;
-    if (mounted) setState(() => _easterEggMessage = msg);
+    String message = '';
+
+    if (value < 10) {
+      message = loc.sandev_egg_useless;
+    } else if (value == 10) {
+      message = loc.sandev_egg_original;
+    } else if (value <= 30) {
+      message = loc.sandev_egg_better;
+    } else if (value <= 60) {
+      message = loc.sandev_egg_david;
+    } else {
+      message = loc.sandev_egg_smasher;
+    }
+
+    if (mounted) setState(() => _easterEggMessage = message);
   }
 
   Future<void> _saveDuration() async {
-    final val = int.tryParse(_controller.text);
-    if (val == null || val < 0) return;
+    final text = _controller.text;
+    final newDuration = int.tryParse(text);
+
+    if (newDuration == null || newDuration < 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invalid duration')));
+      return;
+    }
+
     if (!await checkRootAccess()) return;
-    setState(() => _isSaving = true);
+    if (mounted) setState(() => _isSaving = true);
+
     try {
-      final check = await runRootCommandAndWait(
-        "grep -q '^SANDEV_DUR=' /data/ProjectRaco/raco.txt",
-      );
-      if (check.exitCode == 0) {
+      final sedCheckCommand = "grep -q '^SANDEV_DUR=' $_configFilePath";
+      final checkResult = await runRootCommandAndWait(sedCheckCommand);
+
+      if (checkResult.exitCode == 0) {
         await runRootCommandAndWait(
-          "sed -i 's|^SANDEV_DUR=.*|SANDEV_DUR=$val|' /data/ProjectRaco/raco.txt",
+          "sed -i 's|^SANDEV_DUR=.*|SANDEV_DUR=$newDuration|' $_configFilePath",
         );
       } else {
         await runRootCommandAndWait(
-          "echo 'SANDEV_DUR=$val' >> /data/ProjectRaco/raco.txt",
+          "echo 'SANDEV_DUR=$newDuration' >> $_configFilePath",
         );
       }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to save duration: $e')));
+      }
     } finally {
-      setState(() => _isSaving = false);
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -576,9 +689,14 @@ class _SandevistanDurationCardState extends State<SandevistanDurationCard>
   Widget build(BuildContext context) {
     super.build(context);
     final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
+      elevation: 2.0,
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerHighest,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -586,9 +704,14 @@ class _SandevistanDurationCardState extends State<SandevistanDurationCard>
           children: [
             Text(
               localization.sandevistan_duration_title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              localization.sandevistan_duration_description,
+              style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
             ),
             const SizedBox(height: 16),
             Row(
@@ -601,24 +724,37 @@ class _SandevistanDurationCardState extends State<SandevistanDurationCard>
                     decoration: InputDecoration(
                       labelText: localization.sandevistan_duration_hint,
                       border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
                   onPressed: _isSaving ? null : _saveDuration,
-                  child: const Icon(Icons.save),
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.save),
                 ),
               ],
             ),
-            if (_easterEggMessage.isNotEmpty)
+            if (_easterEggMessage.isNotEmpty) ...[
+              const SizedBox(height: 8),
               Text(
                 _easterEggMessage,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.secondary,
+                style: textTheme.labelMedium?.copyWith(
+                  color: colorScheme.secondary,
                   fontWeight: FontWeight.bold,
                 ),
+                textAlign: TextAlign.center,
               ),
+            ],
           ],
         ),
       ),
@@ -644,9 +780,8 @@ class _BypassChargingCardState extends State<BypassChargingCard>
     with AutomaticKeepAliveClientMixin {
   late bool _isEnabled;
   bool _isToggling = false;
+
   final String _configFilePath = '/data/ProjectRaco/raco.txt';
-  final String _scriptPath =
-      '/data/adb/modules/ProjectRaco/Scripts/raco_bypass_controller.sh';
 
   @override
   bool get wantKeepAlive => true;
@@ -662,14 +797,10 @@ class _BypassChargingCardState extends State<BypassChargingCard>
     if (mounted) setState(() => _isToggling = true);
 
     try {
-      final value = enable ? '1' : '0';
-      await runRootCommandAndWait(
-        "sed -i 's|^ENABLE_BYPASS=.*|ENABLE_BYPASS=$value|' $_configFilePath",
-      );
-
-      if (!enable) {
-        await runRootCommandAndWait('sh $_scriptPath disable');
-      }
+      final value = enable ? 'Yes' : 'No';
+      final sedCommand =
+          "sed -i 's|^ENABLE_BYPASS=.*|ENABLE_BYPASS=$value|' $_configFilePath";
+      await runRootCommandAndWait(sedCommand);
 
       if (mounted) setState(() => _isEnabled = enable);
     } finally {
@@ -681,9 +812,14 @@ class _BypassChargingCardState extends State<BypassChargingCard>
   Widget build(BuildContext context) {
     super.build(context);
     final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
+      elevation: 2.0,
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerHighest,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -691,27 +827,40 @@ class _BypassChargingCardState extends State<BypassChargingCard>
           children: [
             Text(
               localization.bypass_charging_title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 8),
+            Text(
+              localization.bypass_charging_description,
+              style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+            ),
+            const SizedBox(height: 16),
             Center(
               child: Text(
                 widget.supportStatus,
-                style: TextStyle(
-                  color: widget.isSupported ? Colors.green : Colors.red,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: widget.isSupported ? Colors.green : colorScheme.error,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
+            const SizedBox(height: 16),
             SwitchListTile(
               title: Text(localization.bypass_charging_toggle),
               value: _isEnabled,
               onChanged: (_isToggling || !widget.isSupported)
                   ? null
                   : _toggleBypass,
-              secondary: const Icon(Icons.bolt_outlined),
+              secondary: _isToggling
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.bolt_outlined),
+              activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
           ],
@@ -725,6 +874,7 @@ class GraphicsDriverCard extends StatefulWidget {
   final int initialValue;
   const GraphicsDriverCard({Key? key, required this.initialValue})
     : super(key: key);
+
   @override
   _GraphicsDriverCardState createState() => _GraphicsDriverCardState();
 }
@@ -732,8 +882,10 @@ class GraphicsDriverCard extends StatefulWidget {
 class _GraphicsDriverCardState extends State<GraphicsDriverCard>
     with AutomaticKeepAliveClientMixin {
   late int _currentValue;
+
   @override
   bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
@@ -742,48 +894,105 @@ class _GraphicsDriverCardState extends State<GraphicsDriverCard>
 
   Future<void> _updateDriver(int value) async {
     if (!await checkRootAccess()) return;
-    await runRootCommandAndWait(
-      'settings put global updatable_driver_all_apps $value',
-    );
-    setState(() => _currentValue = value);
+    try {
+      await runRootCommandAndWait(
+        'settings put global updatable_driver_all_apps $value',
+      );
+      if (mounted) setState(() => _currentValue = value);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update driver setting: $e')),
+        );
+      }
+    }
+  }
+
+  String _getDriverName(int value, AppLocalizations localization) {
+    switch (value) {
+      case 1:
+        return localization.graphics_driver_game;
+      case 2:
+        return localization.graphics_driver_developer;
+      case 0:
+      default:
+        return localization.graphics_driver_default;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
+      elevation: 2.0,
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerHighest,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               localization.graphics_driver_title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              localization.graphics_driver_description,
+              style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
             ),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              children: [0, 1, 2]
-                  .map(
-                    (v) => ChoiceChip(
-                      label: Text(
-                        v == 0
-                            ? localization.graphics_driver_default
-                            : v == 1
-                            ? localization.graphics_driver_game
-                            : localization.graphics_driver_developer,
-                      ),
-                      selected: _currentValue == v,
-                      onSelected: (s) => _updateDriver(v),
-                    ),
-                  )
-                  .toList(),
+            Text(
+              "${localization.current_driver} ${_getDriverName(_currentValue, localization)}",
+              style: textTheme.bodyLarge?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                OutlinedButton(
+                  onPressed: () => _updateDriver(0),
+                  child: Text(localization.graphics_driver_default),
+                  style: _currentValue == 0
+                      ? OutlinedButton.styleFrom(
+                          backgroundColor: colorScheme.primaryContainer,
+                          foregroundColor: colorScheme.onPrimaryContainer,
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: () => _updateDriver(1),
+                  child: Text(localization.graphics_driver_game),
+                  style: _currentValue == 1
+                      ? OutlinedButton.styleFrom(
+                          backgroundColor: colorScheme.primaryContainer,
+                          foregroundColor: colorScheme.onPrimaryContainer,
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: () => _updateDriver(2),
+                  child: Text(localization.graphics_driver_developer),
+                  style: _currentValue == 2
+                      ? OutlinedButton.styleFrom(
+                          backgroundColor: colorScheme.primaryContainer,
+                          foregroundColor: colorScheme.onPrimaryContainer,
+                        )
+                      : null,
+                ),
+              ],
             ),
           ],
         ),
@@ -824,68 +1033,168 @@ class _ResolutionCardState extends State<ResolutionCard>
   }
 
   void _calculateInitialValue() {
-    if (!widget.isAvailable || widget.originalSize.isEmpty) {
-      _currentValue = 5.0;
+    // Default to max if data invalid
+    if (!widget.isAvailable ||
+        widget.originalSize.isEmpty ||
+        widget.currentSize.isEmpty) {
+      _currentValue = (_percentages.length - 1).toDouble();
       return;
     }
+
     try {
-      final ow = int.parse(widget.originalSize.split('x')[0]);
-      final cw = int.parse(widget.currentSize.split('x')[0]);
-      final pct = ((cw / ow) * 100).round();
-      final closest = _percentages.reduce(
-        (a, b) => (a - pct).abs() < (b - pct).abs() ? a : b,
-      );
-      _currentValue = _percentages.indexOf(closest).toDouble();
+      // Parse width from strings "WxH"
+      final originalWidth = int.parse(widget.originalSize.split('x')[0]);
+      final currentWidth = int.parse(widget.currentSize.split('x')[0]);
+
+      // Calculate current percentage
+      final currentPct = ((currentWidth / originalWidth) * 100).round();
+
+      // Find the closest supported percentage in our list
+      final closestPct = _percentages.reduce((a, b) {
+        return (a - currentPct).abs() < (b - currentPct).abs() ? a : b;
+      });
+
+      final index = _percentages.indexOf(closestPct);
+      _currentValue = index >= 0
+          ? index.toDouble()
+          : (_percentages.length - 1).toDouble();
     } catch (e) {
-      _currentValue = 5.0;
+      _currentValue = (_percentages.length - 1).toDouble();
     }
   }
 
-  Future<void> _apply(double value) async {
-    setState(() => _isChanging = true);
-    final pct = _percentages[value.round()];
-    final parts = widget.originalSize.split('x');
-    final nw = (int.parse(parts[0]) * pct / 100).floor();
-    final nh = (int.parse(parts[1]) * pct / 100).floor();
-    final nd = (widget.originalDensity * pct / 100).floor();
-    await runRootCommandAndWait('wm size ${nw}x$nh');
-    await runRootCommandAndWait('wm density $nd');
-    setState(() {
-      _currentValue = value;
-      _isChanging = false;
-    });
+  String _getCurrentPercentageLabel() {
+    int idx = _currentValue.round().clamp(0, _percentages.length - 1);
+    return '${_percentages[idx]}%';
+  }
+
+  Future<void> _applyResolution(double value) async {
+    if (!widget.isAvailable ||
+        widget.originalSize.isEmpty ||
+        widget.originalDensity <= 0)
+      return;
+    if (mounted) setState(() => _isChanging = true);
+
+    final idx = value.round().clamp(0, _percentages.length - 1);
+    final pct = _percentages[idx];
+
+    try {
+      final parts = widget.originalSize.split('x');
+      final newW = (int.parse(parts[0]) * pct / 100).floor();
+      final newH = (int.parse(parts[1]) * pct / 100).floor();
+      final newD = (widget.originalDensity * pct / 100).floor();
+
+      if (newW <= 0 || newH <= 0 || newD <= 0) throw Exception('Invalid dims');
+
+      await runRootCommandAndWait('wm size ${newW}x$newH');
+      await runRootCommandAndWait('wm density $newD');
+
+      if (mounted) setState(() => _currentValue = value);
+    } catch (e) {
+      await _resetResolution();
+    } finally {
+      if (mounted) setState(() => _isChanging = false);
+    }
+  }
+
+  Future<void> _resetResolution({bool showSnackbar = true}) async {
+    if (!widget.isAvailable) return;
+    if (mounted) setState(() => _isChanging = true);
+    try {
+      await runRootCommandAndWait('wm size reset');
+      await runRootCommandAndWait('wm density reset');
+      if (mounted) {
+        setState(() => _currentValue = (_percentages.length - 1).toDouble());
+      }
+    } finally {
+      if (mounted) setState(() => _isChanging = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
+      elevation: 2.0,
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerHighest,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               localization.downscale_resolution,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            Slider(
-              value: _currentValue,
-              min: 0,
-              max: 5,
-              divisions: 5,
-              label: '${_percentages[_currentValue.round()]}%',
-              onChanged: _isChanging
-                  ? null
-                  : (v) => setState(() => _currentValue = v),
-              onChangeEnd: _apply,
-            ),
-            ElevatedButton(
-              onPressed: () => _apply(5.0),
-              child: Text(localization.reset_resolution),
-            ),
+            const SizedBox(height: 8),
+            if (!widget.isAvailable)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  localization.resolution_unavailable_message,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.error,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              )
+            else ...[
+              Row(
+                children: [
+                  Icon(
+                    Icons.aspect_ratio_outlined,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Slider(
+                      value: _currentValue,
+                      min: 0,
+                      max: (_percentages.length - 1).toDouble(),
+                      divisions: _percentages.length - 1,
+                      label: _getCurrentPercentageLabel(),
+                      onChanged: _isChanging
+                          ? null
+                          : (double value) {
+                              if (mounted) {
+                                setState(() => _currentValue = value);
+                              }
+                            },
+                      onChangeEnd: _isChanging ? null : _applyResolution,
+                    ),
+                  ),
+                  Text(
+                    _getCurrentPercentageLabel(),
+                    style: textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _isChanging ? null : _resetResolution,
+                  icon: _isChanging
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.refresh),
+                  label: Text(localization.reset_resolution),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -897,15 +1206,22 @@ class ScreenModifierCard extends StatefulWidget {
   final Map<String, dynamic> initialValues;
   const ScreenModifierCard({Key? key, required this.initialValues})
     : super(key: key);
+
   @override
   _ScreenModifierCardState createState() => _ScreenModifierCardState();
 }
 
 class _ScreenModifierCardState extends State<ScreenModifierCard>
     with AutomaticKeepAliveClientMixin {
-  late double _r, _g, _b, _s;
-  late bool _boot;
-  bool _updating = false;
+  late double _redValue;
+  late double _greenValue;
+  late double _blueValue;
+  late double _saturationValue;
+  late bool _applyOnBoot;
+  bool _isUpdating = false;
+
+  final String _configFilePath = '/data/ProjectRaco/raco.txt';
+  final String _serviceFilePath = '/data/adb/modules/ProjectRaco/service.sh';
 
   @override
   bool get wantKeepAlive => true;
@@ -913,93 +1229,236 @@ class _ScreenModifierCardState extends State<ScreenModifierCard>
   @override
   void initState() {
     super.initState();
-    _r = widget.initialValues['red'];
-    _g = widget.initialValues['green'];
-    _b = widget.initialValues['blue'];
-    _s = widget.initialValues['saturation'];
-    _boot = widget.initialValues['applyOnBoot'];
+    _redValue = widget.initialValues['red'] as double;
+    _greenValue = widget.initialValues['green'] as double;
+    _blueValue = widget.initialValues['blue'] as double;
+    _saturationValue = widget.initialValues['saturation'] as double;
+    _applyOnBoot = widget.initialValues['applyOnBoot'] as bool;
   }
 
-  Future<void> _apply() async {
-    setState(() => _updating = true);
-    final rf = _r / 1000, gf = _g / 1000, bf = _b / 1000, sf = _s / 1000;
-    await runRootCommandAndWait(
-      'service call SurfaceFlinger 1015 i32 1 f $rf f 0 f 0 f 0 f 0 f $gf f 0 f 0 f 0 f 0 f $bf f 0 f 0 f 0 f 0 f 1',
-    );
-    await runRootCommandAndWait('service call SurfaceFlinger 1022 f $sf');
-    final valStr =
-        '${_r.round()},${_g.round()},${_b.round()},${_s.round()},${_boot ? "Yes" : "No"}';
-    await runRootCommandAndWait(
-      "sed -i 's|^AYUNDA_RUSDI=.*|AYUNDA_RUSDI=$valStr|' /data/ProjectRaco/raco.txt",
-    );
+  Future<void> _applyAndSaveChanges() async {
+    if (!await checkRootAccess()) return;
+    if (mounted) setState(() => _isUpdating = true);
 
-    await runRootCommandAndWait(
-      "sed -i '/AyundaRusdi.sh/d' /data/adb/modules/ProjectRaco/service.sh",
-    );
-    if (_boot) {
-      final script =
-          "cat <<'EOF' > /data/adb/modules/ProjectRaco/Scripts/AyundaRusdi.sh\n#!/system/bin/sh\nservice call SurfaceFlinger 1015 i32 1 f $rf f 0 f 0 f 0 f 0 f $gf f 0 f 0 f 0 f 0 f $bf f 0 f 0 f 0 f 0 f 1\nservice call SurfaceFlinger 1022 f $sf\nEOF";
-      await runRootCommandAndWait(script);
+    try {
+      // Apply live changes
+      final r = _redValue / 1000.0;
+      final g = _greenValue / 1000.0;
+      final b = _blueValue / 1000.0;
+      final s = _saturationValue / 1000.0;
+
       await runRootCommandAndWait(
-        'chmod +x /data/adb/modules/ProjectRaco/Scripts/AyundaRusdi.sh',
+        'service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1',
       );
-      await runRootCommandAndWait(
-        "sed -i '/# Ayunda Rusdi/a sh /data/adb/modules/ProjectRaco/Scripts/AyundaRusdi.sh' /data/adb/modules/ProjectRaco/service.sh",
-      );
+      await runRootCommandAndWait('service call SurfaceFlinger 1022 f $s');
+
+      // Save settings to raco.txt
+      final valuesString =
+          '${_redValue.round()},${_greenValue.round()},${_blueValue.round()},${_saturationValue.round()},${_applyOnBoot ? "Yes" : "No"}';
+      final sedCheckCommand = "grep -q '^AYUNDA_RUSDI=' $_configFilePath";
+      final checkResult = await runRootCommandAndWait(sedCheckCommand);
+
+      if (checkResult.exitCode == 0) {
+        // Line exists, so replace it
+        await runRootCommandAndWait(
+          "sed -i 's|^AYUNDA_RUSDI=.*|AYUNDA_RUSDI=$valuesString|' $_configFilePath",
+        );
+      } else {
+        // Line doesn't exist, so add it
+        await runRootCommandAndWait(
+          "echo 'AYUNDA_RUSDI=$valuesString' >> $_configFilePath",
+        );
+      }
+
+      // Update service.sh for boot settings
+      await _updateBootScript();
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
     }
-    setState(() => _updating = false);
+  }
+
+  Future<void> _updateBootScript() async {
+    final ayundaScriptPath =
+        '/data/adb/modules/ProjectRaco/Scripts/AyundaRusdi.sh';
+
+    // To ensure idempotency, always remove the old execution line first.
+    final removeExecutionLineCommand =
+        "sed -i '/AyundaRusdi.sh/d' $_serviceFilePath";
+    await runRootCommandAndWait(removeExecutionLineCommand);
+
+    if (_applyOnBoot) {
+      // If the toggle is ON, recreate AyundaRusdi.sh with current values...
+      final r = _redValue / 1000.0;
+      final g = _greenValue / 1000.0;
+      final b = _blueValue / 1000.0;
+      final s = _saturationValue / 1000.0;
+
+      // 1. Create or overwrite AyundaRusdi.sh with the current color values.
+      final createAyundaScriptCommand =
+          '''
+cat <<'EOF' > $ayundaScriptPath
+#!/system/bin/sh
+# Project Raco - Screen Modifier Boot Settings
+# This file is automatically generated by the app. Do not edit manually.
+
+# Apply Screen Color Matrix (RGB)
+service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1
+
+# Apply Screen Saturation
+service call SurfaceFlinger 1022 f $s
+EOF
+''';
+      await runRootCommandAndWait(createAyundaScriptCommand);
+
+      // Make the script executable
+      await runRootCommandAndWait('chmod +x $ayundaScriptPath');
+
+      // 2. ...and then insert a line into service.sh to execute it on boot.
+      final addExecutionLineCommand =
+          "sed -i '/# Ayunda Rusdi/a sh $ayundaScriptPath' $_serviceFilePath";
+      await runRootCommandAndWait(addExecutionLineCommand);
+    }
+  }
+
+  Future<void> _resetToDefaults() async {
+    setState(() {
+      _redValue = 1000.0;
+      _greenValue = 1000.0;
+      _blueValue = 1000.0;
+      _saturationValue = 1000.0;
+    });
+    await _applyAndSaveChanges();
+  }
+
+  Widget _buildSlider(
+    String label,
+    double value,
+    double max,
+    ValueChanged<double> onChanged,
+  ) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 80,
+          child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        ),
+        Expanded(
+          child: Slider(
+            value: value,
+            min: 100,
+            max: max,
+            divisions: ((max - 100) / 10).round(),
+            label: value.round().toString(),
+            onChanged: (newValue) {
+              setState(() {
+                if (label == AppLocalizations.of(context)!.screen_modifier_red)
+                  _redValue = newValue;
+                if (label ==
+                    AppLocalizations.of(context)!.screen_modifier_green)
+                  _greenValue = newValue;
+                if (label == AppLocalizations.of(context)!.screen_modifier_blue)
+                  _blueValue = newValue;
+                if (label ==
+                    AppLocalizations.of(context)!.screen_modifier_saturation)
+                  _saturationValue = newValue;
+              });
+            },
+            onChangeEnd: (newValue) => _applyAndSaveChanges(),
+          ),
+        ),
+        SizedBox(
+          width: 40,
+          child: Text(value.round().toString(), textAlign: TextAlign.end),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
+      elevation: 2.0,
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerHighest,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               localization.screen_modifier_title,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            Slider(
-              value: _r,
-              min: 100,
-              max: 1000,
-              onChanged: (v) => setState(() => _r = v),
-              onChangeEnd: (v) => _apply(),
+            const SizedBox(height: 8),
+            Text(
+              localization.screen_modifier_description,
+              style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
             ),
-            Slider(
-              value: _g,
-              min: 100,
-              max: 1000,
-              onChanged: (v) => setState(() => _g = v),
-              onChangeEnd: (v) => _apply(),
+            const SizedBox(height: 16),
+            _buildSlider(
+              localization.screen_modifier_red,
+              _redValue,
+              1000,
+              (v) => setState(() => _redValue = v),
             ),
-            Slider(
-              value: _b,
-              min: 100,
-              max: 1000,
-              onChanged: (v) => setState(() => _b = v),
-              onChangeEnd: (v) => _apply(),
+            _buildSlider(
+              localization.screen_modifier_green,
+              _greenValue,
+              1000,
+              (v) => setState(() => _greenValue = v),
             ),
-            Slider(
-              value: _s,
-              min: 100,
-              max: 2000,
-              onChanged: (v) => setState(() => _s = v),
-              onChangeEnd: (v) => _apply(),
+            _buildSlider(
+              localization.screen_modifier_blue,
+              _blueValue,
+              1000,
+              (v) => setState(() => _blueValue = v),
             ),
+            _buildSlider(
+              localization.screen_modifier_saturation,
+              _saturationValue,
+              2000,
+              (v) => setState(() => _saturationValue = v),
+            ),
+            const Divider(height: 24),
             SwitchListTile(
               title: Text(localization.screen_modifier_apply_on_boot),
-              value: _boot,
-              onChanged: (v) {
-                setState(() => _boot = v);
-                _apply();
-              },
+              value: _applyOnBoot,
+              onChanged: _isUpdating
+                  ? null
+                  : (value) {
+                      setState(() => _applyOnBoot = value);
+                      _applyAndSaveChanges();
+                    },
+              secondary: _isUpdating
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.power_settings_new_outlined),
+              activeColor: colorScheme.primary,
+              contentPadding: EdgeInsets.zero,
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isUpdating ? null : _resetToDefaults,
+                icon: const Icon(Icons.refresh),
+                label: Text(localization.screen_modifier_reset),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.secondaryContainer,
+                  foregroundColor: colorScheme.onSecondaryContainer,
+                ),
+              ),
             ),
           ],
         ),
@@ -1010,51 +1469,114 @@ class _ScreenModifierCardState extends State<ScreenModifierCard>
 
 class SystemActionsCard extends StatefulWidget {
   const SystemActionsCard({Key? key}) : super(key: key);
+
   @override
   _SystemActionsCardState createState() => _SystemActionsCardState();
 }
 
 class _SystemActionsCardState extends State<SystemActionsCard>
     with AutomaticKeepAliveClientMixin {
-  bool _fstrim = false, _cache = false;
+  bool _isFstrimRunning = false;
+  bool _isClearCacheRunning = false;
+
   @override
   bool get wantKeepAlive => true;
-  Future<void> _run(String cmd, Function(bool) setL) async {
-    setState(() => setL(true));
-    await runRootCommandAndWait(
-      'sh /data/adb/modules/ProjectRaco/Scripts/$cmd',
-    );
-    setState(() => setL(false));
+
+  Future<void> _runAction({
+    required String command,
+    required Function(bool) setLoadingState,
+  }) async {
+    if (!await checkRootAccess()) return;
+    if (mounted) setState(() => setLoadingState(true));
+
+    try {
+      final result = await runRootCommandAndWait(command);
+      if (result.exitCode != 0) {
+        throw Exception(result.stderr);
+      }
+    } catch (e) {
+      // Errors can be logged or handled here if necessary.
+    } finally {
+      if (mounted) setState(() => setLoadingState(false));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final bool isBusy = _isFstrimRunning || _isClearCacheRunning;
+
     return Card(
+      elevation: 2.0,
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Column(
-        children: [
-          ListTile(
-            title: Text(localization.fstrim_title),
-            trailing: IconButton(
-              icon: const Icon(Icons.play_arrow),
-              onPressed: _fstrim
-                  ? null
-                  : () => _run('Fstrim.sh', (v) => _fstrim = v),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              localization.system_actions_title,
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-          ListTile(
-            title: Text(localization.clear_cache_title),
-            trailing: IconButton(
-              icon: const Icon(Icons.play_arrow),
-              onPressed: _cache
-                  ? null
-                  : () => _run('Clear_cache.sh', (v) => _cache = v),
+            const SizedBox(height: 16),
+            // Fstrim Action
+            ListTile(
+              leading: _isFstrimRunning
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2.5),
+                    )
+                  : const Icon(Icons.cleaning_services_outlined),
+              title: Text(localization.fstrim_title),
+              subtitle: Text(
+                localization.fstrim_description,
+                style: textTheme.bodySmall,
+              ),
+              trailing: ElevatedButton(
+                onPressed: isBusy
+                    ? null
+                    : () => _runAction(
+                        command:
+                            'su -c sh /data/adb/modules/ProjectRaco/Scripts/Fstrim.sh',
+                        setLoadingState: (val) => _isFstrimRunning = val,
+                      ),
+                child: const Icon(Icons.play_arrow),
+              ),
+              contentPadding: EdgeInsets.zero,
             ),
-          ),
-        ],
+            const Divider(),
+            // Clear Cache Action
+            ListTile(
+              leading: _isClearCacheRunning
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2.5),
+                    )
+                  : const Icon(Icons.delete_sweep_outlined),
+              title: Text(localization.clear_cache_title),
+              trailing: ElevatedButton(
+                onPressed: isBusy
+                    ? null
+                    : () => _runAction(
+                        command:
+                            'su -c sh /data/adb/modules/ProjectRaco/Scripts/Clear_cache.sh',
+                        setLoadingState: (val) => _isClearCacheRunning = val,
+                      ),
+                child: const Icon(Icons.play_arrow),
+              ),
+              contentPadding: EdgeInsets.zero,
+            ),
+          ],
+        ),
       ),
     );
   }
