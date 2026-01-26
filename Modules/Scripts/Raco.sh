@@ -106,10 +106,9 @@ bypass_on() {
 }
 
 bypass_off() {
-    BYPASS=$(grep "^ENABLE_BYPASS=" "$RACO_CONFIG" | cut -d'=' -f2 | tr -d ' ')
-    if [ "$BYPASS" = "Yes" ]; then
-        sh $SCRIPT_PATH/raco_bypass_controller.sh disable &
-    fi
+    # Force disable hardware bypass regardless of config toggle 
+    # to ensure battery protection is restored in non-gaming modes.
+    sh $SCRIPT_PATH/raco_bypass_controller.sh disable &
 }
 
 notification() {
