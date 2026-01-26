@@ -134,11 +134,12 @@ dnd_on() {
     fi
 }
 
-clear_angle() {
-adb shell settings delete global angle_debug_package
-adb shell settings delete global angle_gl_driver_all_angle
-adb shell settings delete global angle_gl_driver_selection_pkgs
-adb shell settings delete global angle_gl_driver_selection_values
+clear_slingshot() {
+settings delete global angle_debug_package
+settings delete global angle_gl_driver_all_angle
+settings delete global angle_gl_driver_selection_pkgs
+settings delete global angle_gl_driver_selection_values
+setprop debug.hwui.renderer none
 }
 
 ###################################
@@ -850,7 +851,7 @@ performance_basic() {
     dnd_on &
     corin_perf &
     bypass_on &
-    clear_angle &
+    clear_slingshot &
 
     if [ "$KCPU_MITIGATE" -eq 0 ]; then
         carcpu_perf &
@@ -928,7 +929,7 @@ balanced_basic() {
     dnd_off &
     corin_balanced &
     bypass_off &
-    clear_angle &
+    clear_slingshot &
 
     if [ "$KCPU_MITIGATE" -eq 0 ]; then
         carcpu_balance &
@@ -1005,7 +1006,7 @@ powersave_basic() {
     dnd_off &
     corin_powersave &
     bypass_off &
-    clear_angle &
+    clear_slingshot &
 
     if [ "$KCPU_MITIGATE" -eq 0 ]; then
         carcpu_battery &
