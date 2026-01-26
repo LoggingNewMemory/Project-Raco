@@ -52,6 +52,14 @@ build_flutter_apk() {
         return 1
     fi
 
+    # ADDED: flutter pub get to restore dependencies for VSCode
+    echo "Running flutter pub get..."
+    if ! flutter pub get; then
+        echo "Error: flutter pub get failed!"
+        cd "$current_dir"
+        return 1
+    fi
+
     echo "Running flutter build apk..."
     if ! flutter build apk; then
         echo "Error: flutter build apk failed!"
