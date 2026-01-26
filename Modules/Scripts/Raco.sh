@@ -83,7 +83,6 @@ kakangkuh() {
 kill_all() {
     sync
     cmd activity kill-all > /dev/null 2>&1
-    # Run package killing in parallel groups to speed up
     for pkg in $(pm list packages -3 | cut -f 2 -d ":"); do
         if [ "$pkg" != "com.google.android.inputmethod.latin" ]; then 
             am force-stop "$pkg" > /dev/null 2>&1 &
@@ -100,14 +99,12 @@ kill_all() {
 
 bypass_on() {
     BYPASS=$(grep "^ENABLE_BYPASS=" "$RACO_CONFIG" | cut -d'=' -f2 | tr -d ' ')
-    if [ "$BYPASS" = "Yes" ]; then
+    if [ "$BYPASS" = "1" ]; then
         sh $SCRIPT_PATH/raco_bypass_controller.sh enable &
     fi
 }
 
 bypass_off() {
-    # Force disable hardware bypass regardless of config toggle 
-    # to ensure battery protection is restored in non-gaming modes.
     sh $SCRIPT_PATH/raco_bypass_controller.sh disable &
 }
 
@@ -124,15 +121,15 @@ notification() {
 }
 
 dnd_off() {
-    DND=$(grep "^DND" "$RACO_CONFIG" | cut -d'=' -f2 | tr -d ' ')
-    if [ "$DND" = "Yes" ]; then
+    DND_VAL=$(grep "^DND=" "$RACO_CONFIG" | cut -d'=' -f2 | tr -d ' ')
+    if [ "$DND_VAL" = "1" ]; then
         cmd notification set_dnd off &
     fi
 }
 
 dnd_on() {
-    DND=$(grep "^DND" "$RACO_CONFIG" | cut -d'=' -f2 | tr -d ' ')
-    if [ "$DND" = "Yes" ]; then
+    DND_VAL=$(grep "^DND=" "$RACO_CONFIG" | cut -d'=' -f2 | tr -d ' ')
+    if [ "$DND_VAL" = "1" ]; then
         cmd notification set_dnd priority &
     fi
 }
@@ -368,7 +365,7 @@ cpufreq_min_perf() {
 }
 
 ###################################
-# Device Profiles (Updated for Raco 3.0)
+# Device Profiles
 ###################################
 
 mediatek_performance() {
@@ -737,7 +734,6 @@ tegra_powersave() {
 performance_basic() {
     sync
     
-    # Combined Sysfs Tweaks
     (
         for dir in /sys/block/*; do
             tweak 0 "$dir/queue/iostats"
@@ -822,7 +818,6 @@ performance_basic() {
         done
     ) &
 
-    # CPU Freq (Gov -> Wait -> Lock/Half Freq logic)
     {
         change_cpu_gov "performance"
         sleep 2
@@ -863,7 +858,6 @@ performance_basic() {
 balanced_basic() {
     sync
     performance_basic 
-    # Workaround from Raco 3.0 to fix locked GPU Freq
     wait
 
     (
@@ -902,7 +896,6 @@ balanced_basic() {
         done
     ) &
 
-    # CPU Freq (Unlock -> Gov)
     {
         if [ -d "/proc/ppm" ]; then
             cpufreq_ppm_unlock
@@ -978,7 +971,6 @@ powersave_basic() {
         done
     ) &
 
-    # CPU Freq (Gov -> Wait -> Lock/Half Freq logic)
     {
         change_cpu_gov "powersave"
         sleep 2

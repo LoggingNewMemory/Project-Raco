@@ -30,7 +30,7 @@ class _SystemPageState extends State<SystemPage> {
   Map<String, dynamic>? _bypassChargingState;
   Map<String, dynamic>? _resolutionState;
   Map<String, dynamic>? _screenModifierState;
-  int _graphicsDriverValue = 0; // 0: Default, 1: Game, 2: Developer
+  int _graphicsDriverValue = 0;
   int _sandevistanDuration = 10;
 
   @override
@@ -48,7 +48,7 @@ class _SystemPageState extends State<SystemPage> {
         r'^DND=(.*)$',
         multiLine: true,
       ).firstMatch(result.stdout.toString());
-      return match?.group(1)?.trim().toLowerCase() == 'yes';
+      return match?.group(1)?.trim() == '1';
     }
     return false;
   }
@@ -174,11 +174,11 @@ class _SystemPageState extends State<SystemPage> {
     bool isEnabled = false;
     if (configResult.exitCode == 0) {
       isEnabled =
-          RegExp(r'^ENABLE_BYPASS=(Yes|No)', multiLine: true)
-              .firstMatch(configResult.stdout.toString())
-              ?.group(1)
-              ?.toLowerCase() ==
-          'yes';
+          RegExp(
+            r'^ENABLE_BYPASS=(\d)',
+            multiLine: true,
+          ).firstMatch(configResult.stdout.toString())?.group(1) ==
+          '1';
     }
     return {'isSupported': isSupported, 'isEnabled': isEnabled};
   }
@@ -347,8 +347,6 @@ class _SystemPageState extends State<SystemPage> {
   }
 }
 
-// --- SUB-CARDS ---
-
 class DndCard extends StatefulWidget {
   final bool initialDndEnabled;
   const DndCard({Key? key, required this.initialDndEnabled}) : super(key: key);
@@ -373,7 +371,7 @@ class _DndCardState extends State<DndCard> with AutomaticKeepAliveClientMixin {
   Future<void> _toggleDnd(bool enable) async {
     if (!await checkRootAccess()) return;
     if (mounted) setState(() => _isUpdating = true);
-    final valueString = enable ? 'Yes' : 'No';
+    final valueString = enable ? '1' : '0';
 
     try {
       await runRootCommandAndWait(
@@ -664,14 +662,11 @@ class _BypassChargingCardState extends State<BypassChargingCard>
     if (mounted) setState(() => _isToggling = true);
 
     try {
-      final value = enable ? 'Yes' : 'No';
-      // 1. Update config file
+      final value = enable ? '1' : '0';
       await runRootCommandAndWait(
         "sed -i 's|^ENABLE_BYPASS=.*|ENABLE_BYPASS=$value|' $_configFilePath",
       );
 
-      // 2. If disabling, run the hardware command immediately.
-      // If enabling, mode switching (Raco.sh) handles it.
       if (!enable) {
         await runRootCommandAndWait('sh $_scriptPath disable');
       }
@@ -938,7 +933,6 @@ class _ScreenModifierCardState extends State<ScreenModifierCard>
       "sed -i 's|^AYUNDA_RUSDI=.*|AYUNDA_RUSDI=$valStr|' /data/ProjectRaco/raco.txt",
     );
 
-    // Update service.sh
     await runRootCommandAndWait(
       "sed -i '/AyundaRusdi.sh/d' /data/adb/modules/ProjectRaco/service.sh",
     );
