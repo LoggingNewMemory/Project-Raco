@@ -50,16 +50,10 @@ manual_addon_selection() {
   if choose; then INCLUDE_KOBO=1; ui_print "  > Yes"; else INCLUDE_KOBO=0; ui_print "  > No"; fi
 
   ui_print " "
-  ui_print "- Include Vestia Zeta Display?"
-  ui_print "  Maximize Screen Refresh Rate"
+  ui_print "- Include Zetamin"
+  ui_print "  All in One Display Tweaks"
   ui_print "  Vol+ = Yes  |  Vol- = No"
-  if choose; then INCLUDE_ZETA=1; ui_print "  > Yes"; else INCLUDE_ZETA=0; ui_print "  > No"; fi
-
-  ui_print " "
-  ui_print "- Include AmeRender?"
-  ui_print "  An attempt for better rendering"
-  ui_print "  Vol+ = Yes  |  Vol- = No"
-  if choose; then INCLUDE_AME=1; ui_print "  > Yes"; else INCLUDE_AME=0; ui_print "  > No"; fi
+  if choose; then INCLUDE_ZETAMIN=1; ui_print "  > Yes"; else INCLUDE_ZETAMIN=0; ui_print "  > No"; fi
 
   ui_print " "
   ui_print "- Include Sandevistan Boot?"
@@ -71,7 +65,7 @@ manual_addon_selection() {
   ui_print "- Updating configuration..."
   sed -i "s/^INCLUDE_ANYA=.*/INCLUDE_ANYA=$INCLUDE_ANYA/" "$config_file"
   sed -i "s/^INCLUDE_KOBO=.*/INCLUDE_KOBO=$INCLUDE_KOBO/" "$config_file"
-  sed -i "s/^INCLUDE_ZETA=.*/INCLUDE_ZETA=$INCLUDE_ZETA/" "$config_file"
+  sed -i "s/^INCLUDE_ZETAMIN=.*/INCLUDE_ZETAMIN=$INCLUDE_ZETAMIN/" "$config_file"
   sed -i "s/^INCLUDE_AME=.*/INCLUDE_AME=$INCLUDE_AME/" "$config_file"
   sed -i "s/^INCLUDE_SANDEV=.*/INCLUDE_SANDEV=$INCLUDE_SANDEV/" "$config_file"
   ui_print "- Your choices have been saved."

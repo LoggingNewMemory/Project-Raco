@@ -73,16 +73,11 @@ if grep -q "INCLUDE_KOBO=1" "$CONFIG_FILE"; then
     sh /data/adb/modules/ProjectRaco/Scripts/KoboKanaeru.sh
 fi
 
-# Run Zeta.sh if INCLUDE_ZETA=1
-if grep -q "INCLUDE_ZETA=1" "$CONFIG_FILE"; then
-    sh /data/adb/modules/ProjectRaco/Scripts/Zeta.sh
-fi
-
 # Ayunda Rusdi
 
 # AmeRender
-if grep -q "INCLUDE_AME=1" "$CONFIG_FILE"; then
-    sh /data/adb/modules/ProjectRaco/Scripts/AmeRender.sh
+if grep -q "INCLUDE_ZETAMIN=1" "$CONFIG_FILE"; then
+    sh /data/adb/modules/ProjectRaco/Scripts/Zetamin.sh
 fi
 
 ############################
