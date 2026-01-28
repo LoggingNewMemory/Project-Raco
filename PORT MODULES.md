@@ -41,7 +41,7 @@ This script is executed when the plugin is uninstalled. If your plugin modifies 
 
 Ready to share your plugin with the community?
 
-1. Join the [Yamada Dormitory](https://t.me/YamadaDorm)
+1. Join the [Yamada Dormitory](https://t.me/ProjectRaco)
 2. Tag @KanagawaYamadaVTeacher with your plugin submission
 3. Your plugin will be reviewed and forwarded to the official Project Raco channel
 

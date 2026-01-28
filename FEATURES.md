@@ -54,6 +54,11 @@ Some modules may be compatible, but proceed with caution.
 - **Raco Slingshot** - **Set SkiaVK as Backend Render** - Vulkan-based Skia rendering
 - **Raco Slingshot** - **Set ANGLE as Renderer** - OpenGL ES translation layer
 
+- **Read Here** 
+- [ANGLE Documentation 1](https://chromium.googlesource.com/angle/angle.git/+/HEAD/doc/DevSetupAndroid.md)
+- [ANGLE Documentation 1](https://android.googlesource.com/platform/packages/modules/ANGLE/)
+
+
 ### Intelligence & Automation
 - **Hamada AI** - Intelligent performance switching
   - Auto-switch to performance mode during gaming
@@ -73,4 +78,4 @@ Some modules may be compatible, but proceed with caution.
 
 ## Support & Troubleshooting
 
-For issues or questions, please refer to the main documentation or contact support through [official channels](https://t.me/KLCGen2).
+For issues or questions, please refer to the main documentation or contact support through [official channels](https://t.me/ProjectRaco).
