@@ -549,6 +549,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  quick_settings:
+    dependency: "direct main"
+    description:
+      name: quick_settings
+      sha256: "957c8b6ab57b1113aafcf7d85095e01c02e5f5f2437ac275ae430babcd4b49d8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   shared_preferences:
     dependency: "direct main"
     description:

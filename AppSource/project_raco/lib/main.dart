@@ -6,12 +6,72 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:process_run/process_run.dart';
+import 'package:quick_settings/quick_settings.dart'; // Added import
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '/l10n/app_localizations.dart';
 import 'about_page.dart';
 import 'utilities_page.dart';
 import 'slingshot.dart';
+
+// --- Background Quick Settings Logic ---
+
+@pragma('vm:entry-point')
+Tile onTileClicked(Tile tile) {
+  // Cycle: Balanced (Default) -> Performance -> Power Save -> Balanced
+  String newLabel = "Balanced";
+  String newDrawable = "raco_balanced";
+  String scriptArg = "2"; // Default to balanced
+
+  if (tile.label.contains("Balanced")) {
+    newLabel = "Performance";
+    newDrawable = "raco_performance";
+    scriptArg = "1";
+  } else if (tile.label.contains("Performance")) {
+    newLabel = "Power Save";
+    newDrawable = "raco_powersave";
+    scriptArg = "3";
+  } else {
+    // Default back to Balanced
+    newLabel = "Balanced";
+    newDrawable = "raco_balanced";
+    scriptArg = "2";
+  }
+
+  // Execute Root Command in Background
+  // We use Process.run (fire-and-forget) to avoid blocking the UI update
+  try {
+    Process.run('su', [
+      '-c',
+      'sh /data/adb/modules/ProjectRaco/Scripts/Raco.sh $scriptArg > /dev/null 2>&1',
+    ]);
+  } catch (e) {
+    print("QS Tile Error: $e");
+  }
+
+  tile.label = newLabel;
+  tile.subtitle = "Raco Mode";
+  tile.drawableName = newDrawable;
+  tile.tileStatus = TileStatus.active; // FIX: Changed from state/TileState
+
+  return tile;
+}
+
+@pragma('vm:entry-point')
+Tile onTileAdded(Tile tile) {
+  tile.label = "Balanced";
+  tile.tileStatus = TileStatus.active; // FIX: Changed from state/TileState
+  tile.drawableName = "raco_balanced";
+  tile.subtitle = "Tap to cycle";
+  return tile;
+}
+
+@pragma('vm:entry-point')
+void onTileRemoved() {
+  // Cleanup if necessary
+}
+
+// ---------------------------------------
 
 final themeNotifier = ValueNotifier<Color?>(null);
 
@@ -79,6 +139,19 @@ class ConfigManager {
 }
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Quick Settings
+  try {
+    QuickSettings.setup(
+      onTileClicked: onTileClicked,
+      onTileAdded: onTileAdded,
+      onTileRemoved: onTileRemoved,
+    );
+  } catch (e) {
+    print("QuickSettings setup failed: $e");
+  }
+
   runApp(const MyApp());
 }
 
