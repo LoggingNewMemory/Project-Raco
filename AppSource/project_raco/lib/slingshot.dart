@@ -7,14 +7,21 @@ import 'package:flutter/material.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
 import '/l10n/app_localizations.dart';
 
 class AppItem {
   final String name;
   final String packageName;
-  final Uint8List? icon;
+  final Uint8List? iconBytes;
+  final String? iconPath;
 
-  AppItem({required this.name, required this.packageName, this.icon});
+  AppItem({
+    required this.name,
+    required this.packageName,
+    this.iconBytes,
+    this.iconPath,
+  });
 }
 
 class SlingshotPage extends StatefulWidget {
@@ -96,7 +103,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
 
   Future<void> _loadRacoConfig() async {
     try {
-      // Read SKIAVK
       final skiaResult = await Process.run('su', [
         '-c',
         'grep "^SKIAVK=" $_racoConfigPath | cut -d= -f2',
@@ -110,7 +116,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
         }
       }
 
-      // Read ANGLE
       final angleResult = await Process.run('su', [
         '-c',
         'grep "^ANGLE=" $_racoConfigPath | cut -d= -f2',
@@ -131,14 +136,12 @@ class _SlingshotPageState extends State<SlingshotPage> {
   Future<void> _toggleSkia(bool value) async {
     setState(() => _useSkia = value);
     try {
-      // Update config
       final int intVal = value ? 1 : 0;
       await Process.run('su', [
         '-c',
         'sed -i "s/^SKIAVK=.*/SKIAVK=$intVal/" $_racoConfigPath',
       ]);
 
-      // If turning off, reset the property immediately
       if (!value) {
         await Process.run('su', ['-c', 'setprop debug.hwui.renderer none']);
       }
@@ -150,14 +153,12 @@ class _SlingshotPageState extends State<SlingshotPage> {
   Future<void> _toggleAngle(bool value) async {
     setState(() => _useAngle = value);
     try {
-      // Update config
       final int intVal = value ? 1 : 0;
       await Process.run('su', [
         '-c',
         'sed -i "s/^ANGLE=.*/ANGLE=$intVal/" $_racoConfigPath',
       ]);
 
-      // If turning off, clean up global settings immediately
       if (!value) {
         await Process.run('su', [
           '-c',
@@ -176,6 +177,15 @@ class _SlingshotPageState extends State<SlingshotPage> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<Directory> _getIconCacheDir() async {
+    final docsDir = await getApplicationDocumentsDirectory();
+    final iconDir = Directory('${docsDir.path}/app_icons');
+    if (!await iconDir.exists()) {
+      await iconDir.create(recursive: true);
+    }
+    return iconDir;
   }
 
   Future<void> _loadFromCache() async {
@@ -197,11 +207,18 @@ class _SlingshotPageState extends State<SlingshotPage> {
       final String? appsJson = prefs.getString(_prefsKeyApps);
       if (appsJson != null) {
         final List<dynamic> decodedList = jsonDecode(appsJson);
+        final iconDir = await _getIconCacheDir();
+
         final List<AppItem> cachedList = decodedList.map((item) {
+          final pkg = item['p'] as String;
+          final path = '${iconDir.path}/$pkg.png';
+          final fileExists = File(path).existsSync();
+
           return AppItem(
             name: item['n'] as String,
-            packageName: item['p'] as String,
-            icon: null,
+            packageName: pkg,
+            iconBytes: null,
+            iconPath: fileExists ? path : null,
           );
         }).toList();
 
@@ -252,11 +269,10 @@ class _SlingshotPageState extends State<SlingshotPage> {
     }
 
     List<AppInfo> rawApps = [];
-
     try {
       rawApps = await InstalledApps.getInstalledApps(true, true);
     } catch (e) {
-      if (mounted) {
+      if (mounted && _installedApps.isEmpty) {
         setState(() {
           _isLoadingApps = false;
         });
@@ -264,9 +280,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
       return;
     }
 
-    bool rootFilterSuccess = false;
     List<AppInfo> filteredResult = [];
-
     try {
       final result = await Process.run('su', ['-c', 'pm list packages -3']);
 
@@ -285,24 +299,44 @@ class _SlingshotPageState extends State<SlingshotPage> {
             .toList();
 
         filteredResult.sort((a, b) => (a.name).compareTo(b.name));
-        rootFilterSuccess = true;
       }
     } catch (e) {
-      rootFilterSuccess = false;
+      debugPrint("Root filter error: $e");
     }
 
-    if (!rootFilterSuccess) {
-      filteredResult = rawApps;
-      filteredResult.sort((a, b) => (a.name).compareTo(b.name));
+    if (filteredResult.isEmpty) {
+      if (mounted) {
+        setState(() => _isLoadingApps = false);
+      }
+      return;
     }
 
-    final List<AppItem> finalItems = filteredResult.map((info) {
-      return AppItem(
-        name: info.name,
-        packageName: info.packageName,
-        icon: info.icon,
+    final iconDir = await _getIconCacheDir();
+    final List<AppItem> finalItems = [];
+
+    for (var info in filteredResult) {
+      String? iconPath;
+      if (info.icon != null) {
+        final file = File('${iconDir.path}/${info.packageName}.png');
+        try {
+          if (!await file.exists() || forceRefresh) {
+            await file.writeAsBytes(info.icon!, flush: true);
+          }
+          iconPath = file.path;
+        } catch (e) {
+          debugPrint("Failed to cache icon for ${info.packageName}: $e");
+        }
+      }
+
+      finalItems.add(
+        AppItem(
+          name: info.name,
+          packageName: info.packageName,
+          iconBytes: info.icon,
+          iconPath: iconPath,
+        ),
       );
-    }).toList();
+    }
 
     if (mounted) {
       setState(() {
@@ -330,12 +364,10 @@ class _SlingshotPageState extends State<SlingshotPage> {
       ),
     );
 
-    // Apply SkiaVK setting if enabled
     if (_useSkia) {
       await Process.run('su', ['-c', 'setprop debug.hwui.renderer skiavk']);
     }
 
-    // Apply ANGLE settings if enabled and supported
     if (_useAngle && _isAngleSupported) {
       await Process.run('su', [
         '-c',
@@ -587,7 +619,9 @@ class _SlingshotPageState extends State<SlingshotPage> {
                     final pkg = app.packageName;
                     final isSelected = _selectedAppPackage == pkg;
 
+                    // Use a Key to maintain widget state across list updates
                     return Padding(
+                      key: ValueKey(pkg),
                       padding: const EdgeInsets.only(bottom: 8.0),
                       child: GestureDetector(
                         onTap: () {
@@ -620,15 +654,10 @@ class _SlingshotPageState extends State<SlingshotPage> {
                                   color: Colors.black12,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: app.icon != null && app.icon!.isNotEmpty
-                                    ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.memory(app.icon!),
-                                      )
-                                    : const Icon(
-                                        Icons.android,
-                                        color: Colors.white54,
-                                      ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: _buildAppIcon(app),
+                                ),
                               ),
                               const SizedBox(width: 16),
 
@@ -712,5 +741,27 @@ class _SlingshotPageState extends State<SlingshotPage> {
         pageContent,
       ],
     );
+  }
+
+  Widget _buildAppIcon(AppItem app) {
+    if (app.iconBytes != null) {
+      return Image.memory(
+        app.iconBytes!,
+        gaplessPlayback: true,
+        fit: BoxFit.cover,
+      );
+    }
+
+    if (app.iconPath != null) {
+      return Image.file(
+        File(app.iconPath!),
+        gaplessPlayback: true,
+        fit: BoxFit.cover,
+        errorBuilder: (ctx, err, stack) =>
+            const Icon(Icons.android, color: Colors.white54),
+      );
+    }
+
+    return const Icon(Icons.android, color: Colors.white54);
   }
 }
