@@ -47,6 +47,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
 
   static const String _racoConfigPath = '/data/ProjectRaco/raco.txt';
   static const String _prefsKeyApps = 'preload_cached_apps';
+  static const String _prefsKeyIcons = 'preload_cached_icons';
   static const String _prefsKeySelected = 'preload_selected_single_app';
   static const String _prefsKeyMode = 'preload_selected_mode';
 
@@ -132,9 +133,9 @@ class _SlingshotPageState extends State<SlingshotPage> {
     setState(() => _useSkia = value);
     try {
       final int intVal = value ? 1 : 0;
+      // If toggled ON -> skiavk, If toggled OFF -> none
       final String renderer = value ? 'skiavk' : 'none';
 
-      // Update config AND run setprop immediately using su
       await Process.run('su', [
         '-c',
         'sed -i "s/^SKIAVK=.*/SKIAVK=$intVal/" $_racoConfigPath; '
@@ -151,7 +152,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
       final int intVal = value ? 1 : 0;
       String cmd = 'sed -i "s/^ANGLE=.*/ANGLE=$intVal/" $_racoConfigPath';
 
-      // If toggled OFF, delete global settings immediately
+      // If toggled OFF, strictly clean up settings
       if (!value) {
         cmd +=
             '; settings delete global angle_debug_package; '
@@ -189,13 +190,38 @@ class _SlingshotPageState extends State<SlingshotPage> {
       }
 
       final String? appsJson = prefs.getString(_prefsKeyApps);
+      final String? iconsJson = prefs.getString(_prefsKeyIcons);
+
       if (appsJson != null) {
         final List<dynamic> decodedList = jsonDecode(appsJson);
+
+        // Load cached icons
+        Map<String, String> iconCache = {};
+        if (iconsJson != null) {
+          try {
+            iconCache = Map<String, String>.from(jsonDecode(iconsJson));
+          } catch (e) {
+            debugPrint("Icon cache decode error: $e");
+          }
+        }
+
         final List<AppItem> cachedList = decodedList.map((item) {
+          final packageName = item['p'] as String;
+          Uint8List? iconData;
+
+          // Load icon from cache if available
+          if (iconCache.containsKey(packageName)) {
+            try {
+              iconData = base64Decode(iconCache[packageName]!);
+            } catch (e) {
+              debugPrint("Icon decode error for $packageName: $e");
+            }
+          }
+
           return AppItem(
             name: item['n'] as String,
-            packageName: item['p'] as String,
-            icon: null,
+            packageName: packageName,
+            icon: iconData,
           );
         }).toList();
 
@@ -214,11 +240,29 @@ class _SlingshotPageState extends State<SlingshotPage> {
   Future<void> _saveToCache(List<AppItem> apps) async {
     try {
       final prefs = await SharedPreferences.getInstance();
+
+      // Save app metadata
       final List<Map<String, String>> tinyList = apps
           .map((app) => {'n': app.name, 'p': app.packageName})
           .toList();
 
       await prefs.setString(_prefsKeyApps, jsonEncode(tinyList));
+
+      // Save app icons as base64
+      final Map<String, String> iconCache = {};
+      for (final app in apps) {
+        if (app.icon != null && app.icon!.isNotEmpty) {
+          try {
+            iconCache[app.packageName] = base64Encode(app.icon!);
+          } catch (e) {
+            debugPrint("Icon encode error for ${app.packageName}: $e");
+          }
+        }
+      }
+
+      if (iconCache.isNotEmpty) {
+        await prefs.setString(_prefsKeyIcons, jsonEncode(iconCache));
+      }
     } catch (e) {
       debugPrint("Cache save error: $e");
     }
@@ -239,221 +283,271 @@ class _SlingshotPageState extends State<SlingshotPage> {
   }
 
   Future<void> _fetchInstalledApps({bool forceRefresh = false}) async {
-    if (_installedApps.isEmpty && mounted) {
+    if (!forceRefresh && _installedApps.isNotEmpty) {
+      return;
+    }
+
+    if (mounted) {
       setState(() {
         _isLoadingApps = true;
       });
     }
 
-    List<AppInfo> rawApps = [];
-
     try {
-      rawApps = await InstalledApps.getInstalledApps(true, true);
+      List<AppInfo> allApps = await InstalledApps.getInstalledApps(true, true);
+      allApps.sort((a, b) => a.name.compareTo(b.name));
+
+      // Create initial list without icons for instant display
+      final List<AppItem> appsWithoutIcons = allApps.map((appInfo) {
+        // Check if we have cached icon
+        final cachedApp = _installedApps.firstWhere(
+          (cached) => cached.packageName == appInfo.packageName,
+          orElse: () => AppItem(name: '', packageName: '', icon: null),
+        );
+
+        return AppItem(
+          name: appInfo.name,
+          packageName: appInfo.packageName,
+          icon: cachedApp.icon, // Use cached icon if available
+        );
+      }).toList();
+
+      if (mounted) {
+        setState(() {
+          _installedApps = appsWithoutIcons;
+          _isLoadingApps = false;
+        });
+      }
+
+      // Load icons asynchronously in batches
+      await _loadIconsInBackground(allApps);
     } catch (e) {
+      debugPrint("Fetch apps error: $e");
       if (mounted) {
         setState(() {
           _isLoadingApps = false;
         });
       }
-      return;
     }
+  }
 
-    bool rootFilterSuccess = false;
-    List<AppInfo> filteredResult = [];
+  Future<void> _loadIconsInBackground(List<AppInfo> allApps) async {
+    const int batchSize = 10;
 
-    try {
-      final result = await Process.run('su', ['-c', 'pm list packages -3']);
+    for (int i = 0; i < allApps.length; i += batchSize) {
+      final int end = (i + batchSize < allApps.length)
+          ? i + batchSize
+          : allApps.length;
+      final batch = allApps.sublist(i, end);
 
-      if (result.exitCode == 0) {
-        final List<String> rootPackageNames = result.stdout
-            .toString()
-            .split('\n')
-            .where((line) => line.startsWith('package:'))
-            .map((line) => line.replaceAll('package:', '').trim())
-            .toList();
+      // Load icons for this batch
+      for (final appInfo in batch) {
+        if (!mounted) break;
 
-        final Set<String> rootPkgSet = rootPackageNames.toSet();
+        // Skip if we already have the icon
+        final existingApp = _installedApps.firstWhere(
+          (app) => app.packageName == appInfo.packageName,
+          orElse: () => AppItem(name: '', packageName: '', icon: null),
+        );
 
-        filteredResult = rawApps
-            .where((app) => rootPkgSet.contains(app.packageName))
-            .toList();
+        if (existingApp.icon != null && existingApp.icon!.isNotEmpty) {
+          continue;
+        }
 
-        filteredResult.sort((a, b) => (a.name).compareTo(b.name));
-        rootFilterSuccess = true;
+        try {
+          Uint8List? iconData = appInfo.icon;
+
+          if (mounted && iconData != null && iconData.isNotEmpty) {
+            setState(() {
+              final index = _installedApps.indexWhere(
+                (app) => app.packageName == appInfo.packageName,
+              );
+
+              if (index != -1) {
+                _installedApps[index] = AppItem(
+                  name: appInfo.name,
+                  packageName: appInfo.packageName,
+                  icon: iconData,
+                );
+              }
+            });
+          }
+        } catch (e) {
+          debugPrint("Icon load error for ${appInfo.packageName}: $e");
+        }
       }
-    } catch (e) {
-      rootFilterSuccess = false;
+
+      // Small delay between batches to avoid overwhelming the UI
+      if (i + batchSize < allApps.length) {
+        await Future.delayed(const Duration(milliseconds: 50));
+      }
     }
 
-    if (!rootFilterSuccess) {
-      filteredResult = rawApps;
-      filteredResult.sort((a, b) => (a.name).compareTo(b.name));
-    }
-
-    final List<AppItem> finalItems = filteredResult.map((info) {
-      return AppItem(
-        name: info.name,
-        packageName: info.packageName,
-        icon: info.icon,
-      );
-    }).toList();
-
+    // Save everything to cache after all icons are loaded
     if (mounted) {
-      setState(() {
-        _installedApps = finalItems;
-        _isLoadingApps = false;
-      });
-      _saveToCache(finalItems);
+      await _saveToCache(_installedApps);
     }
   }
 
   Future<void> _runSlingshot() async {
-    if (!mounted) return;
-    final localization = AppLocalizations.of(context)!;
-
     if (_selectedAppPackage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(localization.slingshot_no_app_selected)),
-      );
+      _showSnackBar(AppLocalizations.of(context)!.slingshot_no_app_selected);
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(localization.slingshot_executing(_selectedAppPackage!)),
-      ),
-    );
+    try {
+      // 1. Write config first (optional backup)
+      await _writeToRaco(_selectedAppPackage!, _selectedMode);
 
-    // Ensure SkiaVK is active before launch if enabled (redundancy)
-    if (_useSkia) {
-      await Process.run('su', ['-c', 'setprop debug.hwui.renderer skiavk']);
-    }
+      _showSnackBar(
+        AppLocalizations.of(context)!.slingshot_executing(_selectedAppPackage!),
+      );
 
-    // Apply ANGLE settings if enabled and supported
-    if (_useAngle && _isAngleSupported) {
-      await Process.run('su', [
+      // 2. Enforce Skia if enabled
+      if (_useSkia) {
+        await Process.run('su', ['-c', 'setprop debug.hwui.renderer skiavk']);
+      }
+
+      // 3. Enforce Angle if enabled
+      if (_useAngle && _isAngleSupported) {
+        await Process.run('su', [
+          '-c',
+          'settings put global angle_gl_driver_selection_pkgs $_selectedAppPackage && settings put global angle_gl_driver_selection_values angle',
+        ]);
+      }
+
+      // 4. Run KASANE
+      final resultShow = await Process.run('su', [
         '-c',
-        'settings put global angle_gl_driver_selection_pkgs $_selectedAppPackage && settings put global angle_gl_driver_selection_values angle',
+        '/data/adb/modules/ProjectRaco/Binaries/kasane -a $_selectedAppPackage -m $_selectedMode -l',
       ]);
+
+      if (resultShow.exitCode == 0) {
+        _showSnackBar(AppLocalizations.of(context)!.slingshot_complete);
+      } else {
+        _showSnackBar(AppLocalizations.of(context)!.command_failed);
+      }
+    } catch (e) {
+      debugPrint("Launch error: $e");
+      _showSnackBar(AppLocalizations.of(context)!.command_failed);
     }
+  }
 
-    // Execute Kasane
-    await Process.run('su', [
-      '-c',
-      '/data/adb/modules/ProjectRaco/Binaries/kasane -a $_selectedAppPackage -m $_selectedMode -l',
-    ]);
+  Future<void> _writeToRaco(String packageName, String modeVal) async {
+    try {
+      final String line = "$packageName:$modeVal";
+      await Process.run('su', ['-c', 'echo "$line" > $_racoConfigPath']);
+    } catch (e) {
+      debugPrint("Raco write error: $e");
+    }
+  }
 
+  void _showSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(localization.slingshot_complete)));
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final localization = AppLocalizations.of(context)!;
 
-    final Map<String, String> modes = {
+    final Map<String, String> _modes = {
       'n': localization.slingshot_mode_normal,
-      'd': localization.slingshot_mode_deep,
-      'x': localization.slingshot_mode_extreme,
-      'r': localization.slingshot_mode_recursive,
+      'l': localization.slingshot_mode_deep,
+      'm': localization.slingshot_mode_extreme,
+      'h': localization.slingshot_mode_recursive,
     };
 
-    if (!modes.containsKey(_selectedMode)) {
-      _selectedMode = 'n';
-    }
-
-    final filteredApps = _installedApps.where((app) {
-      final nameMatch = app.name.toLowerCase().contains(
-        _searchQuery.toLowerCase(),
-      );
-      final pkgMatch = app.packageName.toLowerCase().contains(
-        _searchQuery.toLowerCase(),
-      );
-      return nameMatch || pkgMatch;
+    final List<AppItem> filteredApps = _installedApps.where((app) {
+      return app.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          app.packageName.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
 
-    final Widget pageContent = Scaffold(
+    final pageContent = Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text(localization.slingshot_title),
-        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _runSlingshot,
-        backgroundColor: const Color(0xFF8B4513),
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.rocket_launch),
         label: Text(localization.start_preload),
+        icon: const Icon(Icons.rocket_launch),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await _fetchInstalledApps(forceRefresh: true);
-          },
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
           child: CustomScrollView(
             slivers: [
               SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Card(
-                      elevation: 0,
-                      color: Colors.black.withValues(alpha: 0.3),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          localization.slingshot_description,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
                     Text(
-                      localization.preload_mode,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
+                      localization.slingshot_title,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
+                    Text(
+                      localization.slingshot_description,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    Text(
+                      localization.preload_mode,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.white24),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedMode,
+                          dropdownColor: colorScheme.surface,
                           isExpanded: true,
-                          dropdownColor: const Color(0xFF1E1E1E),
-                          icon: const Icon(
-                            Icons.arrow_drop_down,
-                            color: Colors.white70,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
                           ),
-                          style: const TextStyle(color: Colors.white),
-                          items: modes.entries.map((e) {
-                            return DropdownMenuItem(
-                              value: e.key,
-                              child: Text(e.value),
+                          items: _modes.entries.map((entry) {
+                            return DropdownMenuItem<String>(
+                              value: entry.key,
+                              child: Text(entry.value),
                             );
                           }).toList(),
                           onChanged: (val) {
                             if (val != null) {
-                              setState(() => _selectedMode = val);
+                              setState(() {
+                                _selectedMode = val;
+                              });
                               _saveSelection();
                             }
                           },
@@ -461,7 +555,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
                       ),
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 20),
 
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
@@ -474,7 +568,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
                           : Text(
                               localization.angle_not_supported,
                               style: const TextStyle(
-                                color: Colors.white54,
+                                color: Colors.redAccent,
                                 fontSize: 12,
                               ),
                             ),
@@ -618,7 +712,17 @@ class _SlingshotPageState extends State<SlingshotPage> {
                                 child: app.icon != null && app.icon!.isNotEmpty
                                     ? ClipRRect(
                                         borderRadius: BorderRadius.circular(8),
-                                        child: Image.memory(app.icon!),
+                                        child: Image.memory(
+                                          app.icon!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                                return const Icon(
+                                                  Icons.android,
+                                                  color: Colors.white54,
+                                                );
+                                              },
+                                        ),
                                       )
                                     : const Icon(
                                         Icons.android,
