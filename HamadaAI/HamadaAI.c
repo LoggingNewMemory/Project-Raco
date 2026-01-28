@@ -133,20 +133,29 @@ int main(void) {
             bool is_game_running = false;
             char package_name[BUFFER_SIZE] = "";
             
-            // Optimized command to get the top visible activity's package
-            const char *focused_app_cmd = "cmd activity stack list | sed -n '/visible=true/{s/.*://;s:/.*::;s/^[ \t]*//;p;q}'";
+            // Command to get ALL visible activities (Foreground + Floating Windows)
+            // Removed ';q' from sed to scan all visible apps instead of just the first one
+            const char *visible_apps_cmd = "cmd activity stack list | sed -n '/visible=true/{s/.*://;s:/.*::;s/^[ \t]*//;p}'";
 
-            execute_cmd(focused_app_cmd, package_name, sizeof(package_name));
+            FILE *fp_apps = popen(visible_apps_cmd, "r");
+            if (fp_apps) {
+                while (fgets(package_name, sizeof(package_name), fp_apps) != NULL) {
+                    // Remove trailing newline
+                    package_name[strcspn(package_name, "\n")] = '\0';
 
-            if (strlen(package_name) > 0) {
-                char grep_command[BUFFER_SIZE];
-                // Efficient grep to check if package is in game.txt
-                snprintf(grep_command, sizeof(grep_command), "grep -qFx \"%s\" %s", package_name, GAME_LIST);
+                    if (strlen(package_name) > 0) {
+                        char grep_command[BUFFER_SIZE];
+                        // Check if this specific package is in game.txt
+                        snprintf(grep_command, sizeof(grep_command), "grep -qFx \"%s\" %s", package_name, GAME_LIST);
 
-                if (system(grep_command) == 0) {
-                    is_game_running = true;
-                    printf("Game package detected: %s\n", package_name);
+                        if (system(grep_command) == 0) {
+                            is_game_running = true;
+                            printf("Game detected (Visible/Floating): %s\n", package_name);
+                            break; // Stop checking if we found a game
+                        }
+                    }
                 }
+                pclose(fp_apps);
             }
 
             if (is_game_running) {
