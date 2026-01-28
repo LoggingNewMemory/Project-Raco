@@ -13,31 +13,21 @@ class QSMenuPage extends StatefulWidget {
 }
 
 class _QSMenuPageState extends State<QSMenuPage> {
-  // Track which button is processing
   String? _loadingArg;
-  // Track which button finished successfully
   String? _successArg;
 
   Future<void> _activateMode(String scriptArg) async {
-    // 1. Start Loading
     setState(() {
       _loadingArg = scriptArg;
-      // We don't clear _successArg here immediately so the UI doesn't jump,
-      // or we can clear it if we want only one active at a time.
-      // Let's clear it to indicate a new operation started.
       _successArg = null;
     });
 
     try {
-      // 2. Execute Script
-      // We add "> /dev/null 2>&1" to ensure Dart doesn't hang waiting for
-      // background processes (like the notification daemon) to close their pipes.
       await Process.run('su', [
         '-c',
         'sh /data/adb/modules/ProjectRaco/Scripts/Raco.sh $scriptArg > /dev/null 2>&1',
       ]);
 
-      // 3. Set Success State (Trigger Animation)
       if (mounted) {
         setState(() {
           _loadingArg = null;
@@ -52,29 +42,30 @@ class _QSMenuPageState extends State<QSMenuPage> {
       }
       print("Error executing mode: $e");
     }
-
-    // 4. Menu stays open (No navigator pop)
   }
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold background MUST be transparent to show the native blur behind it
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Background Tap -> Close Menu
+          // 1. DIMMER & DISMISSAL (Replaces BackdropFilter)
           GestureDetector(
             onTap: () {
               Navigator.of(context).pop();
-              SystemNavigator.pop(); // Ensure transparent activity closes
+              SystemNavigator.pop();
             },
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(color: Colors.black.withOpacity(0.4)),
+            child: Container(
+              // REMOVED: BackdropFilter (It causes the black screen glitch)
+              // We rely on 'windowBlurBehindEnabled' in styles.xml for the blur.
+              // This container just adds a dark tint on top of that blur.
+              color: Colors.black.withOpacity(0.4),
             ),
           ),
 
-          // Menu Card
+          // 2. MENU CARD
           Center(
             child: Container(
               margin: const EdgeInsets.all(20),
@@ -138,7 +129,6 @@ class _QSMenuPageState extends State<QSMenuPage> {
   Widget _buildBtn(String label, IconData icon, String scriptArg, Color color) {
     final bool isLoading = _loadingArg == scriptArg;
     final bool isSuccess = _successArg == scriptArg;
-    // Disable clicks on ALL buttons while ONE is loading
     final bool isBusy = _loadingArg != null;
 
     return Material(
@@ -178,7 +168,7 @@ class _QSMenuPageState extends State<QSMenuPage> {
                         )
                       : isSuccess
                       ? Icon(
-                          Icons.check_circle_rounded, // The thick check icon
+                          Icons.check_circle_rounded,
                           key: const ValueKey("check"),
                           color: color,
                           size: 32,

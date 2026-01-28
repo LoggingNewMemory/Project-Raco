@@ -26,7 +26,7 @@
         </activity>
         
         <activity
-            android:name="io.flutter.embedding.android.FlutterActivity"
+            android:name=".QsActivity"
             android:theme="@style/TransparentTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
@@ -37,6 +37,16 @@
             android:noHistory="true"
             android:exported="true">
             
+            <meta-data
+              android:name="io.flutter.embedding.android.FlutterActivity.backgroundMode"
+              android:value="transparent"
+              />
+              
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/TransparentTheme"
+              />
+
             <meta-data android:name="io.flutter.InitialRoute" android:value="/menu" />
 
             <intent-filter>
