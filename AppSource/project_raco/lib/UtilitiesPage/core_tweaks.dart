@@ -48,6 +48,16 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
 
       final carlottaCpuEnabled = kcpuMitigateVal == '0';
 
+      // For Silent Mode:
+      // Switch ON (Enabled) means SILENT_NOTIF=0 (Notifications Disabled)
+      // Switch OFF (Disabled) means SILENT_NOTIF=1 (Notifications Enabled)
+      final silentNotifVal = RegExp(
+        r'^SILENT_NOTIF=(\d)',
+        multiLine: true,
+      ).firstMatch(content)?.group(1);
+
+      final silentNotifEnabled = silentNotifVal == '0';
+
       return {
         'deviceMitigation':
             RegExp(
@@ -80,6 +90,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
               multiLine: true,
             ).firstMatch(content)?.group(1) ==
             '1',
+        'silentNotif': silentNotifEnabled,
       };
     }
     return {
@@ -89,6 +100,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
       'betterPowersave': false,
       'carlottaCpu': false,
       'legacyNotif': false,
+      'silentNotif': false,
     };
   }
 
@@ -153,6 +165,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
                 _encoreState?['betterPowersave'] ?? false,
             initialCarlottaCpuValue: _encoreState?['carlottaCpu'] ?? false,
             initialLegacyNotifValue: _encoreState?['legacyNotif'] ?? false,
+            initialSilentNotifValue: _encoreState?['silentNotif'] ?? false,
           ),
           GovernorCard(
             initialAvailableGovernors: _governorState?['available'] ?? [],
@@ -205,6 +218,7 @@ class FixAndTweakCard extends StatefulWidget {
   final bool initialBetterPowersaveValue;
   final bool initialCarlottaCpuValue;
   final bool initialLegacyNotifValue;
+  final bool initialSilentNotifValue;
 
   const FixAndTweakCard({
     Key? key,
@@ -214,6 +228,7 @@ class FixAndTweakCard extends StatefulWidget {
     required this.initialBetterPowersaveValue,
     required this.initialCarlottaCpuValue,
     required this.initialLegacyNotifValue,
+    required this.initialSilentNotifValue,
   }) : super(key: key);
 
   @override
@@ -228,6 +243,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
   late bool _betterPowersaveEnabled;
   late bool _carlottaCpuEnabled;
   late bool _legacyNotifEnabled;
+  late bool _silentNotifEnabled;
 
   bool _isUpdatingMitigation = false;
   bool _isUpdatingLiteMode = false;
@@ -235,6 +251,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
   bool _isUpdatingBetterPowersave = false;
   bool _isUpdatingCarlottaCpu = false;
   bool _isUpdatingLegacyNotif = false;
+  bool _isUpdatingSilentNotif = false;
 
   final String _racoConfigFilePath = '/data/ProjectRaco/raco.txt';
 
@@ -250,6 +267,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
     _betterPowersaveEnabled = widget.initialBetterPowersaveValue;
     _carlottaCpuEnabled = widget.initialCarlottaCpuValue;
     _legacyNotifEnabled = widget.initialLegacyNotifValue;
+    _silentNotifEnabled = widget.initialSilentNotifValue;
   }
 
   Future<void> _updateTweak({
@@ -261,8 +279,6 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
     bool invertLogic = false,
   }) async {
     if (!await checkRootAccess()) return;
-    // Loading indicator removal: We no longer set isUpdatingSetter(true/false)
-    // or block the UI.
 
     try {
       // If invertLogic is true: Enable(true) writes '0', Disable(false) writes '1'
@@ -448,6 +464,31 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
                 initialValue: widget.initialLegacyNotifValue,
               ),
               secondary: const Icon(Icons.notifications_active_outlined),
+              activeColor: colorScheme.primary,
+              contentPadding: EdgeInsets.zero,
+            ),
+            SwitchListTile(
+              title: Text(
+                localization.silent_mode_title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                localization.silent_mode_description,
+                style: textTheme.bodySmall?.copyWith(
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              value: _silentNotifEnabled,
+              onChanged: (bool enable) => _updateTweak(
+                key: 'SILENT_NOTIF',
+                enable: enable,
+                stateSetter: (val) => _silentNotifEnabled = val,
+                isUpdatingSetter: (val) => _isUpdatingSilentNotif = val,
+                initialValue: widget.initialSilentNotifValue,
+                invertLogic:
+                    true, // Enable (Silent Mode ON) writes 0, Disable writes 1
+              ),
+              secondary: const Icon(Icons.notifications_off_outlined),
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),

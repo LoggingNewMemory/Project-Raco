@@ -204,5 +204,7 @@
     "slingshot_mode_normal": "通常 (fadvise hint)",
     "slingshot_mode_deep": "ディープ (fadvise + dlopen)",
     "slingshot_mode_extreme": "エクストリーム (mmap + MAP_POPULATE)",
-    "slingshot_mode_recursive": "再帰的 (looped deep check)"
+    "slingshot_mode_recursive": "再帰的 (looped deep check)",
+    "silent_mode_title": "サイレントモード",
+    "silent_mode_description": "通知を無効化し、Racoは通知なしで調整を適用します"
 }

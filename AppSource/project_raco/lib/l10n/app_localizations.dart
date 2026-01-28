@@ -1123,6 +1123,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recursive (looped deep check)'**
   String get slingshot_mode_recursive;
+
+  /// No description provided for @silent_mode_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Silent Mode'**
+  String get silent_mode_title;
+
+  /// No description provided for @silent_mode_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Disables Notification, Raco Will Apply Tweaks Without Notifying'**
+  String get silent_mode_description;
 }
 
 class _AppLocalizationsDelegate

@@ -204,5 +204,7 @@
     "slingshot_mode_normal": "Normal (fadvise hint)",
     "slingshot_mode_deep": "Dalam (fadvise + dlopen)",
     "slingshot_mode_extreme": "Ekstrem (mmap + MAP_POPULATE)",
-    "slingshot_mode_recursive": "Rekursif (looped deep check)"
+    "slingshot_mode_recursive": "Rekursif (looped deep check)",
+    "silent_mode_title": "Mode Senyap",
+    "silent_mode_description": "Nonaktifkan Notifikasi, Raco Akan Menerapkan Tweak Tanpa Memberitahu"
 }

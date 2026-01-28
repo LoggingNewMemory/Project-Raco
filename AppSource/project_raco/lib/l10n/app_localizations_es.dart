@@ -563,4 +563,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get slingshot_mode_recursive => 'Recursivo (looped deep check)';
+
+  @override
+  String get silent_mode_title => 'Modo Silencioso';
+
+  @override
+  String get silent_mode_description =>
+      'Desactiva las notificaciones, Raco aplicará los ajustes sin notificar';
 }

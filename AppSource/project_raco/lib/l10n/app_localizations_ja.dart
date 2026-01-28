@@ -536,4 +536,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get slingshot_mode_recursive => '再帰的 (looped deep check)';
+
+  @override
+  String get silent_mode_title => 'サイレントモード';
+
+  @override
+  String get silent_mode_description => '通知を無効化し、Racoは通知なしで調整を適用します';
 }

@@ -556,4 +556,11 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get slingshot_mode_recursive => 'Rekursif (looped deep check)';
+
+  @override
+  String get silent_mode_title => 'Mode Senyap';
+
+  @override
+  String get silent_mode_description =>
+      'Nonaktifkan Notifikasi, Raco Akan Menerapkan Tweak Tanpa Memberitahu';
 }

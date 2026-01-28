@@ -561,4 +561,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get slingshot_mode_recursive => 'Рекурсивный (looped deep check)';
+
+  @override
+  String get silent_mode_title => 'Тихий режим';
+
+  @override
+  String get silent_mode_description =>
+      'Отключает уведомления, Raco будет применять твики без уведомления';
 }
