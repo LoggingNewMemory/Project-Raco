@@ -27,3 +27,27 @@ if grep -q "INCLUDE_ZETAMIN=1" "$CONFIG_FILE"; then
     resetprop ro.surface_flinger.max_frame_buffer_acquired_buffers 3
     resetprop ro.surface_flinger.max_virtual_display_dimension 1920
 fi
+
+# --- Project Raco Plugin Loader ---
+PLUGIN_TXT="/data/ProjectRaco/Plugin.txt"
+PLUGIN_DIR="/data/ProjectRaco/Plugins"
+
+if [ -f "$PLUGIN_TXT" ]; then
+    # Read Plugin.txt line by line (format: PluginID=1)
+    while IFS='=' read -r plugin_id enabled || [ -n "$plugin_id" ]; do
+        # Clean up whitespace/newlines
+        plugin_id=$(echo "$plugin_id" | tr -d '[:space:]')
+        enabled=$(echo "$enabled" | tr -d '[:space:]')
+
+        # If plugin is enabled (1), execute its post-fs-data.sh
+        if [ "$enabled" = "1" ]; then
+            plugin_script="$PLUGIN_DIR/$plugin_id/post-fs-data.sh"
+            if [ -f "$plugin_script" ]; then
+                chmod +x "$plugin_script"
+                # Run synchronously for post-fs-data to ensure props apply before boot continues
+                sh "$plugin_script"
+            fi
+        fi
+    done < "$PLUGIN_TXT"
+fi
+# ----------------------------------
