@@ -2,7 +2,7 @@
 
 CONFIG_FILE="/data/ProjectRaco/raco.txt"
 
-if grep -q "INCLUDE_ZETA=1" "$CONFIG_FILE"; then
+if grep -q "INCLUDE_ZETAMIN=1" "$CONFIG_FILE"; then
 
     # From EnCorinVest
     resetprop debug.graphics.game_default_frame_rate.disabled true
