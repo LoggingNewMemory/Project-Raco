@@ -34,8 +34,6 @@ class SlingshotPage extends StatefulWidget {
 }
 
 class _SlingshotPageState extends State<SlingshotPage> {
-  // Hardcoded _modes map removed from here
-
   String _selectedMode = 'n';
   bool _isAngleSupported = false;
   bool _useAngle = false;
@@ -133,11 +131,17 @@ class _SlingshotPageState extends State<SlingshotPage> {
   Future<void> _toggleSkia(bool value) async {
     setState(() => _useSkia = value);
     try {
+      // Update config
       final int intVal = value ? 1 : 0;
       await Process.run('su', [
         '-c',
         'sed -i "s/^SKIAVK=.*/SKIAVK=$intVal/" $_racoConfigPath',
       ]);
+
+      // If turning off, reset the property immediately
+      if (!value) {
+        await Process.run('su', ['-c', 'setprop debug.hwui.renderer none']);
+      }
     } catch (e) {
       debugPrint("Skia toggle error: $e");
     }
@@ -146,11 +150,23 @@ class _SlingshotPageState extends State<SlingshotPage> {
   Future<void> _toggleAngle(bool value) async {
     setState(() => _useAngle = value);
     try {
+      // Update config
       final int intVal = value ? 1 : 0;
       await Process.run('su', [
         '-c',
         'sed -i "s/^ANGLE=.*/ANGLE=$intVal/" $_racoConfigPath',
       ]);
+
+      // If turning off, clean up global settings immediately
+      if (!value) {
+        await Process.run('su', [
+          '-c',
+          'settings delete global angle_debug_package; '
+              'settings delete global angle_gl_driver_all_angle; '
+              'settings delete global angle_gl_driver_selection_pkgs; '
+              'settings delete global angle_gl_driver_selection_values',
+        ]);
+      }
     } catch (e) {
       debugPrint("Angle toggle error: $e");
     }
