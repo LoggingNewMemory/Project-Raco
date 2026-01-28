@@ -442,6 +442,14 @@ class _SlingshotPageState extends State<SlingshotPage> {
 
     final pageContent = Scaffold(
       backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _launchSelectedApp,
         label: Text(localization.start_preload),
@@ -449,7 +457,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
           child: CustomScrollView(
             slivers: [
               SliverToBoxAdapter(
