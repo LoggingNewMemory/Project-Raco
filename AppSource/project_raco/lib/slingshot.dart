@@ -284,7 +284,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
     }
 
     try {
-      List<AppInfo> allApps = await InstalledApps.getInstalledApps(false, true);
+      List<AppInfo> allApps = await InstalledApps.getInstalledApps(true, true);
       allApps.sort((a, b) => a.name.compareTo(b.name));
 
       // Create initial list without icons for instant display
