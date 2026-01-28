@@ -568,4 +568,8 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get silent_mode_description =>
       'Отключает уведомления, Raco будет применять твики без уведомления';
+
+  @override
+  String get slingshot_graphics_warning =>
+      'Некоторые игры могут сломаться, некоторые могут улучшить производительность, а некоторые могут даже не запуститься. Но не бойтесь попробовать!';
 }

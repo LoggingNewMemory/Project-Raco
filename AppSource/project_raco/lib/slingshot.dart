@@ -524,7 +524,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
                       activeColor: colorScheme.primary,
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 5),
 
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
@@ -540,6 +540,40 @@ class _SlingshotPageState extends State<SlingshotPage> {
                     ),
 
                     const SizedBox(height: 10),
+
+                    // Graphics Warning Notice
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.orange.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.orange,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              localization.slingshot_graphics_warning,
+                              style: const TextStyle(
+                                color: Colors.orangeAccent,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
 
                     Row(
                       children: [

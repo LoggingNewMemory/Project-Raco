@@ -570,4 +570,8 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get silent_mode_description =>
       'Desactiva las notificaciones, Raco aplicará los ajustes sin notificar';
+
+  @override
+  String get slingshot_graphics_warning =>
+      'Algunos juegos pueden fallar, otros pueden mejorar el rendimiento, y otros pueden ni siquiera iniciar. ¡Pero no tengas miedo de probarlo primero!';
 }

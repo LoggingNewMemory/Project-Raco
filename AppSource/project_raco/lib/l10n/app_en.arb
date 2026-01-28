@@ -206,5 +206,6 @@
     "slingshot_mode_extreme": "Extreme (mmap + MAP_POPULATE)",
     "slingshot_mode_recursive": "Recursive (looped deep check)",
     "silent_mode_title": "Silent Mode",
-    "silent_mode_description": "Disables Notification, Raco Will Apply Tweaks Without Notifying"
+    "silent_mode_description": "Disables Notification, Raco Will Apply Tweaks Without Notifying",
+    "slingshot_graphics_warning": "Some games might broken, Some might improve performance, Some might don't even Launch. But don't be afraid to try it first!"
 }

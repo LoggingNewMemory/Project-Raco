@@ -542,4 +542,8 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get silent_mode_description => '通知を無効化し、Racoは通知なしで調整を適用します';
+
+  @override
+  String get slingshot_graphics_warning =>
+      '一部のゲームは動作しない、パフォーマンスが向上する、あるいは起動しない可能性があります。ですが、恐れずにまずは試してみてください！';
 }

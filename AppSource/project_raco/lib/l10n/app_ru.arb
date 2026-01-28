@@ -206,5 +206,6 @@
     "slingshot_mode_extreme": "Экстремальный (mmap + MAP_POPULATE)",
     "slingshot_mode_recursive": "Рекурсивный (looped deep check)",
     "silent_mode_title": "Тихий режим",
-    "silent_mode_description": "Отключает уведомления, Raco будет применять твики без уведомления"
+    "silent_mode_description": "Отключает уведомления, Raco будет применять твики без уведомления",
+    "slingshot_graphics_warning": "Некоторые игры могут сломаться, некоторые могут улучшить производительность, а некоторые могут даже не запуститься. Но не бойтесь попробовать!"
 }

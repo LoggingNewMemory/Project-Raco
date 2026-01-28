@@ -206,5 +206,6 @@
     "slingshot_mode_extreme": "Ekstrem (mmap + MAP_POPULATE)",
     "slingshot_mode_recursive": "Rekursif (looped deep check)",
     "silent_mode_title": "Mode Senyap",
-    "silent_mode_description": "Nonaktifkan Notifikasi, Raco Akan Menerapkan Tweak Tanpa Memberitahu"
+    "silent_mode_description": "Nonaktifkan Notifikasi, Raco Akan Menerapkan Tweak Tanpa Memberitahu",
+    "slingshot_graphics_warning": "Beberapa game mungkin rusak, Beberapa mungkin meningkatkan performa, Beberapa mungkin tidak bisa dibuka. Tapi jangan takut untuk mencobanya dulu!"
 }

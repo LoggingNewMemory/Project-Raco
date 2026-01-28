@@ -564,4 +564,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get silent_mode_description =>
       'Disables Notification, Raco Will Apply Tweaks Without Notifying';
+
+  @override
+  String get slingshot_graphics_warning =>
+      'Some games might broken, Some might improve performance, Some might don\'t even Launch. But don\'t be afraid to try it first!';
 }

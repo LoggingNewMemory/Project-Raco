@@ -1135,6 +1135,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Disables Notification, Raco Will Apply Tweaks Without Notifying'**
   String get silent_mode_description;
+
+  /// No description provided for @slingshot_graphics_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'Some games might broken, Some might improve performance, Some might don\'t even Launch. But don\'t be afraid to try it first!'**
+  String get slingshot_graphics_warning;
 }
 
 class _AppLocalizationsDelegate
