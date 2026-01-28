@@ -6,72 +6,49 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:process_run/process_run.dart';
-import 'package:quick_settings/quick_settings.dart'; // Added import
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:quick_settings/quick_settings.dart';
 import '/l10n/app_localizations.dart';
 import 'about_page.dart';
 import 'utilities_page.dart';
 import 'slingshot.dart';
+import 'qs_menu.dart';
 
-// --- Background Quick Settings Logic ---
+// --- QUICK SETTINGS HANDLERS ---
 
 @pragma('vm:entry-point')
 Tile onTileClicked(Tile tile) {
-  // Cycle: Balanced (Default) -> Performance -> Power Save -> Balanced
-  String newLabel = "Balanced";
-  String newDrawable = "raco_balanced";
-  String scriptArg = "2"; // Default to balanced
-
-  if (tile.label.contains("Balanced")) {
-    newLabel = "Performance";
-    newDrawable = "raco_performance";
-    scriptArg = "1";
-  } else if (tile.label.contains("Performance")) {
-    newLabel = "Power Save";
-    newDrawable = "raco_powersave";
-    scriptArg = "3";
-  } else {
-    // Default back to Balanced
-    newLabel = "Balanced";
-    newDrawable = "raco_balanced";
-    scriptArg = "2";
-  }
-
-  // Execute Root Command in Background
-  // We use Process.run (fire-and-forget) to avoid blocking the UI update
+  // FIX: Trigger the specific intent that matches our Transparent Activity
   try {
     Process.run('su', [
       '-c',
-      'sh /data/adb/modules/ProjectRaco/Scripts/Raco.sh $scriptArg > /dev/null 2>&1',
+      'am start -a android.intent.action.VIEW -d "raco://qs_launch"',
     ]);
   } catch (e) {
-    print("QS Tile Error: $e");
+    print("QS Error: $e");
   }
 
-  tile.label = newLabel;
-  tile.subtitle = "Raco Mode";
-  tile.drawableName = newDrawable;
-  tile.tileStatus = TileStatus.active; // FIX: Changed from state/TileState
-
+  tile.label = "Raco Mode";
+  tile.tileStatus = TileStatus.active;
+  tile.subtitle = "Tap for menu";
   return tile;
 }
 
 @pragma('vm:entry-point')
 Tile onTileAdded(Tile tile) {
-  tile.label = "Balanced";
-  tile.tileStatus = TileStatus.active; // FIX: Changed from state/TileState
-  tile.drawableName = "raco_balanced";
-  tile.subtitle = "Tap to cycle";
+  tile.label = "Raco Mode";
+  tile.tileStatus = TileStatus.active;
+  tile.subtitle = "Tap for menu";
   return tile;
 }
 
 @pragma('vm:entry-point')
 void onTileRemoved() {
-  // Cleanup if necessary
+  // Cleanup resources if needed
 }
 
-// ---------------------------------------
+// -------------------------------
 
 final themeNotifier = ValueNotifier<Color?>(null);
 
@@ -149,7 +126,7 @@ void main() {
       onTileRemoved: onTileRemoved,
     );
   } catch (e) {
-    print("QuickSettings setup failed: $e");
+    print("QS Setup Failed: $e");
   }
 
   runApp(const MyApp());
@@ -260,44 +237,16 @@ class _MyAppState extends State<MyApp> {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          home: Builder(
-            builder: (context) {
-              return Scaffold(
-                body: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Container(color: Theme.of(context).colorScheme.background),
-                    if (_backgroundImagePath != null &&
-                        _backgroundImagePath!.isNotEmpty)
-                      ImageFiltered(
-                        imageFilter: ImageFilter.blur(
-                          sigmaX: _backgroundBlur,
-                          sigmaY: _backgroundBlur,
-                        ),
-                        child: Opacity(
-                          opacity: _backgroundOpacity,
-                          child: Image.file(
-                            File(_backgroundImagePath!),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(color: Colors.transparent);
-                            },
-                          ),
-                        ),
-                      ),
-                    MainScreen(
-                      onLocaleChange: _updateLocale,
-                      onSettingsChanged: _loadAllPreferences,
-                      bannerImagePath: _bannerImagePath,
-                      backgroundImagePath: _backgroundImagePath,
-                      backgroundOpacity: _backgroundOpacity,
-                      backgroundBlur: _backgroundBlur,
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+
+          // --- ROUTING LOGIC ---
+          // The manifest forces "io.flutter.InitialRoute" to "/menu" for the tile.
+          // This allows the transparent activity to skip the home screen entirely.
+          routes: {
+            '/': (context) => _buildHome(context),
+            '/menu': (context) => const QSMenuPage(),
+          },
+
+          // ---------------------
           theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),
           darkTheme: ThemeData(
             useMaterial3: true,
@@ -308,7 +257,52 @@ class _MyAppState extends State<MyApp> {
       },
     );
   }
+
+  // Extracted Home Screen Builder
+  Widget _buildHome(BuildContext context) {
+    return Builder(
+      builder: (context) {
+        return Scaffold(
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              Container(color: Theme.of(context).colorScheme.background),
+              if (_backgroundImagePath != null &&
+                  _backgroundImagePath!.isNotEmpty)
+                ImageFiltered(
+                  imageFilter: ImageFilter.blur(
+                    sigmaX: _backgroundBlur,
+                    sigmaY: _backgroundBlur,
+                  ),
+                  child: Opacity(
+                    opacity: _backgroundOpacity,
+                    child: Image.file(
+                      File(_backgroundImagePath!),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(color: Colors.transparent);
+                      },
+                    ),
+                  ),
+                ),
+              MainScreen(
+                onLocaleChange: _updateLocale,
+                onSettingsChanged: _loadAllPreferences,
+                bannerImagePath: _bannerImagePath,
+                backgroundImagePath: _backgroundImagePath,
+                backgroundOpacity: _backgroundOpacity,
+                backgroundBlur: _backgroundBlur,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
+
+// ... MainScreen class remains the same (copy from previous if needed) ...
+// Included the full MainScreen class below for completeness
 
 class MainScreen extends StatefulWidget {
   final Function(Locale) onLocaleChange;

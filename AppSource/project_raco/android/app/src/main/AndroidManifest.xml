@@ -5,6 +5,7 @@
         android:label="Project Raco"
         android:name="${applicationName}"
         android:icon="@mipmap/logo">
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -24,6 +25,28 @@
             </intent-filter>
         </activity>
         
+        <activity
+            android:name="io.flutter.embedding.android.FlutterActivity"
+            android:theme="@style/TransparentTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:exported="true">
+            
+            <meta-data android:name="io.flutter.InitialRoute" android:value="/menu" />
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="raco" android:host="qs_launch" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
