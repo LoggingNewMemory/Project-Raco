@@ -957,39 +957,56 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   Widget _buildSlingshotCard(AppLocalizations localization) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Card(
-      elevation: 2.0,
-      margin: EdgeInsets.zero,
-      color: colorScheme.surfaceContainer,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: _navigateToSlingshotPage,
-        child: Container(
-          height: 56.0,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.rocket_launch_outlined,
-                    color: colorScheme.onSurface,
+    return Opacity(
+      opacity: _isHamadaAiRunning ? 0.6 : 1.0,
+      child: Card(
+        elevation: 2.0,
+        margin: EdgeInsets.zero,
+        color: colorScheme.surfaceContainer,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () {
+            if (_isHamadaAiRunning) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.please_disable_hamada_ai_first,
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    localization.slingshot_title,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: colorScheme.onSurfaceVariant,
-                size: 16,
-              ),
-            ],
+                ),
+              );
+            } else {
+              _navigateToSlingshotPage();
+            }
+          },
+          child: Container(
+            height: 56.0,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.rocket_launch_outlined,
+                      color: colorScheme.onSurface,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      localization.slingshot_title,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 16,
+                ),
+              ],
+            ),
           ),
         ),
       ),

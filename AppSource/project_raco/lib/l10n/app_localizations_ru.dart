@@ -12,10 +12,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get app_title => 'Project Raco';
 
   @override
-  String get by => 'By: Kanagawa Yamada';
+  String get by => 'Автор: Kanagawa Yamada';
 
   @override
-  String get root_access => 'Root-доступ:';
+  String get root_access => 'Root-права:';
 
   @override
   String get module_installed => 'Модуль установлен:';
@@ -39,18 +39,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get balanced_desc => 'Баланс батареи и производительности';
 
   @override
-  String get performance_desc => 'Приоритет производительности над батарей';
+  String get performance_desc => 'Приоритет производительности над батареей';
 
   @override
-  String get clear_desc => 'Отчистка RAM путём убийства фоновых приложений';
+  String get clear_desc =>
+      'Отчистка оперативной памяти путём убийства фоновых приложений';
 
   @override
   String get cooldown_desc =>
-      'Охлаждаю устройство\n(Дайте отдохнуть ему 2 минты)';
+      'Охладить устройство\n(Дайте ему отдохнуть 2 минуты)';
 
   @override
   String get gaming_desc =>
-      'Установка режима производительности и убийство ВСЕХ запущенных приложений';
+      'Установка режима Производительность и убийство ВСЕХ запущенных приложений';
 
   @override
   String get power_save => 'Энергосбережение';
@@ -62,7 +63,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get performance => 'Производительность';
 
   @override
-  String get clear => 'Отчистить';
+  String get clear => 'Отчистка';
 
   @override
   String get cooldown => 'Охлаждение';
@@ -72,7 +73,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get about_title =>
-      'Спасибо всем, кто помог сделать Project Raco таким , каким вы его сейчас видите:';
+      'Спасибо всем, кто помог сделать Project Raco таким, каким вы его сейчас видите:';
 
   @override
   String get about_quote =>
@@ -80,10 +81,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get about_note =>
-      'Project Raco всегда будет бесплатен, с открытым исходным кодом, и открытым для улучшений';
+      'Project Raco всегда будет бесплатным, с открытым исходным кодом, и открытым для улучшений';
 
   @override
-  String get credits_11 => 'И всем тестерам, которых я не могу упомянуть';
+  String get credits_11 => 'И все тестеры, которых я не могу упомянуть';
 
   @override
   String get yes => 'Да';
@@ -98,13 +99,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get utilities_title => 'Утилиты';
 
   @override
-  String get search_utilities => 'Найти утилиты';
+  String get search_utilities => 'Поиск утилит';
 
   @override
   String get core_tweaks_title => 'Основные твики';
 
   @override
-  String get automation_title => 'Автоматически';
+  String get automation_title => 'Автоматизация';
 
   @override
   String get system_title => 'Система';
@@ -120,30 +121,30 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get device_mitigation_description =>
-      'Включите это, если ваш экран имеет подтормаживания';
+      'Включите, если ваш экран подтормаживает';
 
   @override
   String get lite_mode_title => 'Легкий режим';
 
   @override
   String get lite_mode_description =>
-      'Облегченная версия производительности, меньше расходует батарею, но дает меньший прирост производительности';
+      'LITE версия производительности: меньше расходует батарею, но дает меньший прирост производительности';
 
   @override
   String get life_mode_title => 'Режим LIFE';
 
   @override
-  String get life_mode_description => 'Половина мощности ЦП в Балансе';
+  String get life_mode_description => 'Половина мощности ЦП в режиме Баланс';
 
   @override
   String get hamada_ai => 'HAMADA AI';
 
   @override
   String get hamada_ai_description =>
-      'Включает Производительность в игре, Энергосбережение при выключенном экране';
+      'Включает Производительность в играх, Энергосбережение при выключенном экране';
 
   @override
-  String get downscale_resolution => 'Понизить резрешение';
+  String get downscale_resolution => 'Понизить разрешение';
 
   @override
   String selected_resolution(String resolution) {
@@ -157,7 +158,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get hamada_ai_toggle_title => 'Включить HAMADA AI';
 
   @override
-  String get hamada_ai_start_on_boot => 'Запускать при загрузке устройтсва';
+  String get hamada_ai_start_on_boot => 'Запускать при загрузке';
 
   @override
   String get edit_game_txt_title => 'Изменить game.txt';
@@ -169,7 +170,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get executing_command => 'Выполнение...';
 
   @override
-  String get command_executed => 'Команда выполнена Успешно.';
+  String get command_executed => 'Команда выполнена успешно.';
 
   @override
   String get command_failed => 'Ошибка.';
@@ -199,7 +200,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get service_file_update_failed => 'Ошибка обновления скрипта запуска.';
 
   @override
-  String get error_no_root => 'Нужен ROOT доступ.';
+  String get error_no_root => 'Нужны ROOT права.';
 
   @override
   String get error_file_not_found => 'Файл не найден.';
@@ -210,7 +211,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get resolution_unavailable_message =>
-      'Управление разрешением не досутпно на этом устройстве.';
+      'Управление разрешением не доступно на этом устройстве.';
 
   @override
   String get applying_changes => 'Применение настроек...';
@@ -220,35 +221,34 @@ class AppLocalizationsRu extends AppLocalizations {
       'Применение нового цвета, Пожалуйста подождите...';
 
   @override
-  String get dnd_title => 'Изменить DND';
+  String get dnd_title => 'Не беспокоить';
 
   @override
-  String get dnd_description =>
-      'Автоматический переключатель DND Включен / Выключен';
+  String get dnd_description => 'Автоматический переключатель Не беспокоить';
 
   @override
-  String get dnd_toggle_title => 'Включить автопереключатель DND';
+  String get dnd_toggle_title => 'Автоматический Не беспокоить';
 
   @override
   String get bypass_charging_title => 'Обходная зарядка';
 
   @override
   String get bypass_charging_description =>
-      'Включите обходную зарядку в режиме Производительности & Игровом на поддерживаемом устройстве';
+      'Включать обходную зарядку в режиме Производительности и Игровом режиме на поддерживаемых устройствах';
 
   @override
-  String get bypass_charging_toggle => 'Включить обходную зарядку';
+  String get bypass_charging_toggle => 'Обходная зарядка';
 
   @override
   String get bypass_charging_unsupported =>
-      'Обходная зарядка не поддреживается на вашем устройстве';
+      'Обходная зарядка не поддерживается на вашем устройстве';
 
   @override
   String get bypass_charging_supported =>
       'Обходная зарядка поддерживается на вашем устройстве';
 
   @override
-  String get mode_status_label => 'Mode:';
+  String get mode_status_label => 'Режим:';
 
   @override
   String get mode_manual => 'Ручной';
@@ -258,20 +258,20 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get please_disable_hamada_ai_first =>
-      'Пожалуйста сначала отключите HamadaAI';
+      'Пожалуйста, сначала отключите HamadaAI';
 
   @override
-  String get background_settings_title => 'Фоновые настройки';
+  String get background_settings_title => 'Настройки фона';
 
   @override
   String get background_settings_description =>
-      'Измените фоновое изображение приложения, непрозрачность, и блюр эффект.';
+      'Изменяйте фоновое изображение приложения, непрозрачность, и размытие.';
 
   @override
   String get opacity_slider_label => 'Непрозрачность фона';
 
   @override
-  String get blur_slider_label => 'Блюр заднего фона';
+  String get blur_slider_label => 'Размытие фона';
 
   @override
   String get banner_settings_title => 'Параметры баннера';
@@ -287,33 +287,33 @@ class AppLocalizationsRu extends AppLocalizations {
   String get processor => 'Процессор';
 
   @override
-  String get ram => 'RAM';
+  String get ram => 'Оперативная память';
 
   @override
-  String get phone_storage => 'хранилище';
+  String get phone_storage => 'Хранилище';
 
   @override
   String get battery_capacity => 'Ёмкость батареи';
 
   @override
-  String get custom_governor_title => 'Кастомный Governor';
+  String get custom_governor_title => 'Кастомный governor';
 
   @override
   String get custom_governor_description =>
-      'Выбор кастомного ЦПУ governor, Это изменит governor в Баланс режиме';
+      'Выбор кастомного governer-а ЦП, Это изменит governor в режиме Баланс';
 
   @override
-  String get loading_governors => 'Загрузка governors...';
+  String get loading_governors => 'Загрузка governor-ов...';
 
   @override
   String get no_governor_selected => 'Ничего';
 
   @override
-  String get anya_thermal_title => 'Anya Melfissa Disable Thermal';
+  String get anya_thermal_title => 'Отключение тротлинга Anya Melfissa';
 
   @override
   String get anya_thermal_description =>
-      'Отключение Thermal в играх, Включите Thermal в Баланс, Энергосберегающем, Охлаждающем режимах.';
+      'Отключать тротлинг в Игровом режиме и режиме Производительность, включать в режимах Энергосбережение, Баланс, Охлаждение.';
 
   @override
   String get anya_thermal_toggle_title => 'Включить Anya Thermal Flowstate';
@@ -322,23 +322,23 @@ class AppLocalizationsRu extends AppLocalizations {
   String get system_actions_title => 'Системные действия';
 
   @override
-  String get fstrim_title => 'Fstrim';
+  String get fstrim_title => 'fstrim';
 
   @override
-  String get fstrim_description => 'Обрезка Android разделов.';
+  String get fstrim_description => 'Оптимизация разделов.';
 
   @override
-  String get clear_cache_title => 'Отчистка caсhe';
+  String get clear_cache_title => 'Отчистка кэша';
 
   @override
-  String get better_powersave_title => 'Batter Powersave';
+  String get better_powersave_title => 'Улучшенное энергосбережение';
 
   @override
   String get better_powersave_description =>
-      'Уменьшите частоту процессора наполовину вместо минимальной (только в режиме энергосбережения).';
+      'Уменьшать частоту процессора до середины вместо минимума (только в режиме Энергосбережение).';
 
   @override
-  String get carlotta_cpu_title => 'Carlotta CPU';
+  String get carlotta_cpu_title => 'Carlotta ЦП';
 
   @override
   String get carlotta_cpu_description =>
@@ -346,16 +346,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String build_version_title(String buildName) {
-    return 'Project Raco: $buildName Build';
+    return 'Project Raco: Сборка $buildName ';
   }
 
   @override
   String build_by_title(String builderName) {
-    return 'Build By: $builderName';
+    return 'Собрано $builderName';
   }
 
   @override
-  String get screen_modifier_title => 'Модификатор экрана';
+  String get screen_modifier_title => 'Модификация экрана';
 
   @override
   String get screen_modifier_description =>
@@ -380,11 +380,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get screen_modifier_apply_on_boot => 'Применять при загрузке';
 
   @override
-  String get graphics_driver_title => 'Системный графический драйвер';
+  String get graphics_driver_title => 'Графический драйвер';
 
   @override
-  String get graphics_driver_description =>
-      'Изменить графический драйвер устройства';
+  String get graphics_driver_description => 'Изменить графический драйвер';
 
   @override
   String get graphics_driver_default => 'По умолчанию';
@@ -399,18 +398,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get current_driver => 'Текущий:';
 
   @override
-  String get legacy_notif_title => 'Устаревшее уведомление';
+  String get legacy_notif_title => 'Старые уведомления';
 
   @override
   String get legacy_notif_description =>
-      'Используйте это, если уведомления не отображаются на некоторых прошивках';
+      'Включите, если уведомления не отображаются';
 
   @override
   String get slingshot_title => 'Raco Slingshot';
 
   @override
   String get slingshot_description =>
-      'Предварительно загрузите файлы вашего приложения перед запуском, это может ускорить время загрузки и повысить производительность';
+      'Предварительно загрузите файлы вашего приложения перед запуском, это может ускорить время запуска и повысить производительность';
 
   @override
   String get angle_title => 'Запуск с графикой ANGLE';
@@ -445,16 +444,14 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sandevistan_duration_hint => 'Введите длительность в секундах';
 
   @override
-  String get sandev_egg_useless =>
-      'НЕ ЧУВАК! ЭТО БЕСПОЛЕЗНО! ПРОСТО ВЫРУБИ ЭТО!';
+  String get sandev_egg_useless => 'НЕ, БРО! ЭТО БЕСПОЛЕЗНО! ПРОСТО ВЫРУБИ ЭТО';
 
   @override
   String get sandev_egg_original =>
-      'Бро оригинален, либо понятия не имеет, либо боится менять';
+      'Бро оригинален, либо понятия не имеет что это, либо боится менять';
 
   @override
-  String get sandev_egg_better =>
-      'Во, так-то лучше Чумба, давай выше если хочешь';
+  String get sandev_egg_better => 'Во, так-то лучше, давай выше, если хочешь';
 
   @override
   String get sandev_egg_david =>
@@ -462,7 +459,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get sandev_egg_smasher =>
-      'НЕ НУ ТЫ РЕШИЛ В СОЛО АДАМА СМЭШЕРА ВЫНЕСТИ!';
+      'НЕ, НУ ТЫ РЕШИЛ АДАМА СМЭШЕРА В СОЛО ВЫНЕСТИ!';
 
   @override
   String get hamada_powersave_screen_off_title =>
@@ -472,10 +469,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get hamada_normal_interval_title => 'Обычный интервал';
 
   @override
-  String get hamada_screen_off_interval_title => 'Интервал при выкл. экране';
+  String get hamada_screen_off_interval_title =>
+      'Интервал при выключенном экране';
 
   @override
-  String get hamada_interval_hint => 'Введите секунды (мин 2)';
+  String get hamada_interval_hint => 'Введите в секундах (минимум 2)';
 
   @override
   String get plugins_title => 'Плагины';
@@ -509,13 +507,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get plugin_verification_failed =>
-      'Ошибка проверки: RacoPlugin=1 не найден в prop.';
+      'Ошибка проверки: RacoPlugin=1 не найден в свойствах.';
 
   @override
   String get plugin_script_error => 'Ошибка скрипта установки.';
 
   @override
-  String get logs_saved => 'Журналы сохранены в Загрузки.';
+  String get logs_saved => 'Логи сохранены в Загрузки.';
 
   @override
   String get plugin_installed_success => 'Плагин успешно установлен.';
@@ -530,7 +528,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get plugin_run => 'Запустить';
 
   @override
-  String get plugin_boot => 'Загрузка';
+  String get plugin_boot => 'Загрузить';
 
   @override
   String get slingshot_no_app_selected => 'Приложение не выбрано';
