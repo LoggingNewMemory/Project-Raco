@@ -891,6 +891,13 @@ balanced_basic() {
             fi
         fi
 
+        kakangkuh 500000 /proc/sys/kernel/sched_migration_cost_ns
+        kakangkuh 3000000 /proc/sys/kernel/sched_min_granularity_ns
+        kakangkuh 4000000 /proc/sys/kernel/sched_wakeup_granularity_ns
+        kakangkuh 0 /proc/sys/net/ipv4/tcp_low_latency
+        kakangkuh 1 /proc/sys/vm/stat_interval
+        kakangkuh 3 /proc/sys/vm/page-cluster
+
         kakangkuh 1 /proc/sys/kernel/split_lock_mitigate
         kakangkuh 120 /proc/sys/vm/vfs_cache_pressure
 
@@ -912,6 +919,11 @@ balanced_basic() {
             kakangkuh 0 $tp_path/oplus_tp_direction
             kakangkuh 0 $tp_path/oppo_tp_direction
         fi
+
+        for dir in /sys/block/mmcblk0 /sys/block/mmcblk1 /sys/block/sd*; do
+            kakangkuh 128 "$dir/queue/read_ahead_kb"
+            kakangkuh 128 "$dir/queue/nr_requests"
+        done
 
         for path in /sys/class/devfreq/*.ufshc /sys/class/devfreq/mmc*; do
              devfreq_unlock "$path" &
