@@ -265,7 +265,7 @@ change_cpu_gov() {
 }
 
 ###################################
-# RESTORED: CPUFreq Frequency Tweaks
+# CPUFreq Frequency Tweaks
 ###################################
 
 cpufreq_ppm_max_perf() {
@@ -290,20 +290,25 @@ cpufreq_ppm_max_perf() {
 cpufreq_max_perf() {
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
         (
-            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
-            
-            tweak "$cpu_maxfreq" "$path/scaling_max_freq"
-
-            if [ "$LITE_MODE" -eq 1 ]; then
+            if [ -w "$path/scaling_max_freq" ] || chmod 644 "$path/scaling_max_freq" "$path/scaling_min_freq" 2>/dev/null; then
+                local cpu_maxfreq=$(cat "$path/cpuinfo_max_freq")
                 local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
-                tweak "$cpu_midfreq" "$path/scaling_min_freq"
-            else
-                tweak "$cpu_maxfreq" "$path/scaling_min_freq"
+                
+                echo "$cpu_maxfreq" > "$path/scaling_max_freq" 2>/dev/null
+                
+                if [ -n "$cpu_midfreq" ]; then
+                    echo "$cpu_midfreq" > "$path/scaling_min_freq" 2>/dev/null
+                fi
+                
+                if [ "$LITE_MODE" -ne 1 ]; then
+                     echo "$cpu_maxfreq" > "$path/scaling_min_freq" 2>/dev/null
+                fi
+
+                chmod 444 "$path/scaling_max_freq" "$path/scaling_min_freq" 2>/dev/null
             fi
         ) &
     done
     wait
-    chmod -f 444 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
 }
 
 cpufreq_ppm_unlock() {
@@ -323,15 +328,20 @@ cpufreq_ppm_unlock() {
 cpufreq_unlock() {
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
         (
-            local cpu_maxfreq=$(<"$path/cpuinfo_max_freq")
-            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
-            
-            kakangkuh "$cpu_maxfreq" "$path/scaling_max_freq"
-            kakangkuh "$cpu_minfreq" "$path/scaling_min_freq"
+            if [ -d "$path" ]; then
+                chmod 644 "$path/scaling_max_freq" "$path/scaling_min_freq" 2>/dev/null
+                
+                local cpu_maxfreq=$(cat "$path/cpuinfo_max_freq")
+                local cpu_minfreq=$(cat "$path/cpuinfo_min_freq")
+                
+                echo "$cpu_maxfreq" > "$path/scaling_max_freq" 2>/dev/null
+                echo "$cpu_minfreq" > "$path/scaling_min_freq" 2>/dev/null
+                
+                chmod 644 "$path/scaling_max_freq" "$path/scaling_min_freq" 2>/dev/null
+            fi
         ) &
     done
     wait
-    chmod -f 644 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
 }
 
 cpufreq_ppm_min_perf() {
@@ -356,20 +366,23 @@ cpufreq_ppm_min_perf() {
 cpufreq_min_perf() {
     for path in /sys/devices/system/cpu/cpufreq/policy*; do
         (
-            local cpu_minfreq=$(<"$path/cpuinfo_min_freq")
-            
-            if [ "$BETTER_POWERAVE" -eq 1 ]; then
-                local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
-                tweak "$cpu_midfreq" "$path/scaling_max_freq"
-                tweak "$cpu_minfreq" "$path/scaling_min_freq"
-            else
-                tweak "$cpu_minfreq" "$path/scaling_max_freq"
-                tweak "$cpu_minfreq" "$path/scaling_min_freq"
+            if [ -w "$path/scaling_max_freq" ] || chmod 644 "$path/scaling_max_freq" "$path/scaling_min_freq" 2>/dev/null; then
+                local cpu_minfreq=$(cat "$path/cpuinfo_min_freq")
+                
+                echo "$cpu_minfreq" > "$path/scaling_min_freq" 2>/dev/null
+                
+                if [ "$BETTER_POWERAVE" -eq 1 ]; then
+                    local cpu_midfreq=$(which_midfreq "$path/scaling_available_frequencies")
+                    echo "$cpu_midfreq" > "$path/scaling_max_freq" 2>/dev/null
+                else
+                    echo "$cpu_minfreq" > "$path/scaling_max_freq" 2>/dev/null
+                fi
+
+                chmod 444 "$path/scaling_max_freq" "$path/scaling_min_freq" 2>/dev/null
             fi
         ) &
     done
     wait
-    chmod -f 444 /sys/devices/system/cpu/cpufreq/policy*/scaling_*_freq
 }
 
 ###################################
