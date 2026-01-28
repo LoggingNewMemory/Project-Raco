@@ -133,7 +133,7 @@ ro.vendor.soc.model
     *mt* | *MT*) SOC=1 ;;
     *sm* | *qcom* | *SM* | *QCOM* | *Qualcomm*) SOC=2 ;;
     *exynos* | *Exynos* | *EXYNOS* | *universal* | *samsung* | *erd* | *s5e*) SOC=3 ;;
-    *Unisoc* | *unisoc* | *ums* | *UNISOC*) SOC=4 ;;
+    *Unisoc* | *unisoc* | *ums* | *UNISOC* | *sp* | *SC*) SOC=4 ;;
     *gs* | *Tensor* | *tensor*) SOC=5 ;;
     *kirin*) SOC=7 ;;
     esac
