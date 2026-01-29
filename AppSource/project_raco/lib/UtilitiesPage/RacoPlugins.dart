@@ -16,6 +16,9 @@ class RacoPluginModel {
   final String path;
   final bool isBootEnabled;
   final Uint8List? logoBytes;
+  final String? webUiUrl;
+  final bool hasActionScript;
+  final bool hasWebRoot;
 
   RacoPluginModel({
     required this.id,
@@ -26,6 +29,9 @@ class RacoPluginModel {
     required this.path,
     required this.isBootEnabled,
     this.logoBytes,
+    this.webUiUrl,
+    required this.hasActionScript,
+    required this.hasWebRoot,
   });
 }
 
@@ -137,6 +143,22 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
           '$currentPath/Logo.png',
         );
 
+        // 1. Check for remote WebUI URL in props
+        String? webUi = props['web_ui'];
+        if (webUi != null && webUi.isEmpty) webUi = null;
+
+        // 2. Check for local webroot (folder/index.html)
+        final String webRootCheck = await _runRootCommand(
+          '[ -f "$currentPath/webroot/index.html" ] && echo 1 || echo 0',
+        );
+        final bool hasWebRoot = webRootCheck == '1';
+
+        // 3. Check for Action.sh
+        final String actionCheck = await _runRootCommand(
+          '[ -f "$currentPath/action.sh" ] && echo 1 || echo 0',
+        );
+        final bool hasAction = actionCheck == '1';
+
         loadedPlugins.add(
           RacoPluginModel(
             id: id,
@@ -147,6 +169,9 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
             path: currentPath,
             isBootEnabled: bootStatusMap[id] ?? false,
             logoBytes: logoBytes,
+            webUiUrl: webUi,
+            hasActionScript: hasAction,
+            hasWebRoot: hasWebRoot,
           ),
         );
       }
@@ -213,6 +238,9 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
           path: plugin.path,
           isBootEnabled: newValue,
           logoBytes: plugin.logoBytes,
+          webUiUrl: plugin.webUiUrl,
+          hasActionScript: plugin.hasActionScript,
+          hasWebRoot: plugin.hasWebRoot,
         );
       }
     });
@@ -241,6 +269,63 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error executing ${plugin.name}: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _runActionScript(RacoPluginModel plugin) async {
+    await _showTerminalDialog(
+      context: context,
+      title: '${plugin.name} Action',
+      task: (log) async {
+        try {
+          final String actionPath = '${plugin.path}/action.sh';
+          log("- Setting permissions...");
+          await _runRootCommand('chmod +x "$actionPath"');
+
+          log("- Executing action.sh...");
+          log("**************************************************");
+          int exitCode = await _runLiveRootCommand('sh "$actionPath"', log);
+          log("**************************************************");
+
+          if (exitCode == 0) {
+            log("- Action completed successfully.");
+          } else {
+            log("! Action failed with exit code: $exitCode");
+          }
+        } catch (e) {
+          log("! Error executing action: $e");
+        }
+      },
+    );
+  }
+
+  Future<void> _openWebUI(RacoPluginModel plugin) async {
+    try {
+      if (plugin.webUiUrl != null) {
+        // Option 1: URL defined in raco.prop
+        await _runRootCommand(
+          'am start -a android.intent.action.VIEW -d "${plugin.webUiUrl}"',
+        );
+      } else if (plugin.hasWebRoot) {
+        // Option 2: Local webroot exists
+        // We attempt to open the index.html file directly via Android intent.
+        // Note: For advanced usage (like KernelSU), this usually requires
+        // starting a local HTTP server because many browsers block file:// access
+        // to /data directories due to permissions.
+        final String localPath = "file://${plugin.path}/webroot/index.html";
+        await _runRootCommand(
+          'am start -a android.intent.action.VIEW -d "$localPath" -t "text/html"',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open WebUI: $e'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -462,7 +547,9 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
                 final plugin = _plugins[index];
                 return _PluginCard(
                   plugin: plugin,
-                  onRun: () => _runManualPlugin(plugin),
+                  onRunService: () => _runManualPlugin(plugin),
+                  onRunAction: () => _runActionScript(plugin),
+                  onOpenWebUI: () => _openWebUI(plugin),
                   onBootToggle: (val) => _togglePluginBoot(plugin, val),
                   onDelete: () => _handleUninstallFlow(plugin),
                 );
@@ -506,14 +593,18 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
 
 class _PluginCard extends StatefulWidget {
   final RacoPluginModel plugin;
-  final Future<void> Function() onRun;
+  final Future<void> Function() onRunService;
+  final Future<void> Function() onRunAction;
+  final Future<void> Function() onOpenWebUI;
   final ValueChanged<bool> onBootToggle;
   final VoidCallback onDelete;
 
   const _PluginCard({
     Key? key,
     required this.plugin,
-    required this.onRun,
+    required this.onRunService,
+    required this.onRunAction,
+    required this.onOpenWebUI,
     required this.onBootToggle,
     required this.onDelete,
   }) : super(key: key);
@@ -532,15 +623,13 @@ class _PluginCardState extends State<_PluginCard>
     });
   }
 
-  void _handleRun() {
-    // Just trigger the run; the parent handles the async logic
-    widget.onRun();
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final plugin = widget.plugin;
+
+    // Determine if WebUI button should show
+    final bool showWebUi = (plugin.webUiUrl != null) || plugin.hasWebRoot;
 
     return Card(
       color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.8),
@@ -637,14 +726,45 @@ class _PluginCardState extends State<_PluginCard>
                   color: theme.colorScheme.outlineVariant.withOpacity(0.5),
                 ),
                 const SizedBox(height: 12),
+
+                // Action Buttons Row
                 Row(
                   children: [
+                    // WebUI Button
+                    if (showWebUi) ...[
+                      IconButton.filledTonal(
+                        onPressed: widget.onOpenWebUI,
+                        icon: const Icon(Icons.language),
+                        tooltip: 'Open WebUI',
+                        style: IconButton.styleFrom(
+                          backgroundColor: theme.colorScheme.tertiaryContainer,
+                          foregroundColor:
+                              theme.colorScheme.onTertiaryContainer,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+
+                    // Action.sh Button
+                    if (plugin.hasActionScript) ...[
+                      IconButton.filledTonal(
+                        onPressed: widget.onRunAction,
+                        icon: const Icon(Icons.build),
+                        tooltip: 'Run Action',
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+
+                    // Standard Service Run Button
                     FilledButton.tonalIcon(
-                      onPressed: _handleRun,
+                      onPressed: widget.onRunService,
                       icon: const Icon(Icons.play_arrow_rounded),
                       label: Text(AppLocalizations.of(context)!.plugin_run),
                     ),
+
                     const Spacer(),
+
+                    // Boot Toggle
                     Row(
                       children: [
                         Text(
