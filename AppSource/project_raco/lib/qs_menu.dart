@@ -49,23 +49,22 @@ class _QSMenuPageState extends State<QSMenuPage> {
     final bool isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
 
+    // Access theme data
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     // Scaffold background MUST be transparent to show the native blur behind it
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // 1. DIMMER & DISMISSAL (Replaces BackdropFilter)
+          // 1. DIMMER & DISMISSAL
           GestureDetector(
             onTap: () {
               Navigator.of(context).pop();
               SystemNavigator.pop();
             },
-            child: Container(
-              // REMOVED: BackdropFilter (It causes the black screen glitch)
-              // We rely on 'windowBlurBehindEnabled' in styles.xml for the blur.
-              // This container just adds a dark tint on top of that blur.
-              color: Colors.black.withOpacity(0.4),
-            ),
+            child: Container(color: Colors.black.withOpacity(0.4)),
           ),
 
           // 2. MENU CARD
@@ -77,7 +76,8 @@ class _QSMenuPageState extends State<QSMenuPage> {
                 // Constrain width in landscape to prevent overly wide buttons
                 width: isLandscape ? 700 : null,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E),
+                  // Updated: Use theme surface color instead of hardcoded 0xFF1E1E1E
+                  color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
@@ -93,11 +93,11 @@ class _QSMenuPageState extends State<QSMenuPage> {
                   children: [
                     Text(
                       "Raco Modes",
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        // Updated: Use onSurface for text color
+                        color: colorScheme.onSurface,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     GridView.count(
@@ -145,6 +145,9 @@ class _QSMenuPageState extends State<QSMenuPage> {
     final bool isLoading = _loadingArg == scriptArg;
     final bool isSuccess = _successArg == scriptArg;
     final bool isBusy = _loadingArg != null;
+
+    // Access theme for text color
+    final onSurface = Theme.of(context).colorScheme.onSurface;
 
     return Material(
       color: Colors.transparent,
@@ -205,7 +208,8 @@ class _QSMenuPageState extends State<QSMenuPage> {
                   fontWeight: (isSuccess || isLoading)
                       ? FontWeight.w900
                       : FontWeight.bold,
-                  color: Colors.white,
+                  // Updated: Use onSurface so text is visible in Light/Dark modes
+                  color: onSurface,
                 ),
               ),
             ],
