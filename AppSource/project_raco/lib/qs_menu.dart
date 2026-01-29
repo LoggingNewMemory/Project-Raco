@@ -16,13 +16,17 @@ class QSMenuPage extends StatefulWidget {
 class _QSMenuPageState extends State<QSMenuPage> {
   String? _loadingArg;
   String? _successArg;
+  String _activeMode = ''; // Stores the current active mode (e.g., "1", "2")
   bool _hasRoot = false;
   bool _checkingRoot = true;
+
+  static const String _configPath = '/data/ProjectRaco/raco.txt';
 
   @override
   void initState() {
     super.initState();
     _checkRoot();
+    _fetchActiveMode();
   }
 
   Future<void> _checkRoot() async {
@@ -39,6 +43,34 @@ class _QSMenuPageState extends State<QSMenuPage> {
         setState(() {
           _hasRoot = false;
           _checkingRoot = false;
+        });
+      }
+    }
+  }
+
+  // Reads the configuration file to determine which mode is currently active
+  Future<void> _fetchActiveMode() async {
+    try {
+      final result = await Process.run('su', [
+        '-c',
+        'grep "^STATE=" $_configPath | cut -d= -f2',
+      ]);
+
+      if (mounted) {
+        if (result.exitCode == 0) {
+          setState(() {
+            _activeMode = result.stdout.toString().trim();
+          });
+        } else {
+          setState(() {
+            _activeMode = '';
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _activeMode = '';
         });
       }
     }
@@ -61,6 +93,8 @@ class _QSMenuPageState extends State<QSMenuPage> {
           _loadingArg = null;
           _successArg = scriptArg;
         });
+        // Refresh the active mode after applying changes
+        _fetchActiveMode();
       }
     } catch (e) {
       if (mounted) {
@@ -96,7 +130,6 @@ class _QSMenuPageState extends State<QSMenuPage> {
             child: SingleChildScrollView(
               child: Container(
                 margin: const EdgeInsets.all(20),
-                // CHANGED: Restored padding to .all(20) to match top/bottom with left/right
                 padding: const EdgeInsets.all(20),
                 width: isLandscape ? 700 : null,
                 decoration: BoxDecoration(
@@ -200,7 +233,9 @@ class _QSMenuPageState extends State<QSMenuPage> {
 
   Widget _buildBtn(String label, IconData icon, String scriptArg, Color color) {
     final bool isLoading = _loadingArg == scriptArg;
-    final bool isSuccess = _successArg == scriptArg;
+    // Considered success if just clicked OR if it matches the system state
+    final bool isActive = _activeMode == scriptArg;
+    final bool isSuccess = _successArg == scriptArg || isActive;
     final bool isBusy = _loadingArg != null;
 
     final onSurface = Theme.of(context).colorScheme.onSurface;
@@ -213,8 +248,9 @@ class _QSMenuPageState extends State<QSMenuPage> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           decoration: BoxDecoration(
+            // Highlight if success/active or loading
             color: (isSuccess || isLoading)
-                ? color.withOpacity(0.2)
+                ? color.withOpacity(0.25)
                 : color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
