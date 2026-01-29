@@ -154,6 +154,18 @@ class _RacoPageState extends State<RacoPage> {
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
                     ),
+                    // Japanese name moved here with smaller font
+                    Text(
+                      "[ゼファニャ・ラチョ]",
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.w400,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.9),
+                          ),
+                    ),
+                    const SizedBox(height: 4),
                     Text(
                       "Yamada's Neko Maid",
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
