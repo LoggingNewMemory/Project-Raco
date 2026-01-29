@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // --- GLOBAL VIDEO CACHE ---
 // Defined globally so it persists across the app lifecycle
@@ -203,6 +204,28 @@ class _RacoPageState extends State<RacoPage> {
                     const _InfoRow(label: "Personality", value: "Kuudere"),
                     const _InfoRow(label: "Birthday", value: "4 September"),
                     const _InfoRow(label: "Religion", value: "Christian"),
+
+                    const SizedBox(height: 20),
+                    Center(
+                      child: TextButton(
+                        onPressed: () async {
+                          final Uri url = Uri.parse('https://t.me/ProjectRaco');
+                          if (!await launchUrl(
+                            url,
+                            mode: LaunchMode.externalApplication,
+                          )) {
+                            debugPrint("Could not launch $url");
+                          }
+                        },
+                        child: Text(
+                          "Official Project Raco Telegram Group",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
 
                     const SizedBox(height: 40),
                   ],
