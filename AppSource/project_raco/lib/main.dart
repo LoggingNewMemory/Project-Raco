@@ -14,7 +14,7 @@ import 'about_page.dart';
 import 'utilities_page.dart';
 import 'slingshot.dart';
 import 'qs_menu.dart';
-import 'raco.dart'; // IMPORT ADDED HERE
+import 'raco.dart';
 
 // --- QUICK SETTINGS HANDLERS ---
 
@@ -119,6 +119,9 @@ class ConfigManager {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Raco Video Cache immediately on startup
+  initRacoVideoCache();
 
   // Initialize Quick Settings
   try {
@@ -887,9 +890,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
     return Column(
       children: [
-        // --- ADDED NAVIGATION ON TAP ---
         GestureDetector(
-          onTap: _navigateToRacoPage, // Navigates to raco.dart
+          onTap: _navigateToRacoPage,
           child: Card(
             elevation: 2.0,
             shape: RoundedRectangleBorder(
@@ -926,7 +928,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
             ),
           ),
         ),
-        // ---------------------------------
         const SizedBox(height: 10),
         Row(
           children: [

@@ -1,6 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
+// --- GLOBAL VIDEO CACHE ---
+// Defined globally so it persists across the app lifecycle
+late VideoPlayerController _cachedController;
+Future<void>? _initFuture;
+bool _isCacheInitialized = false;
+
+// Call this from main.dart
+void initRacoVideoCache() {
+  if (_isCacheInitialized) return; // Prevent double init
+
+  _cachedController = VideoPlayerController.asset('assets/RacoL2D.mp4');
+  _initFuture = _cachedController
+      .initialize()
+      .then((_) {
+        _cachedController.setLooping(true);
+        _cachedController.setVolume(0.0);
+        _isCacheInitialized = true;
+      })
+      .catchError((e) {
+        debugPrint("Raco Video Cache Failed: $e");
+      });
+}
+// --------------------------
+
 class RacoPage extends StatefulWidget {
   const RacoPage({Key? key}) : super(key: key);
 
@@ -9,34 +33,43 @@ class RacoPage extends StatefulWidget {
 }
 
 class _RacoPageState extends State<RacoPage> {
-  late VideoPlayerController _controller;
-  bool _isInitialized = false;
+  bool _isReady = false;
 
   @override
   void initState() {
     super.initState();
-    // Initialize the video controller
-    _controller = VideoPlayerController.asset('assets/RacoL2D.mp4')
-      ..initialize()
-          .then((_) {
-            // Fix: Check if widget is still in the tree before calling setState
-            if (!mounted) return;
+    _setupVideo();
+  }
 
-            _controller.setLooping(true);
-            _controller.setVolume(0.0); // Mute explicitly
-            _controller.play();
-            setState(() {
-              _isInitialized = true;
-            });
-          })
-          .catchError((error) {
-            debugPrint("Video Error: $error");
-          });
+  void _setupVideo() {
+    // Ensure cache is started if main.dart missed it (fallback)
+    if (!_isCacheInitialized && _initFuture == null) {
+      initRacoVideoCache();
+    }
+
+    // If already initialized, play immediately
+    if (_cachedController.value.isInitialized) {
+      _playVideo();
+    } else {
+      // Otherwise wait for the existing future
+      _initFuture?.then((_) {
+        if (mounted) _playVideo();
+      });
+    }
+  }
+
+  void _playVideo() {
+    _cachedController.play();
+    setState(() {
+      _isReady = true;
+    });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    // CRITICAL: Do NOT dispose the controller.
+    // Just pause it so it's ready for next time instantly.
+    _cachedController.pause();
     super.dispose();
   }
 
@@ -44,12 +77,10 @@ class _RacoPageState extends State<RacoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      extendBodyBehindAppBar:
-          true, // Allows video to sit behind the back button
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        // Using a container to ensure the back button is visible against any video background
         leading: Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -63,17 +94,16 @@ class _RacoPageState extends State<RacoPage> {
         child: Column(
           children: [
             // --- TOP SECTION: VIDEO ---
-            // This container holds the video player with the correct aspect ratio
             Container(
               width: double.infinity,
-              color: Colors.black, // Placeholder background
-              child: _isInitialized
+              color: Colors.black,
+              child: _isReady
                   ? AspectRatio(
-                      aspectRatio: _controller.value.aspectRatio,
-                      child: VideoPlayer(_controller),
+                      aspectRatio: _cachedController.value.aspectRatio,
+                      child: VideoPlayer(_cachedController),
                     )
                   : const SizedBox(
-                      height: 400, // Placeholder height while loading
+                      height: 400,
                       child: Center(
                         child: CircularProgressIndicator(color: Colors.white),
                       ),
@@ -81,7 +111,6 @@ class _RacoPageState extends State<RacoPage> {
             ),
 
             // --- BOTTOM SECTION: INFO ---
-            // Transform.translate pulls this container up to overlap the video slightly
             Transform.translate(
               offset: const Offset(0, -25),
               child: Container(
@@ -163,7 +192,7 @@ class _RacoPageState extends State<RacoPage> {
                     const _InfoRow(label: "Birthday", value: "4 September"),
                     const _InfoRow(label: "Religion", value: "Christian"),
 
-                    const SizedBox(height: 40), // Bottom padding
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
