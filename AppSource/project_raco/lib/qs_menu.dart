@@ -16,6 +16,33 @@ class QSMenuPage extends StatefulWidget {
 class _QSMenuPageState extends State<QSMenuPage> {
   String? _loadingArg;
   String? _successArg;
+  bool _hasRoot = false;
+  bool _checkingRoot = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkRoot();
+  }
+
+  Future<void> _checkRoot() async {
+    try {
+      final result = await Process.run('su', ['-c', 'id']);
+      if (mounted) {
+        setState(() {
+          _hasRoot = result.exitCode == 0;
+          _checkingRoot = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _hasRoot = false;
+          _checkingRoot = false;
+        });
+      }
+    }
+  }
 
   Future<void> _activateMode(String scriptArg) async {
     setState(() {
@@ -82,70 +109,91 @@ class _QSMenuPageState extends State<QSMenuPage> {
                     ),
                   ],
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      localization.app_title,
-                      style: textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: isLandscape ? 6 : 3,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      children: [
-                        _buildBtn(
-                          localization.power_save,
-                          Icons.battery_saver,
-                          "3",
-                          Colors.green,
+                child: _checkingRoot
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: colorScheme.primary,
                         ),
-                        _buildBtn(
-                          localization.balanced,
-                          Icons.balance,
-                          "2",
-                          Colors.blue,
-                        ),
-                        _buildBtn(
-                          localization.performance,
-                          Icons.speed,
-                          "1",
-                          Colors.orange,
-                        ),
-                        _buildBtn(
-                          localization.gaming_pro,
-                          Icons.sports_esports,
-                          "4",
-                          Colors.red,
-                        ),
-                        _buildBtn(
-                          localization.cooldown,
-                          Icons.ac_unit,
-                          "5",
-                          Colors.cyan,
-                        ),
-                        _buildBtn(
-                          localization.clear,
-                          Icons.clear_all,
-                          "6",
-                          Colors.grey,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      )
+                    : _hasRoot
+                    ? _buildMenuGrid(isLandscape, localization)
+                    : _buildNoRootView(colorScheme, textTheme, localization),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNoRootView(
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    AppLocalizations localization,
+  ) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.security_outlined, size: 48, color: colorScheme.error),
+        const SizedBox(height: 16),
+        Text(
+          "Root Access Required",
+          style: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: colorScheme.error,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          localization
+              .error_no_root, // Reusing the localized string from main.dart logic
+          style: textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMenuGrid(bool isLandscape, AppLocalizations localization) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title Removed as requested
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: isLandscape ? 6 : 3,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          children: [
+            _buildBtn(
+              localization.power_save,
+              Icons.battery_saver,
+              "3",
+              Colors.green,
+            ),
+            _buildBtn(localization.balanced, Icons.balance, "2", Colors.blue),
+            _buildBtn(
+              localization.performance,
+              Icons.speed,
+              "1",
+              Colors.orange,
+            ),
+            _buildBtn(
+              localization.gaming_pro,
+              Icons.sports_esports,
+              "4",
+              Colors.red,
+            ),
+            _buildBtn(localization.cooldown, Icons.ac_unit, "5", Colors.cyan),
+            _buildBtn(localization.clear, Icons.clear_all, "6", Colors.grey),
+          ],
+        ),
+      ],
     );
   }
 
