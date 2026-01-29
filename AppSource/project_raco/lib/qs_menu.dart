@@ -96,6 +96,7 @@ class _QSMenuPageState extends State<QSMenuPage> {
             child: SingleChildScrollView(
               child: Container(
                 margin: const EdgeInsets.all(20),
+                // CHANGED: Restored padding to .all(20) to match top/bottom with left/right
                 padding: const EdgeInsets.all(20),
                 width: isLandscape ? 700 : null,
                 decoration: BoxDecoration(
@@ -146,8 +147,7 @@ class _QSMenuPageState extends State<QSMenuPage> {
         ),
         const SizedBox(height: 8),
         Text(
-          localization
-              .error_no_root, // Reusing the localized string from main.dart logic
+          localization.error_no_root,
           style: textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -162,13 +162,14 @@ class _QSMenuPageState extends State<QSMenuPage> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Title Removed as requested
         GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
           crossAxisCount: isLandscape ? 6 : 3,
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
+          childAspectRatio: 1.3,
           children: [
             _buildBtn(
               localization.power_save,
