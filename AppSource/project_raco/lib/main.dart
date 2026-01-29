@@ -40,6 +40,7 @@ Tile onTileAdded(Tile tile) {
   tile.label = "Raco Mode";
   tile.tileStatus = TileStatus.active;
   tile.subtitle = "Tap for menu";
+  tile.drawableName = "qs_logo";
   return tile;
 }
 

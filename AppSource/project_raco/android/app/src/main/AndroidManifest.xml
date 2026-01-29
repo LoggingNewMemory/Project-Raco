@@ -69,8 +69,7 @@
         <service
             android:name="io.apparence.quick_settings.QuickSettingsService"
             android:label="Raco Mode"
-            android:icon="@mipmap/logo"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:icon="@drawable/qs_logo"  android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             android:exported="true"
             tools:replace="android:label,android:icon">
             <intent-filter>
