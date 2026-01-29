@@ -30,7 +30,8 @@ dependencies:
   file_picker: ^8.0.0
   quick_settings: ^1.0.1
   video_player: ^2.8.1
-  
+  flutter_inappwebview: ^6.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

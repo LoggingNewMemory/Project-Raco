@@ -5,6 +5,9 @@ import 'dart:ui';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart'; // MIGRATED
+import 'package:path/path.dart' as p; // Use path package alias
+import 'package:path_provider/path_provider.dart';
 import '/l10n/app_localizations.dart';
 
 class RacoPluginModel {
@@ -303,31 +306,35 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     );
   }
 
-  Future<void> _openWebUI(RacoPluginModel plugin) async {
-    try {
-      if (plugin.webUiUrl != null) {
-        // Option 1: URL defined in raco.prop
-        await _runRootCommand(
-          'am start -a android.intent.action.VIEW -d "${plugin.webUiUrl}"',
-        );
-      } else if (plugin.hasWebRoot) {
-        // Option 2: Local webroot exists
-        // Note: Browsers may block file://. If possible, one should use a tiny httpd.
-        // For now, we launch the index file.
-        final String localPath = "file://${plugin.path}/webroot/index.html";
-        await _runRootCommand(
-          'am start -a android.intent.action.VIEW -d "$localPath" -t "text/html"',
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not open WebUI: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+  void _openWebUI(RacoPluginModel plugin) {
+    String? targetUrl;
+    bool isLocalFile = false;
+
+    if (plugin.webUiUrl != null && plugin.webUiUrl!.isNotEmpty) {
+      targetUrl = plugin.webUiUrl;
+    } else if (plugin.hasWebRoot) {
+      // Point to the root location; the page will handle copying it
+      targetUrl = "${plugin.path}/webroot/index.html";
+      isLocalFile = true;
+    }
+
+    if (targetUrl != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PluginWebUiPage(
+            title: plugin.name,
+            url: targetUrl!,
+            isLocalFile: isLocalFile,
           ),
-        );
-      }
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No WebUI configuration found.'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
@@ -593,7 +600,7 @@ class _PluginCard extends StatefulWidget {
   final RacoPluginModel plugin;
   final Future<void> Function() onRunService;
   final Future<void> Function() onRunAction;
-  final Future<void> Function() onOpenWebUI;
+  final VoidCallback onOpenWebUI;
   final ValueChanged<bool> onBootToggle;
   final VoidCallback onDelete;
 
@@ -710,12 +717,11 @@ class _PluginCardState extends State<_PluginCard> {
             const SizedBox(height: 12),
 
             // --- ACTION ROW ---
-            // Wrapped in SingleChildScrollView to prevent overflow on small screens
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  // WebUI Button (Circular)
+                  // WebUI Button
                   if (showWebUi) ...[
                     Container(
                       width: 44,
@@ -734,7 +740,7 @@ class _PluginCardState extends State<_PluginCard> {
                     const SizedBox(width: 12),
                   ],
 
-                  // Action.sh Button (Circular)
+                  // Action.sh Button
                   if (plugin.hasActionScript) ...[
                     Container(
                       width: 44,
@@ -753,7 +759,7 @@ class _PluginCardState extends State<_PluginCard> {
                     const SizedBox(width: 12),
                   ],
 
-                  // Run Button (Pill)
+                  // Run Button
                   Material(
                     color: _runColor,
                     borderRadius: BorderRadius.circular(24),
@@ -786,7 +792,6 @@ class _PluginCardState extends State<_PluginCard> {
                     ),
                   ),
 
-                  // Just enough space before Boot toggle
                   const SizedBox(width: 16),
 
                   // Boot Toggle
@@ -913,6 +918,151 @@ class _TerminalPageState extends State<TerminalPage> {
               },
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// =========================================================
+//  UPDATED WEB UI PAGE WITH INAPPWEBVIEW AND FILE COPYING
+// =========================================================
+
+class PluginWebUiPage extends StatefulWidget {
+  final String title;
+  final String url;
+  final bool isLocalFile;
+
+  const PluginWebUiPage({
+    Key? key,
+    required this.title,
+    required this.url,
+    required this.isLocalFile,
+  }) : super(key: key);
+
+  @override
+  State<PluginWebUiPage> createState() => _PluginWebUiPageState();
+}
+
+class _PluginWebUiPageState extends State<PluginWebUiPage> {
+  InAppWebViewController? _controller;
+  bool _isLoading = true;
+  String? _errorMessage;
+  String? _finalUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _prepareContent();
+  }
+
+  Future<void> _prepareContent() async {
+    // If it's a remote URL, just use it
+    if (!widget.isLocalFile) {
+      setState(() {
+        _finalUrl = widget.url;
+        _isLoading = false;
+      });
+      return;
+    }
+
+    // IF LOCAL FILE:
+    // We cannot access /data/ProjectRaco directly from WebView (Sandbox restriction).
+    // We must COPY the webroot to the App's private cache directory first.
+    try {
+      final Directory cacheDir = await getApplicationSupportDirectory();
+      final String webCachePath = '${cacheDir.path}/web_ui_cache';
+
+      // Calculate source directory (e.g., /data/ProjectRaco/Plugins/PingPimp/webroot)
+      final String sourceDir = p.dirname(widget.url);
+
+      // Command to copy files securely via root
+      // 1. Remove old cache
+      // 2. Create directory
+      // 3. Copy files (-r)
+      // 4. chmod 777 so the App/WebView can definitely read them
+      final String cmd =
+          'rm -rf "$webCachePath" && '
+          'mkdir -p "$webCachePath" && '
+          'cp -r "$sourceDir"/* "$webCachePath/" && '
+          'chmod -R 777 "$webCachePath"';
+
+      await Process.run('su', ['-c', cmd]);
+
+      // Check if index.html exists in the new location
+      final File indexFile = File('$webCachePath/index.html');
+      if (await indexFile.exists()) {
+        setState(() {
+          _finalUrl = 'file://${indexFile.path}';
+          _isLoading = false;
+        });
+      } else {
+        throw Exception("Index file not found after copy.");
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = "Failed to stage WebUI files: $e";
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => _controller?.reload(),
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          if (_errorMessage != null)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+          else if (_finalUrl != null)
+            InAppWebView(
+              initialUrlRequest: URLRequest(url: WebUri(_finalUrl!)),
+              initialSettings: InAppWebViewSettings(
+                // ESSENTIAL for loading local files
+                allowFileAccess: true,
+                allowContentAccess: true,
+                // ESSENTIAL for local CSS/JS/Assets to load relative to index.html
+                allowUniversalAccessFromFileURLs: true,
+                allowFileAccessFromFileURLs: true,
+                domStorageEnabled: true,
+                javaScriptEnabled: true,
+                useWideViewPort: true,
+                loadWithOverviewMode: true,
+              ),
+              onWebViewCreated: (controller) {
+                _controller = controller;
+              },
+              onLoadStart: (controller, url) {
+                setState(() => _isLoading = true);
+              },
+              onLoadStop: (controller, url) {
+                setState(() => _isLoading = false);
+              },
+              onReceivedError: (controller, request, error) {
+                // Ignore minor errors, only show critical ones if needed
+                debugPrint("WebView Error: ${error.description}");
+              },
+            ),
+
+          if (_isLoading) const Center(child: CircularProgressIndicator()),
         ],
       ),
     );
