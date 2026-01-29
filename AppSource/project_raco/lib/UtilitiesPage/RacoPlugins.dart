@@ -312,10 +312,8 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         );
       } else if (plugin.hasWebRoot) {
         // Option 2: Local webroot exists
-        // We attempt to open the index.html file directly via Android intent.
-        // Note: For advanced usage (like KernelSU), this usually requires
-        // starting a local HTTP server because many browsers block file:// access
-        // to /data directories due to permissions.
+        // Note: Browsers may block file://. If possible, one should use a tiny httpd.
+        // For now, we launch the index file.
         final String localPath = "file://${plugin.path}/webroot/index.html";
         await _runRootCommand(
           'am start -a android.intent.action.VIEW -d "$localPath" -t "text/html"',
@@ -613,180 +611,208 @@ class _PluginCard extends StatefulWidget {
   _PluginCardState createState() => _PluginCardState();
 }
 
-class _PluginCardState extends State<_PluginCard>
-    with SingleTickerProviderStateMixin {
-  bool _isExpanded = false;
+class _PluginCardState extends State<_PluginCard> {
+  // Colors from the screenshot
+  static const Color _webUiColor = Color(0xFF1E3A3A); // Dark Teal/Green
+  static const Color _webUiIconColor = Color(0xFF80CBC4); // Light Teal
 
-  void _toggleExpand() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-    });
-  }
+  static const Color _actionColor = Color(0xFF333D29); // Dark Olive
+  static const Color _actionIconColor = Color(0xFFA5D6A7); // Light Green
+
+  static const Color _runColor = Color(0xFF2E4F3E); // Dark Green Pill
+  static const Color _runTextColor = Color(0xFFE8F5E9);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final plugin = widget.plugin;
-
-    // Determine if WebUI button should show
     final bool showWebUi = (plugin.webUiUrl != null) || plugin.hasWebRoot;
 
     return Card(
-      color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.8),
+      color: const Color(0xFF1A1C19), // Dark background card
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: InkWell(
-        onTap: _toggleExpand,
-        highlightColor: theme.colorScheme.primary.withOpacity(0.1),
-        splashColor: theme.colorScheme.primary.withOpacity(0.1),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: AnimatedSize(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOutCubic,
-            alignment: Alignment.topCenter,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- HEADER ---
+            Row(
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: plugin.logoBytes != null
-                          ? Image.memory(plugin.logoBytes!, fit: BoxFit.cover)
-                          : Center(
-                              child: Text(
-                                plugin.name.substring(0, 1).toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.colorScheme.onPrimaryContainer,
-                                ),
-                              ),
-                            ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            plugin.name,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: _isExpanded ? null : 1,
-                            overflow: _isExpanded
-                                ? TextOverflow.visible
-                                : TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            "${plugin.version} • ${plugin.author}",
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                            maxLines: _isExpanded ? null : 1,
-                            overflow: _isExpanded
-                                ? TextOverflow.visible
-                                : TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      color: theme.colorScheme.error,
-                      onPressed: widget.onDelete,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  plugin.description,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                // Logo
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.green[800],
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  maxLines: _isExpanded ? null : 2,
-                  overflow: _isExpanded
-                      ? TextOverflow.visible
-                      : TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 16),
-                Divider(
-                  height: 1,
-                  color: theme.colorScheme.outlineVariant.withOpacity(0.5),
-                ),
-                const SizedBox(height: 12),
-
-                // Action Buttons Row
-                Row(
-                  children: [
-                    // WebUI Button
-                    if (showWebUi) ...[
-                      IconButton.filledTonal(
-                        onPressed: widget.onOpenWebUI,
-                        icon: const Icon(Icons.language),
-                        tooltip: 'Open WebUI',
-                        style: IconButton.styleFrom(
-                          backgroundColor: theme.colorScheme.tertiaryContainer,
-                          foregroundColor:
-                              theme.colorScheme.onTertiaryContainer,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-
-                    // Action.sh Button
-                    if (plugin.hasActionScript) ...[
-                      IconButton.filledTonal(
-                        onPressed: widget.onRunAction,
-                        icon: const Icon(Icons.build),
-                        tooltip: 'Run Action',
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-
-                    // Standard Service Run Button
-                    FilledButton.tonalIcon(
-                      onPressed: widget.onRunService,
-                      icon: const Icon(Icons.play_arrow_rounded),
-                      label: Text(AppLocalizations.of(context)!.plugin_run),
-                    ),
-
-                    const Spacer(),
-
-                    // Boot Toggle
-                    Row(
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.plugin_boot,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: theme.colorScheme.onSurface,
+                  clipBehavior: Clip.antiAlias,
+                  child: plugin.logoBytes != null
+                      ? Image.memory(plugin.logoBytes!, fit: BoxFit.cover)
+                      : Center(
+                          child: Text(
+                            plugin.name.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Switch(
-                          value: plugin.isBootEnabled,
-                          onChanged: widget.onBootToggle,
-                          activeColor: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 16),
+
+                // Title & Subtitle
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        plugin.name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      Text(
+                        "v${plugin.version} • ${plugin.author}",
+                        style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Delete Icon
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  color: const Color(0xFFEF9A9A),
+                  onPressed: widget.onDelete,
                 ),
               ],
             ),
-          ),
+
+            // --- DESCRIPTION ---
+            const SizedBox(height: 12),
+            Text(
+              plugin.description,
+              style: TextStyle(fontSize: 14, color: Colors.grey[300]),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+
+            const SizedBox(height: 16),
+            Divider(height: 1, color: Colors.white.withOpacity(0.1)),
+            const SizedBox(height: 12),
+
+            // --- ACTION ROW ---
+            // Wrapped in SingleChildScrollView to prevent overflow on small screens
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  // WebUI Button (Circular)
+                  if (showWebUi) ...[
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(
+                        color: _webUiColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.language),
+                        color: _webUiIconColor,
+                        onPressed: widget.onOpenWebUI,
+                        tooltip: 'Web UI',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+
+                  // Action.sh Button (Circular)
+                  if (plugin.hasActionScript) ...[
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(
+                        color: _actionColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.build),
+                        color: _actionIconColor,
+                        onPressed: widget.onRunAction,
+                        tooltip: 'Action',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+
+                  // Run Button (Pill)
+                  Material(
+                    color: _runColor,
+                    borderRadius: BorderRadius.circular(24),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(24),
+                      onTap: widget.onRunService,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.play_arrow,
+                              size: 20,
+                              color: _runTextColor,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              AppLocalizations.of(context)!.plugin_run,
+                              style: TextStyle(
+                                color: _runTextColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Just enough space before Boot toggle
+                  const SizedBox(width: 16),
+
+                  // Boot Toggle
+                  Text(
+                    AppLocalizations.of(context)!.plugin_boot,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Switch(
+                    value: plugin.isBootEnabled,
+                    onChanged: widget.onBootToggle,
+                    activeColor: Colors.greenAccent,
+                    trackColor: MaterialStateProperty.resolveWith((states) {
+                      if (states.contains(MaterialState.selected)) {
+                        return Colors.green[900];
+                      }
+                      return Colors.grey[700];
+                    }),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
