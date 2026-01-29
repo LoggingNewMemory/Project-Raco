@@ -74,11 +74,11 @@ class _QSMenuPageState extends State<QSMenuPage> {
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                      color: Colors.black26,
+                      blurRadius: 0,
+                      offset: Offset(0, 4),
                     ),
                   ],
                 ),
