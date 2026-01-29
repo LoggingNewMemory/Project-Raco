@@ -83,7 +83,7 @@ class _RacoPageState extends State<RacoPage> {
             // --- BOTTOM SECTION: INFO ---
             // Transform.translate pulls this container up to overlap the video slightly
             Transform.translate(
-              offset: const Offset(0, -20),
+              offset: const Offset(0, -25),
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
