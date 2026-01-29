@@ -14,6 +14,7 @@ import 'about_page.dart';
 import 'utilities_page.dart';
 import 'slingshot.dart';
 import 'qs_menu.dart';
+import 'raco.dart'; // IMPORT ADDED HERE
 
 // --- QUICK SETTINGS HANDLERS ---
 
@@ -240,8 +241,6 @@ class _MyAppState extends State<MyApp> {
           ],
 
           // --- ROUTING LOGIC ---
-          // The manifest forces "io.flutter.InitialRoute" to "/menu" for the tile.
-          // This allows the transparent activity to skip the home screen entirely.
           routes: {
             '/': (context) => _buildHome(context),
             '/menu': (context) => const QSMenuPage(),
@@ -301,9 +300,6 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-
-// ... MainScreen class remains the same (copy from previous if needed) ...
-// Included the full MainScreen class below for completeness
 
 class MainScreen extends StatefulWidget {
   final Function(Locale) onLocaleChange;
@@ -693,6 +689,13 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
+  void _navigateToRacoPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const RacoPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
@@ -884,41 +887,46 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
     return Column(
       children: [
-        Card(
-          elevation: 2.0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Stack(
-              alignment: Alignment.bottomLeft,
-              children: [
-                bannerImage,
-                Container(
-                  margin: const EdgeInsets.all(12.0),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0,
-                    vertical: 6.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(20.0),
-                  ),
-                  child: Text(
-                    bannerText,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+        // --- ADDED NAVIGATION ON TAP ---
+        GestureDetector(
+          onTap: _navigateToRacoPage, // Navigates to raco.dart
+          child: Card(
+            elevation: 2.0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Stack(
+                alignment: Alignment.bottomLeft,
+                children: [
+                  bannerImage,
+                  Container(
+                    margin: const EdgeInsets.all(12.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0,
+                      vertical: 6.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                    child: Text(
+                      bannerText,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
+        // ---------------------------------
         const SizedBox(height: 10),
         Row(
           children: [
