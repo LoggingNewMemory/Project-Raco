@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:process_run/process_run.dart';
+import '/l10n/app_localizations.dart';
 
 class QSMenuPage extends StatefulWidget {
   const QSMenuPage({Key? key}) : super(key: key);
@@ -49,16 +50,14 @@ class _QSMenuPageState extends State<QSMenuPage> {
     final bool isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
 
-    // Access theme data
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final localization = AppLocalizations.of(context)!;
 
-    // Scaffold background MUST be transparent to show the native blur behind it
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // 1. DIMMER & DISMISSAL
           GestureDetector(
             onTap: () {
               Navigator.of(context).pop();
@@ -66,17 +65,13 @@ class _QSMenuPageState extends State<QSMenuPage> {
             },
             child: Container(color: Colors.black.withOpacity(0.4)),
           ),
-
-          // 2. MENU CARD
           Center(
             child: SingleChildScrollView(
               child: Container(
                 margin: const EdgeInsets.all(20),
                 padding: const EdgeInsets.all(20),
-                // Constrain width in landscape to prevent overly wide buttons
                 width: isLandscape ? 700 : null,
                 decoration: BoxDecoration(
-                  // Updated: Use theme surface color instead of hardcoded 0xFF1E1E1E
                   color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
@@ -92,10 +87,9 @@ class _QSMenuPageState extends State<QSMenuPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Raco Modes",
+                      localization.app_title,
                       style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        // Updated: Use onSurface for text color
                         color: colorScheme.onSurface,
                       ),
                     ),
@@ -103,32 +97,46 @@ class _QSMenuPageState extends State<QSMenuPage> {
                     GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      // 6 columns for landscape (1 row), 3 for portrait (2 rows)
                       crossAxisCount: isLandscape ? 6 : 3,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
                       children: [
                         _buildBtn(
-                          "Power Save",
+                          localization.power_save,
                           Icons.battery_saver,
                           "3",
                           Colors.green,
                         ),
-                        _buildBtn("Balanced", Icons.balance, "2", Colors.blue),
                         _buildBtn(
-                          "Performance",
+                          localization.balanced,
+                          Icons.balance,
+                          "2",
+                          Colors.blue,
+                        ),
+                        _buildBtn(
+                          localization.performance,
                           Icons.speed,
                           "1",
                           Colors.orange,
                         ),
                         _buildBtn(
-                          "Gaming",
+                          localization.gaming_pro,
                           Icons.sports_esports,
                           "4",
                           Colors.red,
                         ),
-                        _buildBtn("Cooldown", Icons.ac_unit, "5", Colors.cyan),
-                        _buildBtn("Clear", Icons.clear_all, "6", Colors.grey),
+                        _buildBtn(
+                          localization.cooldown,
+                          Icons.ac_unit,
+                          "5",
+                          Colors.cyan,
+                        ),
+                        _buildBtn(
+                          localization.clear,
+                          Icons.clear_all,
+                          "6",
+                          Colors.grey,
+                        ),
                       ],
                     ),
                   ],
@@ -146,7 +154,6 @@ class _QSMenuPageState extends State<QSMenuPage> {
     final bool isSuccess = _successArg == scriptArg;
     final bool isBusy = _loadingArg != null;
 
-    // Access theme for text color
     final onSurface = Theme.of(context).colorScheme.onSurface;
 
     return Material(
@@ -208,7 +215,6 @@ class _QSMenuPageState extends State<QSMenuPage> {
                   fontWeight: (isSuccess || isLoading)
                       ? FontWeight.w900
                       : FontWeight.bold,
-                  // Updated: Use onSurface so text is visible in Light/Dark modes
                   color: onSurface,
                 ),
               ),
