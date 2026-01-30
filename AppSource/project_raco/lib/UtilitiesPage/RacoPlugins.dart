@@ -1099,15 +1099,7 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => _controller?.reload(),
-          ),
-        ],
-      ),
+      // Removed AppBar to achieve fullscreen look with no name or buttons
       body: Stack(
         children: [
           if (_errorMessage != null)
