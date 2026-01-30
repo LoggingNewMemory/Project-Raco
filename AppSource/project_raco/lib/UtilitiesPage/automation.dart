@@ -1,12 +1,30 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '/l10n/app_localizations.dart';
 import 'utils.dart';
+
+// --- Added AppItem class for caching support ---
+class AppItem {
+  final String name;
+  final String packageName;
+  final Uint8List? iconBytes;
+  final String? iconPath;
+
+  AppItem({
+    required this.name,
+    required this.packageName,
+    this.iconBytes,
+    this.iconPath,
+  });
+}
 
 class AutomationPage extends StatefulWidget {
   final String? backgroundImagePath;
@@ -551,12 +569,13 @@ class AppListPage extends StatefulWidget {
 
 class _AppListPageState extends State<AppListPage> {
   final String _gameTxtPath = '/data/ProjectRaco/game.txt';
-  // Optional: Define a path if you want to load recommended apps from a file
   final String _databasePath = '/data/adb/modules/ProjectRaco/game_list.txt';
+  // --- New cache keys ---
+  static const String _prefsKeyApps = 'applist_cached_apps';
 
   bool _isLoading = true;
-  List<AppInfo> _installedApps = [];
-  List<AppInfo> _filteredApps = [];
+  List<AppItem> _installedApps = []; // Changed from AppInfo to AppItem
+  List<AppItem> _filteredApps = []; // Changed from AppInfo to AppItem
   Set<String> _enabledPackages = {};
   Set<String> _recommendedPackages = {};
   String _searchQuery = "";
@@ -568,25 +587,76 @@ class _AppListPageState extends State<AppListPage> {
   }
 
   Future<void> _initData() async {
-    // 1. Load Recommended Database (File based, not hardcoded)
-    await _loadRecommendedDb();
+    // 1. Load Caches first for instant UI
+    await _loadFromCache();
 
-    // 2. Load Enabled Packages from game.txt
-    await _loadEnabledPackages();
+    // 2. Load configurations
+    await Future.wait([_loadRecommendedDb(), _loadEnabledPackages()]);
 
-    // 3. Load Installed Apps
-    await _loadInstalledApps();
+    // 3. Fetch fresh installed apps in background/update UI
+    _fetchInstalledApps(forceRefresh: false);
+  }
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-        _filterApps();
-      });
+  // --- Caching Logic ---
+  Future<Directory> _getIconCacheDir() async {
+    final docsDir = await getApplicationDocumentsDirectory();
+    final iconDir = Directory('${docsDir.path}/app_icons');
+    if (!await iconDir.exists()) {
+      await iconDir.create(recursive: true);
+    }
+    return iconDir;
+  }
+
+  Future<void> _loadFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? appsJson = prefs.getString(_prefsKeyApps);
+
+      if (appsJson != null) {
+        final List<dynamic> decodedList = jsonDecode(appsJson);
+        final iconDir = await _getIconCacheDir();
+
+        final List<AppItem> cachedList = decodedList.map((item) {
+          final pkg = item['p'] as String;
+          final path = '${iconDir.path}/$pkg.png';
+          final fileExists = File(path).existsSync();
+
+          return AppItem(
+            name: item['n'] as String,
+            packageName: pkg,
+            iconBytes: null,
+            iconPath: fileExists ? path : null,
+          );
+        }).toList();
+
+        if (mounted && cachedList.isNotEmpty) {
+          setState(() {
+            _installedApps = cachedList;
+            _isLoading = false;
+            _filterApps();
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Cache load error: $e");
     }
   }
 
+  Future<void> _saveToCache(List<AppItem> apps) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final List<Map<String, String>> tinyList = apps
+          .map((app) => {'n': app.name, 'p': app.packageName})
+          .toList();
+
+      await prefs.setString(_prefsKeyApps, jsonEncode(tinyList));
+    } catch (e) {
+      debugPrint("Cache save error: $e");
+    }
+  }
+  // --- End Caching Logic ---
+
   Future<void> _loadRecommendedDb() async {
-    // Attempt to read a database file if it exists
     try {
       if (await checkRootAccess()) {
         final result = await runRootCommandAndWait('cat $_databasePath');
@@ -604,8 +674,7 @@ class _AppListPageState extends State<AppListPage> {
         }
       }
     } catch (e) {
-      // Fail silently or just have empty recommended list
-      // debugPrint("Database load error: $e");
+      // Ignore
     }
   }
 
@@ -625,19 +694,66 @@ class _AppListPageState extends State<AppListPage> {
             enabled.add(trimmed);
           }
         }
-        _enabledPackages = enabled;
+        if (mounted) {
+          setState(() {
+            _enabledPackages = enabled;
+            // Re-filter if we have apps loaded
+            if (_installedApps.isNotEmpty) _filterApps();
+          });
+        }
       }
     } catch (e) {
-      // debugPrint("Error loading game.txt: $e");
+      // Ignore
     }
   }
 
-  Future<void> _loadInstalledApps() async {
+  Future<void> _fetchInstalledApps({bool forceRefresh = false}) async {
+    if (_installedApps.isEmpty && mounted) {
+      setState(() => _isLoading = true);
+    }
+
     try {
-      List<AppInfo> apps = await InstalledApps.getInstalledApps(true, true);
-      _installedApps = apps;
+      List<AppInfo> rawApps = await InstalledApps.getInstalledApps(true, true);
+      final iconDir = await _getIconCacheDir();
+      final List<AppItem> finalItems = [];
+
+      for (var info in rawApps) {
+        String? iconPath;
+        if (info.icon != null) {
+          final file = File('${iconDir.path}/${info.packageName}.png');
+          try {
+            if (!await file.exists() || forceRefresh) {
+              await file.writeAsBytes(info.icon!, flush: true);
+            }
+            iconPath = file.path;
+          } catch (e) {
+            debugPrint("Failed to cache icon for ${info.packageName}: $e");
+          }
+        }
+
+        finalItems.add(
+          AppItem(
+            name: info.name ?? "Unknown",
+            packageName: info.packageName ?? "",
+            iconBytes: info.icon, // Fallback if file write fails
+            iconPath: iconPath,
+          ),
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          _installedApps = finalItems;
+          _isLoading = false;
+          _filterApps();
+        });
+        _saveToCache(finalItems);
+      }
     } catch (e) {
-      // debugPrint("Error loading installed apps: $e");
+      debugPrint("Error loading installed apps: $e");
+      if (mounted && _installedApps.isEmpty) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -646,20 +762,17 @@ class _AppListPageState extends State<AppListPage> {
       _filteredApps = List.from(_installedApps);
     } else {
       _filteredApps = _installedApps.where((app) {
-        final name = app.name?.toLowerCase() ?? "";
-        final pkg = app.packageName?.toLowerCase() ?? "";
+        final name = app.name.toLowerCase();
+        final pkg = app.packageName.toLowerCase();
         final q = _searchQuery.toLowerCase();
         return name.contains(q) || pkg.contains(q);
       }).toList();
     }
 
-    // Sort logic:
-    // 1. Enabled (Top priority)
-    // 2. Recommended (Secondary priority)
-    // 3. Alphabetical
+    // Sort logic: Enabled -> Recommended -> Alphabetical
     _filteredApps.sort((a, b) {
-      final pkgA = a.packageName ?? "";
-      final pkgB = b.packageName ?? "";
+      final pkgA = a.packageName;
+      final pkgB = b.packageName;
 
       final bool enA = _enabledPackages.contains(pkgA);
       final bool enB = _enabledPackages.contains(pkgB);
@@ -669,9 +782,7 @@ class _AppListPageState extends State<AppListPage> {
       if (enA != enB) return enA ? -1 : 1;
       if (recA != recB) return recA ? -1 : 1;
 
-      return (a.name ?? "").toLowerCase().compareTo(
-        (b.name ?? "").toLowerCase(),
-      );
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
   }
 
@@ -682,7 +793,7 @@ class _AppListPageState extends State<AppListPage> {
       } else {
         _enabledPackages.add(packageName);
       }
-      _filterApps(); // Re-sort to move enabled items to top if needed
+      _filterApps(); // Re-sort to move enabled items to top
     });
 
     try {
@@ -699,7 +810,7 @@ class _AppListPageState extends State<AppListPage> {
         "echo '$base64Content' | base64 -d > $_gameTxtPath",
       );
     } catch (e) {
-      // debugPrint("Error saving game.txt: $e");
+      debugPrint("Error saving game.txt: $e");
     }
   }
 
@@ -712,10 +823,14 @@ class _AppListPageState extends State<AppListPage> {
         title: const Text('Applist'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Reload Apps',
+            onPressed: () => _fetchInstalledApps(forceRefresh: true),
+          ),
+          IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () {
-              // Add options like "Reload" here if needed
-              _initData();
+              // Menu options
             },
           ),
         ],
@@ -744,14 +859,14 @@ class _AppListPageState extends State<AppListPage> {
             ),
           ),
           Expanded(
-            child: _isLoading
+            child: _isLoading && _installedApps.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : ListView.builder(
                     padding: const EdgeInsets.only(bottom: 80),
                     itemCount: _filteredApps.length,
                     itemBuilder: (context, index) {
                       final app = _filteredApps[index];
-                      final pkg = app.packageName ?? "";
+                      final pkg = app.packageName;
                       final isEnabled = _enabledPackages.contains(pkg);
                       final isRecommended = _recommendedPackages.contains(pkg);
 
@@ -769,17 +884,16 @@ class _AppListPageState extends State<AppListPage> {
     );
   }
 
-  Widget _buildAppCard(AppInfo app, bool isEnabled, bool isRecommended) {
+  Widget _buildAppCard(AppItem app, bool isEnabled, bool isRecommended) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
       child: Card(
-        // Dark card color (adjust based on your theme, or use surfaceVariant)
         color: const Color(0xFF1E1E1E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 0,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => _toggleApp(app.packageName ?? ""),
+          onTap: () => _toggleApp(app.packageName),
           child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Row(
@@ -790,14 +904,11 @@ class _AppListPageState extends State<AppListPage> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     color: Colors.grey[800],
-                    image: app.icon != null
-                        ? DecorationImage(
-                            image: MemoryImage(app.icon!),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
                   ),
-                  child: app.icon == null ? const Icon(Icons.android) : null,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: _buildAppIcon(app),
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -805,17 +916,17 @@ class _AppListPageState extends State<AppListPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        app.name ?? "Unknown",
+                        app.name,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white, // Enforce light text
+                          color: Colors.white,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        app.packageName ?? "",
+                        app.packageName,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.white.withOpacity(0.5),
@@ -829,18 +940,18 @@ class _AppListPageState extends State<AppListPage> {
                           _buildBadge(
                             text: isEnabled ? "ENABLED" : "DISABLED",
                             color: isEnabled
-                                ? const Color(0xFF4CAF50) // Green 500
-                                : const Color(0xFFE57373), // Red 300
+                                ? const Color(0xFF4CAF50)
+                                : const Color(0xFFE57373),
                             bgColor: isEnabled
-                                ? const Color(0xFF1B5E20) // Dark Green bg
-                                : const Color(0xFF3E2723), // Dark Red bg
+                                ? const Color(0xFF1B5E20)
+                                : const Color(0xFF3E2723),
                           ),
                           if (isRecommended) ...[
                             const SizedBox(width: 8),
                             _buildBadge(
                               text: "RECOMMENDED",
-                              color: const Color(0xFFF06292), // Pink 300
-                              bgColor: const Color(0xFF4A1425), // Dark Pink bg
+                              color: const Color(0xFFF06292),
+                              bgColor: const Color(0xFF4A1425),
                             ),
                           ],
                         ],
@@ -854,6 +965,24 @@ class _AppListPageState extends State<AppListPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildAppIcon(AppItem app) {
+    // 1. Try file path first (Memory efficient)
+    if (app.iconPath != null) {
+      return Image.file(
+        File(app.iconPath!),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.android, color: Colors.white54),
+      );
+    }
+    // 2. Fallback to bytes
+    if (app.iconBytes != null) {
+      return Image.memory(app.iconBytes!, fit: BoxFit.cover);
+    }
+    // 3. Default
+    return const Icon(Icons.android, color: Colors.white54);
   }
 
   Widget _buildBadge({
