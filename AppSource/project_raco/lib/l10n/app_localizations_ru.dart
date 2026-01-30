@@ -572,4 +572,7 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get slingshot_graphics_warning =>
       'Некоторые игры могут сломаться, некоторые могут улучшить производительность, а некоторые могут даже не запуститься. Но не бойтесь попробовать!';
+
+  @override
+  String get playboost_title => 'RiProG Playboost';
 }

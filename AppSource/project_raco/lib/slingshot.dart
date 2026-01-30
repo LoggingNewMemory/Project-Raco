@@ -45,6 +45,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
   bool _isAngleSupported = false;
   bool _useAngle = false;
   bool _useSkia = false;
+  bool _enablePlayboost = false;
 
   List<AppItem> _installedApps = [];
   String? _selectedAppPackage;
@@ -103,6 +104,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
 
   Future<void> _loadRacoConfig() async {
     try {
+      // Load Skia State
       final skiaResult = await Process.run('su', [
         '-c',
         'grep "^SKIAVK=" $_racoConfigPath | cut -d= -f2',
@@ -116,6 +118,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
         }
       }
 
+      // Load Angle State
       final angleResult = await Process.run('su', [
         '-c',
         'grep "^ANGLE=" $_racoConfigPath | cut -d= -f2',
@@ -125,6 +128,20 @@ class _SlingshotPageState extends State<SlingshotPage> {
         if (mounted) {
           setState(() {
             _useAngle = val == '1';
+          });
+        }
+      }
+
+      // Load Playboost State
+      final playboostResult = await Process.run('su', [
+        '-c',
+        'grep "^PLAYBOOST=" $_racoConfigPath | cut -d= -f2',
+      ]);
+      if (playboostResult.exitCode == 0) {
+        final val = playboostResult.stdout.toString().trim();
+        if (mounted) {
+          setState(() {
+            _enablePlayboost = val == '1';
           });
         }
       }
@@ -173,6 +190,20 @@ class _SlingshotPageState extends State<SlingshotPage> {
     }
   }
 
+  Future<void> _togglePlayboost(bool value) async {
+    setState(() => _enablePlayboost = value);
+    try {
+      final int intVal = value ? 1 : 0;
+      // Update PLAYBOOST in raco.txt directly
+      await Process.run('su', [
+        '-c',
+        'sed -i "s/^PLAYBOOST=.*/PLAYBOOST=$intVal/" $_racoConfigPath',
+      ]);
+    } catch (e) {
+      debugPrint("Playboost toggle error: $e");
+    }
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -198,9 +229,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
       if (mounted) {
         setState(() {
           if (savedPackage != null) _selectedAppPackage = savedPackage;
-          if (savedMode != null) {
-            _selectedMode = savedMode;
-          }
+          if (savedMode != null) _selectedMode = savedMode;
         });
       }
 
@@ -347,6 +376,27 @@ class _SlingshotPageState extends State<SlingshotPage> {
     }
   }
 
+  Future<void> _applyPlayBoost(String packageName) async {
+    try {
+      await Future.delayed(const Duration(seconds: 2));
+
+      const String script =
+          'pid=\$(pgrep -f %PKG% | head -n 1); '
+          'if [ -n "\$pid" ]; then '
+          '  for task in /proc/\$pid/task/*; do '
+          '    tid=\$(basename \$task); '
+          '    taskset -p ffffffff \$tid; '
+          '  done; '
+          'fi';
+
+      final cmd = script.replaceAll('%PKG%', packageName);
+
+      await Process.run('su', ['-c', cmd]);
+    } catch (e) {
+      debugPrint("PlayBoost error: $e");
+    }
+  }
+
   Future<void> _runSlingshot() async {
     if (!mounted) return;
     final localization = AppLocalizations.of(context)!;
@@ -379,6 +429,10 @@ class _SlingshotPageState extends State<SlingshotPage> {
       '-c',
       '/data/adb/modules/ProjectRaco/Binaries/kasane -a $_selectedAppPackage -m $_selectedMode -l',
     ]);
+
+    if (_enablePlayboost) {
+      _applyPlayBoost(_selectedAppPackage!);
+    }
 
     if (!mounted) return;
     ScaffoldMessenger.of(
@@ -539,9 +593,24 @@ class _SlingshotPageState extends State<SlingshotPage> {
                       activeColor: colorScheme.primary,
                     ),
 
+                    const SizedBox(height: 5),
+
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        localization.playboost_title,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      // Subtitle removed per request
+                      value: _enablePlayboost,
+                      onChanged: (val) {
+                        _togglePlayboost(val);
+                      },
+                      activeColor: colorScheme.primary,
+                    ),
+
                     const SizedBox(height: 10),
 
-                    // Graphics Warning Notice
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -653,7 +722,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
                     final pkg = app.packageName;
                     final isSelected = _selectedAppPackage == pkg;
 
-                    // Use a Key to maintain widget state across list updates
                     return Padding(
                       key: ValueKey(pkg),
                       padding: const EdgeInsets.only(bottom: 8.0),

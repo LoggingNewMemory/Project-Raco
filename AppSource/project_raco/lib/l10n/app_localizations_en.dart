@@ -568,4 +568,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get slingshot_graphics_warning =>
       'Some games might broken, Some might improve performance, Some might don\'t even Launch. But don\'t be afraid to try it first!';
+
+  @override
+  String get playboost_title => 'RiProG Playboost';
 }

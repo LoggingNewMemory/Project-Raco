@@ -1141,6 +1141,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Some games might broken, Some might improve performance, Some might don\'t even Launch. But don\'t be afraid to try it first!'**
   String get slingshot_graphics_warning;
+
+  /// No description provided for @playboost_title.
+  ///
+  /// In en, this message translates to:
+  /// **'RiProG Playboost'**
+  String get playboost_title;
 }
 
 class _AppLocalizationsDelegate

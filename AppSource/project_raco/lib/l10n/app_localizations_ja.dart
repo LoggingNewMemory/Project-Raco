@@ -546,4 +546,7 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get slingshot_graphics_warning =>
       '一部のゲームは動作しない、パフォーマンスが向上する、あるいは起動しない可能性があります。ですが、恐れずにまずは試してみてください！';
+
+  @override
+  String get playboost_title => 'RiProG Playboost';
 }
