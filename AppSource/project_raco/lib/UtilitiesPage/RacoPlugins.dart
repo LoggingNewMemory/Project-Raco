@@ -979,11 +979,15 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
   @override
   void initState() {
     super.initState();
+    // Enable immersive fullscreen mode (Hides Nav Bar and Status Bar)
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _initWebUI();
   }
 
   @override
   void dispose() {
+    // Restore system UI to default (EdgeToEdge)
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _server?.close(force: true);
     super.dispose();
   }
@@ -1094,6 +1098,7 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text(widget.title),
         actions: [
