@@ -266,7 +266,14 @@ class _AboutPageState extends State<AboutPage> {
                               Text(localization.ram, style: labelStyle),
                               const SizedBox(width: 8),
                               separator,
-                              const SizedBox(width: 16),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
                               Text(_storageInfo, style: valueStyle),
                               const SizedBox(width: 8),
                               Text(
