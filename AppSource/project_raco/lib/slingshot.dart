@@ -61,22 +61,23 @@ class _SlingshotPageState extends State<SlingshotPage> {
   @override
   void initState() {
     super.initState();
-    _cleanupAngleSettings();
+    _cleanupAll();
     _checkAngleSupport();
     _initData();
   }
 
-  Future<void> _cleanupAngleSettings() async {
+  Future<void> _cleanupAll() async {
     try {
       await Process.run('su', [
         '-c',
         'settings delete global angle_debug_package; '
             'settings delete global angle_gl_driver_all_angle; '
             'settings delete global angle_gl_driver_selection_pkgs; '
-            'settings delete global angle_gl_driver_selection_values',
+            'settings delete global angle_gl_driver_selection_values; '
+            'setprop debug.hwui.renderer none',
       ]);
     } catch (e) {
-      debugPrint("Angle cleanup error: $e");
+      debugPrint("Cleanup error: $e");
     }
   }
 
@@ -601,7 +602,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
                         localization.playboost_title,
                         style: const TextStyle(color: Colors.white),
                       ),
-                      // Subtitle removed per request
                       value: _enablePlayboost,
                       onChanged: (val) {
                         _togglePlayboost(val);
