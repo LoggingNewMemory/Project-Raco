@@ -1,14 +1,22 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart'; // MIGRATED
-import 'package:path/path.dart' as p; // Use path package alias
+import 'package:flutter/services.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import '/l10n/app_localizations.dart';
+
+// =========================================================
+//  DATA MODELS
+// =========================================================
 
 class RacoPluginModel {
   final String id;
@@ -37,6 +45,10 @@ class RacoPluginModel {
     required this.hasWebRoot,
   });
 }
+
+// =========================================================
+//  MAIN PLUGINS LIST PAGE
+// =========================================================
 
 class RacoPluginsPage extends StatefulWidget {
   final String? backgroundImagePath;
@@ -120,14 +132,17 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     setState(() => _isLoading = true);
     List<RacoPluginModel> loadedPlugins = [];
 
+    // Ensure directory exists
     await _runRootCommand('mkdir -p $_pluginBasePath');
     await _runRootCommand('touch $_pluginTxtPath');
 
+    // Read enabled/disabled status
     final String pluginTxtContent = await _runRootCommand(
       'cat $_pluginTxtPath',
     );
     final Map<String, bool> bootStatusMap = _parsePluginTxt(pluginTxtContent);
 
+    // List plugins
     final String lsResult = await _runRootCommand('ls $_pluginBasePath');
     final List<String> folders = lsResult
         .split('\n')
@@ -150,7 +165,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         String? webUi = props['web_ui'];
         if (webUi != null && webUi.isEmpty) webUi = null;
 
-        // 2. Check for local webroot (folder/index.html)
+        // 2. Check for local webroot (folder/webroot/index.html)
         final String webRootCheck = await _runRootCommand(
           '[ -f "$currentPath/webroot/index.html" ] && echo 1 || echo 0',
         );
@@ -220,6 +235,7 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
 
   Future<void> _togglePluginBoot(RacoPluginModel plugin, bool newValue) async {
     final int intVal = newValue ? 1 : 0;
+    // Safe sed command to update or append the config line
     final String cmd =
         'if grep -q "^${plugin.id}=" $_pluginTxtPath; then '
         'sed -i "s/^${plugin.id}=.*/${plugin.id}=$intVal/" $_pluginTxtPath; '
@@ -307,24 +323,25 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   }
 
   void _openWebUI(RacoPluginModel plugin) {
-    String? targetUrl;
-    bool isLocalFile = false;
-
     if (plugin.webUiUrl != null && plugin.webUiUrl!.isNotEmpty) {
-      targetUrl = plugin.webUiUrl;
-    } else if (plugin.hasWebRoot) {
-      // Point to the root location; the page will handle copying it
-      targetUrl = "${plugin.path}/webroot/index.html";
-      isLocalFile = true;
-    }
-
-    if (targetUrl != null) {
+      // Remote URL
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => PluginWebUiPage(
             title: plugin.name,
-            url: targetUrl!,
-            isLocalFile: isLocalFile,
+            remoteUrl: plugin.webUiUrl,
+            pluginPath: plugin.path,
+          ),
+        ),
+      );
+    } else if (plugin.hasWebRoot) {
+      // Local WebRoot - Points to the webroot folder inside the plugin
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PluginWebUiPage(
+            title: plugin.name,
+            localWebRoot: "${plugin.path}/webroot",
+            pluginPath: plugin.path,
           ),
         ),
       );
@@ -596,6 +613,10 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   }
 }
 
+// =========================================================
+//  PLUGIN CARD WIDGET
+// =========================================================
+
 class _PluginCard extends StatefulWidget {
   final RacoPluginModel plugin;
   final Future<void> Function() onRunService;
@@ -619,13 +640,10 @@ class _PluginCard extends StatefulWidget {
 }
 
 class _PluginCardState extends State<_PluginCard> {
-  // Colors from the screenshot
   static const Color _webUiColor = Color(0xFF1E3A3A); // Dark Teal/Green
   static const Color _webUiIconColor = Color(0xFF80CBC4); // Light Teal
-
   static const Color _actionColor = Color(0xFF333D29); // Dark Olive
   static const Color _actionIconColor = Color(0xFFA5D6A7); // Light Green
-
   static const Color _runColor = Color(0xFF2E4F3E); // Dark Green Pill
   static const Color _runTextColor = Color(0xFFE8F5E9);
 
@@ -824,6 +842,10 @@ class _PluginCardState extends State<_PluginCard> {
   }
 }
 
+// =========================================================
+//  TERMINAL LOG DIALOG
+// =========================================================
+
 class TerminalPage extends StatefulWidget {
   final String title;
   final Future<void> Function(Function(String) log) task;
@@ -925,19 +947,21 @@ class _TerminalPageState extends State<TerminalPage> {
 }
 
 // =========================================================
-//  UPDATED WEB UI PAGE WITH INAPPWEBVIEW AND FILE COPYING
+//  WEB UI PAGE (KSU Compatible + Localhost Server)
 // =========================================================
 
 class PluginWebUiPage extends StatefulWidget {
   final String title;
-  final String url;
-  final bool isLocalFile;
+  final String? remoteUrl;
+  final String? localWebRoot; // Original Path in /data
+  final String pluginPath;
 
   const PluginWebUiPage({
     Key? key,
     required this.title,
-    required this.url,
-    required this.isLocalFile,
+    this.remoteUrl,
+    this.localWebRoot,
+    required this.pluginPath,
   }) : super(key: key);
 
   @override
@@ -946,65 +970,125 @@ class PluginWebUiPage extends StatefulWidget {
 
 class _PluginWebUiPageState extends State<PluginWebUiPage> {
   InAppWebViewController? _controller;
+  HttpServer? _server;
   bool _isLoading = true;
   String? _errorMessage;
-  String? _finalUrl;
+  String? _targetUrl;
+  String? _webCachePath;
 
   @override
   void initState() {
     super.initState();
-    _prepareContent();
+    _initWebUI();
   }
 
-  Future<void> _prepareContent() async {
-    // If it's a remote URL, just use it
-    if (!widget.isLocalFile) {
+  @override
+  void dispose() {
+    _server?.close(force: true);
+    super.dispose();
+  }
+
+  Future<void> _initWebUI() async {
+    // 1. If Remote URL, just use it
+    if (widget.remoteUrl != null) {
       setState(() {
-        _finalUrl = widget.url;
+        _targetUrl = widget.remoteUrl;
         _isLoading = false;
       });
       return;
     }
 
-    // IF LOCAL FILE:
-    // We cannot access /data/ProjectRaco directly from WebView (Sandbox restriction).
-    // We must COPY the webroot to the App's private cache directory first.
-    try {
-      final Directory cacheDir = await getApplicationSupportDirectory();
-      final String webCachePath = '${cacheDir.path}/web_ui_cache';
-
-      // Calculate source directory (e.g., /data/ProjectRaco/Plugins/PingPimp/webroot)
-      final String sourceDir = p.dirname(widget.url);
-
-      // Command to copy files securely via root
-      // 1. Remove old cache
-      // 2. Create directory
-      // 3. Copy files (-r)
-      // 4. chmod 777 so the App/WebView can definitely read them
-      final String cmd =
-          'rm -rf "$webCachePath" && '
-          'mkdir -p "$webCachePath" && '
-          'cp -r "$sourceDir"/* "$webCachePath/" && '
-          'chmod -R 777 "$webCachePath"';
-
-      await Process.run('su', ['-c', cmd]);
-
-      // Check if index.html exists in the new location
-      final File indexFile = File('$webCachePath/index.html');
-      if (await indexFile.exists()) {
+    // 2. If Local WebRoot, set up Localhost Server
+    if (widget.localWebRoot != null) {
+      try {
+        await _setupLocalServer();
+      } catch (e) {
         setState(() {
-          _finalUrl = 'file://${indexFile.path}';
+          _errorMessage = "Failed to start local server: $e";
           _isLoading = false;
         });
-      } else {
-        throw Exception("Index file not found after copy.");
       }
-    } catch (e) {
+    } else {
       setState(() {
+        _errorMessage = "Invalid WebUI Configuration";
         _isLoading = false;
-        _errorMessage = "Failed to stage WebUI files: $e";
       });
     }
+  }
+
+  Future<void> _setupLocalServer() async {
+    // A. Prepare Cache Directory
+    final Directory cacheDir = await getApplicationSupportDirectory();
+    final String folderName =
+        widget.pluginPath.hashCode.toRadixString(16) + "_webroot";
+    _webCachePath = '${cacheDir.path}/web_cache/$folderName';
+
+    // Cleanup old cache
+    await Process.run('su', ['-c', 'rm -rf "$_webCachePath"']);
+    await Process.run('su', ['-c', 'mkdir -p "$_webCachePath"']);
+
+    // Copy files recursively to preserve structure (assets/ etc)
+    final copyResult = await Process.run('su', [
+      '-c',
+      'cp -r "${widget.localWebRoot}"/* "$_webCachePath/" && chmod -R 777 "$_webCachePath"',
+    ]);
+
+    if (copyResult.exitCode != 0) {
+      throw Exception("Failed to stage files. Check root permissions.");
+    }
+
+    // B. Start Http Server on Ephemeral Port
+    _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    final int port = _server!.port;
+
+    _server!.listen((HttpRequest request) {
+      _handleRequest(request);
+    });
+
+    setState(() {
+      _targetUrl = 'http://127.0.0.1:$port/index.html';
+      _isLoading = false;
+    });
+  }
+
+  void _handleRequest(HttpRequest request) async {
+    // 1. Clean Path
+    String cleanPath = request.uri.path;
+    if (cleanPath == '/') cleanPath = '/index.html';
+
+    // 2. Resolve File
+    final File file = File('$_webCachePath$cleanPath');
+
+    // 3. Serve
+    if (await file.exists()) {
+      request.response.headers.contentType = _getContentType(cleanPath);
+      // Disable caching for development/tweak purposes
+      request.response.headers.add(
+        "Cache-Control",
+        "no-cache, no-store, must-revalidate",
+      );
+      await file.openRead().pipe(request.response);
+    } else {
+      request.response.statusCode = HttpStatus.notFound;
+      request.response.write('404 Not Found: $cleanPath');
+      request.response.close();
+    }
+  }
+
+  ContentType _getContentType(String path) {
+    if (path.endsWith('.html')) return ContentType.html;
+    if (path.endsWith('.css')) return ContentType('text', 'css');
+    if (path.endsWith('.js')) return ContentType('application', 'javascript');
+    if (path.endsWith('.json')) return ContentType.json;
+    if (path.endsWith('.png')) return ContentType('image', 'png');
+    if (path.endsWith('.jpg') || path.endsWith('.jpeg'))
+      return ContentType('image', 'jpeg');
+    if (path.endsWith('.svg')) return ContentType('image', 'svg+xml');
+    if (path.endsWith('.gif')) return ContentType('image', 'gif');
+    if (path.endsWith('.ttf')) return ContentType('font', 'ttf');
+    if (path.endsWith('.woff')) return ContentType('font', 'woff');
+    if (path.endsWith('.woff2')) return ContentType('font', 'woff2');
+    return ContentType.binary;
   }
 
   @override
@@ -1032,23 +1116,134 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
                 ),
               ),
             )
-          else if (_finalUrl != null)
+          else if (_targetUrl != null)
             InAppWebView(
-              initialUrlRequest: URLRequest(url: WebUri(_finalUrl!)),
+              initialUrlRequest: URLRequest(url: WebUri(_targetUrl!)),
               initialSettings: InAppWebViewSettings(
-                // ESSENTIAL for loading local files
                 allowFileAccess: true,
                 allowContentAccess: true,
-                // ESSENTIAL for local CSS/JS/Assets to load relative to index.html
-                allowUniversalAccessFromFileURLs: true,
-                allowFileAccessFromFileURLs: true,
-                domStorageEnabled: true,
-                javaScriptEnabled: true,
                 useWideViewPort: true,
                 loadWithOverviewMode: true,
+                domStorageEnabled: true,
+                javaScriptEnabled: true,
+                displayZoomControls: false,
+                // mixedContentMode handles http://localhost images loading in https context if needed
+                mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
               ),
+              // Inject KSU API Standard (Compatible with PingPimp)
+              initialUserScripts: UnmodifiableListView<UserScript>([
+                UserScript(
+                  source: """
+                    (function() {
+                      if (window.ksu) return;
+                      window.ksu = {
+                          // Standard KSU exec: command, options, callback(errno, stdout, stderr)
+                          // Note: The script.js provided uses ksu.exec(cmd, "{}", "callbackName")
+                          exec: function(command, options, callbackOrName) {
+                              
+                              // Handle both function callback and string name callback
+                              let cbName = null;
+                              if (typeof callbackOrName === 'string') {
+                                  cbName = callbackOrName;
+                              }
+
+                              // Call Flutter Handler
+                              window.flutter_inappwebview.callHandler('ksuExec', command, options)
+                              .then(result => {
+                                  if (cbName) {
+                                      // If callback was passed as a global window function name (PingPimp style)
+                                      if (typeof window[cbName] === 'function') {
+                                          window[cbName](result.errno, result.stdout, result.stderr);
+                                      }
+                                  } else if (typeof callbackOrName === 'function') {
+                                      // If callback was passed as a function (Standard KSU style)
+                                      callbackOrName(result.errno, result.stdout, result.stderr);
+                                  }
+                              })
+                              .catch(error => {
+                                  console.error("KSU Bridge Error: " + error);
+                                  // Try to report error to callback if possible
+                                  if (cbName && typeof window[cbName] === 'function') {
+                                      window[cbName](-1, "", error.toString());
+                                  }
+                              });
+                          },
+                          toast: function(message) {
+                              window.flutter_inappwebview.callHandler('ksuToast', message);
+                          },
+                          fullScreen: function(enable) {
+                              window.flutter_inappwebview.callHandler('ksuFullScreen', enable);
+                          }
+                      };
+                      // try to make it immutable
+                      try { Object.defineProperty(window, 'ksu', { writable: false }); } catch (e) {}
+                    })();
+                  """,
+                  injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
+                ),
+              ]),
               onWebViewCreated: (controller) {
                 _controller = controller;
+
+                // 1. KSU Exec Handler
+                controller.addJavaScriptHandler(
+                  handlerName: 'ksuExec',
+                  callback: (args) async {
+                    if (args.isEmpty) return null;
+                    String cmd = args[0].toString();
+                    debugPrint("KSU Exec: $cmd");
+                    try {
+                      // Execute command as root within the plugin directory context
+                      // We must wrap in 'sh -c' or just pass to 'su -c'
+                      final String fullCmd =
+                          'cd "${widget.pluginPath}" && $cmd';
+                      final result = await Process.run('su', ['-c', fullCmd]);
+                      return {
+                        'errno': result.exitCode,
+                        'stdout': result.stdout.toString(),
+                        'stderr': result.stderr.toString(),
+                      };
+                    } catch (e) {
+                      return {
+                        'errno': -1,
+                        'stdout': '',
+                        'stderr': e.toString(),
+                      };
+                    }
+                  },
+                );
+
+                // 2. KSU Toast Handler
+                controller.addJavaScriptHandler(
+                  handlerName: 'ksuToast',
+                  callback: (args) {
+                    if (args.isNotEmpty) {
+                      String msg = args[0].toString();
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(msg)));
+                    }
+                  },
+                );
+
+                // 3. KSU FullScreen Handler
+                controller.addJavaScriptHandler(
+                  handlerName: 'ksuFullScreen',
+                  callback: (args) {
+                    if (args.isNotEmpty) {
+                      bool enable = args[0] == true;
+                      if (enable) {
+                        SystemChrome.setEnabledSystemUIMode(
+                          SystemUiMode.immersiveSticky,
+                        );
+                      } else {
+                        SystemChrome.setEnabledSystemUIMode(
+                          SystemUiMode.edgeToEdge,
+                        );
+                      }
+                    }
+                  },
+                );
               },
               onLoadStart: (controller, url) {
                 setState(() => _isLoading = true);
@@ -1057,7 +1252,6 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
                 setState(() => _isLoading = false);
               },
               onReceivedError: (controller, request, error) {
-                // Ignore minor errors, only show critical ones if needed
                 debugPrint("WebView Error: ${error.description}");
               },
             ),
