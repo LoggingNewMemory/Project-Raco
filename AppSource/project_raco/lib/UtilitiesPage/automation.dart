@@ -11,7 +11,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '/l10n/app_localizations.dart';
 import 'utils.dart';
 
-// --- Added AppItem class for caching support ---
 class AppItem {
   final String name;
   final String packageName;
@@ -512,7 +511,6 @@ class AppListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Note: Use localization keys for "Applist" in future updates.
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -570,12 +568,11 @@ class AppListPage extends StatefulWidget {
 class _AppListPageState extends State<AppListPage> {
   final String _gameTxtPath = '/data/ProjectRaco/game.txt';
   final String _databasePath = '/data/adb/modules/ProjectRaco/game_list.txt';
-  // --- New cache keys ---
   static const String _prefsKeyApps = 'applist_cached_apps';
 
   bool _isLoading = true;
-  List<AppItem> _installedApps = []; // Changed from AppInfo to AppItem
-  List<AppItem> _filteredApps = []; // Changed from AppInfo to AppItem
+  List<AppItem> _installedApps = [];
+  List<AppItem> _filteredApps = [];
   Set<String> _enabledPackages = {};
   Set<String> _recommendedPackages = {};
   String _searchQuery = "";
@@ -587,17 +584,11 @@ class _AppListPageState extends State<AppListPage> {
   }
 
   Future<void> _initData() async {
-    // 1. Load Caches first for instant UI
     await _loadFromCache();
-
-    // 2. Load configurations
     await Future.wait([_loadRecommendedDb(), _loadEnabledPackages()]);
-
-    // 3. Fetch fresh installed apps in background/update UI
     _fetchInstalledApps(forceRefresh: false);
   }
 
-  // --- Caching Logic ---
   Future<Directory> _getIconCacheDir() async {
     final docsDir = await getApplicationDocumentsDirectory();
     final iconDir = Directory('${docsDir.path}/app_icons');
@@ -654,7 +645,6 @@ class _AppListPageState extends State<AppListPage> {
       debugPrint("Cache save error: $e");
     }
   }
-  // --- End Caching Logic ---
 
   Future<void> _loadRecommendedDb() async {
     try {
@@ -697,7 +687,6 @@ class _AppListPageState extends State<AppListPage> {
         if (mounted) {
           setState(() {
             _enabledPackages = enabled;
-            // Re-filter if we have apps loaded
             if (_installedApps.isNotEmpty) _filterApps();
           });
         }
@@ -735,7 +724,7 @@ class _AppListPageState extends State<AppListPage> {
           AppItem(
             name: info.name ?? "Unknown",
             packageName: info.packageName ?? "",
-            iconBytes: info.icon, // Fallback if file write fails
+            iconBytes: info.icon,
             iconPath: iconPath,
           ),
         );
@@ -769,7 +758,6 @@ class _AppListPageState extends State<AppListPage> {
       }).toList();
     }
 
-    // Sort logic: Enabled -> Recommended -> Alphabetical
     _filteredApps.sort((a, b) {
       final pkgA = a.packageName;
       final pkgB = b.packageName;
@@ -793,7 +781,7 @@ class _AppListPageState extends State<AppListPage> {
       } else {
         _enabledPackages.add(packageName);
       }
-      _filterApps(); // Re-sort to move enabled items to top
+      _filterApps();
     });
 
     try {
@@ -816,8 +804,6 @@ class _AppListPageState extends State<AppListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Applist'),
@@ -875,11 +861,6 @@ class _AppListPageState extends State<AppListPage> {
                   ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showManualAddDialog,
-        backgroundColor: colorScheme.primaryContainer,
-        child: const Icon(Icons.add),
       ),
     );
   }
@@ -968,7 +949,6 @@ class _AppListPageState extends State<AppListPage> {
   }
 
   Widget _buildAppIcon(AppItem app) {
-    // 1. Try file path first (Memory efficient)
     if (app.iconPath != null) {
       return Image.file(
         File(app.iconPath!),
@@ -977,11 +957,9 @@ class _AppListPageState extends State<AppListPage> {
             const Icon(Icons.android, color: Colors.white54),
       );
     }
-    // 2. Fallback to bytes
     if (app.iconBytes != null) {
       return Image.memory(app.iconBytes!, fit: BoxFit.cover);
     }
-    // 3. Default
     return const Icon(Icons.android, color: Colors.white54);
   }
 
@@ -1005,38 +983,6 @@ class _AppListPageState extends State<AppListPage> {
           fontWeight: FontWeight.bold,
           letterSpacing: 0.5,
         ),
-      ),
-    );
-  }
-
-  void _showManualAddDialog() {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Package Manually'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'com.example.game',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (controller.text.isNotEmpty) {
-                _toggleApp(controller.text.trim());
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
       ),
     );
   }
