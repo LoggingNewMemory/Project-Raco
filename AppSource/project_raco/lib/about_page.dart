@@ -176,6 +176,10 @@ class _AboutPageState extends State<AboutPage> {
       "Not_ValentineSTCV",
       "Andreyka4_45",
       "Zexshia",
+      "kaminarich",
+      "fuckyoustan",
+      "Xyanz_25",
+      "hirauki",
       "KanaDev_IS",
       localization.credits_11,
     ];
