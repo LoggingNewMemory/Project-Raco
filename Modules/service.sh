@@ -35,7 +35,9 @@ change_cpu_gov() {
 }
 
 # Set CPU governor to performance only if INCLUDE_SANDEV=1
-if grep -q "INCLUDE_SANDEV=1" "$CONFIG_FILE"; then
+INCLUDE_SANDEV=$(grep '^INCLUDE_SANDEV=' "$CONFIG_FILE" | cut -d'=' -f2)
+
+if [ "$INCLUDE_SANDEV" = "1" ]; then
     change_cpu_gov performance
 fi
 
@@ -63,20 +65,27 @@ tweak 0 /proc/sys/kernel/panic_on_warn
 tweak 0 /proc/sys/kernel/softlockup_panic
 
 # Run AnyaMelfissa.sh only if both INCLUDE_ANYA and ANYA are set to 1
-if grep -q "INCLUDE_ANYA=1" "$CONFIG_FILE" && grep -q "ANYA=1" "$CONFIG_FILE"; then
+INCLUDE_ANYA=$(grep '^INCLUDE_ANYA=' "$CONFIG_FILE" | cut -d'=' -f2)
+ANYA_VAL=$(grep '^ANYA=' "$CONFIG_FILE" | cut -d'=' -f2)
+
+if [ "$INCLUDE_ANYA" = "1" ] && [ "$ANYA_VAL" = "1" ]; then
     sh /data/adb/modules/ProjectRaco/Scripts/AnyaMelfissa.sh
     send_notif "Anya Melfissa" "Good Day! Thermal Is Dead BTW" "TagAnya" "/data/local/tmp/Anya.png"
 fi
 
 # Run KoboKanaeru.sh if INCLUDE_KOBO=1
-if grep -q "INCLUDE_KOBO=1" "$CONFIG_FILE"; then
+INCLUDE_KOBO=$(grep '^INCLUDE_KOBO=' "$CONFIG_FILE" | cut -d'=' -f2)
+
+if [ "$INCLUDE_KOBO" = "1" ]; then
     sh /data/adb/modules/ProjectRaco/Scripts/KoboKanaeru.sh
 fi
 
 # Ayunda Rusdi
 
 # AmeRender
-if grep -q "INCLUDE_ZETAMIN=1" "$CONFIG_FILE"; then
+INCLUDE_ZETAMIN=$(grep '^INCLUDE_ZETAMIN=' "$CONFIG_FILE" | cut -d'=' -f2)
+
+if [ "$INCLUDE_ZETAMIN" = "1" ]; then
     sh /data/adb/modules/ProjectRaco/Scripts/Zetamin.sh
 fi
 
@@ -144,7 +153,7 @@ fi
 # ----------------------------------
 
 # Revert CPU governor to default after configured duration, only if INCLUDE_SANDEV=1
-if grep -q "INCLUDE_SANDEV=1" "$CONFIG_FILE"; then
+if [ "$INCLUDE_SANDEV" = "1" ]; then
     SANDEV_DUR=$(grep '^SANDEV_DUR=' "$CONFIG_FILE" | cut -d'=' -f2)
     sleep "$SANDEV_DUR"
     
