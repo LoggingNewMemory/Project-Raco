@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:installed_apps/app_info.dart';
+import 'package:installed_apps/installed_apps.dart';
 import '/l10n/app_localizations.dart';
 import 'utils.dart';
 
@@ -71,7 +73,7 @@ class _AutomationPageState extends State<AutomationPage> {
             initialHamadaAiEnabled: _hamadaAiState?['enabled'] ?? false,
             initialHamadaStartOnBoot: _hamadaAiState?['onBoot'] ?? false,
           ),
-          const GameTxtCard(),
+          const AppListCard(),
         ],
       ),
     );
@@ -130,7 +132,6 @@ class _HamadaAiCardState extends State<HamadaAiCard>
   late bool _hamadaAiEnabled;
   late bool _hamadaStartOnBoot;
 
-  // Config states
   bool _powersaveScreenOff = true;
   String _normalLoop = "5";
   String _offLoop = "7";
@@ -179,7 +180,7 @@ class _HamadaAiCardState extends State<HamadaAiCard>
         final content = result.stdout.toString();
         final lines = content.split('\n');
 
-        bool psEnabled = true; // Default 1
+        bool psEnabled = true;
         String loop = "5";
         String loopOff = "7";
 
@@ -205,7 +206,7 @@ class _HamadaAiCardState extends State<HamadaAiCard>
         }
       }
     } catch (e) {
-      // debugPrint('Error reading raco.txt: $e');
+      // Ignore
     } finally {
       if (mounted) setState(() => _loadingConfig = false);
     }
@@ -220,7 +221,6 @@ class _HamadaAiCardState extends State<HamadaAiCard>
     if (mounted) setState(() => _isSavingConfig = true);
 
     try {
-      // 1. Read existing
       final readRes = await runRootCommandAndWait('cat $_configPath');
       String content = "";
       if (readRes.exitCode == 0) {
@@ -229,18 +229,15 @@ class _HamadaAiCardState extends State<HamadaAiCard>
 
       List<String> lines = content.split('\n');
 
-      // Update values
       final newPs = powersave ?? _powersaveScreenOff;
       final newLoop = loop ?? _normalLoopCtrl.text;
       final newLoopOff = loopOff ?? _offLoopCtrl.text;
 
-      // Helper to update or append key
       void updateKey(String key, String val) {
         int idx = lines.indexWhere((l) => l.startsWith('$key='));
         if (idx != -1) {
           lines[idx] = '$key=$val';
         } else {
-          // If [HamadaAI] section exists, append there, else append end
           int secIdx = lines.indexWhere((l) => l.trim() == '[HamadaAI]');
           if (secIdx != -1) {
             lines.insert(secIdx + 1, '$key=$val');
@@ -250,7 +247,6 @@ class _HamadaAiCardState extends State<HamadaAiCard>
         }
       }
 
-      // Ensure min value 2
       String validate(String v) {
         int? i = int.tryParse(v);
         if (i == null || i < 2) return "2";
@@ -261,29 +257,25 @@ class _HamadaAiCardState extends State<HamadaAiCard>
       updateKey('HAMADA_LOOP', validate(newLoop));
       updateKey('HAMADA_LOOP_OFF', validate(newLoopOff));
 
-      // Reconstruct
       String newContent = lines.join('\n');
 
-      // Write back
       String base64Content = base64Encode(utf8.encode(newContent));
       await runRootCommandAndWait(
         "echo '$base64Content' | base64 -d > $_configPath",
       );
 
-      // Update local state
       if (mounted) {
         setState(() {
           _powersaveScreenOff = newPs;
           _normalLoop = validate(newLoop);
           _offLoop = validate(newLoopOff);
-          // Sync text fields if validation changed values
           if (_normalLoopCtrl.text != _normalLoop)
             _normalLoopCtrl.text = _normalLoop;
           if (_offLoopCtrl.text != _offLoop) _offLoopCtrl.text = _offLoop;
         });
       }
     } catch (e) {
-      // Handle error
+      // Ignore
     } finally {
       if (mounted) setState(() => _isSavingConfig = false);
     }
@@ -431,7 +423,6 @@ class _HamadaAiCardState extends State<HamadaAiCard>
               contentPadding: EdgeInsets.zero,
             ),
             const Divider(),
-            // --- New Config Controls ---
             SwitchListTile(
               title: Text(localization.hamada_powersave_screen_off_title),
               value: _powersaveScreenOff,
@@ -498,142 +489,12 @@ class _HamadaAiCardState extends State<HamadaAiCard>
   }
 }
 
-/// A simple, full-screen text editor page.
-class GameTxtEditorPage extends StatefulWidget {
-  final String initialContent;
-
-  const GameTxtEditorPage({Key? key, required this.initialContent})
-    : super(key: key);
-
-  @override
-  _GameTxtEditorPageState createState() => _GameTxtEditorPageState();
-}
-
-class _GameTxtEditorPageState extends State<GameTxtEditorPage> {
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialContent);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _saveAndExit() {
-    Navigator.pop(context, _controller.text);
-  }
+class AppListCard extends StatelessWidget {
+  const AppListCard({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('game.txt'),
-        elevation: 1,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save_outlined),
-            tooltip: 'Save & Close',
-            onPressed: _saveAndExit,
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-        child: TextField(
-          controller: _controller,
-          maxLines: null,
-          expands: true,
-          keyboardType: TextInputType.multiline,
-          autofocus: true,
-          decoration: const InputDecoration(
-            border: InputBorder.none,
-            hintText: 'Add package names, one per line...',
-          ),
-          style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
-        ),
-      ),
-    );
-  }
-}
-
-class GameTxtCard extends StatefulWidget {
-  const GameTxtCard({Key? key}) : super(key: key);
-  @override
-  _GameTxtCardState createState() => _GameTxtCardState();
-}
-
-class _GameTxtCardState extends State<GameTxtCard>
-    with AutomaticKeepAliveClientMixin {
-  bool _isBusy = false;
-
-  static const String _originalFilePath = '/data/ProjectRaco/game.txt';
-
-  @override
-  bool get wantKeepAlive => true;
-
-  Future<void> _editGameTxt() async {
-    if (!await checkRootAccess()) {
-      return;
-    }
-    if (!mounted) return;
-    setState(() => _isBusy = true);
-
-    String originalContent = '';
-    try {
-      final result = await runRootCommandAndWait('cat $_originalFilePath');
-
-      if (result.exitCode == 0) {
-        originalContent = result.stdout.toString();
-      } else if (!result.stderr.toString().contains(
-        'No such file or directory',
-      )) {
-        throw Exception('Failed to read file: ${result.stderr}');
-      }
-
-      if (!mounted) return;
-
-      final newContent = await Navigator.push<String?>(
-        context,
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (context) =>
-              GameTxtEditorPage(initialContent: originalContent),
-        ),
-      );
-
-      if (newContent != null && newContent != originalContent) {
-        await _saveGameTxt(newContent);
-      }
-    } catch (e) {
-      // Error handling
-    } finally {
-      if (mounted) setState(() => _isBusy = false);
-    }
-  }
-
-  Future<void> _saveGameTxt(String content) async {
-    try {
-      final base64Content = base64Encode(utf8.encode(content));
-      final writeCmd = "echo '$base64Content' | base64 -d > $_originalFilePath";
-      final result = await runRootCommandAndWait(writeCmd);
-
-      if (result.exitCode != 0) {
-        throw Exception('Failed to write to file: ${result.stderr}');
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    final localization = AppLocalizations.of(context)!;
+    // Note: Use localization keys for "Applist" in future updates.
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -648,33 +509,405 @@ class _GameTxtCardState extends State<GameTxtCard>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              localization.edit_game_txt_title,
+              "Applist",
               style: textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              localization.game_txt_hint,
+              "Manage apps for performance profile.",
               style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
             ),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _isBusy ? null : _editGameTxt,
-                icon: _isBusy
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.edit_note),
-                label: Text(localization.edit_game_txt_title),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AppListPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.apps),
+                label: const Text("Open Applist"),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class AppListPage extends StatefulWidget {
+  const AppListPage({Key? key}) : super(key: key);
+
+  @override
+  _AppListPageState createState() => _AppListPageState();
+}
+
+class _AppListPageState extends State<AppListPage> {
+  final String _gameTxtPath = '/data/ProjectRaco/game.txt';
+  // Optional: Define a path if you want to load recommended apps from a file
+  final String _databasePath = '/data/adb/modules/ProjectRaco/game_list.txt';
+
+  bool _isLoading = true;
+  List<AppInfo> _installedApps = [];
+  List<AppInfo> _filteredApps = [];
+  Set<String> _enabledPackages = {};
+  Set<String> _recommendedPackages = {};
+  String _searchQuery = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _initData();
+  }
+
+  Future<void> _initData() async {
+    // 1. Load Recommended Database (File based, not hardcoded)
+    await _loadRecommendedDb();
+
+    // 2. Load Enabled Packages from game.txt
+    await _loadEnabledPackages();
+
+    // 3. Load Installed Apps
+    await _loadInstalledApps();
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _filterApps();
+      });
+    }
+  }
+
+  Future<void> _loadRecommendedDb() async {
+    // Attempt to read a database file if it exists
+    try {
+      if (await checkRootAccess()) {
+        final result = await runRootCommandAndWait('cat $_databasePath');
+        if (result.exitCode == 0) {
+          final content = result.stdout.toString();
+          final lines = content.split('\n');
+          for (var line in lines) {
+            final trimmed = line.trim();
+            if (trimmed.isNotEmpty &&
+                !trimmed.startsWith('#') &&
+                !trimmed.startsWith('[')) {
+              _recommendedPackages.add(trimmed);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Fail silently or just have empty recommended list
+      // debugPrint("Database load error: $e");
+    }
+  }
+
+  Future<void> _loadEnabledPackages() async {
+    try {
+      if (!await checkRootAccess()) return;
+      final result = await runRootCommandAndWait('cat $_gameTxtPath');
+      if (result.exitCode == 0) {
+        final content = result.stdout.toString();
+        final lines = content.split('\n');
+        final enabled = <String>{};
+        for (var line in lines) {
+          final trimmed = line.trim();
+          if (trimmed.isNotEmpty &&
+              !trimmed.startsWith('#') &&
+              !trimmed.startsWith('[')) {
+            enabled.add(trimmed);
+          }
+        }
+        _enabledPackages = enabled;
+      }
+    } catch (e) {
+      // debugPrint("Error loading game.txt: $e");
+    }
+  }
+
+  Future<void> _loadInstalledApps() async {
+    try {
+      List<AppInfo> apps = await InstalledApps.getInstalledApps(true, true);
+      _installedApps = apps;
+    } catch (e) {
+      // debugPrint("Error loading installed apps: $e");
+    }
+  }
+
+  void _filterApps() {
+    if (_searchQuery.isEmpty) {
+      _filteredApps = List.from(_installedApps);
+    } else {
+      _filteredApps = _installedApps.where((app) {
+        final name = app.name?.toLowerCase() ?? "";
+        final pkg = app.packageName?.toLowerCase() ?? "";
+        final q = _searchQuery.toLowerCase();
+        return name.contains(q) || pkg.contains(q);
+      }).toList();
+    }
+
+    // Sort logic:
+    // 1. Enabled (Top priority)
+    // 2. Recommended (Secondary priority)
+    // 3. Alphabetical
+    _filteredApps.sort((a, b) {
+      final pkgA = a.packageName ?? "";
+      final pkgB = b.packageName ?? "";
+
+      final bool enA = _enabledPackages.contains(pkgA);
+      final bool enB = _enabledPackages.contains(pkgB);
+      final bool recA = _recommendedPackages.contains(pkgA);
+      final bool recB = _recommendedPackages.contains(pkgB);
+
+      if (enA != enB) return enA ? -1 : 1;
+      if (recA != recB) return recA ? -1 : 1;
+
+      return (a.name ?? "").toLowerCase().compareTo(
+        (b.name ?? "").toLowerCase(),
+      );
+    });
+  }
+
+  Future<void> _toggleApp(String packageName) async {
+    setState(() {
+      if (_enabledPackages.contains(packageName)) {
+        _enabledPackages.remove(packageName);
+      } else {
+        _enabledPackages.add(packageName);
+      }
+      _filterApps(); // Re-sort to move enabled items to top if needed
+    });
+
+    try {
+      final buffer = StringBuffer();
+      buffer.writeln("# Generated by Applist Manager");
+      buffer.writeln();
+
+      final sortedPackages = _enabledPackages.toList()..sort();
+      buffer.writeln(sortedPackages.join('\n'));
+
+      final content = buffer.toString();
+      final base64Content = base64Encode(utf8.encode(content));
+      await runRootCommandAndWait(
+        "echo '$base64Content' | base64 -d > $_gameTxtPath",
+      );
+    } catch (e) {
+      // debugPrint("Error saving game.txt: $e");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Applist'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_vert),
+            onPressed: () {
+              // Add options like "Reload" here if needed
+              _initData();
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search apps...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+              ),
+              onChanged: (val) {
+                setState(() {
+                  _searchQuery = val;
+                  _filterApps();
+                });
+              },
+            ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 80),
+                    itemCount: _filteredApps.length,
+                    itemBuilder: (context, index) {
+                      final app = _filteredApps[index];
+                      final pkg = app.packageName ?? "";
+                      final isEnabled = _enabledPackages.contains(pkg);
+                      final isRecommended = _recommendedPackages.contains(pkg);
+
+                      return _buildAppCard(app, isEnabled, isRecommended);
+                    },
+                  ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showManualAddDialog,
+        backgroundColor: colorScheme.primaryContainer,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildAppCard(AppInfo app, bool isEnabled, bool isRecommended) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+      child: Card(
+        // Dark card color (adjust based on your theme, or use surfaceVariant)
+        color: const Color(0xFF1E1E1E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 0,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _toggleApp(app.packageName ?? ""),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.grey[800],
+                    image: app.icon != null
+                        ? DecorationImage(
+                            image: MemoryImage(app.icon!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: app.icon == null ? const Icon(Icons.android) : null,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        app.name ?? "Unknown",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white, // Enforce light text
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        app.packageName ?? "",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.5),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          _buildBadge(
+                            text: isEnabled ? "ENABLED" : "DISABLED",
+                            color: isEnabled
+                                ? const Color(0xFF4CAF50) // Green 500
+                                : const Color(0xFFE57373), // Red 300
+                            bgColor: isEnabled
+                                ? const Color(0xFF1B5E20) // Dark Green bg
+                                : const Color(0xFF3E2723), // Dark Red bg
+                          ),
+                          if (isRecommended) ...[
+                            const SizedBox(width: 8),
+                            _buildBadge(
+                              text: "RECOMMENDED",
+                              color: const Color(0xFFF06292), // Pink 300
+                              bgColor: const Color(0xFF4A1425), // Dark Pink bg
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadge({
+    required String text,
+    required Color color,
+    required Color bgColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bgColor.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  void _showManualAddDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Package Manually'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'com.example.game',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.isNotEmpty) {
+                _toggleApp(controller.text.trim());
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
       ),
     );
   }
