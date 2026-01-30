@@ -18,9 +18,11 @@ com.GameCoaster.ProtectDungeon
 com.HoYoverse.Nap
 com.HoYoverse.hkrpgoversea
 com.LanPiaoPiao.PlantsVsZombiesRH
+com.Nekootan.kfkjos.google
 com.MOBGames.PoppyMobileChap1
 com.OxGames.Pluvia
 com.PigeonGames.Phigros
+com.PigeonGames.Rizline
 com.ProjectMoon.LimbusCompany
 com.Psyonix.RL2D
 com.RickyG.DONTFORGET
@@ -39,9 +41,11 @@ com.Wispwood.ArrowQuest
 com.YoStarEN.Arknights
 com.YoStarEN.HBR
 com.YoStarEN.MahjongSoul
+com.YoStarEN.StellaSora
 com.YoStarJP.MajSoul
 com.YoStar.AetherGazer
 com.YostarJP.BlueArchive
+com.YoStarJP.Arknights
 com.ZeroCastleGameStudioINTL.StrikeBusterPrototype
 com.ZeroCastleGameStudio.StrikeBusterPrototype
 com.actgames.bbee
@@ -54,6 +58,7 @@ com.alightcreative.motion
 com.android.test.uibench
 com.andromeda.androbench2
 com.and.games505.Terraria
+com.and.games505.TerrariaPaid
 com.archosaur.sea.dr.gp
 com.asobimo.toramonline
 com.autumn.skullgirls
@@ -143,6 +148,7 @@ com.garena.game.nfsm
 com.gbits.funnyfighter.android.overseas
 com.gravity.romg
 com.gravity.roo.sea
+com.gryphline.endfield.gp
 com.gryphline.exastris.gp
 com.guigugame.guigubahuang
 com.guyou.deadstrike
@@ -370,6 +376,7 @@ com.studiowildcard.wardrumstudios.ark
 com.studiowildcard.wardrumstudios.ark.ncr
 com.sugarfun.gp.sea.lzgwy
 com.sunborn.girlsfrontline.en
+com.sunborn.net
 com.sunborn.neuralcloud
 com.sunborn.neuralcloud.en
 com.superb.rhv
@@ -506,7 +513,6 @@ org.citron.citron_emu
 org.sudachi.sudachi_emu.ea
 org.uzuy.uzuy_emu.ea
 org.yuzu.yuzu_emu
-pro.archiemeng.waifu2x
 ro.alyn_sampmobile.game
 ru.nsu.ccfit.zuev.osuplus
 ru.unisamp_mobile.game
@@ -516,6 +522,7 @@ skyline.purple
 skynet.cputhrottlingtest
 tw.sonet.allbw
 tw.sonet.princessconnect
+tw.txwy.and.arknights
 uk.co.powdertoy.tpt
 vng.games.revelation.mobile
 www.townofmagic.com
