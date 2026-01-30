@@ -379,7 +379,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
 
   Future<void> _applyPlayBoost(String packageName) async {
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 3));
 
       const String script =
           'pid=\$(pgrep -f %PKG% | head -n 1); '
