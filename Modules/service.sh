@@ -64,6 +64,31 @@ tweak 0 /proc/sys/kernel/panic_on_oops
 tweak 0 /proc/sys/kernel/panic_on_warn
 tweak 0 /proc/sys/kernel/softlockup_panic
 
+##############################
+# KamiGO (Open Source with Permission from kaminarich)
+# Version: 1.1
+##############################
+
+INCLUDE_SOC=$(grep '^SOC=' "$CONFIG_FILE" | cut -d'=' -f2)
+
+if [ "$INCLUDE_SOC" = "1" ]; then
+    tweak "/sys/kernel/fpsgo/fbt/enable_ceiling" "0"
+    tweak "/sys/kernel/fpsgo/fbt/limit_cfreq" "0"
+    tweak "/sys/kernel/fpsgo/fbt/limit_rfreq" "0"
+    tweak "/sys/kernel/fpsgo/fbt/limit_uclamp" "0"
+    tweak "/sys/module/mtk_fpsgo/parameters/bhr" "1"
+    tweak "/sys/module/mtk_fpsgo/parameters/bhr_opp" "15"
+    tweak "/sys/kernel/fpsgo/fbt/rescue_enable" "1"
+    tweak "/sys/kernel/fpsgo/fbt/ultra_rescue" "1"
+    tweak "/sys/module/mtk_fpsgo/parameters/rescue_percent" "95"
+    tweak "/sys/module/mtk_fpsgo/parameters/qr_enable" "1"
+    tweak "/sys/kernel/fpsgo/fstb/fstb_self_ctrl_fps_enable" "0"
+    tweak "/sys/kernel/fpsgo/fstb/margin_mode" "1"
+    tweak "/sys/pnpmgr/fpsgo_boost/boost_mode" "1"
+    tweak "/sys/kernel/fpsgo/fbt/boost_VIP" "1"
+    tweak "/sys/kernel/fpsgo/fbt/boost_ta" "1"
+fi
+
 # Run AnyaMelfissa.sh only if both INCLUDE_ANYA and ANYA are set to 1
 INCLUDE_ANYA=$(grep '^INCLUDE_ANYA=' "$CONFIG_FILE" | cut -d'=' -f2)
 ANYA_VAL=$(grep '^ANYA=' "$CONFIG_FILE" | cut -d'=' -f2)
@@ -169,5 +194,3 @@ if [ "$INCLUDE_SANDEV" = "1" ]; then
 
     change_cpu_gov "$DEFAULT_CPU_GOV"
 fi
-
-# HamadaAI
