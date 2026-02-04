@@ -3,14 +3,12 @@ import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // --- GLOBAL VIDEO CACHE ---
-// Defined globally so it persists across the app lifecycle
 late VideoPlayerController _cachedController;
 Future<void>? _initFuture;
 bool _isCacheInitialized = false;
 
-// Call this from main.dart
 void initRacoVideoCache() {
-  if (_isCacheInitialized) return; // Prevent double init
+  if (_isCacheInitialized) return;
 
   _cachedController = VideoPlayerController.asset('assets/RacoL2D.mp4');
   _initFuture = _cachedController
@@ -35,6 +33,31 @@ class RacoPage extends StatefulWidget {
 
 class _RacoPageState extends State<RacoPage> {
   bool _isReady = false;
+  int _dialogueIndex = 0;
+
+  final List<String> _dialogues = [
+    "Welcome. Please scroll down to read more.",
+    "I am Zefanya... though most call me Raco.",
+    "Yamada-sama requested I greet you.",
+    "Don't stare too much... it is embarrassing.",
+    "I was just tidying up the pixels here.",
+    "My ears? Yes, they are real. Please do not touch.",
+    "I hope you are not carrying any red laser pointers.",
+    "I cannot responsible for my actions if I see a red dot.",
+    "Yamada-sama is likely coding right now.",
+    "I have to ensure he remembers to eat and sleep.",
+    "Being a childhood friend is... a lot of work.",
+    "My tail moves on its own. Pay it no mind.",
+    "Do you require refreshments? I can brew some tea.",
+    "I prefer warm fish over expensive dinners.",
+    "The data below is accurate. I verified it myself.",
+    "I am not cold... I am just composed.",
+    "...",
+    "You are quite patient to stay here with me.",
+    "I do not dislike your company, I suppose.",
+    "Feel free to check the Telegram group later.",
+    "I will remain here. Please, proceed.",
+  ];
 
   @override
   void initState() {
@@ -43,16 +66,13 @@ class _RacoPageState extends State<RacoPage> {
   }
 
   void _setupVideo() {
-    // Ensure cache is started if main.dart missed it (fallback)
     if (!_isCacheInitialized && _initFuture == null) {
       initRacoVideoCache();
     }
 
-    // If already initialized, play immediately
     if (_cachedController.value.isInitialized) {
       _playVideo();
     } else {
-      // Otherwise wait for the existing future
       _initFuture?.then((_) {
         if (mounted) _playVideo();
       });
@@ -66,10 +86,14 @@ class _RacoPageState extends State<RacoPage> {
     });
   }
 
+  void _nextDialogue() {
+    setState(() {
+      _dialogueIndex = (_dialogueIndex + 1) % _dialogues.length;
+    });
+  }
+
   @override
   void dispose() {
-    // CRITICAL: Do NOT dispose the controller.
-    // Just pause it so it's ready for next time instantly.
     _cachedController.pause();
     super.dispose();
   }
@@ -94,14 +118,78 @@ class _RacoPageState extends State<RacoPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // --- TOP SECTION: VIDEO ---
+            // --- TOP SECTION: VIDEO WITH VN OVERLAY ---
             Container(
               width: double.infinity,
               color: Colors.black,
               child: _isReady
-                  ? AspectRatio(
-                      aspectRatio: _cachedController.value.aspectRatio,
-                      child: VideoPlayer(_cachedController),
+                  ? Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        AspectRatio(
+                          aspectRatio: _cachedController.value.aspectRatio,
+                          child: VideoPlayer(_cachedController),
+                        ),
+                        // VN Overlay
+                        GestureDetector(
+                          onTap: _nextDialogue,
+                          child: Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+                            // Reduced vertical padding to reduce box height
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24.0,
+                              vertical: 16.0,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.75),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  "Raco",
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                // Reduced spacing
+                                const SizedBox(height: 4),
+                                Text(
+                                  _dialogues[_dialogueIndex],
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    height: 1.4,
+                                  ),
+                                ),
+                                // Reduced spacing
+                                const SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Text(
+                                    "▼ Tap to read",
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.5),
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     )
                   : const SizedBox(
                       height: 400,
@@ -155,7 +243,6 @@ class _RacoPageState extends State<RacoPage> {
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
                     ),
-                    // Japanese name moved here with smaller font
                     Text(
                       "[ゼファニャ・ラチョ]",
                       style: Theme.of(context).textTheme.headlineSmall
