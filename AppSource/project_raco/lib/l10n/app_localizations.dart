@@ -1159,6 +1159,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed {package} from game list'**
   String removed_from_gamelist(String package);
+
+  /// No description provided for @extra_settings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra Settings'**
+  String get extra_settings_title;
+
+  /// No description provided for @extra_settings_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Anya, Kobo, Zetamin, Sandevistan'**
+  String get extra_settings_description;
+
+  /// No description provided for @anya_installer_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Anya Thermal'**
+  String get anya_installer_title;
+
+  /// No description provided for @anya_installer_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable / Enable Thermal | Anya Flowstate'**
+  String get anya_installer_desc;
+
+  /// No description provided for @kobo_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Kobo Fast Charge'**
+  String get kobo_title;
+
+  /// No description provided for @kobo_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Fast Charging Add On'**
+  String get kobo_desc;
+
+  /// No description provided for @zetamin_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Zetamin'**
+  String get zetamin_title;
+
+  /// No description provided for @zetamin_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'All in One Display Tweaks'**
+  String get zetamin_desc;
+
+  /// No description provided for @sandev_boot_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sandevistan Boot'**
+  String get sandev_boot_title;
+
+  /// No description provided for @sandev_boot_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'An Attempt to Make Boot Faster'**
+  String get sandev_boot_desc;
 }
 
 class _AppLocalizationsDelegate

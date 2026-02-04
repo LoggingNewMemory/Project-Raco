@@ -587,4 +587,35 @@ class AppLocalizationsEs extends AppLocalizations {
   String removed_from_gamelist(String package) {
     return 'Eliminado $package de la lista de juegos';
   }
+
+  @override
+  String get extra_settings_title => 'Ajustes Extra';
+
+  @override
+  String get extra_settings_description => 'Anya, Kobo, Zetamin, Sandevistan';
+
+  @override
+  String get anya_installer_title => 'Anya Thermal';
+
+  @override
+  String get anya_installer_desc =>
+      'Desactivar / Activar Thermal | Anya Flowstate';
+
+  @override
+  String get kobo_title => 'Kobo Carga Rápida';
+
+  @override
+  String get kobo_desc => 'Complemento de carga rápida';
+
+  @override
+  String get zetamin_title => 'Zetamin';
+
+  @override
+  String get zetamin_desc => 'Ajustes de pantalla Todo en Uno';
+
+  @override
+  String get sandev_boot_title => 'Arranque Sandevistan';
+
+  @override
+  String get sandev_boot_desc => 'Un intento de hacer el arranque más rápido';
 }

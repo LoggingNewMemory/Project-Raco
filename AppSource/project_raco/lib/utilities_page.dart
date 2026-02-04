@@ -10,7 +10,8 @@ import 'UtilitiesPage/automation.dart';
 import 'UtilitiesPage/core_tweaks.dart';
 import 'UtilitiesPage/system.dart';
 import 'UtilitiesPage/utils.dart';
-import 'UtilitiesPage/RacoPlugins.dart'; // Import the new file
+import 'UtilitiesPage/RacoPlugins.dart';
+import 'UtilitiesPage/raco_extra.dart'; // Import the new file
 
 //region Models for Search and Navigation
 class UtilityCategory {
@@ -403,7 +404,30 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
       ),
     ]);
 
-    // --- Raco Plugins (New) ---
+    // --- Installer Config (New) ---
+    final racoExtraPage = RacoExtraPage(
+      backgroundImagePath: _backgroundImagePath,
+      backgroundOpacity: _backgroundOpacity,
+      backgroundBlur: _backgroundBlur,
+    );
+    _allCategories.add(
+      UtilityCategory(
+        title: "Extra Settings",
+        icon: Icons.build_circle_outlined,
+        page: racoExtraPage,
+      ),
+    );
+    _allSearchableItems.addAll([
+      SearchResultItem(
+        title: "Installer Configuration",
+        subtitle: "Anya, Kobo, Zetamin, Sandevistan",
+        icon: Icons.build_circle_outlined,
+        navigationTarget: racoExtraPage,
+        searchKeywords: 'anya kobo zetamin sandevistan installer config extra',
+      ),
+    ]);
+
+    // --- Raco Plugins ---
     final pluginsPage = RacoPluginsPage(
       backgroundImagePath: _backgroundImagePath,
       backgroundOpacity: _backgroundOpacity,

@@ -224,5 +224,15 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "extra_settings_title": "Extra Settings",
+    "extra_settings_description": "Anya, Kobo, Zetamin, Sandevistan",
+    "anya_installer_title": "Anya Thermal",
+    "anya_installer_desc": "Disable / Enable Thermal | Anya Flowstate",
+    "kobo_title": "Kobo Fast Charge",
+    "kobo_desc": "Fast Charging Add On",
+    "zetamin_title": "Zetamin",
+    "zetamin_desc": "All in One Display Tweaks",
+    "sandev_boot_title": "Sandevistan Boot",
+    "sandev_boot_desc": "An Attempt to Make Boot Faster"
 }

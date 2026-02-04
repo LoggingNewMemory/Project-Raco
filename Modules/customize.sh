@@ -4,8 +4,6 @@
 # Configuration Functions
 # ------------------------------------
 
-# Note: check_for_config_changes removed/unused to force structure updates
-
 merge_configs() {
   local new_template="$1"
   local persistent_config="$2"
@@ -32,43 +30,6 @@ merge_configs() {
   # 4. Overwrite persistent file with the clean, updated version
   mv "$temp_config" "$persistent_config"
   ui_print "- Settings merged successfully."
-}
-
-manual_addon_selection() {
-  local config_file="$1"
-
-  ui_print " "
-  ui_print "- Include Anya Thermal?"
-  ui_print "  Disable / Enable Thermal | Anya Flowstate"
-  ui_print "  Vol+ = Yes  |  Vol- = No"
-  if choose; then INCLUDE_ANYA=1; ui_print "  > Yes"; else INCLUDE_ANYA=0; ui_print "  > No"; fi
-
-  ui_print " "
-  ui_print "- Include Kobo Fast Charge?"
-  ui_print "  Fast Charging Add On"
-  ui_print "  Vol+ = Yes  |  Vol- = No"
-  if choose; then INCLUDE_KOBO=1; ui_print "  > Yes"; else INCLUDE_KOBO=0; ui_print "  > No"; fi
-
-  ui_print " "
-  ui_print "- Include Zetamin"
-  ui_print "  All in One Display Tweaks"
-  ui_print "  Vol+ = Yes  |  Vol- = No"
-  if choose; then INCLUDE_ZETAMIN=1; ui_print "  > Yes"; else INCLUDE_ZETAMIN=0; ui_print "  > No"; fi
-
-  ui_print " "
-  ui_print "- Include Sandevistan Boot?"
-  ui_print "  An Attempt to Make Boot Faster"
-  ui_print "  Vol+ = Yes  |  Vol- = No"
-  if choose; then INCLUDE_SANDEV=1; ui_print "  > Yes"; else INCLUDE_SANDEV=0; ui_print "  > No"; fi
-
-  ui_print " "
-  ui_print "- Updating configuration..."
-  sed -i "s/^INCLUDE_ANYA=.*/INCLUDE_ANYA=$INCLUDE_ANYA/" "$config_file"
-  sed -i "s/^INCLUDE_KOBO=.*/INCLUDE_KOBO=$INCLUDE_KOBO/" "$config_file"
-  sed -i "s/^INCLUDE_ZETAMIN=.*/INCLUDE_ZETAMIN=$INCLUDE_ZETAMIN/" "$config_file"
-  sed -i "s/^INCLUDE_AME=.*/INCLUDE_AME=$INCLUDE_AME/" "$config_file"
-  sed -i "s/^INCLUDE_SANDEV=.*/INCLUDE_SANDEV=$INCLUDE_SANDEV/" "$config_file"
-  ui_print "- Your choices have been saved."
 }
 
 # --- Main Script Execution ---
@@ -201,36 +162,21 @@ choose() {
   done
 }
 
-ui_print "------------------------------------"
-ui_print "      OPTIONAL ADDON SELECTION      "
-ui_print "------------------------------------"
+# --- Main Configuration Logic ---
 
 if [ ! -f "$RACO_PERSIST_CONFIG" ]; then
   # Case 1: First-time installation.
   ui_print "- No previous configuration found."
-  ui_print "- Please choose your preferred addons."
+  ui_print "- Creating default configuration..."
   cp "$RACO_MODULE_TEMPLATE" "$RACO_PERSIST_CONFIG"
-  manual_addon_selection "$RACO_PERSIST_CONFIG"
 else
   # Case 2: Existing installation.
   ui_print "- Saved configuration found."
 
   # FORCE MERGE: Always merge to ensure the latest file structure is applied
   merge_configs "$RACO_MODULE_TEMPLATE" "$RACO_PERSIST_CONFIG"
-
-  ui_print " "
-  ui_print "  Use your saved settings?"
-  ui_print "  (Configuration structure has been refreshed)."
-  ui_print " "
-  ui_print "  Vol+ = Yes, use saved settings"
-  ui_print "  Vol- = No, re-configure addons"
-  ui_print " "
-  if choose; then
-    ui_print "- Using your saved/merged configuration."
-  else
-    ui_print "- Re-configuring addons..."
-    manual_addon_selection "$RACO_PERSIST_CONFIG"
-  fi
+  
+  ui_print "- Configuration updated with new structure."
 fi
 
 # Finalize by writing the detected SOC code to the persistent config.

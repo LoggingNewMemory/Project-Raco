@@ -210,5 +210,15 @@
     "slingshot_graphics_warning": "Algunos juegos pueden fallar, otros pueden mejorar el rendimiento, y otros pueden ni siquiera iniciar. ¡Pero no tengas miedo de probarlo primero!",
     "playboost_title": "RiProG Playboost",
     "added_to_gamelist": "Añadido {package} a la lista de juegos",
-    "removed_from_gamelist": "Eliminado {package} de la lista de juegos"
+    "removed_from_gamelist": "Eliminado {package} de la lista de juegos",
+    "extra_settings_title": "Ajustes Extra",
+    "extra_settings_description": "Anya, Kobo, Zetamin, Sandevistan",
+    "anya_installer_title": "Anya Thermal",
+    "anya_installer_desc": "Desactivar / Activar Thermal | Anya Flowstate",
+    "kobo_title": "Kobo Carga Rápida",
+    "kobo_desc": "Complemento de carga rápida",
+    "zetamin_title": "Zetamin",
+    "zetamin_desc": "Ajustes de pantalla Todo en Uno",
+    "sandev_boot_title": "Arranque Sandevistan",
+    "sandev_boot_desc": "Un intento de hacer el arranque más rápido"
 }
