@@ -75,14 +75,10 @@ int main(void) {
 
     // --- DEFAULTS ---
     int conf_enable_powersave = 1;
-    int conf_loop_normal = 2; // Default interval when Screen ON
-    int conf_loop_off = 3;    // Default interval when Screen OFF
 
     while (1) {
         // --- 0. Read Config ---
         get_config_int("HAMADA_ENABLE_POWERSAVE", &conf_enable_powersave);
-        get_config_int("HAMADA_LOOP", &conf_loop_normal);
-        get_config_int("HAMADA_LOOP_OFF", &conf_loop_off);
 
         // --- 1. Screen State Detection ---
         bool current_screen_on = false;
@@ -92,11 +88,11 @@ int main(void) {
             current_screen_on = true;
         }
 
-        // Adjust delay based on screen state
+        // Adjust delay based on screen state (Hardcoded: 2s ON, 3s OFF)
         if (current_screen_on) {
-            delay_seconds = conf_loop_normal;
+            delay_seconds = 2;
         } else {
-            delay_seconds = conf_loop_off;
+            delay_seconds = 3;
         }
 
         // Check for state transition (Wake up or Sleep)

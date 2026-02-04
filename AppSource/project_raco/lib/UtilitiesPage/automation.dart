@@ -150,8 +150,6 @@ class _HamadaAiCardState extends State<HamadaAiCard>
   late bool _hamadaStartOnBoot;
 
   bool _powersaveScreenOff = true;
-  String _normalLoop = "5";
-  String _offLoop = "7";
   bool _loadingConfig = true;
 
   bool _isTogglingProcess = false;
@@ -163,9 +161,6 @@ class _HamadaAiCardState extends State<HamadaAiCard>
   final String _configPath = '/data/ProjectRaco/raco.txt';
 
   String get _hamadaStartCommand => 'nohup $_binaryPath > /dev/null 2>&1 &';
-
-  final TextEditingController _normalLoopCtrl = TextEditingController();
-  final TextEditingController _offLoopCtrl = TextEditingController();
 
   @override
   bool get wantKeepAlive => true;
@@ -180,8 +175,6 @@ class _HamadaAiCardState extends State<HamadaAiCard>
 
   @override
   void dispose() {
-    _normalLoopCtrl.dispose();
-    _offLoopCtrl.dispose();
     super.dispose();
   }
 
@@ -198,27 +191,17 @@ class _HamadaAiCardState extends State<HamadaAiCard>
         final lines = content.split('\n');
 
         bool psEnabled = true;
-        String loop = "5";
-        String loopOff = "7";
 
         for (var line in lines) {
           line = line.trim();
           if (line.startsWith('HAMADA_ENABLE_POWERSAVE=')) {
             psEnabled = line.split('=')[1].trim() == '1';
-          } else if (line.startsWith('HAMADA_LOOP=')) {
-            loop = line.split('=')[1].trim();
-          } else if (line.startsWith('HAMADA_LOOP_OFF=')) {
-            loopOff = line.split('=')[1].trim();
           }
         }
 
         if (mounted) {
           setState(() {
             _powersaveScreenOff = psEnabled;
-            _normalLoop = loop;
-            _offLoop = loopOff;
-            _normalLoopCtrl.text = _normalLoop;
-            _offLoopCtrl.text = _offLoop;
           });
         }
       }
@@ -229,11 +212,7 @@ class _HamadaAiCardState extends State<HamadaAiCard>
     }
   }
 
-  Future<void> _saveConfig({
-    bool? powersave,
-    String? loop,
-    String? loopOff,
-  }) async {
+  Future<void> _saveConfig({bool? powersave}) async {
     if (!await checkRootAccess()) return;
     if (mounted) setState(() => _isSavingConfig = true);
 
@@ -247,8 +226,6 @@ class _HamadaAiCardState extends State<HamadaAiCard>
       List<String> lines = content.split('\n');
 
       final newPs = powersave ?? _powersaveScreenOff;
-      final newLoop = loop ?? _normalLoopCtrl.text;
-      final newLoopOff = loopOff ?? _offLoopCtrl.text;
 
       void updateKey(String key, String val) {
         int idx = lines.indexWhere((l) => l.startsWith('$key='));
@@ -264,15 +241,8 @@ class _HamadaAiCardState extends State<HamadaAiCard>
         }
       }
 
-      String validate(String v) {
-        int? i = int.tryParse(v);
-        if (i == null || i < 2) return "2";
-        return v;
-      }
-
       updateKey('HAMADA_ENABLE_POWERSAVE', newPs ? '1' : '0');
-      updateKey('HAMADA_LOOP', validate(newLoop));
-      updateKey('HAMADA_LOOP_OFF', validate(newLoopOff));
+      // Removed loop configurations as they are now hardcoded in the binary
 
       String newContent = lines.join('\n');
 
@@ -284,11 +254,6 @@ class _HamadaAiCardState extends State<HamadaAiCard>
       if (mounted) {
         setState(() {
           _powersaveScreenOff = newPs;
-          _normalLoop = validate(newLoop);
-          _offLoop = validate(newLoopOff);
-          if (_normalLoopCtrl.text != _normalLoop)
-            _normalLoopCtrl.text = _normalLoop;
-          if (_offLoopCtrl.text != _offLoop) _offLoopCtrl.text = _offLoop;
         });
       }
     } catch (e) {
@@ -448,56 +413,6 @@ class _HamadaAiCardState extends State<HamadaAiCard>
               activeColor: colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _normalLoopCtrl,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(
-                      labelText: localization.hamada_normal_interval_title,
-                      hintText: "Min 2",
-                      border: const OutlineInputBorder(),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                    ),
-                    onSubmitted: (val) => _saveConfig(loop: val),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _offLoopCtrl,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(
-                      labelText: localization.hamada_screen_off_interval_title,
-                      hintText: "Min 2",
-                      border: const OutlineInputBorder(),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                    ),
-                    onSubmitted: (val) => _saveConfig(loopOff: val),
-                  ),
-                ),
-              ],
-            ),
-            if (!_isSavingConfig)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text(
-                  localization.hamada_interval_hint,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
             if (_isSavingConfig) const LinearProgressIndicator(),
           ],
         ),
