@@ -208,5 +208,7 @@
     "silent_mode_title": "Тихий режим",
     "silent_mode_description": "Отключает уведомления, Raco будет применять твики без уведомления",
     "slingshot_graphics_warning": "Некоторые игры могут сломаться, некоторые могут улучшить производительность, а некоторые могут даже не запуститься. Но не бойтесь попробовать!",
-    "playboost_title": "RiProG Playboost"
+    "playboost_title": "RiProG Playboost",
+    "added_to_gamelist": "Добавлено {package} в список игр",
+    "removed_from_gamelist": "Удалено {package} из списка игр"
 }

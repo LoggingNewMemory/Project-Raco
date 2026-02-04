@@ -776,6 +776,7 @@ class _AppListPageState extends State<AppListPage> {
 
   Future<void> _toggleApp(String packageName) async {
     final bool isEnable = !_enabledPackages.contains(packageName);
+    final localization = AppLocalizations.of(context)!;
 
     setState(() {
       if (isEnable) {
@@ -788,12 +789,32 @@ class _AppListPageState extends State<AppListPage> {
 
     try {
       if (isEnable) {
+        // Use 'sed' append ($a) to force adding to a new line at the end of the file.
+        // This ensures packages are strictly separated by newlines.
+        // Note: Escape the $ with \ for Dart string interpolation.
         await runRootCommandAndWait("sed -i '\$a $packageName' $_gameTxtPath");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(localization.added_to_gamelist(packageName)),
+              duration: const Duration(milliseconds: 1000),
+            ),
+          );
+        }
       } else {
+        // Use 'sed' delete (/.../d) to remove the specific package line.
         final escapedPackage = packageName.replaceAll('.', '\\.');
         await runRootCommandAndWait(
           "sed -i '/^$escapedPackage\$/d' $_gameTxtPath",
         );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(localization.removed_from_gamelist(packageName)),
+              duration: const Duration(milliseconds: 1000),
+            ),
+          );
+        }
       }
     } catch (e) {
       debugPrint("Error updating game.txt: $e");

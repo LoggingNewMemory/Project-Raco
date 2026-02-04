@@ -208,5 +208,7 @@
     "silent_mode_title": "Mode Senyap",
     "silent_mode_description": "Nonaktifkan Notifikasi, Raco Akan Menerapkan Tweak Tanpa Memberitahu",
     "slingshot_graphics_warning": "Beberapa game mungkin rusak, Beberapa mungkin meningkatkan performa, Beberapa mungkin tidak bisa dibuka. Tapi jangan takut untuk mencobanya dulu!",
-    "playboost_title": "RiProG Playboost"
+    "playboost_title": "RiProG Playboost",
+    "added_to_gamelist": "Menambahkan {package} ke daftar game",
+    "removed_from_gamelist": "Menghapus {package} dari daftar game"
 }

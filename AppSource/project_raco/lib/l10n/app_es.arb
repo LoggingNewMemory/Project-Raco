@@ -208,5 +208,7 @@
     "silent_mode_title": "Modo Silencioso",
     "silent_mode_description": "Desactiva las notificaciones, Raco aplicará los ajustes sin notificar",
     "slingshot_graphics_warning": "Algunos juegos pueden fallar, otros pueden mejorar el rendimiento, y otros pueden ni siquiera iniciar. ¡Pero no tengas miedo de probarlo primero!",
-    "playboost_title": "RiProG Playboost"
+    "playboost_title": "RiProG Playboost",
+    "added_to_gamelist": "Añadido {package} a la lista de juegos",
+    "removed_from_gamelist": "Eliminado {package} de la lista de juegos"
 }

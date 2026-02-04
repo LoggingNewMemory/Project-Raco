@@ -1147,6 +1147,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'RiProG Playboost'**
   String get playboost_title;
+
+  /// No description provided for @added_to_gamelist.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {package} to game list'**
+  String added_to_gamelist(String package);
+
+  /// No description provided for @removed_from_gamelist.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed {package} from game list'**
+  String removed_from_gamelist(String package);
 }
 
 class _AppLocalizationsDelegate

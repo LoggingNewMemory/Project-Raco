@@ -208,5 +208,21 @@
     "silent_mode_title": "Silent Mode",
     "silent_mode_description": "Disables Notification, Raco Will Apply Tweaks Without Notifying",
     "slingshot_graphics_warning": "Some games might broken, Some might improve performance, Some might don't even Launch. But don't be afraid to try it first!",
-    "playboost_title": "RiProG Playboost"
+    "playboost_title": "RiProG Playboost",
+    "added_to_gamelist": "Added {package} to game list",
+    "@added_to_gamelist": {
+        "placeholders": {
+            "package": {
+                "type": "String"
+            }
+        }
+    },
+    "removed_from_gamelist": "Removed {package} from game list",
+    "@removed_from_gamelist": {
+        "placeholders": {
+            "package": {
+                "type": "String"
+            }
+        }
+    }
 }

@@ -575,4 +575,14 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get playboost_title => 'RiProG Playboost';
+
+  @override
+  String added_to_gamelist(String package) {
+    return 'Добавлено $package в список игр';
+  }
+
+  @override
+  String removed_from_gamelist(String package) {
+    return 'Удалено $package из списка игр';
+  }
 }
