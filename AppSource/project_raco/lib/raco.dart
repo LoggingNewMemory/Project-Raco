@@ -1,3 +1,4 @@
+import 'dart:async'; // Added for TypewriterText Timer
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -165,14 +166,16 @@ class _RacoPageState extends State<RacoPage> {
                                 ),
                                 // Reduced spacing
                                 const SizedBox(height: 4),
-                                Text(
-                                  _dialogues[_dialogueIndex],
+                                // --- MODIFIED: Uses TypewriterText ---
+                                TypewriterText(
+                                  text: _dialogues[_dialogueIndex],
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 16,
                                     height: 1.4,
                                   ),
                                 ),
+                                // -------------------------------------
                                 // Reduced spacing
                                 const SizedBox(height: 8),
                                 Align(
@@ -360,5 +363,103 @@ class _InfoRow extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// --- ADDED: TypewriterText Widget from main.dart ---
+class TypewriterText extends StatefulWidget {
+  final String text;
+  final TextStyle? style;
+  final Duration typeDuration;
+  final Duration deleteDuration;
+
+  const TypewriterText({
+    Key? key,
+    required this.text,
+    this.style,
+    this.typeDuration = const Duration(milliseconds: 30),
+    this.deleteDuration = const Duration(milliseconds: 20),
+  }) : super(key: key);
+
+  @override
+  _TypewriterTextState createState() => _TypewriterTextState();
+}
+
+class _TypewriterTextState extends State<TypewriterText> {
+  String _displayedText = "";
+  Timer? _timer;
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initial start: just type
+    _startTyping(widget.text);
+  }
+
+  @override
+  void didUpdateWidget(TypewriterText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.text != widget.text) {
+      // If text changed, Start Deleting first, then type new text
+      _startDeleting(widget.text);
+    }
+  }
+
+  void _startDeleting(String nextText) {
+    _timer?.cancel();
+    _timer = Timer.periodic(widget.deleteDuration, (timer) {
+      if (_displayedText.isNotEmpty) {
+        setState(() {
+          _displayedText = _displayedText.substring(
+            0,
+            _displayedText.length - 1,
+          );
+        });
+      } else {
+        timer.cancel();
+        // Once deletion is done, start typing the new text
+        _startTyping(nextText);
+      }
+    });
+  }
+
+  void _startTyping(String textToType) {
+    _timer?.cancel();
+    _currentIndex = 0;
+
+    if (textToType.isEmpty) {
+      setState(() => _displayedText = "");
+      return;
+    }
+
+    // Reset displayed text if we are starting fresh from empty
+    // (Note: if coming from delete, it's already empty)
+    if (_displayedText.isNotEmpty && _displayedText != textToType) {
+      // Safety net: if we skipped delete logic somehow
+      setState(() => _displayedText = "");
+    }
+
+    _timer = Timer.periodic(widget.typeDuration, (timer) {
+      if (_currentIndex < textToType.length) {
+        setState(() {
+          _displayedText += textToType[_currentIndex];
+          _currentIndex++;
+        });
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(_displayedText, style: widget.style);
   }
 }
