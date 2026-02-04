@@ -4,7 +4,7 @@
     <application
         android:label="Project Raco"
         android:name="${applicationName}"
-        android:icon="@mipmap/logo"
+        android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true"> <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -68,7 +68,7 @@
         <service
             android:name="io.apparence.quick_settings.QuickSettingsService"
             android:label="Raco Mode"
-            android:icon="@drawable/qs_logo"  android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:icon="@mipmap/launcher_icon"  android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             android:exported="true"
             tools:replace="android:label,android:icon">
             <intent-filter>
