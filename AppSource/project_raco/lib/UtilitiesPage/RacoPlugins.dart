@@ -397,14 +397,41 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
       title: loc.installing_module,
       task: (log) async {
         try {
+          // 1. Prepare Root Temp Directory
           log("- Preparing temporary directory...");
           await _runRootCommand('rm -rf $_tmpInstallPath');
           await _runRootCommand('mkdir -p $_tmpInstallPath');
 
-          log("- Copying zip file...");
-          await _runRootCommand('cp "$zipPath" $_tmpInstallPath/plugin.zip');
+          // 2. Stage file in App Cache first
+          // This fixes permissions issues when installing from Cloud/Scoped Storage
+          log("- Staging file...");
+          final File sourceFile = File(zipPath);
+          final Directory appTempDir = await getTemporaryDirectory();
+          final String appTempFilePath =
+              '${appTempDir.path}/temp_install_plugin.zip';
+          final File stagedFile = await sourceFile.copy(appTempFilePath);
 
+          // 3. Move to Root Temp
+          // We use 'cp' from root to copy the now accessible staged file
+          log("- Copying to root environment...");
+          await _runRootCommand(
+            'cp "${stagedFile.path}" $_tmpInstallPath/plugin.zip',
+          );
+
+          // Clean up local cache
+          try {
+            stagedFile.delete();
+          } catch (_) {}
+
+          // 4. Create Extraction Directory EXPLICITLY
+          // Fixes 'unzip: couldn't chdir' on Android 10/OneUI 2.5
+          log("- Creating extraction folder...");
+          await _runRootCommand('mkdir -p $_tmpInstallPath/extracted');
+
+          // 5. Extract
           log("- Extracting...");
+          // -o: overwrite
+          // -d: destination (folder must exist on older busybox/toybox)
           await _runLiveRootCommand(
             'unzip -o $_tmpInstallPath/plugin.zip -d $_tmpInstallPath/extracted',
             log,
