@@ -425,7 +425,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   String _selectedLanguage = 'EN';
   String _executingScript = '';
   bool _isLoading = true;
-  bool _isHamadaAiRunning = false;
+  bool _isEndfieldEngineRunning = false;
   bool _isContentVisible = false;
 
   int _swipeRightCount = 0;
@@ -516,14 +516,14 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     if (!_hasRootAccess) return;
     final results = await Future.wait([
       ConfigManager.readConfig(),
-      _isHamadaProcessRunning(),
+      _isEndfieldProcessRunning(),
     ]);
     final config = results[0] as Map<String, String>;
     final isRunning = results[1] as bool;
     if (mounted) {
       setState(() {
         _currentMode = config['current_mode'] ?? 'NONE';
-        _isHamadaAiRunning = isRunning;
+        _isEndfieldEngineRunning = isRunning;
       });
     }
   }
@@ -537,12 +537,12 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     }
   }
 
-  Future<bool> _isHamadaProcessRunning() async {
+  Future<bool> _isEndfieldProcessRunning() async {
     if (!_hasRootAccess) return false;
     try {
       final result = await run('su', [
         '-c',
-        'pgrep -x HamadaAI',
+        'pgrep -x Endfield',
       ], verbose: false);
       return result.exitCode == 0;
     } catch (e) {
@@ -600,7 +600,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     if (!_hasRootAccess ||
         !_moduleInstalled ||
         _executingScript.isNotEmpty ||
-        _isHamadaAiRunning) {
+        _isEndfieldEngineRunning) {
       return;
     }
     String targetMode = (modeKey == 'CLEAR' || modeKey == 'COOLDOWN')
@@ -1101,8 +1101,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         Expanded(
           child: _buildStatusCard(
             localization.mode_status_label,
-            _isHamadaAiRunning
-                ? localization.mode_hamada_ai
+            _isEndfieldEngineRunning
+                ? localization.mode_endfield_engine
                 : localization.mode_manual,
             Icons.settings_input_component_outlined,
             Theme.of(context).colorScheme.primary,
@@ -1189,7 +1189,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   Widget _buildSlingshotCard(AppLocalizations localization) {
     final colorScheme = Theme.of(context).colorScheme;
     return Opacity(
-      opacity: _isHamadaAiRunning ? 0.6 : 1.0,
+      opacity: _isEndfieldEngineRunning ? 0.6 : 1.0,
       child: Card(
         elevation: 2.0,
         margin: EdgeInsets.zero,
@@ -1198,13 +1198,13 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () {
-            if (_isHamadaAiRunning) {
+            if (_isEndfieldEngineRunning) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
                     AppLocalizations.of(
                       context,
-                    )!.please_disable_hamada_ai_first,
+                    )!.please_disable_endfield_engine_first,
                   ),
                 ),
               );
@@ -1342,15 +1342,15 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   ) {
     final isCurrentMode = _currentMode == modeKey;
     final isExecutingThis = _executingScript == scriptArg;
-    final isHamadaMode = _isHamadaAiRunning;
+    final isEndfieldMode = _isEndfieldEngineRunning;
     final isInteractable = _hasRootAccess && _moduleInstalled;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Opacity(
-      opacity: isHamadaMode ? 0.6 : 1.0,
+      opacity: isEndfieldMode ? 0.6 : 1.0,
       child: Card(
         elevation: 2.0,
-        color: isCurrentMode && !isHamadaMode
+        color: isCurrentMode && !isEndfieldMode
             ? colorScheme.primaryContainer
             : colorScheme.surfaceContainer,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -1359,13 +1359,13 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           onTap: !isInteractable
               ? null
               : () {
-                  if (isHamadaMode) {
+                  if (isEndfieldMode) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
                           AppLocalizations.of(
                             context,
-                          )!.please_disable_hamada_ai_first,
+                          )!.please_disable_endfield_engine_first,
                         ),
                       ),
                     );
@@ -1381,7 +1381,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                 Icon(
                   modeIcon,
                   size: 24,
-                  color: isCurrentMode && !isHamadaMode
+                  color: isCurrentMode && !isEndfieldMode
                       ? colorScheme.onPrimaryContainer
                       : colorScheme.onSurface,
                 ),
@@ -1394,13 +1394,13 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                         buttonText,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
-                              fontWeight: isCurrentMode && !isHamadaMode
+                              fontWeight: isCurrentMode && !isEndfieldMode
                                   ? FontWeight.bold
                                   : FontWeight.normal,
-                              fontStyle: isCurrentMode && !isHamadaMode
+                              fontStyle: isCurrentMode && !isEndfieldMode
                                   ? FontStyle.italic
                                   : FontStyle.normal,
-                              color: isCurrentMode && !isHamadaMode
+                              color: isCurrentMode && !isEndfieldMode
                                   ? colorScheme.onPrimaryContainer
                                   : colorScheme.onSurface,
                             ),
@@ -1409,7 +1409,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                       Text(
                         description,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isCurrentMode && !isHamadaMode
+                          color: isCurrentMode && !isEndfieldMode
                               ? colorScheme.onPrimaryContainer.withOpacity(0.8)
                               : colorScheme.onSurfaceVariant.withOpacity(0.8),
                         ),
@@ -1427,13 +1427,13 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        isCurrentMode && !isHamadaMode
+                        isCurrentMode && !isEndfieldMode
                             ? colorScheme.onPrimaryContainer
                             : colorScheme.primary,
                       ),
                     ),
                   )
-                else if (isCurrentMode && !isHamadaMode)
+                else if (isCurrentMode && !isEndfieldMode)
                   Icon(
                     Icons.check_circle,
                     color: colorScheme.onPrimaryContainer,

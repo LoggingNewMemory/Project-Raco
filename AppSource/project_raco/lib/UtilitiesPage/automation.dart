@@ -43,7 +43,7 @@ class AutomationPage extends StatefulWidget {
 
 class _AutomationPageState extends State<AutomationPage> {
   bool _isLoading = true;
-  Map<String, bool>? _hamadaAiState;
+  Map<String, bool>? _endfieldEngineState;
 
   @override
   void initState() {
@@ -51,23 +51,23 @@ class _AutomationPageState extends State<AutomationPage> {
     _loadData();
   }
 
-  Future<Map<String, bool>> _loadHamadaAiState() async {
+  Future<Map<String, bool>> _loadEndfieldEngineState() async {
     final results = await Future.wait([
-      runRootCommandAndWait('pgrep -x HamadaAI'),
+      runRootCommandAndWait('pgrep -x Endfield'),
       runRootCommandAndWait('cat /data/adb/modules/ProjectRaco/service.sh'),
     ]);
     return {
       'enabled': results[0].exitCode == 0,
-      'onBoot': results[1].stdout.toString().contains('Binaries/HamadaAI'),
+      'onBoot': results[1].stdout.toString().contains('Binaries/Endfield'),
     };
   }
 
   Future<void> _loadData() async {
-    final hamadaState = await _loadHamadaAiState();
+    final endfieldState = await _loadEndfieldEngineState();
 
     if (!mounted) return;
     setState(() {
-      _hamadaAiState = hamadaState;
+      _endfieldEngineState = endfieldState;
       _isLoading = false;
     });
   }
@@ -86,9 +86,11 @@ class _AutomationPageState extends State<AutomationPage> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(8, 8, 8, 32),
         children: [
-          HamadaAiCard(
-            initialHamadaAiEnabled: _hamadaAiState?['enabled'] ?? false,
-            initialHamadaStartOnBoot: _hamadaAiState?['onBoot'] ?? false,
+          EndfieldEngineCard(
+            initialEndfieldEngineEnabled:
+                _endfieldEngineState?['enabled'] ?? false,
+            initialEndfieldStartOnBoot:
+                _endfieldEngineState?['onBoot'] ?? false,
           ),
           const AppListCard(),
         ],
@@ -131,23 +133,23 @@ class _AutomationPageState extends State<AutomationPage> {
   }
 }
 
-class HamadaAiCard extends StatefulWidget {
-  final bool initialHamadaAiEnabled;
-  final bool initialHamadaStartOnBoot;
+class EndfieldEngineCard extends StatefulWidget {
+  final bool initialEndfieldEngineEnabled;
+  final bool initialEndfieldStartOnBoot;
 
-  const HamadaAiCard({
+  const EndfieldEngineCard({
     Key? key,
-    required this.initialHamadaAiEnabled,
-    required this.initialHamadaStartOnBoot,
+    required this.initialEndfieldEngineEnabled,
+    required this.initialEndfieldStartOnBoot,
   }) : super(key: key);
   @override
-  _HamadaAiCardState createState() => _HamadaAiCardState();
+  _EndfieldEngineCardState createState() => _EndfieldEngineCardState();
 }
 
-class _HamadaAiCardState extends State<HamadaAiCard>
+class _EndfieldEngineCardState extends State<EndfieldEngineCard>
     with AutomaticKeepAliveClientMixin {
-  late bool _hamadaAiEnabled;
-  late bool _hamadaStartOnBoot;
+  late bool _endfieldEngineEnabled;
+  late bool _endfieldStartOnBoot;
 
   bool _powersaveScreenOff = true;
   bool _loadingConfig = true;
@@ -157,10 +159,10 @@ class _HamadaAiCardState extends State<HamadaAiCard>
   bool _isSavingConfig = false;
 
   final String _serviceFilePath = '/data/adb/modules/ProjectRaco/service.sh';
-  final String _binaryPath = '/data/adb/modules/ProjectRaco/Binaries/HamadaAI';
+  final String _binaryPath = '/data/adb/modules/ProjectRaco/Binaries/Endfield';
   final String _configPath = '/data/ProjectRaco/raco.txt';
 
-  String get _hamadaStartCommand => 'nohup $_binaryPath > /dev/null 2>&1 &';
+  String get _endfieldStartCommand => 'nohup $_binaryPath > /dev/null 2>&1 &';
 
   @override
   bool get wantKeepAlive => true;
@@ -168,8 +170,8 @@ class _HamadaAiCardState extends State<HamadaAiCard>
   @override
   void initState() {
     super.initState();
-    _hamadaAiEnabled = widget.initialHamadaAiEnabled;
-    _hamadaStartOnBoot = widget.initialHamadaStartOnBoot;
+    _endfieldEngineEnabled = widget.initialEndfieldEngineEnabled;
+    _endfieldStartOnBoot = widget.initialEndfieldStartOnBoot;
     _loadConfig();
   }
 
@@ -194,7 +196,7 @@ class _HamadaAiCardState extends State<HamadaAiCard>
 
         for (var line in lines) {
           line = line.trim();
-          if (line.startsWith('HAMADA_ENABLE_POWERSAVE=')) {
+          if (line.startsWith('ENDFIELD_ENABLE_POWERSAVE=')) {
             psEnabled = line.split('=')[1].trim() == '1';
           }
         }
@@ -232,7 +234,7 @@ class _HamadaAiCardState extends State<HamadaAiCard>
         if (idx != -1) {
           lines[idx] = '$key=$val';
         } else {
-          int secIdx = lines.indexWhere((l) => l.trim() == '[HamadaAI]');
+          int secIdx = lines.indexWhere((l) => l.trim() == '[EndfieldEngine]');
           if (secIdx != -1) {
             lines.insert(secIdx + 1, '$key=$val');
           } else {
@@ -241,8 +243,7 @@ class _HamadaAiCardState extends State<HamadaAiCard>
         }
       }
 
-      updateKey('HAMADA_ENABLE_POWERSAVE', newPs ? '1' : '0');
-      // Removed loop configurations as they are now hardcoded in the binary
+      updateKey('ENDFIELD_ENABLE_POWERSAVE', newPs ? '1' : '0');
 
       String newContent = lines.join('\n');
 
@@ -265,15 +266,18 @@ class _HamadaAiCardState extends State<HamadaAiCard>
 
   Future<Map<String, bool>> _fetchCurrentState() async {
     if (!await checkRootAccess()) {
-      return {'enabled': _hamadaAiEnabled, 'onBoot': _hamadaStartOnBoot};
+      return {
+        'enabled': _endfieldEngineEnabled,
+        'onBoot': _endfieldStartOnBoot,
+      };
     }
     final results = await Future.wait([
-      runRootCommandAndWait('pgrep -x HamadaAI'),
+      runRootCommandAndWait('pgrep -x Endfield'),
       runRootCommandAndWait('cat $_serviceFilePath'),
     ]);
     return {
       'enabled': results[0].exitCode == 0,
-      'onBoot': results[1].stdout.toString().contains('Binaries/HamadaAI'),
+      'onBoot': results[1].stdout.toString().contains('Binaries/Endfield'),
     };
   }
 
@@ -281,21 +285,21 @@ class _HamadaAiCardState extends State<HamadaAiCard>
     final state = await _fetchCurrentState();
     if (mounted) {
       setState(() {
-        _hamadaAiEnabled = state['enabled'] ?? false;
-        _hamadaStartOnBoot = state['onBoot'] ?? false;
+        _endfieldEngineEnabled = state['enabled'] ?? false;
+        _endfieldStartOnBoot = state['onBoot'] ?? false;
       });
     }
   }
 
-  Future<void> _toggleHamadaAI(bool enable) async {
+  Future<void> _toggleEndfieldEngine(bool enable) async {
     if (!await checkRootAccess()) return;
     if (mounted) setState(() => _isTogglingProcess = true);
     try {
       if (enable) {
-        await runRootCommandFireAndForget('su -c "$_hamadaStartCommand"');
+        await runRootCommandFireAndForget('su -c "$_endfieldStartCommand"');
         await Future.delayed(const Duration(milliseconds: 500));
       } else {
-        await runRootCommandAndWait('killall HamadaAI');
+        await runRootCommandAndWait('killall Endfield');
       }
       await _refreshState();
     } finally {
@@ -303,7 +307,7 @@ class _HamadaAiCardState extends State<HamadaAiCard>
     }
   }
 
-  Future<void> _setHamadaStartOnBoot(bool enable) async {
+  Future<void> _setEndfieldStartOnBoot(bool enable) async {
     if (!await checkRootAccess()) return;
     if (mounted) setState(() => _isTogglingBoot = true);
     try {
@@ -311,30 +315,35 @@ class _HamadaAiCardState extends State<HamadaAiCard>
         'cat $_serviceFilePath',
       )).stdout.toString();
       List<String> lines = content.replaceAll('\r\n', '\n').split('\n');
+
+      // Remove any existing binary commands to prevent duplicates
       lines.removeWhere((line) => line.contains(_binaryPath));
 
       if (enable) {
+        // Look for the exact marker '#Endfield Engine'
         int markerIndex = lines.indexWhere(
-          (line) => line.trim() == '# HamadaAI',
+          (line) => line.trim() == '#Endfield Engine',
         );
         if (markerIndex != -1) {
-          lines.insert(markerIndex + 1, _hamadaStartCommand);
+          lines.insert(markerIndex + 1, _endfieldStartCommand);
         } else {
-          lines.add('# HamadaAI');
-          lines.add(_hamadaStartCommand);
+          // Fallback if marker is missing
+          lines.add('#Endfield Engine');
+          lines.add(_endfieldStartCommand);
         }
       }
 
       String newContent = lines.join('\n');
-      if (newContent.isNotEmpty && !newContent.endsWith('\n'))
+      if (newContent.isNotEmpty && !newContent.endsWith('\n')) {
         newContent += '\n';
+      }
 
       String base64Content = base64Encode(utf8.encode(newContent));
       final writeCmd =
           '''echo '$base64Content' | base64 -d > $_serviceFilePath''';
       await runRootCommandAndWait(writeCmd);
 
-      if (mounted) setState(() => _hamadaStartOnBoot = enable);
+      if (mounted) setState(() => _endfieldStartOnBoot = enable);
     } catch (e) {
       if (mounted) await _refreshState();
     } finally {
@@ -365,21 +374,21 @@ class _HamadaAiCardState extends State<HamadaAiCard>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              localization.hamada_ai,
+              localization.endfield_engine,
               style: textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              localization.hamada_ai_description,
+              localization.endfield_engine_description,
               style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
             ),
             const SizedBox(height: 8),
             SwitchListTile(
-              title: Text(localization.hamada_ai_toggle_title),
-              value: _hamadaAiEnabled,
-              onChanged: isBusy ? null : _toggleHamadaAI,
+              title: Text(localization.endfield_engine_toggle_title),
+              value: _endfieldEngineEnabled,
+              onChanged: isBusy ? null : _toggleEndfieldEngine,
               secondary: _isTogglingProcess
                   ? const SizedBox(
                       width: 20,
@@ -391,9 +400,9 @@ class _HamadaAiCardState extends State<HamadaAiCard>
               contentPadding: EdgeInsets.zero,
             ),
             SwitchListTile(
-              title: Text(localization.hamada_ai_start_on_boot),
-              value: _hamadaStartOnBoot,
-              onChanged: isBusy ? null : _setHamadaStartOnBoot,
+              title: Text(localization.endfield_engine_start_on_boot),
+              value: _endfieldStartOnBoot,
+              onChanged: isBusy ? null : _setEndfieldStartOnBoot,
               secondary: _isTogglingBoot
                   ? const SizedBox(
                       width: 20,
@@ -406,7 +415,7 @@ class _HamadaAiCardState extends State<HamadaAiCard>
             ),
             const Divider(),
             SwitchListTile(
-              title: Text(localization.hamada_powersave_screen_off_title),
+              title: Text(localization.endfield_powersave_screen_off_title),
               value: _powersaveScreenOff,
               onChanged: isBusy ? null : (val) => _saveConfig(powersave: val),
               secondary: const Icon(Icons.screen_lock_portrait_outlined),

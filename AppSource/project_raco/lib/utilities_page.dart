@@ -266,25 +266,25 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
     );
     _allSearchableItems.addAll([
       SearchResultItem(
-        title: localization.hamada_ai,
+        title: localization.endfield_engine,
         subtitle: localization.automation_title,
         icon: Icons.smart_toy_outlined,
         navigationTarget: automationPage,
-        searchKeywords: 'hamada ai automation bot auto performance game',
+        searchKeywords: 'endfield engine automation bot auto performance game',
       ),
       SearchResultItem(
-        title: localization.hamada_powersave_screen_off_title,
+        title: localization.endfield_powersave_screen_off_title,
         subtitle: localization.automation_title,
         icon: Icons.screen_lock_portrait_outlined,
         navigationTarget: automationPage,
-        searchKeywords: 'screen off powersave hamada toggle',
+        searchKeywords: 'screen off powersave endfield toggle',
       ),
       SearchResultItem(
-        title: localization.hamada_normal_interval_title,
+        title: localization.endfield_normal_interval_title,
         subtitle: localization.automation_title,
         icon: Icons.timer,
         navigationTarget: automationPage,
-        searchKeywords: 'hamada loop interval normal time',
+        searchKeywords: 'endfield loop interval normal time',
       ),
       SearchResultItem(
         title: localization.edit_game_txt_title,

@@ -344,17 +344,17 @@ abstract class AppLocalizations {
   /// **'Half CPU Power on Balance'**
   String get life_mode_description;
 
-  /// No description provided for @hamada_ai.
+  /// No description provided for @endfield_engine.
   ///
   /// In en, this message translates to:
-  /// **'HAMADA AI'**
-  String get hamada_ai;
+  /// **'Endfield Engine'**
+  String get endfield_engine;
 
-  /// No description provided for @hamada_ai_description.
+  /// No description provided for @endfield_engine_description.
   ///
   /// In en, this message translates to:
   /// **'Switch to Performance When Entering Game, Switch to Power Save When Screen Off'**
-  String get hamada_ai_description;
+  String get endfield_engine_description;
 
   /// No description provided for @downscale_resolution.
   ///
@@ -374,17 +374,17 @@ abstract class AppLocalizations {
   /// **'Reset to Original'**
   String get reset_resolution;
 
-  /// No description provided for @hamada_ai_toggle_title.
+  /// No description provided for @endfield_engine_toggle_title.
   ///
   /// In en, this message translates to:
-  /// **'Enable HAMADA AI'**
-  String get hamada_ai_toggle_title;
+  /// **'Enable Endfield Engine'**
+  String get endfield_engine_toggle_title;
 
-  /// No description provided for @hamada_ai_start_on_boot.
+  /// No description provided for @endfield_engine_start_on_boot.
   ///
   /// In en, this message translates to:
   /// **'Start on Boot'**
-  String get hamada_ai_start_on_boot;
+  String get endfield_engine_start_on_boot;
 
   /// No description provided for @edit_game_txt_title.
   ///
@@ -560,17 +560,17 @@ abstract class AppLocalizations {
   /// **'Manual'**
   String get mode_manual;
 
-  /// No description provided for @mode_hamada_ai.
+  /// No description provided for @mode_endfield_engine.
   ///
   /// In en, this message translates to:
-  /// **'HamadaAI'**
-  String get mode_hamada_ai;
+  /// **'Endfield'**
+  String get mode_endfield_engine;
 
-  /// No description provided for @please_disable_hamada_ai_first.
+  /// No description provided for @please_disable_endfield_engine_first.
   ///
   /// In en, this message translates to:
-  /// **'Please Disable HamadaAI First'**
-  String get please_disable_hamada_ai_first;
+  /// **'Please Disable Endfield Engine First'**
+  String get please_disable_endfield_engine_first;
 
   /// No description provided for @background_settings_title.
   ///
@@ -938,29 +938,29 @@ abstract class AppLocalizations {
   /// **'NAH BRO GONNA SOLO ADAM SMASHER AT THIS POINT!'**
   String get sandev_egg_smasher;
 
-  /// No description provided for @hamada_powersave_screen_off_title.
+  /// No description provided for @endfield_powersave_screen_off_title.
   ///
   /// In en, this message translates to:
   /// **'Powersave When Screen Off'**
-  String get hamada_powersave_screen_off_title;
+  String get endfield_powersave_screen_off_title;
 
-  /// No description provided for @hamada_normal_interval_title.
+  /// No description provided for @endfield_normal_interval_title.
   ///
   /// In en, this message translates to:
   /// **'Normal Interval'**
-  String get hamada_normal_interval_title;
+  String get endfield_normal_interval_title;
 
-  /// No description provided for @hamada_screen_off_interval_title.
+  /// No description provided for @endfield_screen_off_interval_title.
   ///
   /// In en, this message translates to:
   /// **'Screen Off Interval'**
-  String get hamada_screen_off_interval_title;
+  String get endfield_screen_off_interval_title;
 
-  /// No description provided for @hamada_interval_hint.
+  /// No description provided for @endfield_interval_hint.
   ///
   /// In en, this message translates to:
   /// **'Enter seconds (min 2)'**
-  String get hamada_interval_hint;
+  String get endfield_interval_hint;
 
   /// No description provided for @plugins_title.
   ///

@@ -85,40 +85,40 @@ build_flutter_apk() {
     cd "$current_dir"
 }
 
-# Function to build HamadaAI
-build_hamada_ai() {
+# Function to build Endfield Engine
+build_endfield_engine() {
     echo "---------------------------------"
-    echo "       HamadaAI Build            "
+    echo "     Endfield Engine Build       "
     echo "---------------------------------"
-    echo "1. Build HamadaAI"
+    echo "1. Build Endfield Engine"
     echo "0. Skip"
-    local hamada_choice
+    local endfield_choice
     while true; do
-        read -p "Enter your choice (1/0): " hamada_choice
-        case "$hamada_choice" in
+        read -p "Enter your choice (1/0): " endfield_choice
+        case "$endfield_choice" in
             1)
-                echo "Building HamadaAI..."
+                echo "Building Endfield Engine..."
 
                 # Verify directory exists
-                if [ -d "HamadaAI" ]; then
+                if [ -d "Endfield" ]; then
                     local root_dir=$(pwd)
 
                     # Enter directory to run build script so it finds sources
-                    echo "Entering HamadaAI directory..."
-                    cd "HamadaAI" || { echo "Failed to enter HamadaAI directory"; break; }
+                    echo "Entering Endfield directory..."
+                    cd "Endfield" || { echo "Failed to enter Endfield directory"; break; }
 
                     if [ -f "build.sh" ]; then
                         bash build.sh
                     else
-                        echo "Error: build.sh not found inside HamadaAI directory!"
+                        echo "Error: build.sh not found inside Endfield directory!"
                     fi
 
                     # Return to root for file moving operations
                     cd "$root_dir"
 
                     # Define paths (relative to root)
-                    local dest_dir="$MODULES_DIR/HamadaAI"
-                    local src_dir="HamadaAI/bin"
+                    local dest_dir="$MODULES_DIR/Endfield"
+                    local src_dir="Endfield/bin"
 
                     # Ensure destination directory exists and is clean
                     if [ ! -d "$dest_dir" ]; then
@@ -133,7 +133,7 @@ build_hamada_ai() {
                         echo "Moving files from $src_dir to $dest_dir..."
                         if [ "$(ls -A $src_dir)" ]; then
                             mv "$src_dir"/* "$dest_dir"/
-                            echo "✓ HamadaAI files updated."
+                            echo "✓ Endfield Engine files updated."
                         else
                             echo "Warning: $src_dir is empty (Build might have failed)."
                         fi
@@ -141,12 +141,12 @@ build_hamada_ai() {
                         echo "Error: Source directory '$src_dir' not found!"
                     fi
                 else
-                    echo "Error: HamadaAI directory not found!"
+                    echo "Error: Endfield directory not found!"
                 fi
                 break
                 ;;
             0)
-                echo "Skipping HamadaAI build..."
+                echo "Skipping Endfield Engine build..."
                 echo ""
                 break
                 ;;
@@ -329,9 +329,9 @@ prompt_telegram_post() {
 build_modules() {
     rm -rf "$BUILD_DIR"/*
 
-    # --- HAMADAAI BUILD START ---
-    build_hamada_ai
-    # --- HAMADAAI BUILD END ---
+    # --- ENDFIELD ENGINE BUILD START ---
+    build_endfield_engine
+    # --- ENDFIELD ENGINE BUILD END ---
 
     # --- APK Build Selection ---
     echo "APK Build Options:"

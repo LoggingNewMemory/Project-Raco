@@ -137,10 +137,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get life_mode_description => 'Половина мощности ЦП в режиме Баланс';
 
   @override
-  String get hamada_ai => 'HAMADA AI';
+  String get endfield_engine => 'Endfield Engine';
 
   @override
-  String get hamada_ai_description =>
+  String get endfield_engine_description =>
       'Включает Производительность в играх, Энергосбережение при выключенном экране';
 
   @override
@@ -155,10 +155,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get reset_resolution => 'Вернуться к родному разрешению';
 
   @override
-  String get hamada_ai_toggle_title => 'Включить HAMADA AI';
+  String get endfield_engine_toggle_title => 'Включить Endfield Engine';
 
   @override
-  String get hamada_ai_start_on_boot => 'Запускать при загрузке';
+  String get endfield_engine_start_on_boot => 'Запускать при загрузке';
 
   @override
   String get edit_game_txt_title => 'Изменить game.txt';
@@ -254,11 +254,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get mode_manual => 'Ручной';
 
   @override
-  String get mode_hamada_ai => 'HamadaAI';
+  String get mode_endfield_engine => 'Endfield';
 
   @override
-  String get please_disable_hamada_ai_first =>
-      'Пожалуйста, сначала отключите HamadaAI';
+  String get please_disable_endfield_engine_first =>
+      'Пожалуйста, сначала отключите Endfield Engine';
 
   @override
   String get background_settings_title => 'Настройки фона';
@@ -462,18 +462,18 @@ class AppLocalizationsRu extends AppLocalizations {
       'НЕ, НУ ТЫ РЕШИЛ АДАМА СМЭШЕРА В СОЛО ВЫНЕСТИ!';
 
   @override
-  String get hamada_powersave_screen_off_title =>
+  String get endfield_powersave_screen_off_title =>
       'Энергосбережение при выключенном экране';
 
   @override
-  String get hamada_normal_interval_title => 'Обычный интервал';
+  String get endfield_normal_interval_title => 'Обычный интервал';
 
   @override
-  String get hamada_screen_off_interval_title =>
+  String get endfield_screen_off_interval_title =>
       'Интервал при выключенном экране';
 
   @override
-  String get hamada_interval_hint => 'Введите в секундах (минимум 2)';
+  String get endfield_interval_hint => 'Введите в секундах (минимум 2)';
 
   @override
   String get plugins_title => 'Плагины';

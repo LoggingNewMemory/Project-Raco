@@ -207,7 +207,7 @@ fi
 rm /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
 
 ui_print " "
-ui_print "         INSTALLING HAMADA AI         "
+ui_print "      INSTALLING ENDFIELD ENGINE      "
 ui_print " "
 
 TARGET_BIN_PATH="$MODPATH/Binaries"
@@ -215,15 +215,15 @@ TARGET_BIN_PATH="$MODPATH/Binaries"
 ARCH=$(getprop ro.product.cpu.abi)
 if [[ "$ARCH" == *"arm64"* ]]; then
   ui_print "- Detected 64-bit ARM architecture ($ARCH)"
-  SOURCE_BIN=$MODPATH/HamadaAI/hamadaAI_arm64
+  SOURCE_BIN=$MODPATH/Endfield/Endfield_arm64
 else
   ui_print "- Detected 32-bit ARM architecture or other ($ARCH)"
-  SOURCE_BIN=$MODPATH/HamadaAI/hamadaAI_arm32
+  SOURCE_BIN=$MODPATH/Endfield/Endfield_arm32
 fi
 
 if [ -f "$SOURCE_BIN" ]; then
-  ui_print "- Installing HamadaAI binary..."
-  mv "$SOURCE_BIN" "$TARGET_BIN_PATH/HamadaAI" >/dev/null 2>&1 || abort "! Failed to move HamadaAI binary"
+  ui_print "- Installing Endfield binary..."
+  mv "$SOURCE_BIN" "$TARGET_BIN_PATH/Endfield" >/dev/null 2>&1 || abort "! Failed to move Endfield binary"
   set_perm_recursive "$TARGET_BIN_PATH" 0 0 0755 0755
 else
   ui_print "! ERROR: Source binary not found at $SOURCE_BIN"
@@ -231,4 +231,4 @@ else
 fi
 
 ui_print "- Cleaning up installation files..."
-rm -rf "$MODPATH/HamadaAI"
+rm -rf "$MODPATH/Endfield"

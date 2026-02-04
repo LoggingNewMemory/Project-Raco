@@ -129,10 +129,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get life_mode_description => 'バランスモードでCPUパワーを半分にする';
 
   @override
-  String get hamada_ai => 'HAMADA AI';
+  String get endfield_engine => 'Endfield Engine';
 
   @override
-  String get hamada_ai_description => 'ゲーム開始時にパフォーマンス、画面オフ時に省電力モードへ切り替え';
+  String get endfield_engine_description => 'ゲーム開始時にパフォーマンス、画面オフ時に省電力モードへ切り替え';
 
   @override
   String get downscale_resolution => '解像度を下げる';
@@ -146,10 +146,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get reset_resolution => 'オリジナルに戻す';
 
   @override
-  String get hamada_ai_toggle_title => 'HAMADA AI を有効にする';
+  String get endfield_engine_toggle_title => 'Endfield Engine を有効にする';
 
   @override
-  String get hamada_ai_start_on_boot => '起動時に開始';
+  String get endfield_engine_start_on_boot => '起動時に開始';
 
   @override
   String get edit_game_txt_title => 'game.txt を編集';
@@ -240,10 +240,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mode_manual => '手動';
 
   @override
-  String get mode_hamada_ai => 'HamadaAI';
+  String get mode_endfield_engine => 'Endfield';
 
   @override
-  String get please_disable_hamada_ai_first => '最初にHamadaAIを無効にしてください';
+  String get please_disable_endfield_engine_first =>
+      '最初にEndfield Engineを無効にしてください';
 
   @override
   String get background_settings_title => '背景設定';
@@ -440,16 +441,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sandev_egg_smasher => 'おいおい、アダム・スマッシャーをソロで倒す気かよ！';
 
   @override
-  String get hamada_powersave_screen_off_title => '画面オフ時に省電力';
+  String get endfield_powersave_screen_off_title => '画面オフ時に省電力';
 
   @override
-  String get hamada_normal_interval_title => '通常間隔';
+  String get endfield_normal_interval_title => '通常間隔';
 
   @override
-  String get hamada_screen_off_interval_title => '画面オフ時の間隔';
+  String get endfield_screen_off_interval_title => '画面オフ時の間隔';
 
   @override
-  String get hamada_interval_hint => '秒数を入力 (最小 2)';
+  String get endfield_interval_hint => '秒数を入力 (最小 2)';
 
   @override
   String get plugins_title => 'プラグイン';
