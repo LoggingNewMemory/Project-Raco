@@ -10,6 +10,7 @@ import 'package:process_run/process_run.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:quick_settings/quick_settings.dart';
+import 'package:video_player/video_player.dart';
 import '/l10n/app_localizations.dart';
 import 'about_page.dart';
 import 'utilities_page.dart';
@@ -148,6 +149,7 @@ class _MyAppState extends State<MyApp> {
   double _backgroundBlur = 0.0;
   String? _bannerImagePath;
   Color? _seedColorFromBanner;
+  VideoPlayerController? _audioController;
 
   static final _defaultLightColorScheme = ColorScheme.fromSeed(
     seedColor: Colors.blue,
@@ -161,11 +163,13 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _loadAllPreferences();
+    _checkAndPlayEndfieldAudio();
     themeNotifier.addListener(_onThemeChanged);
   }
 
   @override
   void dispose() {
+    _audioController?.dispose();
     themeNotifier.removeListener(_onThemeChanged);
     super.dispose();
   }
@@ -175,6 +179,21 @@ class _MyAppState extends State<MyApp> {
       setState(() {
         _seedColorFromBanner = themeNotifier.value;
       });
+    }
+  }
+
+  Future<void> _checkAndPlayEndfieldAudio() async {
+    final prefs = await SharedPreferences.getInstance();
+    final bool isEnabled = prefs.getBool('endfield_collab_enabled') ?? false;
+
+    if (isEnabled) {
+      _audioController = VideoPlayerController.asset('assets/Endfield.mp3');
+      try {
+        await _audioController!.initialize();
+        await _audioController!.play();
+      } catch (e) {
+        print("Error playing Endfield audio: $e");
+      }
     }
   }
 

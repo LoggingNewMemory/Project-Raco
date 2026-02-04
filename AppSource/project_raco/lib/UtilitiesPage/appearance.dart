@@ -34,6 +34,7 @@ class _AppearancePageState extends State<AppearancePage> {
   double backgroundOpacity = 0.2;
   double backgroundBlur = 0.0;
   String? bannerImagePath;
+  bool endfieldCollabEnabled = false;
 
   @override
   void initState() {
@@ -49,14 +50,25 @@ class _AppearancePageState extends State<AppearancePage> {
     if (!mounted) return;
     setState(() {
       bannerImagePath = prefs.getString('banner_image_path');
+      endfieldCollabEnabled = prefs.getBool('endfield_collab_enabled') ?? false;
       _isLoading = false;
     });
+  }
+
+  Future<void> _toggleEndfieldCollab(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('endfield_collab_enabled', value);
+    if (mounted) {
+      setState(() {
+        endfieldCollabEnabled = value;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
-    final Widget pageContent = Scaffold(
+    final pageContent = Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(localization.appearance_title),
@@ -83,6 +95,10 @@ class _AppearancePageState extends State<AppearancePage> {
             onSettingsChanged: (path) {
               setState(() => bannerImagePath = path);
             },
+          ),
+          EndfieldSettingsCard(
+            value: endfieldCollabEnabled,
+            onChanged: _toggleEndfieldCollab,
           ),
         ],
       ),
@@ -538,6 +554,44 @@ class _BannerSettingsCardState extends State<BannerSettingsCard>
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class EndfieldSettingsCard extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const EndfieldSettingsCard({
+    Key? key,
+    required this.value,
+    required this.onChanged,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      elevation: 2.0,
+      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceContainerHighest,
+      child: SwitchListTile(
+        title: Text(
+          "Endfield Collab",
+          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          "Play Endfield theme when app starts",
+          style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+        ),
+        value: value,
+        onChanged: onChanged,
+        secondary: Icon(Icons.music_note_outlined, color: colorScheme.primary),
+        activeColor: colorScheme.primary,
       ),
     );
   }
