@@ -618,4 +618,8 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sandev_boot_desc => 'Un intento de hacer el arranque más rápido';
+
+  @override
+  String get reboot_to_take_effect =>
+      'Por favor reinicie para aplicar los cambios';
 }

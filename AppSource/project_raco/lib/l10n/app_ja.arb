@@ -220,5 +220,6 @@
     "zetamin_title": "Zetamin",
     "zetamin_desc": "オールインワンディスプレイ調整",
     "sandev_boot_title": "サンデヴィスタンブート",
-    "sandev_boot_desc": "起動を高速化する試み"
+    "sandev_boot_desc": "起動を高速化する試み",
+    "reboot_to_take_effect": "変更を適用するには再起動してください"
 }

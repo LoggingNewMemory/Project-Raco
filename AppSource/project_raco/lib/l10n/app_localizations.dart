@@ -1219,6 +1219,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An Attempt to Make Boot Faster'**
   String get sandev_boot_desc;
+
+  /// No description provided for @reboot_to_take_effect.
+  ///
+  /// In en, this message translates to:
+  /// **'Please Reboot to take effects'**
+  String get reboot_to_take_effect;
 }
 
 class _AppLocalizationsDelegate

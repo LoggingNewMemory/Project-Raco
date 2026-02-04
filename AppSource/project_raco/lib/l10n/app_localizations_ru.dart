@@ -616,4 +616,8 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get sandev_boot_desc => 'Попытка ускорить загрузку';
+
+  @override
+  String get reboot_to_take_effect =>
+      'Пожалуйста, перезагрузите устройство для применения изменений';
 }

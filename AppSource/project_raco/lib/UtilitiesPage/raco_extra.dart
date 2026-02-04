@@ -22,7 +22,6 @@ class RacoExtraPage extends StatefulWidget {
 class _RacoExtraPageState extends State<RacoExtraPage> {
   bool _isLoading = true;
 
-  // Config Flags
   bool _includeAnya = false;
   bool _includeKobo = false;
   bool _includeSandev = false;
@@ -51,7 +50,6 @@ class _RacoExtraPageState extends State<RacoExtraPage> {
           });
         }
       } else {
-        // Handle file not found or no root
         if (mounted) setState(() => _isLoading = false);
       }
     } catch (e) {
@@ -72,8 +70,8 @@ class _RacoExtraPageState extends State<RacoExtraPage> {
 
   Future<void> _updateConfig(String key, bool value) async {
     final intVal = value ? 1 : 0;
+    final localization = AppLocalizations.of(context)!;
 
-    // Update local state first for responsiveness
     setState(() {
       if (key == 'INCLUDE_ANYA')
         _includeAnya = value;
@@ -86,14 +84,21 @@ class _RacoExtraPageState extends State<RacoExtraPage> {
     });
 
     try {
-      // Use sed to replace the specific line
       await Process.run('su', [
         '-c',
         "sed -i 's/^$key=.*/$key=$intVal/' $_configPath",
       ]);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(localization.reboot_to_take_effect),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     } catch (e) {
       print('Error updating $key: $e');
-      // Revert state if failed
       await _loadConfig();
     }
   }

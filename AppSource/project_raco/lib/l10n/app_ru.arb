@@ -220,5 +220,6 @@
     "zetamin_title": "Zetamin",
     "zetamin_desc": "Все настройки дисплея в одном",
     "sandev_boot_title": "Загрузка Sandevistan",
-    "sandev_boot_desc": "Попытка ускорить загрузку"
+    "sandev_boot_desc": "Попытка ускорить загрузку",
+    "reboot_to_take_effect": "Пожалуйста, перезагрузите устройство для применения изменений"
 }

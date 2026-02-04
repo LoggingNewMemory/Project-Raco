@@ -612,4 +612,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get sandev_boot_desc => 'Percobaan untuk Mempercepat Boot';
+
+  @override
+  String get reboot_to_take_effect => 'Harap Reboot untuk menerapkan efek';
 }
