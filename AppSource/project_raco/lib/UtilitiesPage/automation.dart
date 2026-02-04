@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:installed_apps/app_info.dart';
@@ -10,6 +11,253 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '/l10n/app_localizations.dart';
 import 'utils.dart';
+
+// --- TOPO CAMO BACKGROUND (Marching Squares Implementation) ---
+class TopoBackground extends StatefulWidget {
+  final Color color;
+  final double speed;
+
+  const TopoBackground({Key? key, required this.color, this.speed = 1.0})
+    : super(key: key);
+
+  @override
+  _TopoBackgroundState createState() => _TopoBackgroundState();
+}
+
+class _TopoBackgroundState extends State<TopoBackground>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 20),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return CustomPaint(
+              painter: TopoPainter(
+                animationValue: _controller.value,
+                color: widget.color,
+                speed: widget.speed,
+              ),
+              size: Size(constraints.maxWidth, constraints.maxHeight),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class TopoPainter extends CustomPainter {
+  final double animationValue;
+  final Color color;
+  final double speed;
+
+  // Grid resolution: Lower is higher quality but slower.
+  // 15-20 is a good balance for mobile cards.
+  static const double resolution = 16.0;
+
+  TopoPainter({
+    required this.animationValue,
+    required this.color,
+    required this.speed,
+  });
+
+  // Simple pseudo-noise function to generate elevation data
+  // Summing sines creates organic, non-repeating hills and valleys
+  double _getElevation(double x, double y, double t) {
+    // Base rolling hills
+    double v = sin(x * 0.008 + t) + cos(y * 0.005 - t * 0.5);
+    // Detail layer
+    v += 0.5 * sin((x * 0.02) + (y * 0.015) + t * 2.0);
+    // Micro detail for "camo" irregularity
+    v += 0.25 * cos((x * 0.05) - (y * 0.05));
+    return v; // Range roughly -2.75 to 2.75
+  }
+
+  // Linear interpolation to find the exact point on the grid edge
+  // where the contour line crosses. Smoothes the blocky grid.
+  Offset _lerp(Offset a, Offset b, double valA, double valB, double threshold) {
+    if ((valB - valA).abs() < 0.0001) return a;
+    double t = (threshold - valA) / (valB - valA);
+    return Offset(a.dx + (b.dx - a.dx) * t, a.dy + (b.dy - a.dy) * t);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final double t = animationValue * 2 * pi * speed;
+
+    // We draw multiple contour lines at different heights (isolevels)
+    // to create the "density" seen in topographic maps.
+    final List<double> thresholds = [-1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5];
+
+    // Rows and Cols based on resolution
+    int cols = (size.width / resolution).ceil() + 1;
+    int rows = (size.height / resolution).ceil() + 1;
+
+    // Cache row values to avoid recomputing noise for the same point twice
+    List<double> currentRow = List.filled(cols, 0.0);
+    List<double> nextRow = List.filled(cols, 0.0);
+
+    // Initialize first row
+    for (int i = 0; i < cols; i++) {
+      currentRow[i] = _getElevation(i * resolution, 0, t);
+    }
+
+    // Iterate through grid
+    for (int j = 0; j < rows - 1; j++) {
+      double y = j * resolution;
+      double nextY = (j + 1) * resolution;
+
+      // Compute next row
+      for (int i = 0; i < cols; i++) {
+        nextRow[i] = _getElevation(i * resolution, nextY, t);
+      }
+
+      // Process each cell in the row
+      for (int i = 0; i < cols - 1; i++) {
+        double x = i * resolution;
+        double nextX = (i + 1) * resolution;
+
+        // Cell corners
+        double valTL = currentRow[i];
+        double valTR = currentRow[i + 1];
+        double valBL = nextRow[i];
+        double valBR = nextRow[i + 1];
+
+        // Process each threshold level for this single cell
+        for (double threshold in thresholds) {
+          int state = 0;
+          if (valTL > threshold) state |= 8;
+          if (valTR > threshold) state |= 4;
+          if (valBR > threshold) state |= 2;
+          if (valBL > threshold) state |= 1;
+
+          // Marching Squares Lookup Table
+          // Maps state (0-15) to line segments
+          if (state == 0 || state == 15) continue; // All above or all below
+
+          Offset a = Offset(
+            x + resolution * 0.5,
+            y,
+          ); // Top edge midpoint approx
+          Offset b = Offset(nextX, y + resolution * 0.5); // Right edge
+          Offset c = Offset(x + resolution * 0.5, nextY); // Bottom edge
+          Offset d = Offset(x, y + resolution * 0.5); // Left edge
+
+          // Accurate Lerped points
+          Offset ptTop = _lerp(
+            Offset(x, y),
+            Offset(nextX, y),
+            valTL,
+            valTR,
+            threshold,
+          );
+          Offset ptRight = _lerp(
+            Offset(nextX, y),
+            Offset(nextX, nextY),
+            valTR,
+            valBR,
+            threshold,
+          );
+          Offset ptBottom = _lerp(
+            Offset(x, nextY),
+            Offset(nextX, nextY),
+            valBL,
+            valBR,
+            threshold,
+          );
+          Offset ptLeft = _lerp(
+            Offset(x, y),
+            Offset(x, nextY),
+            valTL,
+            valBL,
+            threshold,
+          );
+
+          switch (state) {
+            case 1:
+              canvas.drawLine(ptLeft, ptBottom, paint);
+              break;
+            case 2:
+              canvas.drawLine(ptBottom, ptRight, paint);
+              break;
+            case 3:
+              canvas.drawLine(ptLeft, ptRight, paint);
+              break;
+            case 4:
+              canvas.drawLine(ptTop, ptRight, paint);
+              break;
+            case 5:
+              canvas.drawLine(ptLeft, ptTop, paint);
+              canvas.drawLine(ptBottom, ptRight, paint);
+              break; // Saddle
+            case 6:
+              canvas.drawLine(ptTop, ptBottom, paint);
+              break;
+            case 7:
+              canvas.drawLine(ptLeft, ptTop, paint);
+              break;
+            case 8:
+              canvas.drawLine(ptLeft, ptTop, paint);
+              break;
+            case 9:
+              canvas.drawLine(ptTop, ptBottom, paint);
+              break;
+            case 10:
+              canvas.drawLine(ptTop, ptRight, paint);
+              canvas.drawLine(ptLeft, ptBottom, paint);
+              break; // Saddle
+            case 11:
+              canvas.drawLine(ptTop, ptRight, paint);
+              break;
+            case 12:
+              canvas.drawLine(ptLeft, ptRight, paint);
+              break;
+            case 13:
+              canvas.drawLine(ptBottom, ptRight, paint);
+              break;
+            case 14:
+              canvas.drawLine(ptLeft, ptBottom, paint);
+              break;
+          }
+        }
+      }
+
+      // Swap rows for memory efficiency
+      List<double> temp = currentRow;
+      currentRow = nextRow;
+      nextRow = temp;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant TopoPainter oldDelegate) => true;
+}
+// --------------------------------------------------------
 
 class AppItem {
   final String name;
@@ -368,63 +616,80 @@ class _EndfieldEngineCardState extends State<EndfieldEngineCard>
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: colorScheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              localization.endfield_engine,
-              style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          // TOPO CAMO BACKGROUND (Marching Squares)
+          Positioned.fill(
+            child: TopoBackground(
+              color: colorScheme.primary.withOpacity(0.15),
+              speed: 0.15, // Slow, map-like movement
             ),
-            const SizedBox(height: 8),
-            Text(
-              localization.endfield_engine_description,
-              style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+          ),
+          // CARD CONTENT
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  localization.endfield_engine,
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  localization.endfield_engine_description,
+                  style: textTheme.bodySmall?.copyWith(
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  title: Text(localization.endfield_engine_toggle_title),
+                  value: _endfieldEngineEnabled,
+                  onChanged: isBusy ? null : _toggleEndfieldEngine,
+                  secondary: _isTogglingProcess
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.smart_toy_outlined),
+                  activeColor: colorScheme.primary,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                SwitchListTile(
+                  title: Text(localization.endfield_engine_start_on_boot),
+                  value: _endfieldStartOnBoot,
+                  onChanged: isBusy ? null : _setEndfieldStartOnBoot,
+                  secondary: _isTogglingBoot
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.power_settings_new),
+                  activeColor: colorScheme.primary,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                const Divider(),
+                SwitchListTile(
+                  title: Text(localization.endfield_powersave_screen_off_title),
+                  value: _powersaveScreenOff,
+                  onChanged: isBusy
+                      ? null
+                      : (val) => _saveConfig(powersave: val),
+                  secondary: const Icon(Icons.screen_lock_portrait_outlined),
+                  activeColor: colorScheme.primary,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                if (_isSavingConfig) const LinearProgressIndicator(),
+              ],
             ),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              title: Text(localization.endfield_engine_toggle_title),
-              value: _endfieldEngineEnabled,
-              onChanged: isBusy ? null : _toggleEndfieldEngine,
-              secondary: _isTogglingProcess
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.smart_toy_outlined),
-              activeColor: colorScheme.primary,
-              contentPadding: EdgeInsets.zero,
-            ),
-            SwitchListTile(
-              title: Text(localization.endfield_engine_start_on_boot),
-              value: _endfieldStartOnBoot,
-              onChanged: isBusy ? null : _setEndfieldStartOnBoot,
-              secondary: _isTogglingBoot
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.power_settings_new),
-              activeColor: colorScheme.primary,
-              contentPadding: EdgeInsets.zero,
-            ),
-            const Divider(),
-            SwitchListTile(
-              title: Text(localization.endfield_powersave_screen_off_title),
-              value: _powersaveScreenOff,
-              onChanged: isBusy ? null : (val) => _saveConfig(powersave: val),
-              secondary: const Icon(Icons.screen_lock_portrait_outlined),
-              activeColor: colorScheme.primary,
-              contentPadding: EdgeInsets.zero,
-            ),
-            if (_isSavingConfig) const LinearProgressIndicator(),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
