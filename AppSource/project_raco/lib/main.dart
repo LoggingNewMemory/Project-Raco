@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'dart:math';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -20,7 +21,6 @@ import 'raco.dart';
 
 @pragma('vm:entry-point')
 Tile onTileClicked(Tile tile) {
-  // FIX: Trigger the specific intent that matches our Transparent Activity
   try {
     Process.run('su', [
       '-c',
@@ -119,11 +119,8 @@ class ConfigManager {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Raco Video Cache immediately on startup
   initRacoVideoCache();
 
-  // Initialize Quick Settings
   try {
     QuickSettings.setup(
       onTileClicked: onTileClicked,
@@ -242,14 +239,10 @@ class _MyAppState extends State<MyApp> {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-
-          // --- ROUTING LOGIC ---
           routes: {
             '/': (context) => _buildHome(context),
             '/menu': (context) => const QSMenuPage(),
           },
-
-          // ---------------------
           theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),
           darkTheme: ThemeData(
             useMaterial3: true,
@@ -261,7 +254,6 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  // Extracted Home Screen Builder
   Widget _buildHome(BuildContext context) {
     return Builder(
       builder: (context) {
@@ -304,6 +296,105 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
+// --- UPDATED HELPER WIDGET: DELETES THEN TYPES ---
+class TypewriterText extends StatefulWidget {
+  final String text;
+  final TextStyle? style;
+  final Duration typeDuration;
+  final Duration deleteDuration;
+
+  const TypewriterText({
+    Key? key,
+    required this.text,
+    this.style,
+    this.typeDuration = const Duration(milliseconds: 30),
+    this.deleteDuration = const Duration(milliseconds: 20),
+  }) : super(key: key);
+
+  @override
+  _TypewriterTextState createState() => _TypewriterTextState();
+}
+
+class _TypewriterTextState extends State<TypewriterText> {
+  String _displayedText = "";
+  Timer? _timer;
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initial start: just type
+    _startTyping(widget.text);
+  }
+
+  @override
+  void didUpdateWidget(TypewriterText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.text != widget.text) {
+      // If text changed, Start Deleting first, then type new text
+      _startDeleting(widget.text);
+    }
+  }
+
+  void _startDeleting(String nextText) {
+    _timer?.cancel();
+    _timer = Timer.periodic(widget.deleteDuration, (timer) {
+      if (_displayedText.isNotEmpty) {
+        setState(() {
+          _displayedText = _displayedText.substring(
+            0,
+            _displayedText.length - 1,
+          );
+        });
+      } else {
+        timer.cancel();
+        // Once deletion is done, start typing the new text
+        _startTyping(nextText);
+      }
+    });
+  }
+
+  void _startTyping(String textToType) {
+    _timer?.cancel();
+    _currentIndex = 0;
+
+    if (textToType.isEmpty) {
+      setState(() => _displayedText = "");
+      return;
+    }
+
+    // Reset displayed text if we are starting fresh from empty
+    // (Note: if coming from delete, it's already empty)
+    if (_displayedText.isNotEmpty && _displayedText != textToType) {
+      // Safety net: if we skipped delete logic somehow
+      setState(() => _displayedText = "");
+    }
+
+    _timer = Timer.periodic(widget.typeDuration, (timer) {
+      if (_currentIndex < textToType.length) {
+        setState(() {
+          _displayedText += textToType[_currentIndex];
+          _currentIndex++;
+        });
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(_displayedText, style: widget.style);
+  }
+}
+// -------------------------------------------
+
 class MainScreen extends StatefulWidget {
   final Function(Locale) onLocaleChange;
   final VoidCallback onSettingsChanged;
@@ -340,10 +431,24 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   int _swipeRightCount = 0;
   Timer? _swipeResetTimer;
 
+  // --- TIPS VARIABLES ---
+  Timer? _tipTimer;
+  int _currentTipIndex = 0;
+  final List<String> _tips = [
+    "Swipe 3 times on the left somewhere and you can access the hidden terminal",
+    "Swipe 3 times on the left and you can cancel the execution",
+    "Official Telegram Channel of Project Raco is on Raco's Page",
+    "Tap the Raco image! You will greeted by Raco",
+    "Project Raco can't make a potato phone into a gaming phone",
+    "Project Raco? GACOR KANG!",
+  ];
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _currentTipIndex = Random().nextInt(_tips.length);
+    _startTipRotation();
     _initialize();
   }
 
@@ -351,7 +456,19 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _swipeResetTimer?.cancel();
+    _tipTimer?.cancel();
     super.dispose();
+  }
+
+  void _startTipRotation() {
+    // Increased duration slightly to allow for delete+type animation
+    _tipTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
+      if (mounted) {
+        setState(() {
+          _currentTipIndex = (_currentTipIndex + 1) % _tips.length;
+        });
+      }
+    });
   }
 
   @override
@@ -364,9 +481,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   Future<void> _initialize() async {
     if (!mounted) return;
-
     await _loadSelectedLanguage();
-
     final rootGranted = await _checkRootAccess();
     if (!rootGranted) {
       if (mounted) {
@@ -381,16 +496,13 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       }
       return;
     }
-
     _hasRootAccess = true;
     final moduleIsInstalled = await _checkModuleInstalled();
     _moduleInstalled = moduleIsInstalled;
-
     await Future.wait([
       if (moduleIsInstalled) _getModuleVersion(),
       _refreshDynamicState(),
     ]);
-
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -401,15 +513,12 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   Future<void> _refreshDynamicState() async {
     if (!_hasRootAccess) return;
-
     final results = await Future.wait([
       ConfigManager.readConfig(),
       _isHamadaProcessRunning(),
     ]);
-
     final config = results[0] as Map<String, String>;
     final isRunning = results[1] as bool;
-
     if (mounted) {
       setState(() {
         _currentMode = config['current_mode'] ?? 'NONE';
@@ -493,11 +602,9 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         _isHamadaAiRunning) {
       return;
     }
-
     String targetMode = (modeKey == 'CLEAR' || modeKey == 'COOLDOWN')
         ? 'NONE'
         : modeKey;
-
     if (mounted) {
       setState(() {
         _executingScript = scriptArg;
@@ -505,7 +612,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         _swipeRightCount = 0;
       });
     }
-
     try {
       await run('su', [
         '-c',
@@ -521,13 +627,11 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   void _onHorizontalDragEnd(DragEndDetails details) {
     if (_executingScript.isEmpty) return;
-
     if (details.primaryVelocity! > 500) {
       if (_swipeRightCount == 0) {
         setState(() {
           _swipeRightCount++;
         });
-
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -535,7 +639,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
             duration: const Duration(seconds: 2),
           ),
         );
-
         _swipeResetTimer?.cancel();
         _swipeResetTimer = Timer(const Duration(seconds: 2), () {
           if (mounted) {
@@ -555,11 +658,9 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     setState(() {
       _swipeRightCount = 0;
     });
-
     try {
       await run('su', ['-c', 'pkill -f Raco.sh'], verbose: false);
     } catch (e) {}
-
     if (mounted) {
       setState(() {
         _executingScript = '';
@@ -585,9 +686,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       orElse: () => supportedLanguages.first,
     );
     if (newLocaleCode == currentLanguage.code) return;
-
     widget.onLocaleChange(Locale(newLocaleCode));
-
     if (mounted) {
       setState(() => _selectedLanguage = newLanguage.displayName);
     }
@@ -729,7 +828,11 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                         children: [
                           _buildTitleHeader(colorScheme, localization),
                           const SizedBox(height: 16),
-                          _buildBannerAndStatus(localization),
+                          _buildBanner(localization),
+                          const SizedBox(height: 10),
+                          _buildTipsSection(colorScheme),
+                          const SizedBox(height: 10),
+                          _buildStatusRow(localization),
                           const SizedBox(height: 10),
                           _buildControlRow(
                             localization.power_save_desc,
@@ -789,6 +892,62 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
+  // --- WIDGET BUILDERS ---
+
+  Widget _buildTipsSection(ColorScheme colorScheme) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withOpacity(0.5),
+          width: 0.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.lightbulb_outline,
+                size: 16,
+                color: colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                "Did You Know?",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          // WRAPPED IN SIZED BOX FOR FIXED HEIGHT TO PREVENT MISCLICKS
+          SizedBox(
+            height: 40.0, // Fixed height for approx 2 lines
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: TypewriterText(
+                text: _tips[_currentTipIndex],
+                style: TextStyle(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                  fontStyle: FontStyle.normal,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTitleHeader(
     ColorScheme colorScheme,
     AppLocalizations localization,
@@ -842,7 +1001,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildBannerAndStatus(AppLocalizations localization) {
+  Widget _buildBanner(AppLocalizations localization) {
     Widget bannerImage;
     if (widget.bannerImagePath != null && widget.bannerImagePath!.isNotEmpty) {
       bannerImage = Image.file(
@@ -888,71 +1047,65 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       bannerText = localization.error_no_root;
     }
 
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: _navigateToRacoPage,
-          child: Card(
-            elevation: 2.0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Stack(
-                alignment: Alignment.bottomLeft,
-                children: [
-                  bannerImage,
-                  Container(
-                    margin: const EdgeInsets.all(12.0),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0,
-                      vertical: 6.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                    child: Text(
-                      bannerText,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
+    return GestureDetector(
+      onTap: _navigateToRacoPage,
+      child: Card(
+        elevation: 2.0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        clipBehavior: Clip.antiAlias,
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
+          child: Stack(
+            alignment: Alignment.bottomLeft,
+            children: [
+              bannerImage,
+              Container(
+                margin: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 6.0,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                child: Text(
+                  bannerText,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatusCard(
-                localization.root_access,
-                _hasRootAccess ? localization.yes : localization.no,
-                Icons.security_outlined,
-                _hasRootAccess
-                    ? Colors.green
-                    : Theme.of(context).colorScheme.error,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildStatusCard(
-                localization.mode_status_label,
-                _isHamadaAiRunning
-                    ? localization.mode_hamada_ai
-                    : localization.mode_manual,
-                Icons.settings_input_component_outlined,
-                Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ],
+      ),
+    );
+  }
+
+  Widget _buildStatusRow(AppLocalizations localization) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatusCard(
+            localization.root_access,
+            _hasRootAccess ? localization.yes : localization.no,
+            Icons.security_outlined,
+            _hasRootAccess ? Colors.green : Theme.of(context).colorScheme.error,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _buildStatusCard(
+            localization.mode_status_label,
+            _isHamadaAiRunning
+                ? localization.mode_hamada_ai
+                : localization.mode_manual,
+            Icons.settings_input_component_outlined,
+            Theme.of(context).colorScheme.primary,
+          ),
         ),
       ],
     );
