@@ -640,16 +640,18 @@ class _PluginCard extends StatefulWidget {
 }
 
 class _PluginCardState extends State<_PluginCard> {
+  // Color Palette
   static const Color _webUiColor = Color(0xFF1E3A3A); // Dark Teal/Green
   static const Color _webUiIconColor = Color(0xFF80CBC4); // Light Teal
   static const Color _actionColor = Color(0xFF333D29); // Dark Olive
   static const Color _actionIconColor = Color(0xFFA5D6A7); // Light Green
   static const Color _runColor = Color(0xFF2E4F3E); // Dark Green Pill
   static const Color _runTextColor = Color(0xFFE8F5E9);
+  static const Color _bootOnColor = Color(0xFF1B5E20); // Deep Green
+  static const Color _bootOffColor = Color(0xFF424242); // Grey
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final plugin = widget.plugin;
     final bool showWebUi = (plugin.webUiUrl != null) || plugin.hasWebRoot;
 
@@ -664,10 +666,9 @@ class _PluginCardState extends State<_PluginCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- HEADER ---
+            // --- HEADER (Logo, Name, Version, Delete) ---
             Row(
               children: [
-                // Logo
                 Container(
                   width: 48,
                   height: 48,
@@ -690,8 +691,6 @@ class _PluginCardState extends State<_PluginCard> {
                         ),
                 ),
                 const SizedBox(width: 16),
-
-                // Title & Subtitle
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -711,8 +710,6 @@ class _PluginCardState extends State<_PluginCard> {
                     ],
                   ),
                 ),
-
-                // Delete Icon
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   color: const Color(0xFFEF9A9A),
@@ -734,108 +731,119 @@ class _PluginCardState extends State<_PluginCard> {
             Divider(height: 1, color: Colors.white.withOpacity(0.1)),
             const SizedBox(height: 12),
 
-            // --- ACTION ROW ---
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  // WebUI Button
-                  if (showWebUi) ...[
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: const BoxDecoration(
-                        color: _webUiColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.language),
-                        color: _webUiIconColor,
-                        onPressed: widget.onOpenWebUI,
-                        tooltip: 'Web UI',
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
+            // --- 2x2 GRID LAYOUT ---
 
-                  // Action.sh Button
-                  if (plugin.hasActionScript) ...[
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: const BoxDecoration(
-                        color: _actionColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.build),
-                        color: _actionIconColor,
-                        onPressed: widget.onRunAction,
-                        tooltip: 'Action',
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
-
-                  // Run Button
-                  Material(
+            // ROW 1: [ RUN ] ... [ BOOT ]
+            Row(
+              children: [
+                Expanded(
+                  child: _buildGridButton(
+                    context,
+                    icon: Icons.play_arrow,
+                    label: AppLocalizations.of(context)!.plugin_run,
                     color: _runColor,
-                    borderRadius: BorderRadius.circular(24),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(24),
-                      onTap: widget.onRunService,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.play_arrow,
-                              size: 20,
-                              color: _runTextColor,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              AppLocalizations.of(context)!.plugin_run,
-                              style: TextStyle(
-                                color: _runTextColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    textColor: _runTextColor,
+                    iconColor: _runTextColor,
+                    onTap: widget.onRunService,
                   ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildGridButton(
+                    context,
+                    icon: Icons.power_settings_new,
+                    label: plugin.isBootEnabled ? "Boot: ON" : "Boot: OFF",
+                    color: plugin.isBootEnabled ? _bootOnColor : _bootOffColor,
+                    textColor: Colors.white,
+                    iconColor: plugin.isBootEnabled
+                        ? Colors.greenAccent
+                        : Colors.grey[400]!,
+                    onTap: () => widget.onBootToggle(!plugin.isBootEnabled),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
 
-                  const SizedBox(width: 16),
-
-                  // Boot Toggle
-                  Text(
-                    AppLocalizations.of(context)!.plugin_boot,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Switch(
-                    value: plugin.isBootEnabled,
-                    onChanged: widget.onBootToggle,
-                    activeColor: Colors.greenAccent,
-                    trackColor: MaterialStateProperty.resolveWith((states) {
-                      if (states.contains(MaterialState.selected)) {
-                        return Colors.green[900];
-                      }
-                      return Colors.grey[700];
-                    }),
-                  ),
-                ],
-              ),
+            // ROW 2: [ WEBUI ] ... [ ACTION ]
+            Row(
+              children: [
+                Expanded(
+                  child: showWebUi
+                      ? _buildGridButton(
+                          context,
+                          icon: Icons.language,
+                          label: "WebUI",
+                          color: _webUiColor,
+                          textColor: Colors.white,
+                          iconColor: _webUiIconColor,
+                          onTap: widget.onOpenWebUI,
+                        )
+                      : const SizedBox(), // Empty if no WebUI
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: plugin.hasActionScript
+                      ? _buildGridButton(
+                          context,
+                          icon: Icons.build,
+                          label: "Action",
+                          color: _actionColor,
+                          textColor: Colors.white,
+                          iconColor: _actionIconColor,
+                          onTap: widget.onRunAction,
+                        )
+                      : const SizedBox(), // Empty if no Action
+                ),
+              ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // Helper method to ensure all buttons are "Same"
+  Widget _buildGridButton(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required Color color,
+    required Color textColor,
+    required Color iconColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          height: 48, // Fixed height for uniformity
+          alignment: Alignment.centerLeft, // Left aligned container
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+          ), // Adjusted padding
+          child: Row(
+            mainAxisAlignment:
+                MainAxisAlignment.start, // Left aligned row content
+            children: [
+              Icon(icon, size: 20, color: iconColor),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: textColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
