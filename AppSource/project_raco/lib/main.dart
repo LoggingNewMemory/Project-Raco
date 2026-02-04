@@ -441,6 +441,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     "Tap the Raco image! You will greeted by Raco",
     "Project Raco can't make a potato phone into a gaming phone",
     "Project Raco? GACOR KANG!",
+    "Welcome to Project Raco app. Have a nice day!",
   ];
 
   @override
