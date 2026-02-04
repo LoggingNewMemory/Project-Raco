@@ -131,7 +131,7 @@ class _QSMenuPageState extends State<QSMenuPage> {
               child: Container(
                 margin: const EdgeInsets.all(20),
                 padding: const EdgeInsets.all(20),
-                width: isLandscape ? 700 : null,
+                width: isLandscape ? 400 : null, // Reduced width for landscape
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(24),
@@ -199,7 +199,7 @@ class _QSMenuPageState extends State<QSMenuPage> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
-          crossAxisCount: isLandscape ? 6 : 3,
+          crossAxisCount: 3,
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
           childAspectRatio: 1.3,
@@ -217,14 +217,6 @@ class _QSMenuPageState extends State<QSMenuPage> {
               "1",
               Colors.orange,
             ),
-            _buildBtn(
-              localization.gaming_pro,
-              Icons.sports_esports,
-              "4",
-              Colors.red,
-            ),
-            _buildBtn(localization.cooldown, Icons.ac_unit, "5", Colors.cyan),
-            _buildBtn(localization.clear, Icons.clear_all, "6", Colors.grey),
           ],
         ),
       ],
