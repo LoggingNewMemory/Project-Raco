@@ -20,9 +20,6 @@ import 'raco.dart';
 import 'topo_background.dart';
 
 // --- QUICK SETTINGS HANDLERS ---
-// Note: Localization context is not available in background entry points.
-// Keeping these hardcoded or English defaults.
-
 @pragma('vm:entry-point')
 Tile onTileClicked(Tile tile) {
   try {
@@ -131,7 +128,15 @@ Future<void> main() async {
     final prefs = await SharedPreferences.getInstance();
     final bool isEnabled = prefs.getBool('endfield_collab_enabled') ?? false;
 
-    if (isEnabled) {
+    // Check if we are launching via Quick Settings or into the Menu directly
+    // If so, we SKIP audio initialization to prevent music in the QS overlay.
+    final String defaultRouteName =
+        PlatformDispatcher.instance.defaultRouteName;
+    final bool isQsMenuLaunch =
+        defaultRouteName.contains('qs_launch') ||
+        defaultRouteName.contains('/menu');
+
+    if (isEnabled && !isQsMenuLaunch) {
       rootAudioController = VideoPlayerController.asset('assets/Endfield.mp3');
       await rootAudioController.initialize();
       // Ensure looping is set to true immediately
@@ -220,7 +225,14 @@ class _MyAppState extends State<MyApp> {
         prefs.getBool('endfield_collab_enabled') ?? false;
 
     // Handle audio controller logic
-    if (isAudioEnabled) {
+    // We also check route here to be safe, though main() handles the initial load
+    final String defaultRouteName =
+        PlatformDispatcher.instance.defaultRouteName;
+    final bool isQsMenuLaunch =
+        defaultRouteName.contains('qs_launch') ||
+        defaultRouteName.contains('/menu');
+
+    if (isAudioEnabled && !isQsMenuLaunch) {
       // If controller doesn't exist, create it
       if (_audioController == null) {
         _audioController = VideoPlayerController.asset('assets/Endfield.mp3');
@@ -241,7 +253,8 @@ class _MyAppState extends State<MyApp> {
           await _audioController!.setLooping(true);
         }
       }
-    } else if (!isAudioEnabled && _audioController != null) {
+    } else if ((!isAudioEnabled || isQsMenuLaunch) &&
+        _audioController != null) {
       await _audioController!.pause();
       _audioController!.dispose();
       _audioController = null;
@@ -598,7 +611,15 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       _refreshDynamicState();
       // RESUME LOOPING IF APP COMES TO FOREGROUND
-      if (widget.endfieldEnabled &&
+      // Added check: Only play if NOT in QS Mode
+      final String defaultRouteName =
+          PlatformDispatcher.instance.defaultRouteName;
+      final bool isQsMenuLaunch =
+          defaultRouteName.contains('qs_launch') ||
+          defaultRouteName.contains('/menu');
+
+      if (!isQsMenuLaunch &&
+          widget.endfieldEnabled &&
           widget.audioController != null &&
           widget.audioController!.value.isInitialized) {
         if (!widget.audioController!.value.isPlaying) {
