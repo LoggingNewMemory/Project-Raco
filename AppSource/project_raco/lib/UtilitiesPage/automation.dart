@@ -12,7 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '/l10n/app_localizations.dart';
 import 'utils.dart';
 
-// --- TOPO CAMO BACKGROUND (Marching Squares Implementation) ---
+// --- TOPO CAMO BACKGROUND (Dense Marching Squares) ---
 class TopoBackground extends StatefulWidget {
   final Color color;
   final double speed;
@@ -31,9 +31,10 @@ class _TopoBackgroundState extends State<TopoBackground>
   @override
   void initState() {
     super.initState();
+    // Slow, infinite loop for the drifting effect
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 20),
+      duration: const Duration(seconds: 30),
     )..repeat();
   }
 
@@ -47,18 +48,20 @@ class _TopoBackgroundState extends State<TopoBackground>
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return CustomPaint(
-              painter: TopoPainter(
-                animationValue: _controller.value,
-                color: widget.color,
-                speed: widget.speed,
-              ),
-              size: Size(constraints.maxWidth, constraints.maxHeight),
-            );
-          },
+        return RepaintBoundary(
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return CustomPaint(
+                painter: TopoPainter(
+                  animationValue: _controller.value,
+                  color: widget.color,
+                  speed: widget.speed,
+                ),
+                size: Size(constraints.maxWidth, constraints.maxHeight),
+              );
+            },
+          ),
         );
       },
     );
@@ -70,9 +73,9 @@ class TopoPainter extends CustomPainter {
   final Color color;
   final double speed;
 
-  // Grid resolution: Lower is higher quality but slower.
-  // 15-20 is a good balance for mobile cards.
-  static const double resolution = 16.0;
+  // Resolution: Lower = smoother curves but more expensive.
+  // 12.0 provides a good balance for the "smooth" vector look.
+  static const double resolution = 12.0;
 
   TopoPainter({
     required this.animationValue,
@@ -80,20 +83,27 @@ class TopoPainter extends CustomPainter {
     required this.speed,
   });
 
-  // Simple pseudo-noise function to generate elevation data
-  // Summing sines creates organic, non-repeating hills and valleys
+  // Generates organic noise values.
+  // Scaled to produce "island" like shapes similar to the reference image.
   double _getElevation(double x, double y, double t) {
-    // Base rolling hills
-    double v = sin(x * 0.008 + t) + cos(y * 0.005 - t * 0.5);
-    // Detail layer
-    v += 0.5 * sin((x * 0.02) + (y * 0.015) + t * 2.0);
-    // Micro detail for "camo" irregularity
-    v += 0.25 * cos((x * 0.05) - (y * 0.05));
-    return v; // Range roughly -2.75 to 2.75
+    // Frequency multipliers (Scale): Higher numbers = smaller, denser shapes.
+    // We increase these slightly to fit more "topography" into the card.
+    const double scaleX = 0.012;
+    const double scaleY = 0.012;
+
+    // Layer 1: Main organic shapes
+    double v = sin(x * scaleX + t) + cos(y * scaleY + t * 0.8);
+
+    // Layer 2: Distortion/Detail
+    v += 0.5 * sin((x * 0.03) - (y * 0.03) + t * 2.0);
+
+    // Layer 3: Fine variation
+    v += 0.2 * cos((x * 0.05) + (y * 0.01));
+
+    return v; // Range roughly -2.5 to 2.5
   }
 
-  // Linear interpolation to find the exact point on the grid edge
-  // where the contour line crosses. Smoothes the blocky grid.
+  // Linear Interpolation for smooth lines between grid points
   Offset _lerp(Offset a, Offset b, double valA, double valB, double threshold) {
     if ((valB - valA).abs() < 0.0001) return a;
     double t = (threshold - valA) / (valB - valA);
@@ -104,21 +114,28 @@ class TopoPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = color
-      ..strokeWidth = 1.2
+      ..strokeWidth =
+          1.0 // Thin lines for the "technical" map look
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true;
 
     final double t = animationValue * 2 * pi * speed;
 
-    // We draw multiple contour lines at different heights (isolevels)
-    // to create the "density" seen in topographic maps.
-    final List<double> thresholds = [-1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5];
+    // --- THRESHOLD GENERATION ---
+    // To achieve the "Full" look, we generate many thresholds.
+    // Spacing them by 0.25 ensures dense coverage without overlap mess.
+    final List<double> thresholds = [];
+    for (double i = -3.0; i <= 3.0; i += 0.25) {
+      thresholds.add(i);
+    }
 
-    // Rows and Cols based on resolution
+    // Grid dimensions
+    // We add +2 padding to cols/rows to ensure lines don't clip abruptly at edges
     int cols = (size.width / resolution).ceil() + 1;
     int rows = (size.height / resolution).ceil() + 1;
 
-    // Cache row values to avoid recomputing noise for the same point twice
+    // Memory optimization: Keep only current and next row in memory
     List<double> currentRow = List.filled(cols, 0.0);
     List<double> nextRow = List.filled(cols, 0.0);
 
@@ -127,28 +144,28 @@ class TopoPainter extends CustomPainter {
       currentRow[i] = _getElevation(i * resolution, 0, t);
     }
 
-    // Iterate through grid
+    // Loop through the grid
     for (int j = 0; j < rows - 1; j++) {
       double y = j * resolution;
       double nextY = (j + 1) * resolution;
 
-      // Compute next row
+      // Precompute next row
       for (int i = 0; i < cols; i++) {
         nextRow[i] = _getElevation(i * resolution, nextY, t);
       }
 
-      // Process each cell in the row
+      // Process cells
       for (int i = 0; i < cols - 1; i++) {
         double x = i * resolution;
         double nextX = (i + 1) * resolution;
 
-        // Cell corners
+        // Grid corner values
         double valTL = currentRow[i];
         double valTR = currentRow[i + 1];
         double valBL = nextRow[i];
         double valBR = nextRow[i + 1];
 
-        // Process each threshold level for this single cell
+        // Check every threshold for this specific cell (Marching Squares)
         for (double threshold in thresholds) {
           int state = 0;
           if (valTL > threshold) state |= 8;
@@ -156,98 +173,71 @@ class TopoPainter extends CustomPainter {
           if (valBR > threshold) state |= 2;
           if (valBL > threshold) state |= 1;
 
-          // Marching Squares Lookup Table
-          // Maps state (0-15) to line segments
-          if (state == 0 || state == 15) continue; // All above or all below
+          // Skip empty or full cells (optimization)
+          if (state == 0 || state == 15) continue;
 
-          Offset a = Offset(
-            x + resolution * 0.5,
-            y,
-          ); // Top edge midpoint approx
-          Offset b = Offset(nextX, y + resolution * 0.5); // Right edge
-          Offset c = Offset(x + resolution * 0.5, nextY); // Bottom edge
-          Offset d = Offset(x, y + resolution * 0.5); // Left edge
+          // Corner Offsets
+          Offset tl = Offset(x, y);
+          Offset tr = Offset(nextX, y);
+          Offset br = Offset(nextX, nextY);
+          Offset bl = Offset(x, nextY);
 
-          // Accurate Lerped points
-          Offset ptTop = _lerp(
-            Offset(x, y),
-            Offset(nextX, y),
-            valTL,
-            valTR,
-            threshold,
-          );
-          Offset ptRight = _lerp(
-            Offset(nextX, y),
-            Offset(nextX, nextY),
-            valTR,
-            valBR,
-            threshold,
-          );
-          Offset ptBottom = _lerp(
-            Offset(x, nextY),
-            Offset(nextX, nextY),
-            valBL,
-            valBR,
-            threshold,
-          );
-          Offset ptLeft = _lerp(
-            Offset(x, y),
-            Offset(x, nextY),
-            valTL,
-            valBL,
-            threshold,
-          );
+          // Interpolated edges
+          Offset a = _lerp(tl, tr, valTL, valTR, threshold); // Top
+          Offset b = _lerp(tr, br, valTR, valBR, threshold); // Right
+          Offset c = _lerp(bl, br, valBL, valBR, threshold); // Bottom
+          Offset d = _lerp(tl, bl, valTL, valBL, threshold); // Left
 
           switch (state) {
             case 1:
-              canvas.drawLine(ptLeft, ptBottom, paint);
+              canvas.drawLine(d, c, paint);
               break;
             case 2:
-              canvas.drawLine(ptBottom, ptRight, paint);
+              canvas.drawLine(c, b, paint);
               break;
             case 3:
-              canvas.drawLine(ptLeft, ptRight, paint);
+              canvas.drawLine(d, b, paint);
               break;
             case 4:
-              canvas.drawLine(ptTop, ptRight, paint);
+              canvas.drawLine(a, b, paint);
               break;
             case 5:
-              canvas.drawLine(ptLeft, ptTop, paint);
-              canvas.drawLine(ptBottom, ptRight, paint);
+              canvas.drawLine(d, a, paint);
+              canvas.drawLine(c, b, paint);
               break; // Saddle
             case 6:
-              canvas.drawLine(ptTop, ptBottom, paint);
+              canvas.drawLine(a, c, paint);
               break;
             case 7:
-              canvas.drawLine(ptLeft, ptTop, paint);
+              canvas.drawLine(d, a, paint);
               break;
             case 8:
-              canvas.drawLine(ptLeft, ptTop, paint);
+              canvas.drawLine(d, a, paint);
               break;
             case 9:
-              canvas.drawLine(ptTop, ptBottom, paint);
+              canvas.drawLine(a, c, paint);
               break;
             case 10:
-              canvas.drawLine(ptTop, ptRight, paint);
-              canvas.drawLine(ptLeft, ptBottom, paint);
+              canvas.drawLine(a, b, paint);
+              canvas.drawLine(d, c, paint);
               break; // Saddle
             case 11:
-              canvas.drawLine(ptTop, ptRight, paint);
+              canvas.drawLine(a, b, paint);
               break;
             case 12:
-              canvas.drawLine(ptLeft, ptRight, paint);
+              canvas.drawLine(d, b, paint);
               break;
             case 13:
-              canvas.drawLine(ptBottom, ptRight, paint);
+              canvas.drawLine(c, b, paint);
               break;
             case 14:
-              canvas.drawLine(ptLeft, ptBottom, paint);
+              canvas.drawLine(d, c, paint);
               break;
           }
         }
       }
 
-      // Swap rows for memory efficiency
+      // Shift rows
       List<double> temp = currentRow;
       currentRow = nextRow;
       nextRow = temp;
@@ -255,7 +245,10 @@ class TopoPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant TopoPainter oldDelegate) => true;
+  bool shouldRepaint(covariant TopoPainter oldDelegate) {
+    return oldDelegate.animationValue != animationValue ||
+        oldDelegate.color != color;
+  }
 }
 // --------------------------------------------------------
 
@@ -619,11 +612,12 @@ class _EndfieldEngineCardState extends State<EndfieldEngineCard>
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          // TOPO CAMO BACKGROUND (Marching Squares)
+          // TOPO CAMO BACKGROUND (Dense Marching Squares)
           Positioned.fill(
             child: TopoBackground(
-              color: colorScheme.primary.withOpacity(0.15),
-              speed: 0.15, // Slow, map-like movement
+              // Using a subtle opacity to keep text readable over the busy pattern
+              color: colorScheme.primary.withOpacity(0.2),
+              speed: 0.15, // Slow drift
             ),
           ),
           // CARD CONTENT
