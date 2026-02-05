@@ -134,6 +134,7 @@ Future<void> main() async {
     if (isEnabled) {
       rootAudioController = VideoPlayerController.asset('assets/Endfield.mp3');
       await rootAudioController.initialize();
+      // Ensure looping is set to true immediately
       await rootAudioController.setLooping(true);
       await rootAudioController.play();
     }
@@ -219,14 +220,26 @@ class _MyAppState extends State<MyApp> {
         prefs.getBool('endfield_collab_enabled') ?? false;
 
     // Handle audio controller logic
-    if (isAudioEnabled && _audioController == null) {
-      _audioController = VideoPlayerController.asset('assets/Endfield.mp3');
-      try {
-        await _audioController!.initialize();
-        await _audioController!.setLooping(true);
-        await _audioController!.play();
-      } catch (e) {
-        print("Error loading audio late: $e");
+    if (isAudioEnabled) {
+      // If controller doesn't exist, create it
+      if (_audioController == null) {
+        _audioController = VideoPlayerController.asset('assets/Endfield.mp3');
+        try {
+          await _audioController!.initialize();
+          // Explicitly set looping to true
+          await _audioController!.setLooping(true);
+          await _audioController!.play();
+        } catch (e) {
+          print("Error loading audio late: $e");
+        }
+      } else {
+        // If it exists but isn't playing or looping, enforce it
+        if (!_audioController!.value.isPlaying) {
+          await _audioController!.play();
+        }
+        if (!_audioController!.value.isLooping) {
+          await _audioController!.setLooping(true);
+        }
       }
     } else if (!isAudioEnabled && _audioController != null) {
       await _audioController!.pause();
@@ -344,6 +357,7 @@ class _MyAppState extends State<MyApp> {
                 backgroundOpacity: _backgroundOpacity,
                 backgroundBlur: _backgroundBlur,
                 endfieldEnabled: _endfieldCollabEnabled,
+                audioController: _audioController, // Pass audio controller
               ),
             ],
           ),
@@ -475,6 +489,7 @@ class MainScreen extends StatefulWidget {
   final double backgroundOpacity;
   final double backgroundBlur;
   final bool endfieldEnabled;
+  final VideoPlayerController? audioController;
 
   const MainScreen({
     Key? key,
@@ -485,6 +500,7 @@ class MainScreen extends StatefulWidget {
     required this.backgroundOpacity,
     required this.backgroundBlur,
     required this.endfieldEnabled,
+    this.audioController,
   }) : super(key: key);
 
   @override
@@ -581,6 +597,14 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
       _refreshDynamicState();
+      // RESUME LOOPING IF APP COMES TO FOREGROUND
+      if (widget.endfieldEnabled &&
+          widget.audioController != null &&
+          widget.audioController!.value.isInitialized) {
+        if (!widget.audioController!.value.isPlaying) {
+          widget.audioController!.play();
+        }
+      }
     }
   }
 
