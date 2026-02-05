@@ -20,6 +20,8 @@ import 'raco.dart';
 import 'topo_background.dart';
 
 // --- QUICK SETTINGS HANDLERS ---
+// Note: Localization context is not available in background entry points.
+// Keeping these hardcoded or English defaults.
 
 @pragma('vm:entry-point')
 Tile onTileClicked(Tile tile) {
@@ -1192,7 +1194,9 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                           Expanded(
                             child: _buildEndfieldStatBox(
                               "ROOT_ACCESS",
-                              _hasRootAccess ? "GRANTED" : "DENIED",
+                              _hasRootAccess
+                                  ? localization.yes.toUpperCase()
+                                  : localization.no.toUpperCase(),
                               _hasRootAccess ? techBlue : Colors.red,
                               monoStyle,
                             ),
