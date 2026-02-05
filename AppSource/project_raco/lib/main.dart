@@ -118,9 +118,28 @@ class ConfigManager {
   static Future<void> saveMode(String mode) async {}
 }
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   initRacoVideoCache();
+
+  // --- AUDIO PRELOAD START ---
+  // Initialize and play audio immediately before the app widget tree builds.
+  // This removes the delay caused by widget mounting and async checks in initState.
+  VideoPlayerController? rootAudioController;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final bool isEnabled = prefs.getBool('endfield_collab_enabled') ?? false;
+
+    if (isEnabled) {
+      rootAudioController = VideoPlayerController.asset('assets/Endfield.mp3');
+      await rootAudioController.initialize();
+      await rootAudioController.setLooping(true);
+      await rootAudioController.play();
+    }
+  } catch (e) {
+    print("Error preloading audio: $e");
+  }
+  // --- AUDIO PRELOAD END ---
 
   try {
     QuickSettings.setup(
@@ -132,11 +151,13 @@ void main() {
     print("QS Setup Failed: $e");
   }
 
-  runApp(const MyApp());
+  runApp(MyApp(audioController: rootAudioController));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final VideoPlayerController? audioController;
+
+  const MyApp({Key? key, this.audioController}) : super(key: key);
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -162,8 +183,9 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    // Use the controller passed from main(), which is already playing if enabled
+    _audioController = widget.audioController;
     _loadAllPreferences();
-    _checkAndPlayEndfieldAudio();
     themeNotifier.addListener(_onThemeChanged);
   }
 
@@ -182,21 +204,6 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Future<void> _checkAndPlayEndfieldAudio() async {
-    final prefs = await SharedPreferences.getInstance();
-    final bool isEnabled = prefs.getBool('endfield_collab_enabled') ?? false;
-
-    if (isEnabled) {
-      _audioController = VideoPlayerController.asset('assets/Endfield.mp3');
-      try {
-        await _audioController!.initialize();
-        await _audioController!.play();
-      } catch (e) {
-        print("Error playing Endfield audio: $e");
-      }
-    }
-  }
-
   Future<void> _loadAllPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
@@ -206,6 +213,29 @@ class _MyAppState extends State<MyApp> {
 
     _seedColorFromBanner = bannerColor;
     themeNotifier.value = bannerColor;
+
+    // Handle case where user might toggle audio in settings page later,
+    // though for startup, main() handled it.
+    final bool isAudioEnabled =
+        prefs.getBool('endfield_collab_enabled') ?? false;
+
+    // If enabled but not playing (e.g. user enabled it in settings after boot)
+    if (isAudioEnabled && _audioController == null) {
+      _audioController = VideoPlayerController.asset('assets/Endfield.mp3');
+      try {
+        await _audioController!.initialize();
+        await _audioController!.setLooping(true);
+        await _audioController!.play();
+      } catch (e) {
+        print("Error loading audio late: $e");
+      }
+    }
+    // If disabled but currently playing (e.g. user disabled it in settings)
+    else if (!isAudioEnabled && _audioController != null) {
+      await _audioController!.pause();
+      _audioController!.dispose();
+      _audioController = null;
+    }
 
     setState(() {
       _locale = Locale(prefs.getString('language_code') ?? 'en');
