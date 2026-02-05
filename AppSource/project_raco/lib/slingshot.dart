@@ -107,7 +107,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
 
   Future<void> _loadRacoConfig() async {
     try {
-      // Load Skia State
       final skiaResult = await Process.run('su', [
         '-c',
         'grep "^SKIAVK=" $_racoConfigPath | cut -d= -f2',
@@ -121,7 +120,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
         }
       }
 
-      // Load Angle State
       final angleResult = await Process.run('su', [
         '-c',
         'grep "^ANGLE=" $_racoConfigPath | cut -d= -f2',
@@ -135,7 +133,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
         }
       }
 
-      // Load Playboost State
       final playboostResult = await Process.run('su', [
         '-c',
         'grep "^PLAYBOOST=" $_racoConfigPath | cut -d= -f2',
@@ -197,7 +194,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
     setState(() => _enablePlayboost = value);
     try {
       final int intVal = value ? 1 : 0;
-      // Update PLAYBOOST in raco.txt directly
       await Process.run('su', [
         '-c',
         'sed -i "s/^PLAYBOOST=.*/PLAYBOOST=$intVal/" $_racoConfigPath',
@@ -446,16 +442,11 @@ class _SlingshotPageState extends State<SlingshotPage> {
     ).showSnackBar(SnackBar(content: Text(localization.slingshot_complete)));
   }
 
-  // ===========================================
-  //        LAYOUT BUILDERS
-  // ===========================================
-
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Map modes map used by both layouts
     final Map<String, String> modes = {
       'n': localization.slingshot_mode_normal,
       'd': localization.slingshot_mode_deep,
@@ -474,7 +465,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
       return nameMatch || pkgMatch;
     }).toList();
 
-    // Decide which content to build
     Widget bodyContent;
     if (_endfieldCollabEnabled) {
       bodyContent = _buildEndfieldLayout(
@@ -493,7 +483,6 @@ class _SlingshotPageState extends State<SlingshotPage> {
       );
     }
 
-    // Wrap in stack for background
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -501,8 +490,8 @@ class _SlingshotPageState extends State<SlingshotPage> {
         if (_endfieldCollabEnabled)
           Positioned.fill(
             child: TopoBackground(
-              color: const Color(0xFF00BFFF).withOpacity(0.1), // Tech blue
-              speed: 0.2, // Slightly faster
+              color: const Color(0xFF00BFFF).withOpacity(0.1),
+              speed: 0.2,
             ),
           )
         else if (widget.backgroundImagePath != null &&
@@ -950,223 +939,223 @@ class _SlingshotPageState extends State<SlingshotPage> {
           ),
         ),
       ),
-      body: Column(
-        children: [
+      body: CustomScrollView(
+        slivers: [
           // -- TOP CONTROL PANEL --
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 16),
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              border: Border.all(color: techBlue.withOpacity(0.5)),
-              color: techBlue.withOpacity(0.05),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "// SYSTEM OVERRIDES",
-                  style: monoStyle.copyWith(color: techBlue, fontSize: 10),
-                ),
-                SizedBox(height: 8),
-
-                // -- 3 ROWS, 1 COLUMN LAYOUT FOR SWITCHES --
-                Column(
-                  children: [
-                    _buildEndfieldSwitch(
-                      localization.angle_title,
-                      _useAngle,
-                      _toggleAngle,
-                      active: _isAngleSupported,
-                    ),
-                    SizedBox(height: 8),
-                    _buildEndfieldSwitch(
-                      localization.skia_title,
-                      _useSkia,
-                      _toggleSkia,
-                    ),
-                    SizedBox(height: 8),
-                    _buildEndfieldSwitch(
-                      "P-BOOST",
-                      _enablePlayboost,
-                      _togglePlayboost,
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: 12),
-                Text(
-                  "// EXECUTION MODE",
-                  style: monoStyle.copyWith(color: techBlue, fontSize: 10),
-                ),
-                SizedBox(height: 4),
-                Container(
-                  height: 40,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white24),
-                    color: Colors.black,
+          SliverToBoxAdapter(
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                border: Border.all(color: techBlue.withOpacity(0.5)),
+                color: techBlue.withOpacity(0.05),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "// SYSTEM OVERRIDES",
+                    style: monoStyle.copyWith(color: techBlue, fontSize: 10),
                   ),
-                  child: DropdownButtonHideUnderline(
-                    child: ButtonTheme(
-                      alignedDropdown: true,
-                      child: DropdownButton<String>(
-                        value: _selectedMode,
-                        isExpanded: true,
-                        dropdownColor: bgDark,
-                        icon: Icon(Icons.arrow_drop_down, color: techYellow),
-                        style: monoStyle.copyWith(color: Colors.white),
-                        items: modes.entries.map((e) {
-                          return DropdownMenuItem(
-                            value: e.key,
-                            child: Text(e.value.toUpperCase()),
-                          );
-                        }).toList(),
-                        onChanged: (val) {
-                          if (val != null) {
-                            setState(() => _selectedMode = val);
-                            _saveSelection();
-                          }
-                        },
+                  SizedBox(height: 8),
+                  Column(
+                    children: [
+                      _buildEndfieldSwitch(
+                        localization.angle_title,
+                        _useAngle,
+                        _toggleAngle,
+                        active: _isAngleSupported,
+                      ),
+                      SizedBox(height: 8),
+                      _buildEndfieldSwitch(
+                        localization.skia_title,
+                        _useSkia,
+                        _toggleSkia,
+                      ),
+                      SizedBox(height: 8),
+                      _buildEndfieldSwitch(
+                        "P-BOOST",
+                        _enablePlayboost,
+                        _togglePlayboost,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    "// EXECUTION MODE",
+                    style: monoStyle.copyWith(color: techBlue, fontSize: 10),
+                  ),
+                  SizedBox(height: 4),
+                  Container(
+                    height: 40,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white24),
+                      color: Colors.black,
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: ButtonTheme(
+                        alignedDropdown: true,
+                        child: DropdownButton<String>(
+                          value: _selectedMode,
+                          isExpanded: true,
+                          dropdownColor: bgDark,
+                          icon: Icon(Icons.arrow_drop_down, color: techYellow),
+                          style: monoStyle.copyWith(color: Colors.white),
+                          items: modes.entries.map((e) {
+                            return DropdownMenuItem(
+                              value: e.key,
+                              child: Text(e.value.toUpperCase()),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() => _selectedMode = val);
+                              _saveSelection();
+                            }
+                          },
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
-          SizedBox(height: 10),
+          SliverToBoxAdapter(child: SizedBox(height: 10)),
 
           // -- SEARCH BAR --
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: TextField(
-              controller: _searchController,
-              style: monoStyle.copyWith(color: Colors.white),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.black54,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.zero,
-                  borderSide: BorderSide(color: Colors.white24),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: TextField(
+                controller: _searchController,
+                style: monoStyle.copyWith(color: Colors.white),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.black54,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.zero,
+                    borderSide: BorderSide(color: Colors.white24),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.zero,
+                    borderSide: BorderSide(color: techYellow),
+                  ),
+                  prefixIcon: Icon(Icons.search, color: techYellow),
+                  hintText: "SEARCH_TARGET_PACKAGE...",
+                  hintStyle: monoStyle.copyWith(
+                    color: Colors.white24,
+                    fontSize: 12,
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 0,
+                  ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.zero,
-                  borderSide: BorderSide(color: techYellow),
-                ),
-                prefixIcon: Icon(Icons.search, color: techYellow),
-                hintText: "SEARCH_TARGET_PACKAGE...",
-                hintStyle: monoStyle.copyWith(
-                  color: Colors.white24,
-                  fontSize: 12,
-                ),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 0,
-                ),
+                onChanged: (val) => setState(() => _searchQuery = val),
               ),
-              onChanged: (val) => setState(() => _searchQuery = val),
             ),
           ),
 
-          SizedBox(height: 10),
+          SliverToBoxAdapter(child: SizedBox(height: 10)),
 
           // -- LIST HEADER --
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            color: Colors.white10,
-            child: Text(
-              "AVAILABLE TARGETS: ${filteredApps.length}",
-              style: monoStyle.copyWith(color: Colors.white54, fontSize: 10),
+          SliverToBoxAdapter(
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              color: Colors.white10,
+              child: Text(
+                "AVAILABLE TARGETS: ${filteredApps.length}",
+                style: monoStyle.copyWith(color: Colors.white54, fontSize: 10),
+              ),
             ),
           ),
 
-          // -- VERTICAL LIST (1xN LAYOUT) --
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.only(bottom: 80, left: 16, right: 16, top: 4),
-              itemCount: filteredApps.length,
-              itemBuilder: (context, index) {
-                final app = filteredApps[index];
-                final isSelected = _selectedAppPackage == app.packageName;
+          // -- APP LIST --
+          SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final app = filteredApps[index];
+              final isSelected = _selectedAppPackage == app.packageName;
 
-                return GestureDetector(
-                  onTap: () {
-                    setState(() => _selectedAppPackage = app.packageName);
-                    _saveSelection();
-                  },
-                  child: Container(
-                    margin: EdgeInsets.only(bottom: 4),
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: isSelected ? techYellow : Colors.white12,
-                      ),
-                      color: isSelected
-                          ? techYellow.withOpacity(0.1)
-                          : Colors.transparent,
+              return GestureDetector(
+                onTap: () {
+                  setState(() => _selectedAppPackage = app.packageName);
+                  _saveSelection();
+                },
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: isSelected ? techYellow : Colors.white12,
                     ),
-                    child: Row(
-                      children: [
-                        // Icon Box
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.white24),
-                          ),
-                          padding: EdgeInsets.all(2),
-                          child: _buildAppIcon(app),
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                app.name.toUpperCase(),
-                                style: monoStyle.copyWith(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                app.packageName,
-                                style: monoStyle.copyWith(
-                                  color: Colors.white38,
-                                  fontSize: 10,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isSelected)
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            color: techYellow,
-                            child: Text(
-                              "LOCKED",
-                              style: monoStyle.copyWith(
-                                color: Colors.black,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
+                    color: isSelected
+                        ? techYellow.withOpacity(0.1)
+                        : Colors.transparent,
                   ),
-                );
-              },
-            ),
+                  child: Row(
+                    children: [
+                      // Icon Box
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white24),
+                        ),
+                        padding: EdgeInsets.all(2),
+                        child: _buildAppIcon(app),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              app.name.toUpperCase(),
+                              style: monoStyle.copyWith(
+                                color: Colors.white,
+                                fontSize: 14,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              app.packageName,
+                              style: monoStyle.copyWith(
+                                color: Colors.white38,
+                                fontSize: 10,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (isSelected)
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          color: techYellow,
+                          child: Text(
+                            "LOCKED",
+                            style: monoStyle.copyWith(
+                              color: Colors.black,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }, childCount: filteredApps.length),
           ),
+          SliverToBoxAdapter(child: SizedBox(height: 80)),
         ],
       ),
     );
@@ -1188,7 +1177,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
       onTap: active ? () => onChanged(!value) : null,
       child: Container(
         height: 40,
-        width: double.infinity, // Full width for vertical stack
+        width: double.infinity,
         decoration: BoxDecoration(
           color: value ? techYellow : Colors.transparent,
           border: Border.all(
@@ -1197,7 +1186,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
                 : Colors.white10,
           ),
         ),
-        alignment: Alignment.centerLeft, // Left aligned for list feel
+        alignment: Alignment.centerLeft,
         padding: EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

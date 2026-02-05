@@ -999,13 +999,15 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     final Color bgDark = const Color(0xFF0D0D0D); // Black Wash
     final Color techYellow = const Color(0xFFFFD700); // Warning/Highlight
     final Color techBlue = const Color(0xFF00BFFF); // Data/Holo
-    final Color textWhite = const Color(0xFFF2F2F2); // Bleached Silk
 
     final monoStyle = const TextStyle(
       fontFamily: 'RobotoMono',
       fontWeight: FontWeight.bold,
       letterSpacing: 1.0,
     );
+
+    // Randomize integrity between 80-100%
+    final int integrity = 80 + Random().nextInt(21);
 
     return GestureDetector(
       onHorizontalDragEnd: _onHorizontalDragEnd,
@@ -1067,82 +1069,84 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                       // --- BANNER BLOCK ---
                       GestureDetector(
                         onTap: _navigateToRacoPage,
-                        child: Container(
-                          height: 160,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: techBlue.withOpacity(0.5),
+                        child: AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: techBlue.withOpacity(0.5),
+                              ),
+                              color: Colors.black,
                             ),
-                            color: Colors.black,
-                          ),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              if (widget.bannerImagePath != null &&
-                                  widget.bannerImagePath!.isNotEmpty)
-                                Image.file(
-                                  File(widget.bannerImagePath!),
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
-                                      Container(color: Colors.black26),
-                                )
-                              else
-                                Image.asset(
-                                  'assets/Raco.png',
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Center(
-                                    child: Icon(
-                                      Icons.broken_image,
-                                      color: Colors.white12,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                if (widget.bannerImagePath != null &&
+                                    widget.bannerImagePath!.isNotEmpty)
+                                  Image.file(
+                                    File(widget.bannerImagePath!),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                        Container(color: Colors.black26),
+                                  )
+                                else
+                                  Image.asset(
+                                    'assets/Raco.png',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Center(
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        color: Colors.white12,
+                                      ),
+                                    ),
+                                  ),
+
+                                // Scanline overlay
+                                Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.8),
+                                      ],
+                                      stops: const [0.6, 1.0],
                                     ),
                                   ),
                                 ),
 
-                              // Scanline overlay
-                              Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.transparent,
-                                      Colors.black.withOpacity(0.8),
-                                    ],
-                                    stops: const [0.6, 1.0],
-                                  ),
-                                ),
-                              ),
-
-                              // Tech overlay info
-                              Positioned(
-                                bottom: 8,
-                                left: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  color: techYellow,
-                                  child: Text(
-                                    "SYSTEM_STATUS: ${_moduleInstalled ? 'ONLINE' : 'OFFLINE'} // V:$_moduleVersion",
-                                    style: monoStyle.copyWith(
-                                      color: Colors.black,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w900,
+                                // Tech overlay info
+                                Positioned(
+                                  bottom: 8,
+                                  left: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    color: techYellow,
+                                    child: Text(
+                                      "SYSTEM_STATUS: ${_moduleInstalled ? 'ONLINE' : 'OFFLINE'} // V:$_moduleVersion",
+                                      style: monoStyle.copyWith(
+                                        color: Colors.black,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: Icon(
-                                  Icons.nfc,
-                                  color: Colors.white54,
-                                  size: 16,
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: Icon(
+                                    Icons.nfc,
+                                    color: Colors.white54,
+                                    size: 16,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -1295,15 +1299,19 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Opacity(
-                              opacity: 0.7,
-                              child: TypewriterText(
-                                text:
-                                    "${_tips[_currentTipIndex]}\n> _waiting for input...\n> memory_integrity: 100%",
-                                style: monoStyle.copyWith(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  height: 1.4,
+                            // Fixed height container for stability
+                            SizedBox(
+                              height: 50,
+                              child: Opacity(
+                                opacity: 0.7,
+                                child: TypewriterText(
+                                  text:
+                                      "${_tips[_currentTipIndex]}\n> _waiting for input...\n> memory_integrity: $integrity%",
+                                  style: monoStyle.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    height: 1.4,
+                                  ),
                                 ),
                               ),
                             ),
