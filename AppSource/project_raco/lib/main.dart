@@ -357,6 +357,7 @@ class TypewriterText extends StatefulWidget {
   final TextStyle? style;
   final Duration typeDuration;
   final Duration deleteDuration;
+  final bool scrollToBottom;
 
   const TypewriterText({
     Key? key,
@@ -364,6 +365,7 @@ class TypewriterText extends StatefulWidget {
     this.style,
     this.typeDuration = const Duration(milliseconds: 30),
     this.deleteDuration = const Duration(milliseconds: 20),
+    this.scrollToBottom = false,
   }) : super(key: key);
 
   @override
@@ -374,6 +376,7 @@ class _TypewriterTextState extends State<TypewriterText> {
   String _displayedText = "";
   Timer? _timer;
   int _currentIndex = 0;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -425,6 +428,16 @@ class _TypewriterTextState extends State<TypewriterText> {
           _displayedText += textToType[_currentIndex];
           _currentIndex++;
         });
+
+        if (widget.scrollToBottom) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_scrollController.hasClients) {
+              _scrollController.jumpTo(
+                _scrollController.position.maxScrollExtent,
+              );
+            }
+          });
+        }
       } else {
         timer.cancel();
       }
@@ -434,11 +447,19 @@ class _TypewriterTextState extends State<TypewriterText> {
   @override
   void dispose() {
     _timer?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.scrollToBottom) {
+      return SingleChildScrollView(
+        controller: _scrollController,
+        physics: const ClampingScrollPhysics(),
+        child: Text(_displayedText, style: widget.style),
+      );
+    }
     return Text(_displayedText, style: widget.style);
   }
 }
@@ -482,6 +503,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   int _swipeRightCount = 0;
   Timer? _swipeResetTimer;
 
+  late String _generatedTerminalId;
+
   // --- TIPS VARIABLES ---
   Timer? _tipTimer;
   int _currentTipIndex = 0;
@@ -499,6 +522,10 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // Generate Random Terminal ID
+    _generateTerminalId();
+
     _currentTipIndex = Random().nextInt(_tips.length);
     _startTipRotation();
     _initialize();
@@ -510,6 +537,16 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     _swipeResetTimer?.cancel();
     _tipTimer?.cancel();
     super.dispose();
+  }
+
+  void _generateTerminalId() {
+    final random = Random();
+    final part1 = random.nextInt(9000) + 1000; // 4 digits
+    final chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    final part2 =
+        '${chars[random.nextInt(chars.length)]}${chars[random.nextInt(chars.length)]}'; // 2 letters
+    final part3 = random.nextInt(900) + 100; // 3 digits
+    _generatedTerminalId = 'ID: $part1-$part2-$part3';
   }
 
   void _startTipRotation() {
@@ -1026,34 +1063,30 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          InkWell(
-                            onTap: _navigateToAboutPage,
-                            borderRadius: BorderRadius.circular(8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "TALOS-II // PROTOCOL",
-                                  style: monoStyle.copyWith(
-                                    color: Colors.white38,
-                                    fontSize: 10,
-                                  ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "TALOS-II // PROTOCOL",
+                                style: monoStyle.copyWith(
+                                  color: Colors.white38,
+                                  fontSize: 10,
                                 ),
-                                Text(
-                                  "RACO TERMINAL",
-                                  style: monoStyle.copyWith(
-                                    color: techYellow,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                                Container(
-                                  height: 2,
-                                  width: 100,
+                              ),
+                              Text(
+                                "RACO TERMINAL",
+                                style: monoStyle.copyWith(
                                   color: techYellow,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
                                 ),
-                              ],
-                            ),
+                              ),
+                              Container(
+                                height: 2,
+                                width: 100,
+                                color: techYellow,
+                              ),
+                            ],
                           ),
                           IconButton(
                             icon: FaIcon(
@@ -1299,7 +1332,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            // Fixed height container for stability
+                            // Fixed height container for stability, wrapped in ScrollView
                             SizedBox(
                               height: 50,
                               child: Opacity(
@@ -1312,6 +1345,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                                     fontSize: 11,
                                     height: 1.4,
                                   ),
+                                  scrollToBottom: true,
                                 ),
                               ),
                             ),
@@ -1422,6 +1456,42 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () => _showLanguageSelectionDialog(localization),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white24),
+                            color: Colors.white10,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.language, color: Colors.white54),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  "LANGUAGE // SELECT",
+                                  style: monoStyle.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                "[${_selectedLanguage}]",
+                                style: monoStyle.copyWith(
+                                  color: Colors.white54,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
 
                       const SizedBox(height: 24),
                       // Bottom Decoration
@@ -1429,7 +1499,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "ID: 8492-KW-302",
+                            _generatedTerminalId,
                             style: monoStyle.copyWith(
                               color: Colors.white24,
                               fontSize: 10,
