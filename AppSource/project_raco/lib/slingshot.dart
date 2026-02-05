@@ -896,7 +896,8 @@ class _SlingshotPageState extends State<SlingshotPage> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.black.withOpacity(0.8),
+      // Changed from bgDark.withOpacity(0.8) to Transparent
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         leading: BackButton(color: techBlue),
         title: Text(
@@ -948,7 +949,8 @@ class _SlingshotPageState extends State<SlingshotPage> {
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
                 border: Border.all(color: techBlue.withOpacity(0.5)),
-                color: techBlue.withOpacity(0.05),
+                // Slight background for readability against topo
+                color: Colors.black.withOpacity(0.6),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1065,7 +1067,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
             child: Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              color: Colors.white10,
+              color: Colors.black.withOpacity(0.5),
               child: Text(
                 "AVAILABLE TARGETS: ${filteredApps.length}",
                 style: monoStyle.copyWith(color: Colors.white54, fontSize: 10),
@@ -1093,7 +1095,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
                     ),
                     color: isSelected
                         ? techYellow.withOpacity(0.1)
-                        : Colors.transparent,
+                        : Colors.black.withOpacity(0.3), // Added slight BG
                   ),
                   child: Row(
                     children: [

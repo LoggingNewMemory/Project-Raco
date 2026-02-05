@@ -1053,7 +1053,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     final localization = AppLocalizations.of(context)!;
 
     // Tech Colors
-    final Color bgDark = const Color(0xFF0D0D0D); // Black Wash
+    // final Color bgDark = const Color(0xFF0D0D0D); // Unused now to allow transparency
     final Color techYellow = const Color(0xFFFFD700); // Warning/Highlight
     final Color techBlue = const Color(0xFF00BFFF); // Data/Holo
 
@@ -1071,7 +1071,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       behavior: HitTestBehavior.translucent,
       child: SafeArea(
         child: Container(
-          color: bgDark.withOpacity(0.9), // Dark overlay
+          color: Colors
+              .transparent, // Changed to transparent for TopoBackground visibility
           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
           child: _isLoading
               ? Center(child: CircularProgressIndicator(color: techYellow))
@@ -1609,7 +1610,11 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         width: (MediaQuery.of(context).size.width / 2) - 20, // 2 column grid
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.2) : Colors.transparent,
+          color: isSelected
+              ? color.withOpacity(0.2)
+              : Colors.black.withOpacity(
+                  0.3,
+                ), // Added slight dark BG for readability
           border: Border.all(
             color: isSelected ? color : Colors.white24,
             width: isSelected ? 2 : 1,
