@@ -2,8 +2,10 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '/l10n/app_localizations.dart';
 import 'utils.dart';
+import '../topo_background.dart';
 
 class SystemPage extends StatefulWidget {
   final String? backgroundImagePath;
@@ -32,6 +34,7 @@ class _SystemPageState extends State<SystemPage> {
   Map<String, dynamic>? _screenModifierState;
   int _graphicsDriverValue = 0; // 0: Default, 1: Game, 2: Developer
   int _sandevistanDuration = 10;
+  bool _endfieldCollabEnabled = false;
 
   @override
   void initState() {
@@ -48,7 +51,6 @@ class _SystemPageState extends State<SystemPage> {
         r'^DND=(\d)',
         multiLine: true,
       ).firstMatch(result.stdout.toString());
-      // Updated: Check for '1'
       return match?.group(1) == '1';
     }
     return false;
@@ -97,7 +99,6 @@ class _SystemPageState extends State<SystemPage> {
         r'^INCLUDE_SANDEV=(\d)',
         multiLine: true,
       ).firstMatch(content);
-      // Strictly check for '1'. '0' or anything else will return false.
       included = includeMatch?.group(1) == '1';
 
       final durMatch = RegExp(
@@ -119,7 +120,6 @@ class _SystemPageState extends State<SystemPage> {
     final sr = results[0];
     final dr = results[1];
 
-    // Check basic availability based on Physical size/density presence
     bool available =
         sr.exitCode == 0 &&
         sr.stdout.toString().contains('Physical size:') &&
@@ -134,19 +134,16 @@ class _SystemPageState extends State<SystemPage> {
     if (available) {
       final srOutput = sr.stdout.toString();
 
-      // Parse Physical Size (Original)
       originalSize =
           RegExp(
             r'Physical size:\s*([0-9]+x[0-9]+)',
           ).firstMatch(srOutput)?.group(1) ??
           '';
 
-      // Parse Override Size (Current - if modified)
       final overrideMatch = RegExp(
         r'Override size:\s*([0-9]+x[0-9]+)',
       ).firstMatch(srOutput);
 
-      // If override exists, that is the current size. Otherwise, current is original.
       currentSize = overrideMatch?.group(1) ?? originalSize;
 
       originalDensity =
@@ -183,7 +180,6 @@ class _SystemPageState extends State<SystemPage> {
     );
     bool isEnabled = false;
     if (configResult.exitCode == 0) {
-      // Updated: Check for '1'
       isEnabled =
           RegExp(
             r'^ENABLE_BYPASS=(\d)',
@@ -262,6 +258,7 @@ class _SystemPageState extends State<SystemPage> {
   }
 
   Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
     final results = await Future.wait([
       _loadDndState(),
       _loadAnyaThermalState(),
@@ -285,6 +282,8 @@ class _SystemPageState extends State<SystemPage> {
       final sandevResult = results[7] as Map<String, dynamic>;
       _isSandevistanIncluded = sandevResult['included'];
       _sandevistanDuration = sandevResult['duration'];
+      _endfieldCollabEnabled =
+          prefs.getBool('endfield_collab_enabled') ?? false;
       _isLoading = false;
     });
   }
@@ -292,6 +291,7 @@ class _SystemPageState extends State<SystemPage> {
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     final Widget pageContent = Scaffold(
       backgroundColor: Colors.transparent,
@@ -309,7 +309,6 @@ class _SystemPageState extends State<SystemPage> {
             AnyaThermalCard(
               initialAnyaThermalEnabled: _anyaThermalEnabled ?? false,
             ),
-          // Visibility governed by INCLUDE_SANDEV=1
           if (_isSandevistanIncluded)
             SandevistanDurationCard(initialDuration: _sandevistanDuration),
           BypassChargingCard(
@@ -346,7 +345,14 @@ class _SystemPageState extends State<SystemPage> {
       fit: StackFit.expand,
       children: [
         Container(color: Theme.of(context).colorScheme.background),
-        if (widget.backgroundImagePath != null &&
+        if (_endfieldCollabEnabled)
+          Positioned.fill(
+            child: TopoBackground(
+              color: colorScheme.primary.withOpacity(0.15),
+              speed: 0.15,
+            ),
+          )
+        else if (widget.backgroundImagePath != null &&
             widget.backgroundImagePath!.isNotEmpty)
           ImageFiltered(
             imageFilter: ImageFilter.blur(
@@ -402,7 +408,6 @@ class _DndCardState extends State<DndCard> with AutomaticKeepAliveClientMixin {
   Future<void> _toggleDnd(bool enable) async {
     if (!await checkRootAccess()) return;
     if (mounted) setState(() => _isUpdating = true);
-    // Updated: Write '1' for enabled, '0' for disabled
     final valueString = enable ? '1' : '0';
 
     try {
@@ -613,7 +618,6 @@ class _SandevistanDurationCardState extends State<SandevistanDurationCard>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Update message on load or locale change
     _updateEasterEgg();
   }
 
@@ -800,7 +804,6 @@ class _BypassChargingCardState extends State<BypassChargingCard>
     if (mounted) setState(() => _isToggling = true);
 
     try {
-      // Updated: Write '1' for enabled, '0' for disabled
       final value = enable ? '1' : '0';
       final sedCommand =
           "sed -i 's|^ENABLE_BYPASS=.*|ENABLE_BYPASS=$value|' $_configFilePath";
@@ -1037,7 +1040,6 @@ class _ResolutionCardState extends State<ResolutionCard>
   }
 
   void _calculateInitialValue() {
-    // Default to max if data invalid
     if (!widget.isAvailable ||
         widget.originalSize.isEmpty ||
         widget.currentSize.isEmpty) {
@@ -1046,14 +1048,11 @@ class _ResolutionCardState extends State<ResolutionCard>
     }
 
     try {
-      // Parse width from strings "WxH"
       final originalWidth = int.parse(widget.originalSize.split('x')[0]);
       final currentWidth = int.parse(widget.currentSize.split('x')[0]);
 
-      // Calculate current percentage
       final currentPct = ((currentWidth / originalWidth) * 100).round();
 
-      // Find the closest supported percentage in our list
       final closestPct = _percentages.reduce((a, b) {
         return (a - currentPct).abs() < (b - currentPct).abs() ? a : b;
       });
@@ -1245,7 +1244,6 @@ class _ScreenModifierCardState extends State<ScreenModifierCard>
     if (mounted) setState(() => _isUpdating = true);
 
     try {
-      // Apply live changes
       final r = _redValue / 1000.0;
       final g = _greenValue / 1000.0;
       final b = _blueValue / 1000.0;
@@ -1256,25 +1254,21 @@ class _ScreenModifierCardState extends State<ScreenModifierCard>
       );
       await runRootCommandAndWait('service call SurfaceFlinger 1022 f $s');
 
-      // Save settings to raco.txt
       final valuesString =
           '${_redValue.round()},${_greenValue.round()},${_blueValue.round()},${_saturationValue.round()},${_applyOnBoot ? "Yes" : "No"}';
       final sedCheckCommand = "grep -q '^AYUNDA_RUSDI=' $_configFilePath";
       final checkResult = await runRootCommandAndWait(sedCheckCommand);
 
       if (checkResult.exitCode == 0) {
-        // Line exists, so replace it
         await runRootCommandAndWait(
           "sed -i 's|^AYUNDA_RUSDI=.*|AYUNDA_RUSDI=$valuesString|' $_configFilePath",
         );
       } else {
-        // Line doesn't exist, so add it
         await runRootCommandAndWait(
           "echo 'AYUNDA_RUSDI=$valuesString' >> $_configFilePath",
         );
       }
 
-      // Update service.sh for boot settings
       await _updateBootScript();
     } finally {
       if (mounted) setState(() => _isUpdating = false);
@@ -1285,19 +1279,16 @@ class _ScreenModifierCardState extends State<ScreenModifierCard>
     final ayundaScriptPath =
         '/data/adb/modules/ProjectRaco/Scripts/AyundaRusdi.sh';
 
-    // To ensure idempotency, always remove the old execution line first.
     final removeExecutionLineCommand =
         "sed -i '/AyundaRusdi.sh/d' $_serviceFilePath";
     await runRootCommandAndWait(removeExecutionLineCommand);
 
     if (_applyOnBoot) {
-      // If the toggle is ON, recreate AyundaRusdi.sh with current values...
       final r = _redValue / 1000.0;
       final g = _greenValue / 1000.0;
       final b = _blueValue / 1000.0;
       final s = _saturationValue / 1000.0;
 
-      // 1. Create or overwrite AyundaRusdi.sh with the current color values.
       final createAyundaScriptCommand =
           '''
 cat <<'EOF' > $ayundaScriptPath
@@ -1314,10 +1305,8 @@ EOF
 ''';
       await runRootCommandAndWait(createAyundaScriptCommand);
 
-      // Make the script executable
       await runRootCommandAndWait('chmod +x $ayundaScriptPath');
 
-      // 2. ...and then insert a line into service.sh to execute it on boot.
       final addExecutionLineCommand =
           "sed -i '/# Ayunda Rusdi/a sh $ayundaScriptPath' $_serviceFilePath";
       await runRootCommandAndWait(addExecutionLineCommand);
@@ -1499,7 +1488,6 @@ class _SystemActionsCardState extends State<SystemActionsCard>
         throw Exception(result.stderr);
       }
     } catch (e) {
-      // Errors can be logged or handled here if necessary.
     } finally {
       if (mounted) setState(() => setLoadingState(false));
     }
@@ -1530,7 +1518,6 @@ class _SystemActionsCardState extends State<SystemActionsCard>
               ),
             ),
             const SizedBox(height: 16),
-            // Fstrim Action
             ListTile(
               leading: _isFstrimRunning
                   ? const SizedBox(
@@ -1557,7 +1544,6 @@ class _SystemActionsCardState extends State<SystemActionsCard>
               contentPadding: EdgeInsets.zero,
             ),
             const Divider(),
-            // Clear Cache Action
             ListTile(
               leading: _isClearCacheRunning
                   ? const SizedBox(

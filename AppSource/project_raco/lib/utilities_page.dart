@@ -11,7 +11,8 @@ import 'UtilitiesPage/core_tweaks.dart';
 import 'UtilitiesPage/system.dart';
 import 'UtilitiesPage/utils.dart';
 import 'UtilitiesPage/RacoPlugins.dart';
-import 'UtilitiesPage/raco_extra.dart'; // Import the new file
+import 'UtilitiesPage/raco_extra.dart';
+import 'topo_background.dart';
 
 //region Models for Search and Navigation
 class UtilityCategory {
@@ -66,6 +67,7 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
   String? _backgroundImagePath;
   double _backgroundOpacity = 0.2;
   double _backgroundBlur = 0.0;
+  bool _endfieldCollabEnabled = false;
   String? _buildType;
   String? _buildBy;
 
@@ -128,6 +130,8 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
       _backgroundImagePath = prefs.getString('background_image_path');
       _backgroundOpacity = prefs.getDouble('background_opacity') ?? 0.2;
       _backgroundBlur = prefs.getDouble('background_blur') ?? 0.0;
+      _endfieldCollabEnabled =
+          prefs.getBool('endfield_collab_enabled') ?? false;
     });
   }
 
@@ -172,6 +176,7 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
 
   Future<void> _initializePage() async {
     await _loadBuildInfo();
+    await _loadBackgroundPreferences(); // Load prefs including Endfield toggle
     final bool hasRoot = await checkRootAccess();
 
     if (!mounted) return;
@@ -601,7 +606,15 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
       fit: StackFit.expand,
       children: [
         Container(color: Theme.of(context).colorScheme.background),
-        if (_backgroundImagePath != null && _backgroundImagePath!.isNotEmpty)
+        if (_endfieldCollabEnabled)
+          Positioned.fill(
+            child: TopoBackground(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+              speed: 0.15,
+            ),
+          )
+        else if (_backgroundImagePath != null &&
+            _backgroundImagePath!.isNotEmpty)
           ImageFiltered(
             imageFilter: ImageFilter.blur(
               sigmaX: _backgroundBlur,

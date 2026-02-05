@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
@@ -12,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
 import '/l10n/app_localizations.dart';
+import '../topo_background.dart';
 
 class AppearancePage extends StatefulWidget {
   final String? initialBackgroundImagePath;
@@ -73,6 +75,8 @@ class _AppearancePageState extends State<AppearancePage> {
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
     final pageContent = Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
@@ -108,11 +112,20 @@ class _AppearancePageState extends State<AppearancePage> {
         ],
       ),
     );
+
     return Stack(
       fit: StackFit.expand,
       children: [
-        Container(color: Theme.of(context).colorScheme.background),
-        if (backgroundImagePath != null && backgroundImagePath!.isNotEmpty)
+        Container(color: colorScheme.surface),
+
+        if (endfieldCollabEnabled)
+          Positioned.fill(
+            child: TopoBackground(
+              color: colorScheme.primary.withOpacity(0.15),
+              speed: 0.15,
+            ),
+          )
+        else if (backgroundImagePath != null && backgroundImagePath!.isNotEmpty)
           ImageFiltered(
             imageFilter: ImageFilter.blur(
               sigmaX: backgroundBlur,
@@ -129,6 +142,7 @@ class _AppearancePageState extends State<AppearancePage> {
               ),
             ),
           ),
+
         if (_isLoading)
           const Center(
             child: Padding(

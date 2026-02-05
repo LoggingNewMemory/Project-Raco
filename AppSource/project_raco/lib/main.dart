@@ -17,6 +17,7 @@ import 'utilities_page.dart';
 import 'slingshot.dart';
 import 'qs_menu.dart';
 import 'raco.dart';
+import 'topo_background.dart';
 
 // --- QUICK SETTINGS HANDLERS ---
 
@@ -168,6 +169,7 @@ class _MyAppState extends State<MyApp> {
   String? _backgroundImagePath;
   double _backgroundOpacity = 0.2;
   double _backgroundBlur = 0.0;
+  bool _endfieldCollabEnabled = false;
   String? _bannerImagePath;
   Color? _seedColorFromBanner;
   VideoPlayerController? _audioController;
@@ -214,12 +216,10 @@ class _MyAppState extends State<MyApp> {
     _seedColorFromBanner = bannerColor;
     themeNotifier.value = bannerColor;
 
-    // Handle case where user might toggle audio in settings page later,
-    // though for startup, main() handled it.
     final bool isAudioEnabled =
         prefs.getBool('endfield_collab_enabled') ?? false;
 
-    // If enabled but not playing (e.g. user enabled it in settings after boot)
+    // Handle audio controller logic
     if (isAudioEnabled && _audioController == null) {
       _audioController = VideoPlayerController.asset('assets/Endfield.mp3');
       try {
@@ -229,9 +229,7 @@ class _MyAppState extends State<MyApp> {
       } catch (e) {
         print("Error loading audio late: $e");
       }
-    }
-    // If disabled but currently playing (e.g. user disabled it in settings)
-    else if (!isAudioEnabled && _audioController != null) {
+    } else if (!isAudioEnabled && _audioController != null) {
       await _audioController!.pause();
       _audioController!.dispose();
       _audioController = null;
@@ -242,6 +240,7 @@ class _MyAppState extends State<MyApp> {
       _backgroundImagePath = prefs.getString('background_image_path');
       _backgroundOpacity = prefs.getDouble('background_opacity') ?? 0.2;
       _backgroundBlur = prefs.getDouble('background_blur') ?? 0.0;
+      _endfieldCollabEnabled = isAudioEnabled;
       _bannerImagePath = prefs.getString('banner_image_path');
     });
   }
@@ -311,7 +310,16 @@ class _MyAppState extends State<MyApp> {
             fit: StackFit.expand,
             children: [
               Container(color: Theme.of(context).colorScheme.background),
-              if (_backgroundImagePath != null &&
+              if (_endfieldCollabEnabled)
+                Positioned.fill(
+                  child: TopoBackground(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.15),
+                    speed: 0.15,
+                  ),
+                )
+              else if (_backgroundImagePath != null &&
                   _backgroundImagePath!.isNotEmpty)
                 ImageFiltered(
                   imageFilter: ImageFilter.blur(

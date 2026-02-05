@@ -12,11 +12,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '/l10n/app_localizations.dart';
-
-// =========================================================
-//  DATA MODELS
-// =========================================================
+import '../topo_background.dart';
 
 class RacoPluginModel {
   final String id;
@@ -46,10 +44,6 @@ class RacoPluginModel {
   });
 }
 
-// =========================================================
-//  MAIN PLUGINS LIST PAGE
-// =========================================================
-
 class RacoPluginsPage extends StatefulWidget {
   final String? backgroundImagePath;
   final double backgroundOpacity;
@@ -69,6 +63,7 @@ class RacoPluginsPage extends StatefulWidget {
 class _RacoPluginsPageState extends State<RacoPluginsPage> {
   bool _isLoading = true;
   List<RacoPluginModel> _plugins = [];
+  bool _endfieldCollabEnabled = false;
 
   final String _pluginBasePath = '/data/ProjectRaco/Plugins';
   final String _pluginTxtPath = '/data/ProjectRaco/Plugin.txt';
@@ -130,19 +125,17 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   Future<void> _loadPlugins() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
+    final prefs = await SharedPreferences.getInstance();
     List<RacoPluginModel> loadedPlugins = [];
 
-    // Ensure directory exists
     await _runRootCommand('mkdir -p $_pluginBasePath');
     await _runRootCommand('touch $_pluginTxtPath');
 
-    // Read enabled/disabled status
     final String pluginTxtContent = await _runRootCommand(
       'cat $_pluginTxtPath',
     );
     final Map<String, bool> bootStatusMap = _parsePluginTxt(pluginTxtContent);
 
-    // List plugins
     final String lsResult = await _runRootCommand('ls $_pluginBasePath');
     final List<String> folders = lsResult
         .split('\n')
@@ -161,17 +154,14 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
           '$currentPath/Logo.png',
         );
 
-        // 1. Check for remote WebUI URL in props
         String? webUi = props['web_ui'];
         if (webUi != null && webUi.isEmpty) webUi = null;
 
-        // 2. Check for local webroot (folder/webroot/index.html)
         final String webRootCheck = await _runRootCommand(
           '[ -f "$currentPath/webroot/index.html" ] && echo 1 || echo 0',
         );
         final bool hasWebRoot = webRootCheck == '1';
 
-        // 3. Check for Action.sh
         final String actionCheck = await _runRootCommand(
           '[ -f "$currentPath/action.sh" ] && echo 1 || echo 0',
         );
@@ -198,6 +188,8 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
     if (mounted) {
       setState(() {
         _plugins = loadedPlugins;
+        _endfieldCollabEnabled =
+            prefs.getBool('endfield_collab_enabled') ?? false;
         _isLoading = false;
       });
     }
@@ -235,7 +227,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
 
   Future<void> _togglePluginBoot(RacoPluginModel plugin, bool newValue) async {
     final int intVal = newValue ? 1 : 0;
-    // Safe sed command to update or append the config line
     final String cmd =
         'if grep -q "^${plugin.id}=" $_pluginTxtPath; then '
         'sed -i "s/^${plugin.id}=.*/${plugin.id}=$intVal/" $_pluginTxtPath; '
@@ -270,7 +261,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
       final String servicePath = '${plugin.path}/service.sh';
       await _runRootCommand('chmod +x $servicePath');
 
-      // Execute in background using nohup
       await _runRootCommand('(nohup sh "$servicePath" > /dev/null 2>&1 &)');
 
       if (mounted) {
@@ -324,7 +314,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
 
   void _openWebUI(RacoPluginModel plugin) {
     if (plugin.webUiUrl != null && plugin.webUiUrl!.isNotEmpty) {
-      // Remote URL
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => PluginWebUiPage(
@@ -335,7 +324,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
         ),
       );
     } else if (plugin.hasWebRoot) {
-      // Local WebRoot - Points to the webroot folder inside the plugin
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => PluginWebUiPage(
@@ -397,13 +385,10 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
       title: loc.installing_module,
       task: (log) async {
         try {
-          // 1. Prepare Root Temp Directory
           log("- Preparing temporary directory...");
           await _runRootCommand('rm -rf $_tmpInstallPath');
           await _runRootCommand('mkdir -p $_tmpInstallPath');
 
-          // 2. Stage file in App Cache first
-          // This fixes permissions issues when installing from Cloud/Scoped Storage
           log("- Staging file...");
           final File sourceFile = File(zipPath);
           final Directory appTempDir = await getTemporaryDirectory();
@@ -411,27 +396,19 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
               '${appTempDir.path}/temp_install_plugin.zip';
           final File stagedFile = await sourceFile.copy(appTempFilePath);
 
-          // 3. Move to Root Temp
-          // We use 'cp' from root to copy the now accessible staged file
           log("- Copying to root environment...");
           await _runRootCommand(
             'cp "${stagedFile.path}" $_tmpInstallPath/plugin.zip',
           );
 
-          // Clean up local cache
           try {
             stagedFile.delete();
           } catch (_) {}
 
-          // 4. Create Extraction Directory EXPLICITLY
-          // Fixes 'unzip: couldn't chdir' on Android 10/OneUI 2.5
           log("- Creating extraction folder...");
           await _runRootCommand('mkdir -p $_tmpInstallPath/extracted');
 
-          // 5. Extract
           log("- Extracting...");
-          // -o: overwrite
-          // -d: destination (folder must exist on older busybox/toybox)
           await _runLiveRootCommand(
             'unzip -o $_tmpInstallPath/plugin.zip -d $_tmpInstallPath/extracted',
             log,
@@ -610,7 +587,14 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
       fit: StackFit.expand,
       children: [
         Container(color: theme.colorScheme.background),
-        if (widget.backgroundImagePath != null &&
+        if (_endfieldCollabEnabled)
+          Positioned.fill(
+            child: TopoBackground(
+              color: theme.colorScheme.primary.withOpacity(0.15),
+              speed: 0.15,
+            ),
+          )
+        else if (widget.backgroundImagePath != null &&
             widget.backgroundImagePath!.isNotEmpty)
           ImageFiltered(
             imageFilter: ImageFilter.blur(
@@ -640,10 +624,6 @@ class _RacoPluginsPageState extends State<RacoPluginsPage> {
   }
 }
 
-// =========================================================
-//  PLUGIN CARD WIDGET
-// =========================================================
-
 class _PluginCard extends StatefulWidget {
   final RacoPluginModel plugin;
   final Future<void> Function() onRunService;
@@ -667,15 +647,14 @@ class _PluginCard extends StatefulWidget {
 }
 
 class _PluginCardState extends State<_PluginCard> {
-  // Color Palette
-  static const Color _webUiColor = Color(0xFF1E3A3A); // Dark Teal/Green
-  static const Color _webUiIconColor = Color(0xFF80CBC4); // Light Teal
-  static const Color _actionColor = Color(0xFF333D29); // Dark Olive
-  static const Color _actionIconColor = Color(0xFFA5D6A7); // Light Green
-  static const Color _runColor = Color(0xFF2E4F3E); // Dark Green Pill
+  static const Color _webUiColor = Color(0xFF1E3A3A);
+  static const Color _webUiIconColor = Color(0xFF80CBC4);
+  static const Color _actionColor = Color(0xFF333D29);
+  static const Color _actionIconColor = Color(0xFFA5D6A7);
+  static const Color _runColor = Color(0xFF2E4F3E);
   static const Color _runTextColor = Color(0xFFE8F5E9);
-  static const Color _bootOnColor = Color(0xFF1B5E20); // Deep Green
-  static const Color _bootOffColor = Color(0xFF424242); // Grey
+  static const Color _bootOnColor = Color(0xFF1B5E20);
+  static const Color _bootOffColor = Color(0xFF424242);
 
   @override
   Widget build(BuildContext context) {
@@ -683,7 +662,7 @@ class _PluginCardState extends State<_PluginCard> {
     final bool showWebUi = (plugin.webUiUrl != null) || plugin.hasWebRoot;
 
     return Card(
-      color: const Color(0xFF1A1C19), // Dark background card
+      color: const Color(0xFF1A1C19),
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
       clipBehavior: Clip.antiAlias,
@@ -693,7 +672,6 @@ class _PluginCardState extends State<_PluginCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- HEADER (Logo, Name, Version, Delete) ---
             Row(
               children: [
                 Container(
@@ -744,8 +722,6 @@ class _PluginCardState extends State<_PluginCard> {
                 ),
               ],
             ),
-
-            // --- DESCRIPTION ---
             const SizedBox(height: 12),
             Text(
               plugin.description,
@@ -753,14 +729,9 @@ class _PluginCardState extends State<_PluginCard> {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-
             const SizedBox(height: 16),
             Divider(height: 1, color: Colors.white.withOpacity(0.1)),
             const SizedBox(height: 12),
-
-            // --- 2x2 GRID LAYOUT ---
-
-            // ROW 1: [ RUN ] ... [ BOOT ]
             Row(
               children: [
                 Expanded(
@@ -791,8 +762,6 @@ class _PluginCardState extends State<_PluginCard> {
               ],
             ),
             const SizedBox(height: 12),
-
-            // ROW 2: [ WEBUI ] ... [ ACTION ]
             Row(
               children: [
                 Expanded(
@@ -806,7 +775,7 @@ class _PluginCardState extends State<_PluginCard> {
                           iconColor: _webUiIconColor,
                           onTap: widget.onOpenWebUI,
                         )
-                      : const SizedBox(), // Empty if no WebUI
+                      : const SizedBox(),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -820,7 +789,7 @@ class _PluginCardState extends State<_PluginCard> {
                           iconColor: _actionIconColor,
                           onTap: widget.onRunAction,
                         )
-                      : const SizedBox(), // Empty if no Action
+                      : const SizedBox(),
                 ),
               ],
             ),
@@ -830,7 +799,6 @@ class _PluginCardState extends State<_PluginCard> {
     );
   }
 
-  // Helper method to ensure all buttons are "Same"
   Widget _buildGridButton(
     BuildContext context, {
     required IconData icon,
@@ -847,14 +815,11 @@ class _PluginCardState extends State<_PluginCard> {
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Container(
-          height: 48, // Fixed height for uniformity
-          alignment: Alignment.centerLeft, // Left aligned container
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-          ), // Adjusted padding
+          height: 48,
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
-            mainAxisAlignment:
-                MainAxisAlignment.start, // Left aligned row content
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Icon(icon, size: 20, color: iconColor),
               const SizedBox(width: 8),
@@ -876,10 +841,6 @@ class _PluginCardState extends State<_PluginCard> {
     );
   }
 }
-
-// =========================================================
-//  TERMINAL LOG DIALOG
-// =========================================================
 
 class TerminalPage extends StatefulWidget {
   final String title;
@@ -981,14 +942,10 @@ class _TerminalPageState extends State<TerminalPage> {
   }
 }
 
-// =========================================================
-//  WEB UI PAGE (KSU Compatible + Localhost Server)
-// =========================================================
-
 class PluginWebUiPage extends StatefulWidget {
   final String title;
   final String? remoteUrl;
-  final String? localWebRoot; // Original Path in /data
+  final String? localWebRoot;
   final String pluginPath;
 
   const PluginWebUiPage({
@@ -1014,21 +971,18 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
   @override
   void initState() {
     super.initState();
-    // Enable immersive fullscreen mode (Hides Nav Bar and Status Bar)
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _initWebUI();
   }
 
   @override
   void dispose() {
-    // Restore system UI to default (EdgeToEdge)
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _server?.close(force: true);
     super.dispose();
   }
 
   Future<void> _initWebUI() async {
-    // 1. If Remote URL, just use it
     if (widget.remoteUrl != null) {
       setState(() {
         _targetUrl = widget.remoteUrl;
@@ -1037,7 +991,6 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
       return;
     }
 
-    // 2. If Local WebRoot, set up Localhost Server
     if (widget.localWebRoot != null) {
       try {
         await _setupLocalServer();
@@ -1056,17 +1009,14 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
   }
 
   Future<void> _setupLocalServer() async {
-    // A. Prepare Cache Directory
     final Directory cacheDir = await getApplicationSupportDirectory();
     final String folderName =
         widget.pluginPath.hashCode.toRadixString(16) + "_webroot";
     _webCachePath = '${cacheDir.path}/web_cache/$folderName';
 
-    // Cleanup old cache
     await Process.run('su', ['-c', 'rm -rf "$_webCachePath"']);
     await Process.run('su', ['-c', 'mkdir -p "$_webCachePath"']);
 
-    // Copy files recursively to preserve structure (assets/ etc)
     final copyResult = await Process.run('su', [
       '-c',
       'cp -r "${widget.localWebRoot}"/* "$_webCachePath/" && chmod -R 777 "$_webCachePath"',
@@ -1076,7 +1026,6 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
       throw Exception("Failed to stage files. Check root permissions.");
     }
 
-    // B. Start Http Server on Ephemeral Port
     _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     final int port = _server!.port;
 
@@ -1091,17 +1040,13 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
   }
 
   void _handleRequest(HttpRequest request) async {
-    // 1. Clean Path
     String cleanPath = request.uri.path;
     if (cleanPath == '/') cleanPath = '/index.html';
 
-    // 2. Resolve File
     final File file = File('$_webCachePath$cleanPath');
 
-    // 3. Serve
     if (await file.exists()) {
       request.response.headers.contentType = _getContentType(cleanPath);
-      // Disable caching for development/tweak purposes
       request.response.headers.add(
         "Cache-Control",
         "no-cache, no-store, must-revalidate",
@@ -1134,7 +1079,6 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      // Removed AppBar to achieve fullscreen look with no name or buttons
       body: Stack(
         children: [
           if (_errorMessage != null)
@@ -1159,42 +1103,31 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
                 domStorageEnabled: true,
                 javaScriptEnabled: true,
                 displayZoomControls: false,
-                // mixedContentMode handles http://localhost images loading in https context if needed
                 mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
               ),
-              // Inject KSU API Standard (Compatible with PingPimp)
               initialUserScripts: UnmodifiableListView<UserScript>([
                 UserScript(
                   source: """
                     (function() {
                       if (window.ksu) return;
                       window.ksu = {
-                          // Standard KSU exec: command, options, callback(errno, stdout, stderr)
-                          // Note: The script.js provided uses ksu.exec(cmd, "{}", "callbackName")
                           exec: function(command, options, callbackOrName) {
-                              
-                              // Handle both function callback and string name callback
                               let cbName = null;
                               if (typeof callbackOrName === 'string') {
                                   cbName = callbackOrName;
                               }
-
-                              // Call Flutter Handler
                               window.flutter_inappwebview.callHandler('ksuExec', command, options)
                               .then(result => {
                                   if (cbName) {
-                                      // If callback was passed as a global window function name (PingPimp style)
                                       if (typeof window[cbName] === 'function') {
                                           window[cbName](result.errno, result.stdout, result.stderr);
                                       }
                                   } else if (typeof callbackOrName === 'function') {
-                                      // If callback was passed as a function (Standard KSU style)
                                       callbackOrName(result.errno, result.stdout, result.stderr);
                                   }
                               })
                               .catch(error => {
                                   console.error("KSU Bridge Error: " + error);
-                                  // Try to report error to callback if possible
                                   if (cbName && typeof window[cbName] === 'function') {
                                       window[cbName](-1, "", error.toString());
                                   }
@@ -1207,7 +1140,6 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
                               window.flutter_inappwebview.callHandler('ksuFullScreen', enable);
                           }
                       };
-                      // try to make it immutable
                       try { Object.defineProperty(window, 'ksu', { writable: false }); } catch (e) {}
                     })();
                   """,
@@ -1217,7 +1149,6 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
               onWebViewCreated: (controller) {
                 _controller = controller;
 
-                // 1. KSU Exec Handler
                 controller.addJavaScriptHandler(
                   handlerName: 'ksuExec',
                   callback: (args) async {
@@ -1225,8 +1156,6 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
                     String cmd = args[0].toString();
                     debugPrint("KSU Exec: $cmd");
                     try {
-                      // Execute command as root within the plugin directory context
-                      // We must wrap in 'sh -c' or just pass to 'su -c'
                       final String fullCmd =
                           'cd "${widget.pluginPath}" && $cmd';
                       final result = await Process.run('su', ['-c', fullCmd]);
@@ -1245,7 +1174,6 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
                   },
                 );
 
-                // 2. KSU Toast Handler
                 controller.addJavaScriptHandler(
                   handlerName: 'ksuToast',
                   callback: (args) {
@@ -1258,7 +1186,6 @@ class _PluginWebUiPageState extends State<PluginWebUiPage> {
                   },
                 );
 
-                // 3. KSU FullScreen Handler
                 controller.addJavaScriptHandler(
                   handlerName: 'ksuFullScreen',
                   callback: (args) {

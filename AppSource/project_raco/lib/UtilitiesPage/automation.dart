@@ -11,246 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '/l10n/app_localizations.dart';
 import 'utils.dart';
-
-// --- TOPO CAMO BACKGROUND (Dense Marching Squares) ---
-class TopoBackground extends StatefulWidget {
-  final Color color;
-  final double speed;
-
-  const TopoBackground({Key? key, required this.color, this.speed = 1.0})
-    : super(key: key);
-
-  @override
-  _TopoBackgroundState createState() => _TopoBackgroundState();
-}
-
-class _TopoBackgroundState extends State<TopoBackground>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    // Slow, infinite loop for the drifting effect
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 30),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return RepaintBoundary(
-          child: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return CustomPaint(
-                painter: TopoPainter(
-                  animationValue: _controller.value,
-                  color: widget.color,
-                  speed: widget.speed,
-                ),
-                size: Size(constraints.maxWidth, constraints.maxHeight),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-}
-
-class TopoPainter extends CustomPainter {
-  final double animationValue;
-  final Color color;
-  final double speed;
-
-  // Resolution: Lower = smoother curves but more expensive.
-  // 12.0 provides a good balance for the "smooth" vector look.
-  static const double resolution = 12.0;
-
-  TopoPainter({
-    required this.animationValue,
-    required this.color,
-    required this.speed,
-  });
-
-  // Generates organic noise values.
-  // Scaled to produce "island" like shapes similar to the reference image.
-  double _getElevation(double x, double y, double t) {
-    // Frequency multipliers (Scale): Higher numbers = smaller, denser shapes.
-    // We increase these slightly to fit more "topography" into the card.
-    const double scaleX = 0.012;
-    const double scaleY = 0.012;
-
-    // Layer 1: Main organic shapes
-    double v = sin(x * scaleX + t) + cos(y * scaleY + t * 0.8);
-
-    // Layer 2: Distortion/Detail
-    v += 0.5 * sin((x * 0.03) - (y * 0.03) + t * 2.0);
-
-    // Layer 3: Fine variation
-    v += 0.2 * cos((x * 0.05) + (y * 0.01));
-
-    return v; // Range roughly -2.5 to 2.5
-  }
-
-  // Linear Interpolation for smooth lines between grid points
-  Offset _lerp(Offset a, Offset b, double valA, double valB, double threshold) {
-    if ((valB - valA).abs() < 0.0001) return a;
-    double t = (threshold - valA) / (valB - valA);
-    return Offset(a.dx + (b.dx - a.dx) * t, a.dy + (b.dy - a.dy) * t);
-  }
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth =
-          1.0 // Thin lines for the "technical" map look
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..isAntiAlias = true;
-
-    final double t = animationValue * 2 * pi * speed;
-
-    // --- THRESHOLD GENERATION ---
-    // To achieve the "Full" look, we generate many thresholds.
-    // Spacing them by 0.25 ensures dense coverage without overlap mess.
-    final List<double> thresholds = [];
-    for (double i = -3.0; i <= 3.0; i += 0.25) {
-      thresholds.add(i);
-    }
-
-    // Grid dimensions
-    // We add +2 padding to cols/rows to ensure lines don't clip abruptly at edges
-    int cols = (size.width / resolution).ceil() + 1;
-    int rows = (size.height / resolution).ceil() + 1;
-
-    // Memory optimization: Keep only current and next row in memory
-    List<double> currentRow = List.filled(cols, 0.0);
-    List<double> nextRow = List.filled(cols, 0.0);
-
-    // Initialize first row
-    for (int i = 0; i < cols; i++) {
-      currentRow[i] = _getElevation(i * resolution, 0, t);
-    }
-
-    // Loop through the grid
-    for (int j = 0; j < rows - 1; j++) {
-      double y = j * resolution;
-      double nextY = (j + 1) * resolution;
-
-      // Precompute next row
-      for (int i = 0; i < cols; i++) {
-        nextRow[i] = _getElevation(i * resolution, nextY, t);
-      }
-
-      // Process cells
-      for (int i = 0; i < cols - 1; i++) {
-        double x = i * resolution;
-        double nextX = (i + 1) * resolution;
-
-        // Grid corner values
-        double valTL = currentRow[i];
-        double valTR = currentRow[i + 1];
-        double valBL = nextRow[i];
-        double valBR = nextRow[i + 1];
-
-        // Check every threshold for this specific cell (Marching Squares)
-        for (double threshold in thresholds) {
-          int state = 0;
-          if (valTL > threshold) state |= 8;
-          if (valTR > threshold) state |= 4;
-          if (valBR > threshold) state |= 2;
-          if (valBL > threshold) state |= 1;
-
-          // Skip empty or full cells (optimization)
-          if (state == 0 || state == 15) continue;
-
-          // Corner Offsets
-          Offset tl = Offset(x, y);
-          Offset tr = Offset(nextX, y);
-          Offset br = Offset(nextX, nextY);
-          Offset bl = Offset(x, nextY);
-
-          // Interpolated edges
-          Offset a = _lerp(tl, tr, valTL, valTR, threshold); // Top
-          Offset b = _lerp(tr, br, valTR, valBR, threshold); // Right
-          Offset c = _lerp(bl, br, valBL, valBR, threshold); // Bottom
-          Offset d = _lerp(tl, bl, valTL, valBL, threshold); // Left
-
-          switch (state) {
-            case 1:
-              canvas.drawLine(d, c, paint);
-              break;
-            case 2:
-              canvas.drawLine(c, b, paint);
-              break;
-            case 3:
-              canvas.drawLine(d, b, paint);
-              break;
-            case 4:
-              canvas.drawLine(a, b, paint);
-              break;
-            case 5:
-              canvas.drawLine(d, a, paint);
-              canvas.drawLine(c, b, paint);
-              break; // Saddle
-            case 6:
-              canvas.drawLine(a, c, paint);
-              break;
-            case 7:
-              canvas.drawLine(d, a, paint);
-              break;
-            case 8:
-              canvas.drawLine(d, a, paint);
-              break;
-            case 9:
-              canvas.drawLine(a, c, paint);
-              break;
-            case 10:
-              canvas.drawLine(a, b, paint);
-              canvas.drawLine(d, c, paint);
-              break; // Saddle
-            case 11:
-              canvas.drawLine(a, b, paint);
-              break;
-            case 12:
-              canvas.drawLine(d, b, paint);
-              break;
-            case 13:
-              canvas.drawLine(c, b, paint);
-              break;
-            case 14:
-              canvas.drawLine(d, c, paint);
-              break;
-          }
-        }
-      }
-
-      // Shift rows
-      List<double> temp = currentRow;
-      currentRow = nextRow;
-      nextRow = temp;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant TopoPainter oldDelegate) {
-    return oldDelegate.animationValue != animationValue ||
-        oldDelegate.color != color;
-  }
-}
-// --------------------------------------------------------
+import '../topo_background.dart';
 
 class AppItem {
   final String name;
@@ -285,6 +46,7 @@ class AutomationPage extends StatefulWidget {
 class _AutomationPageState extends State<AutomationPage> {
   bool _isLoading = true;
   Map<String, bool>? _endfieldEngineState;
+  bool _endfieldCollabEnabled = false;
 
   @override
   void initState() {
@@ -304,11 +66,14 @@ class _AutomationPageState extends State<AutomationPage> {
   }
 
   Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
     final endfieldState = await _loadEndfieldEngineState();
+    final collabEnabled = prefs.getBool('endfield_collab_enabled') ?? false;
 
     if (!mounted) return;
     setState(() {
       _endfieldEngineState = endfieldState;
+      _endfieldCollabEnabled = collabEnabled;
       _isLoading = false;
     });
   }
@@ -316,6 +81,7 @@ class _AutomationPageState extends State<AutomationPage> {
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     final Widget pageContent = Scaffold(
       backgroundColor: Colors.transparent,
@@ -342,7 +108,14 @@ class _AutomationPageState extends State<AutomationPage> {
       fit: StackFit.expand,
       children: [
         Container(color: Theme.of(context).colorScheme.background),
-        if (widget.backgroundImagePath != null &&
+        if (_endfieldCollabEnabled)
+          Positioned.fill(
+            child: TopoBackground(
+              color: colorScheme.primary.withOpacity(0.15),
+              speed: 0.15,
+            ),
+          )
+        else if (widget.backgroundImagePath != null &&
             widget.backgroundImagePath!.isNotEmpty)
           ImageFiltered(
             imageFilter: ImageFilter.blur(
@@ -449,7 +222,6 @@ class _EndfieldEngineCardState extends State<EndfieldEngineCard>
         }
       }
     } catch (e) {
-      // Ignore
     } finally {
       if (mounted) setState(() => _loadingConfig = false);
     }
@@ -499,7 +271,6 @@ class _EndfieldEngineCardState extends State<EndfieldEngineCard>
         });
       }
     } catch (e) {
-      // Ignore
     } finally {
       if (mounted) setState(() => _isSavingConfig = false);
     }
@@ -557,18 +328,15 @@ class _EndfieldEngineCardState extends State<EndfieldEngineCard>
       )).stdout.toString();
       List<String> lines = content.replaceAll('\r\n', '\n').split('\n');
 
-      // Remove any existing binary commands to prevent duplicates
       lines.removeWhere((line) => line.contains(_binaryPath));
 
       if (enable) {
-        // Look for the exact marker '#Endfield Engine'
         int markerIndex = lines.indexWhere(
           (line) => line.trim() == '#Endfield Engine',
         );
         if (markerIndex != -1) {
           lines.insert(markerIndex + 1, _endfieldStartCommand);
         } else {
-          // Fallback if marker is missing
           lines.add('#Endfield Engine');
           lines.add(_endfieldStartCommand);
         }
@@ -612,15 +380,12 @@ class _EndfieldEngineCardState extends State<EndfieldEngineCard>
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          // TOPO CAMO BACKGROUND (Dense Marching Squares)
           Positioned.fill(
             child: TopoBackground(
-              // Using a subtle opacity to keep text readable over the busy pattern
               color: colorScheme.primary.withOpacity(0.2),
-              speed: 0.15, // Slow drift
+              speed: 0.15,
             ),
           ),
-          // CARD CONTENT
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -846,9 +611,7 @@ class _AppListPageState extends State<AppListPage> {
           }
         }
       }
-    } catch (e) {
-      // Ignore
-    }
+    } catch (e) {}
   }
 
   Future<void> _loadEnabledPackages() async {
@@ -874,9 +637,7 @@ class _AppListPageState extends State<AppListPage> {
           });
         }
       }
-    } catch (e) {
-      // Ignore
-    }
+    } catch (e) {}
   }
 
   Future<void> _fetchInstalledApps({bool forceRefresh = false}) async {
@@ -972,9 +733,6 @@ class _AppListPageState extends State<AppListPage> {
 
     try {
       if (isEnable) {
-        // Use 'sed' append ($a) to force adding to a new line at the end of the file.
-        // This ensures packages are strictly separated by newlines.
-        // Note: Escape the $ with \ for Dart string interpolation.
         await runRootCommandAndWait("sed -i '\$a $packageName' $_gameTxtPath");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -985,7 +743,6 @@ class _AppListPageState extends State<AppListPage> {
           );
         }
       } else {
-        // Use 'sed' delete (/.../d) to remove the specific package line.
         final escapedPackage = packageName.replaceAll('.', '\\.');
         await runRootCommandAndWait(
           "sed -i '/^$escapedPackage\$/d' $_gameTxtPath",
@@ -1015,12 +772,7 @@ class _AppListPageState extends State<AppListPage> {
             tooltip: 'Reload Apps',
             onPressed: () => _fetchInstalledApps(forceRefresh: true),
           ),
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {
-              // Menu options
-            },
-          ),
+          IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
         ],
       ),
       body: Column(

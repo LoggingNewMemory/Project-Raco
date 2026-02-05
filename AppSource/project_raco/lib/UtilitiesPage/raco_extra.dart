@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '/l10n/app_localizations.dart';
+import '../topo_background.dart';
 
 class RacoExtraPage extends StatefulWidget {
   final String? backgroundImagePath;
@@ -26,6 +28,7 @@ class _RacoExtraPageState extends State<RacoExtraPage> {
   bool _includeKobo = false;
   bool _includeSandev = false;
   bool _includeZetamin = false;
+  bool _endfieldCollabEnabled = false;
 
   final String _configPath = '/data/ProjectRaco/raco.txt';
 
@@ -36,6 +39,7 @@ class _RacoExtraPageState extends State<RacoExtraPage> {
   }
 
   Future<void> _loadConfig() async {
+    final prefs = await SharedPreferences.getInstance();
     try {
       final result = await Process.run('su', ['-c', 'cat $_configPath']);
       if (result.exitCode == 0) {
@@ -46,6 +50,8 @@ class _RacoExtraPageState extends State<RacoExtraPage> {
             _includeKobo = _parseFlag(content, 'INCLUDE_KOBO');
             _includeSandev = _parseFlag(content, 'INCLUDE_SANDEV');
             _includeZetamin = _parseFlag(content, 'INCLUDE_ZETAMIN');
+            _endfieldCollabEnabled =
+                prefs.getBool('endfield_collab_enabled') ?? false;
             _isLoading = false;
           });
         }
@@ -106,6 +112,7 @@ class _RacoExtraPageState extends State<RacoExtraPage> {
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     final Widget pageContent = Scaffold(
       backgroundColor: Colors.transparent,
@@ -153,7 +160,14 @@ class _RacoExtraPageState extends State<RacoExtraPage> {
       fit: StackFit.expand,
       children: [
         Container(color: Theme.of(context).colorScheme.background),
-        if (widget.backgroundImagePath != null &&
+        if (_endfieldCollabEnabled)
+          Positioned.fill(
+            child: TopoBackground(
+              color: colorScheme.primary.withOpacity(0.15),
+              speed: 0.15,
+            ),
+          )
+        else if (widget.backgroundImagePath != null &&
             widget.backgroundImagePath!.isNotEmpty)
           ImageFiltered(
             imageFilter: ImageFilter.blur(

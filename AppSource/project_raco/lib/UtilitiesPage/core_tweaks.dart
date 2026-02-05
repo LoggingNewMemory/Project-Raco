@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '/l10n/app_localizations.dart';
 import 'utils.dart';
+import '../topo_background.dart';
 
 class CoreTweaksPage extends StatefulWidget {
   final String? backgroundImagePath;
@@ -24,6 +26,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
   bool _isLoading = true;
   Map<String, dynamic>? _encoreState;
   Map<String, dynamic>? _governorState;
+  bool _endfieldCollabEnabled = false;
 
   @override
   void initState() {
@@ -38,9 +41,6 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
     if (result.exitCode == 0) {
       final content = result.stdout.toString();
 
-      // For Carlotta CPU Mitigation:
-      // Switch ON (Enabled) means KCPU_MITIGATE=0
-      // Switch OFF (Disabled/Mitigation Active) means KCPU_MITIGATE=1
       final kcpuMitigateVal = RegExp(
         r'^KCPU_MITIGATE=(\d)',
         multiLine: true,
@@ -48,9 +48,6 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
 
       final carlottaCpuEnabled = kcpuMitigateVal == '0';
 
-      // For Silent Mode:
-      // Switch ON (Enabled) means SILENT_NOTIF=0 (Notifications Disabled)
-      // Switch OFF (Disabled) means SILENT_NOTIF=1 (Notifications Enabled)
       final silentNotifVal = RegExp(
         r'^SILENT_NOTIF=(\d)',
         multiLine: true,
@@ -129,6 +126,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
   }
 
   Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
     final results = await Future.wait([
       _loadEncoreSwitchState(),
       _loadGovernorState(),
@@ -138,6 +136,8 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
     setState(() {
       _encoreState = results[0];
       _governorState = results[1];
+      _endfieldCollabEnabled =
+          prefs.getBool('endfield_collab_enabled') ?? false;
       _isLoading = false;
     });
   }
@@ -145,6 +145,7 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     final Widget pageContent = Scaffold(
       backgroundColor: Colors.transparent,
@@ -179,7 +180,14 @@ class _CoreTweaksPageState extends State<CoreTweaksPage> {
       fit: StackFit.expand,
       children: [
         Container(color: Theme.of(context).colorScheme.background),
-        if (widget.backgroundImagePath != null &&
+        if (_endfieldCollabEnabled)
+          Positioned.fill(
+            child: TopoBackground(
+              color: colorScheme.primary.withOpacity(0.15),
+              speed: 0.15,
+            ),
+          )
+        else if (widget.backgroundImagePath != null &&
             widget.backgroundImagePath!.isNotEmpty)
           ImageFiltered(
             imageFilter: ImageFilter.blur(
@@ -281,8 +289,6 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
     if (!await checkRootAccess()) return;
 
     try {
-      // If invertLogic is true: Enable(true) writes '0', Disable(false) writes '1'
-      // If invertLogic is false: Enable(true) writes '1', Disable(false) writes '0'
       final value = invertLogic ? (enable ? '0' : '1') : (enable ? '1' : '0');
 
       final sedCommand =
@@ -438,7 +444,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
                 stateSetter: (val) => _carlottaCpuEnabled = val,
                 isUpdatingSetter: (val) => _isUpdatingCarlottaCpu = val,
                 initialValue: widget.initialCarlottaCpuValue,
-                invertLogic: true, // Enable writes 0, Disable writes 1
+                invertLogic: true,
               ),
               secondary: const Icon(Icons.memory),
               activeColor: colorScheme.primary,
@@ -485,8 +491,7 @@ class _FixAndTweakCardState extends State<FixAndTweakCard>
                 stateSetter: (val) => _silentNotifEnabled = val,
                 isUpdatingSetter: (val) => _isUpdatingSilentNotif = val,
                 initialValue: widget.initialSilentNotifValue,
-                invertLogic:
-                    true, // Enable (Silent Mode ON) writes 0, Disable writes 1
+                invertLogic: true,
               ),
               secondary: const Icon(Icons.notifications_off_outlined),
               activeColor: colorScheme.primary,

@@ -9,6 +9,7 @@ import 'package:installed_apps/installed_apps.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import '/l10n/app_localizations.dart';
+import 'topo_background.dart';
 
 class AppItem {
   final String name;
@@ -46,6 +47,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
   bool _useAngle = false;
   bool _useSkia = false;
   bool _enablePlayboost = false;
+  bool _endfieldCollabEnabled = false;
 
   List<AppItem> _installedApps = [];
   String? _selectedAppPackage;
@@ -226,11 +228,14 @@ class _SlingshotPageState extends State<SlingshotPage> {
 
       final String? savedPackage = prefs.getString(_prefsKeySelected);
       final String? savedMode = prefs.getString(_prefsKeyMode);
+      final bool endfieldEnabled =
+          prefs.getBool('endfield_collab_enabled') ?? false;
 
       if (mounted) {
         setState(() {
           if (savedPackage != null) _selectedAppPackage = savedPackage;
           if (savedMode != null) _selectedMode = savedMode;
+          _endfieldCollabEnabled = endfieldEnabled;
         });
       }
 
@@ -822,7 +827,14 @@ class _SlingshotPageState extends State<SlingshotPage> {
       fit: StackFit.expand,
       children: [
         Container(color: colorScheme.surface),
-        if (widget.backgroundImagePath != null &&
+        if (_endfieldCollabEnabled)
+          Positioned.fill(
+            child: TopoBackground(
+              color: colorScheme.primary.withOpacity(0.15),
+              speed: 0.15,
+            ),
+          )
+        else if (widget.backgroundImagePath != null &&
             widget.backgroundImagePath!.isNotEmpty)
           ImageFiltered(
             imageFilter: ImageFilter.blur(
