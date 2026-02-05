@@ -124,8 +124,6 @@ Future<void> main() async {
   initRacoVideoCache();
 
   // --- AUDIO PRELOAD START ---
-  // Initialize and play audio immediately before the app widget tree builds.
-  // This removes the delay caused by widget mounting and async checks in initState.
   VideoPlayerController? rootAudioController;
   try {
     final prefs = await SharedPreferences.getInstance();
@@ -185,7 +183,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // Use the controller passed from main(), which is already playing if enabled
     _audioController = widget.audioController;
     _loadAllPreferences();
     themeNotifier.addListener(_onThemeChanged);
@@ -344,6 +341,7 @@ class _MyAppState extends State<MyApp> {
                 backgroundImagePath: _backgroundImagePath,
                 backgroundOpacity: _backgroundOpacity,
                 backgroundBlur: _backgroundBlur,
+                endfieldEnabled: _endfieldCollabEnabled,
               ),
             ],
           ),
@@ -380,7 +378,6 @@ class _TypewriterTextState extends State<TypewriterText> {
   @override
   void initState() {
     super.initState();
-    // Initial start: just type
     _startTyping(widget.text);
   }
 
@@ -388,7 +385,6 @@ class _TypewriterTextState extends State<TypewriterText> {
   void didUpdateWidget(TypewriterText oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.text != widget.text) {
-      // If text changed, Start Deleting first, then type new text
       _startDeleting(widget.text);
     }
   }
@@ -405,7 +401,6 @@ class _TypewriterTextState extends State<TypewriterText> {
         });
       } else {
         timer.cancel();
-        // Once deletion is done, start typing the new text
         _startTyping(nextText);
       }
     });
@@ -420,10 +415,7 @@ class _TypewriterTextState extends State<TypewriterText> {
       return;
     }
 
-    // Reset displayed text if we are starting fresh from empty
-    // (Note: if coming from delete, it's already empty)
     if (_displayedText.isNotEmpty && _displayedText != textToType) {
-      // Safety net: if we skipped delete logic somehow
       setState(() => _displayedText = "");
     }
 
@@ -459,6 +451,7 @@ class MainScreen extends StatefulWidget {
   final String? backgroundImagePath;
   final double backgroundOpacity;
   final double backgroundBlur;
+  final bool endfieldEnabled;
 
   const MainScreen({
     Key? key,
@@ -468,6 +461,7 @@ class MainScreen extends StatefulWidget {
     required this.backgroundImagePath,
     required this.backgroundOpacity,
     required this.backgroundBlur,
+    required this.endfieldEnabled,
   }) : super(key: key);
 
   @override
@@ -519,7 +513,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   }
 
   void _startTipRotation() {
-    // Increased duration slightly to allow for delete+type animation
     _tipTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
       if (mounted) {
         setState(() {
@@ -856,102 +849,709 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  void _showLanguageSelectionDialog(AppLocalizations localization) {
+    final currentLang = supportedLanguages.firstWhere(
+      (lang) => lang.displayName == _selectedLanguage,
+      orElse: () => supportedLanguages.first,
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(localization.select_language),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: supportedLanguages.map((language) {
+                return RadioListTile<String>(
+                  title: Text(language.name),
+                  value: language.code,
+                  groupValue: currentLang.code,
+                  onChanged: (String? newLocaleCode) {
+                    if (newLocaleCode != null) {
+                      _changeLanguage(newLocaleCode);
+                      Navigator.of(context).pop();
+                    }
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ==========================================
+  //      STANDARD MATERIAL LAYOUT
+  // ==========================================
+
+  Widget _buildStandardLayout(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: GestureDetector(
-        onHorizontalDragEnd: _onHorizontalDragEnd,
-        behavior: HitTestBehavior.translucent,
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: _isLoading
-                ? const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 32.0),
-                      child: LinearProgressIndicator(),
-                    ),
-                  )
-                : AnimatedOpacity(
-                    opacity: _isContentVisible ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 500),
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildTitleHeader(colorScheme, localization),
-                          const SizedBox(height: 16),
-                          _buildBanner(localization),
-                          const SizedBox(height: 10),
-                          _buildTipsSection(colorScheme),
-                          const SizedBox(height: 10),
-                          _buildStatusRow(localization),
-                          const SizedBox(height: 10),
-                          _buildControlRow(
-                            localization.power_save_desc,
-                            '3',
-                            localization.power_save,
-                            Icons.battery_saver_outlined,
-                            'POWER_SAVE',
-                          ),
-                          _buildControlRow(
-                            localization.balanced_desc,
-                            '2',
-                            localization.balanced,
-                            Icons.balance_outlined,
-                            'BALANCED',
-                          ),
-                          _buildControlRow(
-                            localization.performance_desc,
-                            '1',
-                            localization.performance,
-                            Icons.speed_outlined,
-                            'PERFORMANCE',
-                          ),
-                          _buildControlRow(
-                            localization.gaming_desc,
-                            '4',
-                            localization.gaming_pro,
-                            Icons.sports_esports_outlined,
-                            'GAMING_PRO',
-                          ),
-                          _buildControlRow(
-                            localization.cooldown_desc,
-                            '5',
-                            localization.cooldown,
-                            Icons.ac_unit_outlined,
-                            'COOLDOWN',
-                          ),
-                          _buildControlRow(
-                            localization.clear_desc,
-                            '6',
-                            localization.clear,
-                            Icons.clear_all_outlined,
-                            'CLEAR',
-                          ),
-                          _buildSlingshotCard(localization),
-                          const SizedBox(height: 10),
-                          _buildUtilitiesCard(localization),
-                          const SizedBox(height: 10),
-                          _buildLanguageSelector(localization),
-                          const SizedBox(height: 20),
-                        ],
-                      ),
+    return GestureDetector(
+      onHorizontalDragEnd: _onHorizontalDragEnd,
+      behavior: HitTestBehavior.translucent,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: _isLoading
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 32.0),
+                    child: LinearProgressIndicator(),
+                  ),
+                )
+              : AnimatedOpacity(
+                  opacity: _isContentVisible ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 500),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTitleHeader(colorScheme, localization),
+                        const SizedBox(height: 16),
+                        _buildBanner(localization),
+                        const SizedBox(height: 10),
+                        _buildTipsSection(colorScheme),
+                        const SizedBox(height: 10),
+                        _buildStatusRow(localization),
+                        const SizedBox(height: 10),
+                        _buildControlRow(
+                          localization.power_save_desc,
+                          '3',
+                          localization.power_save,
+                          Icons.battery_saver_outlined,
+                          'POWER_SAVE',
+                        ),
+                        _buildControlRow(
+                          localization.balanced_desc,
+                          '2',
+                          localization.balanced,
+                          Icons.balance_outlined,
+                          'BALANCED',
+                        ),
+                        _buildControlRow(
+                          localization.performance_desc,
+                          '1',
+                          localization.performance,
+                          Icons.speed_outlined,
+                          'PERFORMANCE',
+                        ),
+                        _buildControlRow(
+                          localization.gaming_desc,
+                          '4',
+                          localization.gaming_pro,
+                          Icons.sports_esports_outlined,
+                          'GAMING_PRO',
+                        ),
+                        _buildControlRow(
+                          localization.cooldown_desc,
+                          '5',
+                          localization.cooldown,
+                          Icons.ac_unit_outlined,
+                          'COOLDOWN',
+                        ),
+                        _buildControlRow(
+                          localization.clear_desc,
+                          '6',
+                          localization.clear,
+                          Icons.clear_all_outlined,
+                          'CLEAR',
+                        ),
+                        _buildSlingshotCard(localization),
+                        const SizedBox(height: 10),
+                        _buildUtilitiesCard(localization),
+                        const SizedBox(height: 10),
+                        _buildLanguageSelector(localization),
+                        const SizedBox(height: 20),
+                      ],
                     ),
                   ),
-          ),
+                ),
         ),
       ),
     );
   }
 
-  // --- WIDGET BUILDERS ---
+  // ==========================================
+  //    ENDFIELD (CROWDED INDUSTRIAL) LAYOUT
+  // ==========================================
 
+  Widget _buildEndfieldLayout(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
+
+    // Tech Colors
+    final Color bgDark = const Color(0xFF0D0D0D); // Black Wash
+    final Color techYellow = const Color(0xFFFFD700); // Warning/Highlight
+    final Color techBlue = const Color(0xFF00BFFF); // Data/Holo
+    final Color textWhite = const Color(0xFFF2F2F2); // Bleached Silk
+
+    final monoStyle = const TextStyle(
+      fontFamily: 'RobotoMono',
+      fontWeight: FontWeight.bold,
+      letterSpacing: 1.0,
+    );
+
+    return GestureDetector(
+      onHorizontalDragEnd: _onHorizontalDragEnd,
+      behavior: HitTestBehavior.translucent,
+      child: SafeArea(
+        child: Container(
+          color: bgDark.withOpacity(0.9), // Dark overlay
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          child: _isLoading
+              ? Center(child: CircularProgressIndicator(color: techYellow))
+              : SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // --- HEADER BLOCK (CLICKABLE) ---
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          InkWell(
+                            onTap: _navigateToAboutPage,
+                            borderRadius: BorderRadius.circular(8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "TALOS-II // PROTOCOL",
+                                  style: monoStyle.copyWith(
+                                    color: Colors.white38,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                Text(
+                                  "RACO TERMINAL",
+                                  style: monoStyle.copyWith(
+                                    color: techYellow,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                Container(
+                                  height: 2,
+                                  width: 100,
+                                  color: techYellow,
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: FaIcon(
+                              FontAwesomeIcons.circleInfo,
+                              color: techBlue,
+                            ),
+                            onPressed: _navigateToAboutPage,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // --- BANNER BLOCK ---
+                      GestureDetector(
+                        onTap: _navigateToRacoPage,
+                        child: Container(
+                          height: 160,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: techBlue.withOpacity(0.5),
+                            ),
+                            color: Colors.black,
+                          ),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              if (widget.bannerImagePath != null &&
+                                  widget.bannerImagePath!.isNotEmpty)
+                                Image.file(
+                                  File(widget.bannerImagePath!),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                      Container(color: Colors.black26),
+                                )
+                              else
+                                Image.asset(
+                                  'assets/Raco.png',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Center(
+                                    child: Icon(
+                                      Icons.broken_image,
+                                      color: Colors.white12,
+                                    ),
+                                  ),
+                                ),
+
+                              // Scanline overlay
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black.withOpacity(0.8),
+                                    ],
+                                    stops: const [0.6, 1.0],
+                                  ),
+                                ),
+                              ),
+
+                              // Tech overlay info
+                              Positioned(
+                                bottom: 8,
+                                left: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  color: techYellow,
+                                  child: Text(
+                                    "SYSTEM_STATUS: ${_moduleInstalled ? 'ONLINE' : 'OFFLINE'} // V:$_moduleVersion",
+                                    style: monoStyle.copyWith(
+                                      color: Colors.black,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: Icon(
+                                  Icons.nfc,
+                                  color: Colors.white54,
+                                  size: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // --- STATUS GRID ---
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildEndfieldStatBox(
+                              "ROOT_ACCESS",
+                              _hasRootAccess ? "GRANTED" : "DENIED",
+                              _hasRootAccess ? techBlue : Colors.red,
+                              monoStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildEndfieldStatBox(
+                              "ENGINE",
+                              _isEndfieldEngineRunning ? "ACTIVE" : "STANDBY",
+                              _isEndfieldEngineRunning
+                                  ? techYellow
+                                  : Colors.white54,
+                              monoStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      // --- VERSION TICKER ---
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white24),
+                          color: Colors.black45,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.memory, size: 14, color: Colors.white54),
+                            const SizedBox(width: 8),
+                            Text(
+                              "MODULE: $_moduleVersion",
+                              style: monoStyle.copyWith(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              "// SYS.RDY",
+                              style: monoStyle.copyWith(
+                                color: techBlue,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // --- MODE SELECTOR (CROWDED GRID) ---
+                      Text(
+                        "[ PERFORMANCE PROTOCOLS ]",
+                        style: monoStyle.copyWith(
+                          color: Colors.white54,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _buildEndfieldModeButton(
+                            localization.power_save,
+                            "3",
+                            "POWER_SAVE",
+                            Icons.battery_saver,
+                            techBlue,
+                            monoStyle,
+                          ),
+                          _buildEndfieldModeButton(
+                            localization.balanced,
+                            "2",
+                            "BALANCED",
+                            Icons.balance,
+                            techBlue,
+                            monoStyle,
+                          ),
+                          _buildEndfieldModeButton(
+                            localization.performance,
+                            "1",
+                            "PERFORMANCE",
+                            Icons.speed,
+                            techYellow,
+                            monoStyle,
+                          ),
+                          _buildEndfieldModeButton(
+                            localization.gaming_pro,
+                            "4",
+                            "GAMING_PRO",
+                            Icons.gamepad,
+                            Colors.redAccent,
+                            monoStyle,
+                          ),
+                          _buildEndfieldModeButton(
+                            localization.cooldown,
+                            "5",
+                            "COOLDOWN",
+                            Icons.ac_unit,
+                            Colors.cyanAccent,
+                            monoStyle,
+                          ),
+                          _buildEndfieldModeButton(
+                            localization.clear,
+                            "6",
+                            "CLEAR",
+                            Icons.delete_outline,
+                            Colors.white,
+                            monoStyle,
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // --- SYSTEM LOGS (VISUAL NOISE) ---
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          border: Border(
+                            left: BorderSide(color: techYellow, width: 4),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "// SYSTEM LOG OUTPUT",
+                              style: monoStyle.copyWith(
+                                color: techYellow,
+                                fontSize: 10,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Opacity(
+                              opacity: 0.7,
+                              child: TypewriterText(
+                                text:
+                                    "${_tips[_currentTipIndex]}\n> _waiting for input...\n> memory_integrity: 100%",
+                                style: monoStyle.copyWith(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // --- NAVIGATION MODULES ---
+                      Text(
+                        "[ EXTERNAL MODULES ]",
+                        style: monoStyle.copyWith(
+                          color: Colors.white54,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      InkWell(
+                        onTap: () {
+                          if (_isEndfieldEngineRunning) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  localization
+                                      .please_disable_endfield_engine_first,
+                                ),
+                              ),
+                            );
+                          } else {
+                            _navigateToSlingshotPage();
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: techBlue.withOpacity(0.5),
+                            ),
+                            gradient: LinearGradient(
+                              colors: [
+                                techBlue.withOpacity(0.1),
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.rocket_launch, color: techBlue),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  "SLINGSHOT // PRELOADER",
+                                  style: monoStyle.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                "[EXEC]",
+                                style: monoStyle.copyWith(
+                                  color: techBlue,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: _navigateToUtilitiesPage,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white24),
+                            color: Colors.white10,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.build, color: Colors.white54),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  "UTILITIES // TOOLS",
+                                  style: monoStyle.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                "[OPEN]",
+                                style: monoStyle.copyWith(
+                                  color: Colors.white54,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+                      // Bottom Decoration
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "ID: 8492-KW-302",
+                            style: monoStyle.copyWith(
+                              color: Colors.white24,
+                              fontSize: 10,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              FaIcon(
+                                FontAwesomeIcons.telegram,
+                                size: 16,
+                                color: Colors.white24,
+                              ),
+                              const SizedBox(width: 16),
+                              FaIcon(
+                                FontAwesomeIcons.github,
+                                size: 16,
+                                color: Colors.white24,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEndfieldStatBox(
+    String label,
+    String value,
+    Color color,
+    TextStyle baseStyle,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withOpacity(0.05),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: baseStyle.copyWith(fontSize: 10, color: Colors.white54),
+          ),
+          const SizedBox(height: 4),
+          Text(value, style: baseStyle.copyWith(fontSize: 16, color: color)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEndfieldModeButton(
+    String label,
+    String scriptArg,
+    String modeKey,
+    IconData icon,
+    Color color,
+    TextStyle baseStyle,
+  ) {
+    final bool isSelected = _currentMode == modeKey;
+    final bool isExecuting = _executingScript == scriptArg;
+
+    return InkWell(
+      onTap: () {
+        if (!_isEndfieldEngineRunning && _executingScript.isEmpty) {
+          executeScript(scriptArg, modeKey);
+        }
+      },
+      child: Container(
+        width: (MediaQuery.of(context).size.width / 2) - 20, // 2 column grid
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.2) : Colors.transparent,
+          border: Border.all(
+            color: isSelected ? color : Colors.white24,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected ? color : Colors.white54,
+                  size: 20,
+                ),
+                if (isExecuting)
+                  SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: color,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label.toUpperCase(),
+              style: baseStyle.copyWith(fontSize: 13, color: Colors.white),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              isSelected ? "STATUS: ACTIVE" : "STATUS: READY",
+              style: baseStyle.copyWith(
+                fontSize: 8,
+                color: isSelected ? color : Colors.white24,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  //      ORIGINAL BUILDER LOGIC
+  // ==========================================
+
+  // Standard helper widgets (kept for standard layout)
   Widget _buildTipsSection(ColorScheme colorScheme) {
     return Container(
       width: double.infinity,
@@ -986,9 +1586,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
             ],
           ),
           const SizedBox(height: 6),
-          // WRAPPED IN SIZED BOX FOR FIXED HEIGHT TO PREVENT MISCLICKS
           SizedBox(
-            height: 40.0, // Fixed height for approx 2 lines
+            height: 40.0,
             child: Align(
               alignment: Alignment.topLeft,
               child: TypewriterText(
@@ -1301,51 +1900,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
-  void _showLanguageSelectionDialog(AppLocalizations localization) {
-    final currentLang = supportedLanguages.firstWhere(
-      (lang) => lang.displayName == _selectedLanguage,
-      orElse: () => supportedLanguages.first,
-    );
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(localization.select_language),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: supportedLanguages.map((language) {
-                return RadioListTile<String>(
-                  title: Text(language.name),
-                  value: language.code,
-                  groupValue: currentLang.code,
-                  onChanged: (String? newLocaleCode) {
-                    if (newLocaleCode != null) {
-                      _changeLanguage(newLocaleCode);
-                      Navigator.of(context).pop();
-                    }
-                  },
-                );
-              }).toList(),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _buildLanguageSelector(AppLocalizations localization) {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
@@ -1508,5 +2062,13 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         ),
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.endfieldEnabled) {
+      return _buildEndfieldLayout(context);
+    }
+    return _buildStandardLayout(context);
   }
 }

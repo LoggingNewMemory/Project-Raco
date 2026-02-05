@@ -446,22 +446,23 @@ class _SlingshotPageState extends State<SlingshotPage> {
     ).showSnackBar(SnackBar(content: Text(localization.slingshot_complete)));
   }
 
+  // ===========================================
+  //        LAYOUT BUILDERS
+  // ===========================================
+
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
+    // Map modes map used by both layouts
     final Map<String, String> modes = {
       'n': localization.slingshot_mode_normal,
       'd': localization.slingshot_mode_deep,
       'x': localization.slingshot_mode_extreme,
       'r': localization.slingshot_mode_recursive,
     };
-
-    if (!modes.containsKey(_selectedMode)) {
-      _selectedMode = 'n';
-    }
+    if (!modes.containsKey(_selectedMode)) _selectedMode = 'n';
 
     final filteredApps = _installedApps.where((app) {
       final nameMatch = app.name.toLowerCase().contains(
@@ -473,7 +474,71 @@ class _SlingshotPageState extends State<SlingshotPage> {
       return nameMatch || pkgMatch;
     }).toList();
 
-    final Widget pageContent = Scaffold(
+    // Decide which content to build
+    Widget bodyContent;
+    if (_endfieldCollabEnabled) {
+      bodyContent = _buildEndfieldLayout(
+        context,
+        filteredApps,
+        modes,
+        localization,
+      );
+    } else {
+      bodyContent = _buildStandardLayout(
+        context,
+        filteredApps,
+        modes,
+        localization,
+        colorScheme,
+      );
+    }
+
+    // Wrap in stack for background
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Container(color: colorScheme.surface),
+        if (_endfieldCollabEnabled)
+          Positioned.fill(
+            child: TopoBackground(
+              color: const Color(0xFF00BFFF).withOpacity(0.1), // Tech blue
+              speed: 0.2, // Slightly faster
+            ),
+          )
+        else if (widget.backgroundImagePath != null &&
+            widget.backgroundImagePath!.isNotEmpty)
+          ImageFiltered(
+            imageFilter: ImageFilter.blur(
+              sigmaX: widget.backgroundBlur,
+              sigmaY: widget.backgroundBlur,
+            ),
+            child: Opacity(
+              opacity: widget.backgroundOpacity,
+              child: Image.file(
+                File(widget.backgroundImagePath!),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(color: Colors.transparent);
+                },
+              ),
+            ),
+          ),
+        bodyContent,
+      ],
+    );
+  }
+
+  // --- STANDARD LAYOUT ---
+  Widget _buildStandardLayout(
+    BuildContext context,
+    List<AppItem> filteredApps,
+    Map<String, String> modes,
+    AppLocalizations localization,
+    ColorScheme colorScheme,
+  ) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(localization.slingshot_title),
@@ -502,7 +567,7 @@ class _SlingshotPageState extends State<SlingshotPage> {
                   children: [
                     Card(
                       elevation: 0,
-                      color: Colors.black.withValues(alpha: 0.3),
+                      color: Colors.black.withOpacity(0.3),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -619,10 +684,10 @@ class _SlingshotPageState extends State<SlingshotPage> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.1),
+                        color: Colors.orange.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.orange.withValues(alpha: 0.3),
+                          color: Colors.orange.withOpacity(0.3),
                         ),
                       ),
                       child: Row(
@@ -742,8 +807,8 @@ class _SlingshotPageState extends State<SlingshotPage> {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? colorScheme.primary.withValues(alpha: 0.2)
-                                : Colors.white.withValues(alpha: 0.05),
+                                ? colorScheme.primary.withOpacity(0.2)
+                                : Colors.white.withOpacity(0.05),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: isSelected
@@ -822,38 +887,340 @@ class _SlingshotPageState extends State<SlingshotPage> {
         ),
       ),
     );
+  }
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Container(color: colorScheme.surface),
-        if (_endfieldCollabEnabled)
-          Positioned.fill(
-            child: TopoBackground(
-              color: colorScheme.primary.withOpacity(0.15),
-              speed: 0.15,
-            ),
-          )
-        else if (widget.backgroundImagePath != null &&
-            widget.backgroundImagePath!.isNotEmpty)
-          ImageFiltered(
-            imageFilter: ImageFilter.blur(
-              sigmaX: widget.backgroundBlur,
-              sigmaY: widget.backgroundBlur,
-            ),
-            child: Opacity(
-              opacity: widget.backgroundOpacity,
-              child: Image.file(
-                File(widget.backgroundImagePath!),
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(color: Colors.transparent);
-                },
+  // --- ENDFIELD LAYOUT ---
+  Widget _buildEndfieldLayout(
+    BuildContext context,
+    List<AppItem> filteredApps,
+    Map<String, String> modes,
+    AppLocalizations localization,
+  ) {
+    final Color bgDark = const Color(0xFF0D0D0D);
+    final Color techYellow = const Color(0xFFFFD700);
+    final Color techBlue = const Color(0xFF00BFFF);
+
+    final monoStyle = const TextStyle(
+      fontFamily: 'RobotoMono',
+      fontWeight: FontWeight.bold,
+      letterSpacing: 0.5,
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.black.withOpacity(0.8),
+      appBar: AppBar(
+        leading: BackButton(color: techBlue),
+        title: Text(
+          "PAYLOAD // SELECTOR",
+          style: monoStyle.copyWith(color: techYellow, fontSize: 18),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh, color: Colors.white54),
+            onPressed: () => _fetchInstalledApps(forceRefresh: true),
+          ),
+        ],
+      ),
+      floatingActionButton: InkWell(
+        onTap: _runSlingshot,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          decoration: BoxDecoration(
+            color: techYellow,
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: [
+              BoxShadow(color: techYellow.withOpacity(0.4), blurRadius: 10),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.rocket_launch, color: Colors.black, size: 20),
+              SizedBox(width: 8),
+              Text(
+                "INITIATE SEQUENCE",
+                style: monoStyle.copyWith(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
+            ],
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          // -- TOP CONTROL PANEL --
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border.all(color: techBlue.withOpacity(0.5)),
+              color: techBlue.withOpacity(0.05),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "// SYSTEM OVERRIDES",
+                  style: monoStyle.copyWith(color: techBlue, fontSize: 10),
+                ),
+                SizedBox(height: 8),
+
+                // -- 3 ROWS, 1 COLUMN LAYOUT FOR SWITCHES --
+                Column(
+                  children: [
+                    _buildEndfieldSwitch(
+                      localization.angle_title,
+                      _useAngle,
+                      _toggleAngle,
+                      active: _isAngleSupported,
+                    ),
+                    SizedBox(height: 8),
+                    _buildEndfieldSwitch(
+                      localization.skia_title,
+                      _useSkia,
+                      _toggleSkia,
+                    ),
+                    SizedBox(height: 8),
+                    _buildEndfieldSwitch(
+                      "P-BOOST",
+                      _enablePlayboost,
+                      _togglePlayboost,
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 12),
+                Text(
+                  "// EXECUTION MODE",
+                  style: monoStyle.copyWith(color: techBlue, fontSize: 10),
+                ),
+                SizedBox(height: 4),
+                Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white24),
+                    color: Colors.black,
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: ButtonTheme(
+                      alignedDropdown: true,
+                      child: DropdownButton<String>(
+                        value: _selectedMode,
+                        isExpanded: true,
+                        dropdownColor: bgDark,
+                        icon: Icon(Icons.arrow_drop_down, color: techYellow),
+                        style: monoStyle.copyWith(color: Colors.white),
+                        items: modes.entries.map((e) {
+                          return DropdownMenuItem(
+                            value: e.key,
+                            child: Text(e.value.toUpperCase()),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _selectedMode = val);
+                            _saveSelection();
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        pageContent,
-      ],
+
+          SizedBox(height: 10),
+
+          // -- SEARCH BAR --
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: TextField(
+              controller: _searchController,
+              style: monoStyle.copyWith(color: Colors.white),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.black54,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.zero,
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.zero,
+                  borderSide: BorderSide(color: techYellow),
+                ),
+                prefixIcon: Icon(Icons.search, color: techYellow),
+                hintText: "SEARCH_TARGET_PACKAGE...",
+                hintStyle: monoStyle.copyWith(
+                  color: Colors.white24,
+                  fontSize: 12,
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 0,
+                ),
+              ),
+              onChanged: (val) => setState(() => _searchQuery = val),
+            ),
+          ),
+
+          SizedBox(height: 10),
+
+          // -- LIST HEADER --
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            color: Colors.white10,
+            child: Text(
+              "AVAILABLE TARGETS: ${filteredApps.length}",
+              style: monoStyle.copyWith(color: Colors.white54, fontSize: 10),
+            ),
+          ),
+
+          // -- VERTICAL LIST (1xN LAYOUT) --
+          Expanded(
+            child: ListView.builder(
+              padding: EdgeInsets.only(bottom: 80, left: 16, right: 16, top: 4),
+              itemCount: filteredApps.length,
+              itemBuilder: (context, index) {
+                final app = filteredApps[index];
+                final isSelected = _selectedAppPackage == app.packageName;
+
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedAppPackage = app.packageName);
+                    _saveSelection();
+                  },
+                  child: Container(
+                    margin: EdgeInsets.only(bottom: 4),
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: isSelected ? techYellow : Colors.white12,
+                      ),
+                      color: isSelected
+                          ? techYellow.withOpacity(0.1)
+                          : Colors.transparent,
+                    ),
+                    child: Row(
+                      children: [
+                        // Icon Box
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white24),
+                          ),
+                          padding: EdgeInsets.all(2),
+                          child: _buildAppIcon(app),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                app.name.toUpperCase(),
+                                style: monoStyle.copyWith(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                app.packageName,
+                                style: monoStyle.copyWith(
+                                  color: Colors.white38,
+                                  fontSize: 10,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isSelected)
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            color: techYellow,
+                            child: Text(
+                              "LOCKED",
+                              style: monoStyle.copyWith(
+                                color: Colors.black,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEndfieldSwitch(
+    String label,
+    bool value,
+    Function(bool) onChanged, {
+    bool active = true,
+  }) {
+    final Color techYellow = const Color(0xFFFFD700);
+    final monoStyle = const TextStyle(
+      fontFamily: 'RobotoMono',
+      fontWeight: FontWeight.bold,
+    );
+
+    return InkWell(
+      onTap: active ? () => onChanged(!value) : null,
+      child: Container(
+        height: 40,
+        width: double.infinity, // Full width for vertical stack
+        decoration: BoxDecoration(
+          color: value ? techYellow : Colors.transparent,
+          border: Border.all(
+            color: active
+                ? (value ? techYellow : Colors.white24)
+                : Colors.white10,
+          ),
+        ),
+        alignment: Alignment.centerLeft, // Left aligned for list feel
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label.toUpperCase(),
+              style: monoStyle.copyWith(
+                color: value
+                    ? Colors.black
+                    : (active ? Colors.white54 : Colors.white10),
+                fontSize: 10,
+              ),
+            ),
+            Container(
+              width: 8,
+              height: 8,
+              color: value
+                  ? Colors.black
+                  : (active ? Colors.white54 : Colors.white10),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
