@@ -459,6 +459,7 @@ class AppListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -473,14 +474,14 @@ class AppListCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Applist",
+              localization.applist_title,
               style: textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              "Manage apps for performance profile.",
+              localization.applist_description,
               style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
             ),
             const SizedBox(height: 16),
@@ -496,7 +497,7 @@ class AppListCard extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.apps),
-                label: const Text("Open Applist"),
+                label: Text(localization.open_applist_button),
               ),
             ),
           ],
@@ -763,9 +764,11 @@ class _AppListPageState extends State<AppListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Applist'),
+        title: Text(localization.applist_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -781,7 +784,7 @@ class _AppListPageState extends State<AppListPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: TextField(
               decoration: InputDecoration(
-                hintText: 'Search apps...',
+                hintText: localization.search_apps_hint,
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -820,6 +823,8 @@ class _AppListPageState extends State<AppListPage> {
   }
 
   Widget _buildAppCard(AppItem app, bool isEnabled, bool isRecommended) {
+    final localization = AppLocalizations.of(context)!;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
       child: Card(
@@ -873,7 +878,9 @@ class _AppListPageState extends State<AppListPage> {
                       Row(
                         children: [
                           _buildBadge(
-                            text: isEnabled ? "ENABLED" : "DISABLED",
+                            text: isEnabled
+                                ? localization.status_enabled
+                                : localization.status_disabled,
                             color: isEnabled
                                 ? const Color(0xFF4CAF50)
                                 : const Color(0xFFE57373),
@@ -884,7 +891,7 @@ class _AppListPageState extends State<AppListPage> {
                           if (isRecommended) ...[
                             const SizedBox(width: 8),
                             _buildBadge(
-                              text: "RECOMMENDED",
+                              text: localization.status_recommended,
                               color: const Color(0xFFF06292),
                               bgColor: const Color(0xFF4A1425),
                             ),

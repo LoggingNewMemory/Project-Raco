@@ -625,4 +625,157 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get please_restart_app => 'Por favor, reinicie la aplicación';
+
+  @override
+  String get tips_title => '¿Sabías que?';
+
+  @override
+  String get tip_1 =>
+      'Desliza 3 veces a la izquierda en cualquier lugar para acceder a la terminal oculta';
+
+  @override
+  String get tip_2 =>
+      'Desliza 3 veces a la izquierda y podrás cancelar la ejecución';
+
+  @override
+  String get tip_3 =>
+      'El canal oficial de Telegram de Project Raco está en la página de Raco';
+
+  @override
+  String get tip_4 => '¡Toca la imagen de Raco! Serás saludado por Raco';
+
+  @override
+  String get tip_5 =>
+      'Project Raco no puede convertir una patata en un teléfono gaming';
+
+  @override
+  String get tip_6 => '¿Project Raco? ¡GACOR KANG!';
+
+  @override
+  String get tip_7 =>
+      'Bienvenido a la aplicación Project Raco. ¡Que tengas un buen día!';
+
+  @override
+  String error_launch_url(String url) {
+    return 'No se pudo abrir $url';
+  }
+
+  @override
+  String get root_required => 'Root Requerido';
+
+  @override
+  String get status_online => 'EN LÍNEA';
+
+  @override
+  String get status_offline => 'FUERA DE LÍNEA';
+
+  @override
+  String get status_active => 'ACTIVO';
+
+  @override
+  String get status_standby => 'EN ESPERA';
+
+  @override
+  String get status_ready => 'LISTO';
+
+  @override
+  String get no_results_found => 'No se encontraron resultados';
+
+  @override
+  String get applist_title => 'Lista de Apps';
+
+  @override
+  String get applist_description =>
+      'Administrar aplicaciones para el perfil de rendimiento.';
+
+  @override
+  String get open_applist_button => 'Abrir Lista';
+
+  @override
+  String get search_apps_hint => 'Buscar aplicaciones...';
+
+  @override
+  String get status_enabled => 'HABILITADO';
+
+  @override
+  String get status_disabled => 'DESHABILITADO';
+
+  @override
+  String get status_recommended => 'RECOMENDADO';
+
+  @override
+  String get installer_config_title => 'Configuración del Instalador';
+
+  @override
+  String get endfield_talos_protocol => 'PROTOCOLO // TALOS-II';
+
+  @override
+  String get endfield_raco_terminal => 'TERMINAL RACO';
+
+  @override
+  String get endfield_system_status => 'ESTADO_SISTEMA';
+
+  @override
+  String get endfield_module => 'MÓDULO';
+
+  @override
+  String get endfield_sys_rdy => '// SIS.LISTO';
+
+  @override
+  String get endfield_performance_protocols => '[ PROTOCOLOS DE RENDIMIENTO ]';
+
+  @override
+  String get endfield_system_log => '// SALIDA REGISTRO SISTEMA';
+
+  @override
+  String get endfield_waiting_input => '> _esperando entrada...';
+
+  @override
+  String endfield_memory_integrity(int integrity) {
+    return '> integridad_memoria: $integrity%';
+  }
+
+  @override
+  String get endfield_external_modules => '[ MÓDULOS EXTERNOS ]';
+
+  @override
+  String get endfield_slingshot_preloader => 'SLINGSHOT // PRECARGADOR';
+
+  @override
+  String get endfield_exec => '[EJEC]';
+
+  @override
+  String get endfield_utilities_tools => 'UTILIDADES // HERRAMIENTAS';
+
+  @override
+  String get endfield_open => '[ABRIR]';
+
+  @override
+  String get endfield_language_select => 'IDIOMA // SELECCIONAR';
+
+  @override
+  String get endfield_payload_selector => 'CARGA // SELECTOR';
+
+  @override
+  String get endfield_initiate_sequence => 'INICIAR SECUENCIA';
+
+  @override
+  String get endfield_system_overrides => '// ANULACIONES DE SISTEMA';
+
+  @override
+  String get endfield_p_boost => 'P-BOOST';
+
+  @override
+  String get endfield_execution_mode => '// MODO DE EJECUCIÓN';
+
+  @override
+  String get endfield_search_target => 'BUSCAR_PAQUETE_OBJETIVO...';
+
+  @override
+  String endfield_available_targets(int count) {
+    return 'OBJETIVOS DISPONIBLES: $count';
+  }
+
+  @override
+  String get endfield_locked => 'BLOQUEADO';
 }

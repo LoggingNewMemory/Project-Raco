@@ -596,4 +596,151 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get please_restart_app => 'アプリを再起動してください';
+
+  @override
+  String get tips_title => '知っていましたか？';
+
+  @override
+  String get tip_1 => '左側をどこでも3回スワイプすると、隠しターミナルにアクセスできます';
+
+  @override
+  String get tip_2 => '左側を3回スワイプすると、実行をキャンセルできます';
+
+  @override
+  String get tip_3 => 'Project Racoの公式TelegramチャンネルはRacoのページにあります';
+
+  @override
+  String get tip_4 => 'Racoの画像をタップ！Racoが挨拶してくれます';
+
+  @override
+  String get tip_5 => 'Project Racoはジャガイモ端末をゲーミングスマホにはできません';
+
+  @override
+  String get tip_6 => 'Project Raco? GACOR KANG!';
+
+  @override
+  String get tip_7 => 'Project Racoアプリへようこそ。良い一日を！';
+
+  @override
+  String error_launch_url(String url) {
+    return '$url を開けませんでした';
+  }
+
+  @override
+  String get root_required => 'ルート権限が必要';
+
+  @override
+  String get status_online => 'オンライン';
+
+  @override
+  String get status_offline => 'オフライン';
+
+  @override
+  String get status_active => 'アクティブ';
+
+  @override
+  String get status_standby => 'スタンバイ';
+
+  @override
+  String get status_ready => '準備完了';
+
+  @override
+  String get no_results_found => '結果が見つかりません';
+
+  @override
+  String get applist_title => 'アプリリスト';
+
+  @override
+  String get applist_description => 'パフォーマンスプロファイルのアプリを管理します。';
+
+  @override
+  String get open_applist_button => 'アプリリストを開く';
+
+  @override
+  String get search_apps_hint => 'アプリを検索...';
+
+  @override
+  String get status_enabled => '有効';
+
+  @override
+  String get status_disabled => '無効';
+
+  @override
+  String get status_recommended => '推奨';
+
+  @override
+  String get installer_config_title => 'インストーラー設定';
+
+  @override
+  String get endfield_talos_protocol => 'TALOS-II // プロトコル';
+
+  @override
+  String get endfield_raco_terminal => 'RACO ターミナル';
+
+  @override
+  String get endfield_system_status => 'システムステータス';
+
+  @override
+  String get endfield_module => 'モジュール';
+
+  @override
+  String get endfield_sys_rdy => '// SYS.RDY';
+
+  @override
+  String get endfield_performance_protocols => '[ パフォーマンス プロトコル ]';
+
+  @override
+  String get endfield_system_log => '// システムログ出力';
+
+  @override
+  String get endfield_waiting_input => '> _入力待機中...';
+
+  @override
+  String endfield_memory_integrity(int integrity) {
+    return '> メモリ整合性: $integrity%';
+  }
+
+  @override
+  String get endfield_external_modules => '[ 外部モジュール ]';
+
+  @override
+  String get endfield_slingshot_preloader => 'SLINGSHOT // プリローダー';
+
+  @override
+  String get endfield_exec => '[実行]';
+
+  @override
+  String get endfield_utilities_tools => 'ユーティリティ // ツール';
+
+  @override
+  String get endfield_open => '[開く]';
+
+  @override
+  String get endfield_language_select => '言語 // 選択';
+
+  @override
+  String get endfield_payload_selector => 'ペイロード // セレクター';
+
+  @override
+  String get endfield_initiate_sequence => 'シーケンス開始';
+
+  @override
+  String get endfield_system_overrides => '// システムオーバーライド';
+
+  @override
+  String get endfield_p_boost => 'P-BOOST';
+
+  @override
+  String get endfield_execution_mode => '// 実行モード';
+
+  @override
+  String get endfield_search_target => 'ターゲットパッケージ検索...';
+
+  @override
+  String endfield_available_targets(int count) {
+    return '利用可能なターゲット: $count';
+  }
+
+  @override
+  String get endfield_locked => 'ロック中';
 }

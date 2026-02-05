@@ -417,15 +417,15 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
     );
     _allCategories.add(
       UtilityCategory(
-        title: "Extra Settings",
+        title: localization.extra_settings_title,
         icon: Icons.build_circle_outlined,
         page: racoExtraPage,
       ),
     );
     _allSearchableItems.addAll([
       SearchResultItem(
-        title: "Installer Configuration",
-        subtitle: "Anya, Kobo, Zetamin, Sandevistan",
+        title: localization.installer_config_title,
+        subtitle: localization.extra_settings_description,
         icon: Icons.build_circle_outlined,
         navigationTarget: racoExtraPage,
         searchKeywords: 'anya kobo zetamin sandevistan installer config extra',
@@ -702,7 +702,7 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
     if (_filteredSearchResults.isEmpty) {
       return Center(
         child: Text(
-          'No results found',
+          AppLocalizations.of(context)!.no_results_found,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       );

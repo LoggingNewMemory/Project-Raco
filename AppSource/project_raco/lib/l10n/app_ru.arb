@@ -222,5 +222,73 @@
     "sandev_boot_title": "Загрузка Sandevistan",
     "sandev_boot_desc": "Попытка ускорить загрузку",
     "reboot_to_take_effect": "Пожалуйста, перезагрузите устройство для применения изменений",
-    "please_restart_app": "Пожалуйста, перезапустите приложение"
+    "please_restart_app": "Пожалуйста, перезапустите приложение",
+    "tips_title": "А вы знали?",
+    "tip_1": "Свайпните 3 раза слева в любом месте, чтобы открыть скрытый терминал",
+    "tip_2": "Свайпните 3 раза слева, и вы сможете отменить выполнение",
+    "tip_3": "Официальный Telegram-канал Project Raco находится на странице Raco",
+    "tip_4": "Нажмите на изображение Raco! Raco поприветствует вас",
+    "tip_5": "Project Raco не сделает из картошки игровой телефон",
+    "tip_6": "Project Raco? GACOR KANG!",
+    "tip_7": "Добро пожаловать в Project Raco. Хорошего дня!",
+    "error_launch_url": "Не удалось открыть {url}",
+    "@error_launch_url": {
+        "placeholders": {
+            "url": {
+                "type": "String"
+            }
+        }
+    },
+    "root_required": "Требуется Root",
+    "status_online": "В СЕТИ",
+    "status_offline": "ОФФЛАЙН",
+    "status_active": "АКТИВЕН",
+    "status_standby": "ОЖИДАНИЕ",
+    "status_ready": "ГОТОВ",
+    "no_results_found": "Результатов не найдено",
+    "applist_title": "Список приложений",
+    "applist_description": "Управление приложениями для профиля производительности.",
+    "open_applist_button": "Открыть список",
+    "search_apps_hint": "Поиск приложений...",
+    "status_enabled": "ВКЛЮЧЕНО",
+    "status_disabled": "ОТКЛЮЧЕНО",
+    "status_recommended": "РЕКОМЕНДУЕТСЯ",
+    "installer_config_title": "Конфигурация установщика",
+    "endfield_talos_protocol": "ПРОТОКОЛ // TALOS-II",
+    "endfield_raco_terminal": "ТЕРМИНАЛ RACO",
+    "endfield_system_status": "СТАТУС_СИСТЕМЫ",
+    "endfield_module": "МОДУЛЬ",
+    "endfield_sys_rdy": "// СИС.ГОТОВА",
+    "endfield_performance_protocols": "[ ПРОТОКОЛЫ ПРОИЗВОДИТЕЛЬНОСТИ ]",
+    "endfield_system_log": "// ВЫВОД СИСТЕМНОГО ЖУРНАЛА",
+    "endfield_waiting_input": "> _ожидание ввода...",
+    "endfield_memory_integrity": "> целостность_памяти: {integrity}%",
+    "@endfield_memory_integrity": {
+        "placeholders": {
+            "integrity": {
+                "type": "int"
+            }
+        }
+    },
+    "endfield_external_modules": "[ ВНЕШНИЕ МОДУЛИ ]",
+    "endfield_slingshot_preloader": "SLINGSHOT // ПРЕДЗАГРУЗЧИК",
+    "endfield_exec": "[ВЫП]",
+    "endfield_utilities_tools": "УТИЛИТЫ // ИНСТРУМЕНТЫ",
+    "endfield_open": "[ОТКР]",
+    "endfield_language_select": "ЯЗЫК // ВЫБОР",
+    "endfield_payload_selector": "ПОЛЕЗНАЯ НАГРУЗКА // СЕЛЕКТОР",
+    "endfield_initiate_sequence": "ЗАПУСТИТЬ ПОСЛЕДОВАТЕЛЬНОСТЬ",
+    "endfield_system_overrides": "// СИСТЕМНЫЕ ПЕРЕОПРЕДЕЛЕНИЯ",
+    "endfield_p_boost": "P-BOOST",
+    "endfield_execution_mode": "// РЕЖИМ ВЫПОЛНЕНИЯ",
+    "endfield_search_target": "ПОИСК_ЦЕЛЕВОГО_ПАКЕТА...",
+    "endfield_available_targets": "ДОСТУПНЫЕ ЦЕЛИ: {count}",
+    "@endfield_available_targets": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "endfield_locked": "ЗАБЛОКИРОВАНО"
 }

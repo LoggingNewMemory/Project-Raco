@@ -623,4 +623,156 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get please_restart_app => 'Пожалуйста, перезапустите приложение';
+
+  @override
+  String get tips_title => 'А вы знали?';
+
+  @override
+  String get tip_1 =>
+      'Свайпните 3 раза слева в любом месте, чтобы открыть скрытый терминал';
+
+  @override
+  String get tip_2 =>
+      'Свайпните 3 раза слева, и вы сможете отменить выполнение';
+
+  @override
+  String get tip_3 =>
+      'Официальный Telegram-канал Project Raco находится на странице Raco';
+
+  @override
+  String get tip_4 => 'Нажмите на изображение Raco! Raco поприветствует вас';
+
+  @override
+  String get tip_5 => 'Project Raco не сделает из картошки игровой телефон';
+
+  @override
+  String get tip_6 => 'Project Raco? GACOR KANG!';
+
+  @override
+  String get tip_7 => 'Добро пожаловать в Project Raco. Хорошего дня!';
+
+  @override
+  String error_launch_url(String url) {
+    return 'Не удалось открыть $url';
+  }
+
+  @override
+  String get root_required => 'Требуется Root';
+
+  @override
+  String get status_online => 'В СЕТИ';
+
+  @override
+  String get status_offline => 'ОФФЛАЙН';
+
+  @override
+  String get status_active => 'АКТИВЕН';
+
+  @override
+  String get status_standby => 'ОЖИДАНИЕ';
+
+  @override
+  String get status_ready => 'ГОТОВ';
+
+  @override
+  String get no_results_found => 'Результатов не найдено';
+
+  @override
+  String get applist_title => 'Список приложений';
+
+  @override
+  String get applist_description =>
+      'Управление приложениями для профиля производительности.';
+
+  @override
+  String get open_applist_button => 'Открыть список';
+
+  @override
+  String get search_apps_hint => 'Поиск приложений...';
+
+  @override
+  String get status_enabled => 'ВКЛЮЧЕНО';
+
+  @override
+  String get status_disabled => 'ОТКЛЮЧЕНО';
+
+  @override
+  String get status_recommended => 'РЕКОМЕНДУЕТСЯ';
+
+  @override
+  String get installer_config_title => 'Конфигурация установщика';
+
+  @override
+  String get endfield_talos_protocol => 'ПРОТОКОЛ // TALOS-II';
+
+  @override
+  String get endfield_raco_terminal => 'ТЕРМИНАЛ RACO';
+
+  @override
+  String get endfield_system_status => 'СТАТУС_СИСТЕМЫ';
+
+  @override
+  String get endfield_module => 'МОДУЛЬ';
+
+  @override
+  String get endfield_sys_rdy => '// СИС.ГОТОВА';
+
+  @override
+  String get endfield_performance_protocols =>
+      '[ ПРОТОКОЛЫ ПРОИЗВОДИТЕЛЬНОСТИ ]';
+
+  @override
+  String get endfield_system_log => '// ВЫВОД СИСТЕМНОГО ЖУРНАЛА';
+
+  @override
+  String get endfield_waiting_input => '> _ожидание ввода...';
+
+  @override
+  String endfield_memory_integrity(int integrity) {
+    return '> целостность_памяти: $integrity%';
+  }
+
+  @override
+  String get endfield_external_modules => '[ ВНЕШНИЕ МОДУЛИ ]';
+
+  @override
+  String get endfield_slingshot_preloader => 'SLINGSHOT // ПРЕДЗАГРУЗЧИК';
+
+  @override
+  String get endfield_exec => '[ВЫП]';
+
+  @override
+  String get endfield_utilities_tools => 'УТИЛИТЫ // ИНСТРУМЕНТЫ';
+
+  @override
+  String get endfield_open => '[ОТКР]';
+
+  @override
+  String get endfield_language_select => 'ЯЗЫК // ВЫБОР';
+
+  @override
+  String get endfield_payload_selector => 'ПОЛЕЗНАЯ НАГРУЗКА // СЕЛЕКТОР';
+
+  @override
+  String get endfield_initiate_sequence => 'ЗАПУСТИТЬ ПОСЛЕДОВАТЕЛЬНОСТЬ';
+
+  @override
+  String get endfield_system_overrides => '// СИСТЕМНЫЕ ПЕРЕОПРЕДЕЛЕНИЯ';
+
+  @override
+  String get endfield_p_boost => 'P-BOOST';
+
+  @override
+  String get endfield_execution_mode => '// РЕЖИМ ВЫПОЛНЕНИЯ';
+
+  @override
+  String get endfield_search_target => 'ПОИСК_ЦЕЛЕВОГО_ПАКЕТА...';
+
+  @override
+  String endfield_available_targets(int count) {
+    return 'ДОСТУПНЫЕ ЦЕЛИ: $count';
+  }
+
+  @override
+  String get endfield_locked => 'ЗАБЛОКИРОВАНО';
 }

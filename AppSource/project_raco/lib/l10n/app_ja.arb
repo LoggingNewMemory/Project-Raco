@@ -222,5 +222,73 @@
     "sandev_boot_title": "サンデヴィスタンブート",
     "sandev_boot_desc": "起動を高速化する試み",
     "reboot_to_take_effect": "変更を適用するには再起動してください",
-    "please_restart_app": "アプリを再起動してください"
+    "please_restart_app": "アプリを再起動してください",
+    "tips_title": "知っていましたか？",
+    "tip_1": "左側をどこでも3回スワイプすると、隠しターミナルにアクセスできます",
+    "tip_2": "左側を3回スワイプすると、実行をキャンセルできます",
+    "tip_3": "Project Racoの公式TelegramチャンネルはRacoのページにあります",
+    "tip_4": "Racoの画像をタップ！Racoが挨拶してくれます",
+    "tip_5": "Project Racoはジャガイモ端末をゲーミングスマホにはできません",
+    "tip_6": "Project Raco? GACOR KANG!",
+    "tip_7": "Project Racoアプリへようこそ。良い一日を！",
+    "error_launch_url": "{url} を開けませんでした",
+    "@error_launch_url": {
+        "placeholders": {
+            "url": {
+                "type": "String"
+            }
+        }
+    },
+    "root_required": "ルート権限が必要",
+    "status_online": "オンライン",
+    "status_offline": "オフライン",
+    "status_active": "アクティブ",
+    "status_standby": "スタンバイ",
+    "status_ready": "準備完了",
+    "no_results_found": "結果が見つかりません",
+    "applist_title": "アプリリスト",
+    "applist_description": "パフォーマンスプロファイルのアプリを管理します。",
+    "open_applist_button": "アプリリストを開く",
+    "search_apps_hint": "アプリを検索...",
+    "status_enabled": "有効",
+    "status_disabled": "無効",
+    "status_recommended": "推奨",
+    "installer_config_title": "インストーラー設定",
+    "endfield_talos_protocol": "TALOS-II // プロトコル",
+    "endfield_raco_terminal": "RACO ターミナル",
+    "endfield_system_status": "システムステータス",
+    "endfield_module": "モジュール",
+    "endfield_sys_rdy": "// SYS.RDY",
+    "endfield_performance_protocols": "[ パフォーマンス プロトコル ]",
+    "endfield_system_log": "// システムログ出力",
+    "endfield_waiting_input": "> _入力待機中...",
+    "endfield_memory_integrity": "> メモリ整合性: {integrity}%",
+    "@endfield_memory_integrity": {
+        "placeholders": {
+            "integrity": {
+                "type": "int"
+            }
+        }
+    },
+    "endfield_external_modules": "[ 外部モジュール ]",
+    "endfield_slingshot_preloader": "SLINGSHOT // プリローダー",
+    "endfield_exec": "[実行]",
+    "endfield_utilities_tools": "ユーティリティ // ツール",
+    "endfield_open": "[開く]",
+    "endfield_language_select": "言語 // 選択",
+    "endfield_payload_selector": "ペイロード // セレクター",
+    "endfield_initiate_sequence": "シーケンス開始",
+    "endfield_system_overrides": "// システムオーバーライド",
+    "endfield_p_boost": "P-BOOST",
+    "endfield_execution_mode": "// 実行モード",
+    "endfield_search_target": "ターゲットパッケージ検索...",
+    "endfield_available_targets": "利用可能なターゲット: {count}",
+    "@endfield_available_targets": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "endfield_locked": "ロック中"
 }

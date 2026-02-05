@@ -510,15 +510,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   // --- TIPS VARIABLES ---
   Timer? _tipTimer;
   int _currentTipIndex = 0;
-  final List<String> _tips = [
-    "Swipe 3 times on the left somewhere and you can access the hidden terminal",
-    "Swipe 3 times on the left and you can cancel the execution",
-    "Official Telegram Channel of Project Raco is on Raco's Page",
-    "Tap the Raco image! You will greeted by Raco",
-    "Project Raco can't make a potato phone into a gaming phone",
-    "Project Raco? GACOR KANG!",
-    "Welcome to Project Raco app. Have a nice day!",
-  ];
+  List<String> _tips = [];
 
   @override
   void initState() {
@@ -527,10 +519,33 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
     // Generate Random Terminal ID
     _generateTerminalId();
-
-    _currentTipIndex = Random().nextInt(_tips.length);
     _startTipRotation();
     _initialize();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadTips();
+  }
+
+  void _loadTips() {
+    final loc = AppLocalizations.of(context);
+    if (loc != null) {
+      _tips = [
+        loc.tip_1,
+        loc.tip_2,
+        loc.tip_3,
+        loc.tip_4,
+        loc.tip_5,
+        loc.tip_6,
+        loc.tip_7,
+      ];
+      // Ensure index is valid after language change
+      if (_currentTipIndex >= _tips.length) {
+        _currentTipIndex = 0;
+      }
+    }
   }
 
   @override
@@ -553,7 +568,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   void _startTipRotation() {
     _tipTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
-      if (mounted) {
+      if (mounted && _tips.isNotEmpty) {
         setState(() {
           _currentTipIndex = (_currentTipIndex + 1) % _tips.length;
         });
@@ -578,6 +593,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         setState(() {
           _hasRootAccess = false;
           _moduleInstalled = false;
+          // Localized string fetched later in UI, but setting state here
           _moduleVersion = 'Root Required';
           _currentMode = 'Root Required';
           _isLoading = false;
@@ -788,9 +804,11 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       mode: LaunchMode.externalApplication,
     )) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Could not launch $url')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.error_launch_url(url)),
+          ),
+        );
       }
     }
   }
@@ -966,7 +984,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                         const SizedBox(height: 16),
                         _buildBanner(localization),
                         const SizedBox(height: 10),
-                        _buildTipsSection(colorScheme),
+                        _buildTipsSection(colorScheme, localization),
                         const SizedBox(height: 10),
                         _buildStatusRow(localization),
                         const SizedBox(height: 10),
@@ -1069,14 +1087,14 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "TALOS-II // PROTOCOL",
+                                localization.endfield_talos_protocol,
                                 style: monoStyle.copyWith(
                                   color: Colors.white38,
                                   fontSize: 10,
                                 ),
                               ),
                               Text(
-                                "RACO TERMINAL",
+                                localization.endfield_raco_terminal,
                                 style: monoStyle.copyWith(
                                   color: techYellow,
                                   fontSize: 24,
@@ -1162,7 +1180,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                                     ),
                                     color: techYellow,
                                     child: Text(
-                                      "SYSTEM_STATUS: ${_moduleInstalled ? 'ONLINE' : 'OFFLINE'} // V:$_moduleVersion",
+                                      "${localization.endfield_system_status}: ${_moduleInstalled ? localization.status_online : localization.status_offline} // V:$_moduleVersion",
                                       style: monoStyle.copyWith(
                                         color: Colors.black,
                                         fontSize: 10,
@@ -1205,7 +1223,9 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                           Expanded(
                             child: _buildEndfieldStatBox(
                               "ENGINE",
-                              _isEndfieldEngineRunning ? "ACTIVE" : "STANDBY",
+                              _isEndfieldEngineRunning
+                                  ? localization.status_active
+                                  : localization.status_standby,
                               _isEndfieldEngineRunning
                                   ? techYellow
                                   : Colors.white54,
@@ -1228,7 +1248,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                             Icon(Icons.memory, size: 14, color: Colors.white54),
                             const SizedBox(width: 8),
                             Text(
-                              "MODULE: $_moduleVersion",
+                              "${localization.endfield_module}: $_moduleVersion",
                               style: monoStyle.copyWith(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -1236,7 +1256,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                             ),
                             const Spacer(),
                             Text(
-                              "// SYS.RDY",
+                              localization.endfield_sys_rdy,
                               style: monoStyle.copyWith(
                                 color: techBlue,
                                 fontSize: 12,
@@ -1250,7 +1270,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
                       // --- MODE SELECTOR (CROWDED GRID) ---
                       Text(
-                        "[ PERFORMANCE PROTOCOLS ]",
+                        localization.endfield_performance_protocols,
                         style: monoStyle.copyWith(
                           color: Colors.white54,
                           fontSize: 12,
@@ -1269,6 +1289,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                             Icons.battery_saver,
                             techBlue,
                             monoStyle,
+                            localization,
                           ),
                           _buildEndfieldModeButton(
                             localization.balanced,
@@ -1277,6 +1298,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                             Icons.balance,
                             techBlue,
                             monoStyle,
+                            localization,
                           ),
                           _buildEndfieldModeButton(
                             localization.performance,
@@ -1285,6 +1307,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                             Icons.speed,
                             techYellow,
                             monoStyle,
+                            localization,
                           ),
                           _buildEndfieldModeButton(
                             localization.gaming_pro,
@@ -1293,6 +1316,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                             Icons.gamepad,
                             Colors.redAccent,
                             monoStyle,
+                            localization,
                           ),
                           _buildEndfieldModeButton(
                             localization.cooldown,
@@ -1301,6 +1325,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                             Icons.ac_unit,
                             Colors.cyanAccent,
                             monoStyle,
+                            localization,
                           ),
                           _buildEndfieldModeButton(
                             localization.clear,
@@ -1309,6 +1334,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                             Icons.delete_outline,
                             Colors.white,
                             monoStyle,
+                            localization,
                           ),
                         ],
                       ),
@@ -1329,7 +1355,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "// SYSTEM LOG OUTPUT",
+                              localization.endfield_system_log,
                               style: monoStyle.copyWith(
                                 color: techYellow,
                                 fontSize: 10,
@@ -1343,7 +1369,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                                 opacity: 0.7,
                                 child: TypewriterText(
                                   text:
-                                      "${_tips[_currentTipIndex]}\n> _waiting for input...\n> memory_integrity: $integrity%",
+                                      "${_tips.isNotEmpty ? _tips[_currentTipIndex] : '...'}\n${localization.endfield_waiting_input}\n${localization.endfield_memory_integrity(integrity)}",
                                   style: monoStyle.copyWith(
                                     color: Colors.white,
                                     fontSize: 11,
@@ -1361,7 +1387,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
                       // --- NAVIGATION MODULES ---
                       Text(
-                        "[ EXTERNAL MODULES ]",
+                        localization.endfield_external_modules,
                         style: monoStyle.copyWith(
                           color: Colors.white54,
                           fontSize: 12,
@@ -1406,7 +1432,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  "SLINGSHOT // PRELOADER",
+                                  localization.endfield_slingshot_preloader,
                                   style: monoStyle.copyWith(
                                     color: Colors.white,
                                     fontSize: 16,
@@ -1414,7 +1440,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                                 ),
                               ),
                               Text(
-                                "[EXEC]",
+                                localization.endfield_exec,
                                 style: monoStyle.copyWith(
                                   color: techBlue,
                                   fontSize: 12,
@@ -1442,7 +1468,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  "UTILITIES // TOOLS",
+                                  localization.endfield_utilities_tools,
                                   style: monoStyle.copyWith(
                                     color: Colors.white,
                                     fontSize: 16,
@@ -1450,7 +1476,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                                 ),
                               ),
                               Text(
-                                "[OPEN]",
+                                localization.endfield_open,
                                 style: monoStyle.copyWith(
                                   color: Colors.white54,
                                   fontSize: 12,
@@ -1478,7 +1504,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  "LANGUAGE // SELECT",
+                                  localization.endfield_language_select,
                                   style: monoStyle.copyWith(
                                     color: Colors.white,
                                     fontSize: 16,
@@ -1568,6 +1594,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     IconData icon,
     Color color,
     TextStyle baseStyle,
+    AppLocalizations localization,
   ) {
     final bool isSelected = _currentMode == modeKey;
     final bool isExecuting = _executingScript == scriptArg;
@@ -1617,7 +1644,9 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
             ),
             const SizedBox(height: 4),
             Text(
-              isSelected ? "STATUS: ACTIVE" : "STATUS: READY",
+              isSelected
+                  ? "${localization.mode_status_label} ${localization.status_active}"
+                  : "${localization.mode_status_label} ${localization.status_ready}",
               style: baseStyle.copyWith(
                 fontSize: 8,
                 color: isSelected ? color : Colors.white24,
@@ -1634,7 +1663,10 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   // ==========================================
 
   // Standard helper widgets (kept for standard layout)
-  Widget _buildTipsSection(ColorScheme colorScheme) {
+  Widget _buildTipsSection(
+    ColorScheme colorScheme,
+    AppLocalizations localization,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1658,7 +1690,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
               ),
               const SizedBox(width: 8),
               Text(
-                "Did You Know?",
+                localization.tips_title,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.primary,
@@ -1673,7 +1705,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
             child: Align(
               alignment: Alignment.topLeft,
               child: TypewriterText(
-                text: _tips[_currentTipIndex],
+                text: _tips.isNotEmpty ? _tips[_currentTipIndex] : '',
                 style: TextStyle(
                   color: colorScheme.onSurfaceVariant,
                   fontSize: 13,

@@ -222,5 +222,73 @@
     "sandev_boot_title": "Boot Sandevistan",
     "sandev_boot_desc": "Percobaan untuk Mempercepat Boot",
     "reboot_to_take_effect": "Harap Reboot untuk menerapkan efek",
-    "please_restart_app": "Harap Restart Aplikasi"
+    "please_restart_app": "Harap Restart Aplikasi",
+    "tips_title": "Tahukah Kamu?",
+    "tip_1": "Geser 3 kali di kiri di mana saja dan kamu bisa mengakses terminal tersembunyi",
+    "tip_2": "Geser 3 kali di kiri dan kamu bisa membatalkan eksekusi",
+    "tip_3": "Saluran Telegram Resmi Project Raco ada di Halaman Raco",
+    "tip_4": "Ketuk gambar Raco! Kamu akan disapa oleh Raco",
+    "tip_5": "Project Raco tidak bisa mengubah hp kentang jadi hp gaming",
+    "tip_6": "Project Raco? GACOR KANG!",
+    "tip_7": "Selamat datang di aplikasi Project Raco. Semoga harimu menyenangkan!",
+    "error_launch_url": "Tidak dapat membuka {url}",
+    "@error_launch_url": {
+        "placeholders": {
+            "url": {
+                "type": "String"
+            }
+        }
+    },
+    "root_required": "Root Diperlukan",
+    "status_online": "ONLINE",
+    "status_offline": "OFFLINE",
+    "status_active": "AKTIF",
+    "status_standby": "STANDBY",
+    "status_ready": "SIAP",
+    "no_results_found": "Hasil tidak ditemukan",
+    "applist_title": "Daftar Aplikasi",
+    "applist_description": "Kelola aplikasi untuk profil performa.",
+    "open_applist_button": "Buka Daftar App",
+    "search_apps_hint": "Cari aplikasi...",
+    "status_enabled": "DİAKTIFKAN",
+    "status_disabled": "DINONAKTIFKAN",
+    "status_recommended": "DIREKOMENDASIKAN",
+    "installer_config_title": "Konfigurasi Installer",
+    "endfield_talos_protocol": "PROTOKOL // TALOS-II",
+    "endfield_raco_terminal": "TERMINAL RACO",
+    "endfield_system_status": "STATUS_SISTEM",
+    "endfield_module": "MODUL",
+    "endfield_sys_rdy": "// SIS.SIAP",
+    "endfield_performance_protocols": "[ PROTOKOL PERFORMA ]",
+    "endfield_system_log": "// OUTPUT LOG SISTEM",
+    "endfield_waiting_input": "> _menunggu input...",
+    "endfield_memory_integrity": "> integritas_memori: {integrity}%",
+    "@endfield_memory_integrity": {
+        "placeholders": {
+            "integrity": {
+                "type": "int"
+            }
+        }
+    },
+    "endfield_external_modules": "[ MODUL EKSTERNAL ]",
+    "endfield_slingshot_preloader": "SLINGSHOT // PRELOADER",
+    "endfield_exec": "[EKSEK]",
+    "endfield_utilities_tools": "UTILITAS // ALAT",
+    "endfield_open": "[BUKA]",
+    "endfield_language_select": "BAHASA // PILIH",
+    "endfield_payload_selector": "PAYLOAD // PEMILIH",
+    "endfield_initiate_sequence": "MULAI URUTAN",
+    "endfield_system_overrides": "// PENGAMBILALIHAN SISTEM",
+    "endfield_p_boost": "P-BOOST",
+    "endfield_execution_mode": "// MODE EKSEKUSI",
+    "endfield_search_target": "CARI_TARGET_PAKET...",
+    "endfield_available_targets": "TARGET TERSEDIA: {count}",
+    "@endfield_available_targets": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "endfield_locked": "TERKUNCI"
 }

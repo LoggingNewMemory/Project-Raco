@@ -236,5 +236,73 @@
     "sandev_boot_title": "Sandevistan Boot",
     "sandev_boot_desc": "An Attempt to Make Boot Faster",
     "reboot_to_take_effect": "Please Reboot to take effects",
-    "please_restart_app": "Please Restart The App"
+    "please_restart_app": "Please Restart The App",
+    "tips_title": "Did You Know?",
+    "tip_1": "Swipe 3 times on the left somewhere and you can access the hidden terminal",
+    "tip_2": "Swipe 3 times on the left and you can cancel the execution",
+    "tip_3": "Official Telegram Channel of Project Raco is on Raco's Page",
+    "tip_4": "Tap the Raco image! You will greeted by Raco",
+    "tip_5": "Project Raco can't make a potato phone into a gaming phone",
+    "tip_6": "Project Raco? GACOR KANG!",
+    "tip_7": "Welcome to Project Raco app. Have a nice day!",
+    "error_launch_url": "Could not launch {url}",
+    "@error_launch_url": {
+        "placeholders": {
+            "url": {
+                "type": "String"
+            }
+        }
+    },
+    "root_required": "Root Required",
+    "status_online": "ONLINE",
+    "status_offline": "OFFLINE",
+    "status_active": "ACTIVE",
+    "status_standby": "STANDBY",
+    "status_ready": "READY",
+    "no_results_found": "No results found",
+    "applist_title": "Applist",
+    "applist_description": "Manage apps for performance profile.",
+    "open_applist_button": "Open Applist",
+    "search_apps_hint": "Search apps...",
+    "status_enabled": "ENABLED",
+    "status_disabled": "DISABLED",
+    "status_recommended": "RECOMMENDED",
+    "installer_config_title": "Installer Configuration",
+    "endfield_talos_protocol": "TALOS-II // PROTOCOL",
+    "endfield_raco_terminal": "RACO TERMINAL",
+    "endfield_system_status": "SYSTEM_STATUS",
+    "endfield_module": "MODULE",
+    "endfield_sys_rdy": "// SYS.RDY",
+    "endfield_performance_protocols": "[ PERFORMANCE PROTOCOLS ]",
+    "endfield_system_log": "// SYSTEM LOG OUTPUT",
+    "endfield_waiting_input": "> _waiting for input...",
+    "endfield_memory_integrity": "> memory_integrity: {integrity}%",
+    "@endfield_memory_integrity": {
+        "placeholders": {
+            "integrity": {
+                "type": "int"
+            }
+        }
+    },
+    "endfield_external_modules": "[ EXTERNAL MODULES ]",
+    "endfield_slingshot_preloader": "SLINGSHOT // PRELOADER",
+    "endfield_exec": "[EXEC]",
+    "endfield_utilities_tools": "UTILITIES // TOOLS",
+    "endfield_open": "[OPEN]",
+    "endfield_language_select": "LANGUAGE // SELECT",
+    "endfield_payload_selector": "PAYLOAD // SELECTOR",
+    "endfield_initiate_sequence": "INITIATE SEQUENCE",
+    "endfield_system_overrides": "// SYSTEM OVERRIDES",
+    "endfield_p_boost": "P-BOOST",
+    "endfield_execution_mode": "// EXECUTION MODE",
+    "endfield_search_target": "SEARCH_TARGET_PACKAGE...",
+    "endfield_available_targets": "AVAILABLE TARGETS: {count}",
+    "@endfield_available_targets": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "endfield_locked": "LOCKED"
 }

@@ -222,5 +222,73 @@
     "sandev_boot_title": "Arranque Sandevistan",
     "sandev_boot_desc": "Un intento de hacer el arranque más rápido",
     "reboot_to_take_effect": "Por favor reinicie para aplicar los cambios",
-    "please_restart_app": "Por favor, reinicie la aplicación"
+    "please_restart_app": "Por favor, reinicie la aplicación",
+    "tips_title": "¿Sabías que?",
+    "tip_1": "Desliza 3 veces a la izquierda en cualquier lugar para acceder a la terminal oculta",
+    "tip_2": "Desliza 3 veces a la izquierda y podrás cancelar la ejecución",
+    "tip_3": "El canal oficial de Telegram de Project Raco está en la página de Raco",
+    "tip_4": "¡Toca la imagen de Raco! Serás saludado por Raco",
+    "tip_5": "Project Raco no puede convertir una patata en un teléfono gaming",
+    "tip_6": "¿Project Raco? ¡GACOR KANG!",
+    "tip_7": "Bienvenido a la aplicación Project Raco. ¡Que tengas un buen día!",
+    "error_launch_url": "No se pudo abrir {url}",
+    "@error_launch_url": {
+        "placeholders": {
+            "url": {
+                "type": "String"
+            }
+        }
+    },
+    "root_required": "Root Requerido",
+    "status_online": "EN LÍNEA",
+    "status_offline": "FUERA DE LÍNEA",
+    "status_active": "ACTIVO",
+    "status_standby": "EN ESPERA",
+    "status_ready": "LISTO",
+    "no_results_found": "No se encontraron resultados",
+    "applist_title": "Lista de Apps",
+    "applist_description": "Administrar aplicaciones para el perfil de rendimiento.",
+    "open_applist_button": "Abrir Lista",
+    "search_apps_hint": "Buscar aplicaciones...",
+    "status_enabled": "HABILITADO",
+    "status_disabled": "DESHABILITADO",
+    "status_recommended": "RECOMENDADO",
+    "installer_config_title": "Configuración del Instalador",
+    "endfield_talos_protocol": "PROTOCOLO // TALOS-II",
+    "endfield_raco_terminal": "TERMINAL RACO",
+    "endfield_system_status": "ESTADO_SISTEMA",
+    "endfield_module": "MÓDULO",
+    "endfield_sys_rdy": "// SIS.LISTO",
+    "endfield_performance_protocols": "[ PROTOCOLOS DE RENDIMIENTO ]",
+    "endfield_system_log": "// SALIDA REGISTRO SISTEMA",
+    "endfield_waiting_input": "> _esperando entrada...",
+    "endfield_memory_integrity": "> integridad_memoria: {integrity}%",
+    "@endfield_memory_integrity": {
+        "placeholders": {
+            "integrity": {
+                "type": "int"
+            }
+        }
+    },
+    "endfield_external_modules": "[ MÓDULOS EXTERNOS ]",
+    "endfield_slingshot_preloader": "SLINGSHOT // PRECARGADOR",
+    "endfield_exec": "[EJEC]",
+    "endfield_utilities_tools": "UTILIDADES // HERRAMIENTAS",
+    "endfield_open": "[ABRIR]",
+    "endfield_language_select": "IDIOMA // SELECCIONAR",
+    "endfield_payload_selector": "CARGA // SELECTOR",
+    "endfield_initiate_sequence": "INICIAR SECUENCIA",
+    "endfield_system_overrides": "// ANULACIONES DE SISTEMA",
+    "endfield_p_boost": "P-BOOST",
+    "endfield_execution_mode": "// MODO DE EJECUCIÓN",
+    "endfield_search_target": "BUSCAR_PAQUETE_OBJETIVO...",
+    "endfield_available_targets": "OBJETIVOS DISPONIBLES: {count}",
+    "@endfield_available_targets": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "endfield_locked": "BLOQUEADO"
 }

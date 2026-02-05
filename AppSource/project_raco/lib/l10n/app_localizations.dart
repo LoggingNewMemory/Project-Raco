@@ -1231,6 +1231,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please Restart The App'**
   String get please_restart_app;
+
+  /// No description provided for @tips_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Did You Know?'**
+  String get tips_title;
+
+  /// No description provided for @tip_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe 3 times on the left somewhere and you can access the hidden terminal'**
+  String get tip_1;
+
+  /// No description provided for @tip_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe 3 times on the left and you can cancel the execution'**
+  String get tip_2;
+
+  /// No description provided for @tip_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Official Telegram Channel of Project Raco is on Raco\'s Page'**
+  String get tip_3;
+
+  /// No description provided for @tip_4.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the Raco image! You will greeted by Raco'**
+  String get tip_4;
+
+  /// No description provided for @tip_5.
+  ///
+  /// In en, this message translates to:
+  /// **'Project Raco can\'t make a potato phone into a gaming phone'**
+  String get tip_5;
+
+  /// No description provided for @tip_6.
+  ///
+  /// In en, this message translates to:
+  /// **'Project Raco? GACOR KANG!'**
+  String get tip_6;
+
+  /// No description provided for @tip_7.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Project Raco app. Have a nice day!'**
+  String get tip_7;
+
+  /// No description provided for @error_launch_url.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not launch {url}'**
+  String error_launch_url(String url);
+
+  /// No description provided for @root_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Root Required'**
+  String get root_required;
+
+  /// No description provided for @status_online.
+  ///
+  /// In en, this message translates to:
+  /// **'ONLINE'**
+  String get status_online;
+
+  /// No description provided for @status_offline.
+  ///
+  /// In en, this message translates to:
+  /// **'OFFLINE'**
+  String get status_offline;
+
+  /// No description provided for @status_active.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get status_active;
+
+  /// No description provided for @status_standby.
+  ///
+  /// In en, this message translates to:
+  /// **'STANDBY'**
+  String get status_standby;
+
+  /// No description provided for @status_ready.
+  ///
+  /// In en, this message translates to:
+  /// **'READY'**
+  String get status_ready;
+
+  /// No description provided for @no_results_found.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get no_results_found;
+
+  /// No description provided for @applist_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Applist'**
+  String get applist_title;
+
+  /// No description provided for @applist_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage apps for performance profile.'**
+  String get applist_description;
+
+  /// No description provided for @open_applist_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Applist'**
+  String get open_applist_button;
+
+  /// No description provided for @search_apps_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search apps...'**
+  String get search_apps_hint;
+
+  /// No description provided for @status_enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'ENABLED'**
+  String get status_enabled;
+
+  /// No description provided for @status_disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'DISABLED'**
+  String get status_disabled;
+
+  /// No description provided for @status_recommended.
+  ///
+  /// In en, this message translates to:
+  /// **'RECOMMENDED'**
+  String get status_recommended;
+
+  /// No description provided for @installer_config_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Installer Configuration'**
+  String get installer_config_title;
+
+  /// No description provided for @endfield_talos_protocol.
+  ///
+  /// In en, this message translates to:
+  /// **'TALOS-II // PROTOCOL'**
+  String get endfield_talos_protocol;
+
+  /// No description provided for @endfield_raco_terminal.
+  ///
+  /// In en, this message translates to:
+  /// **'RACO TERMINAL'**
+  String get endfield_raco_terminal;
+
+  /// No description provided for @endfield_system_status.
+  ///
+  /// In en, this message translates to:
+  /// **'SYSTEM_STATUS'**
+  String get endfield_system_status;
+
+  /// No description provided for @endfield_module.
+  ///
+  /// In en, this message translates to:
+  /// **'MODULE'**
+  String get endfield_module;
+
+  /// No description provided for @endfield_sys_rdy.
+  ///
+  /// In en, this message translates to:
+  /// **'// SYS.RDY'**
+  String get endfield_sys_rdy;
+
+  /// No description provided for @endfield_performance_protocols.
+  ///
+  /// In en, this message translates to:
+  /// **'[ PERFORMANCE PROTOCOLS ]'**
+  String get endfield_performance_protocols;
+
+  /// No description provided for @endfield_system_log.
+  ///
+  /// In en, this message translates to:
+  /// **'// SYSTEM LOG OUTPUT'**
+  String get endfield_system_log;
+
+  /// No description provided for @endfield_waiting_input.
+  ///
+  /// In en, this message translates to:
+  /// **'> _waiting for input...'**
+  String get endfield_waiting_input;
+
+  /// No description provided for @endfield_memory_integrity.
+  ///
+  /// In en, this message translates to:
+  /// **'> memory_integrity: {integrity}%'**
+  String endfield_memory_integrity(int integrity);
+
+  /// No description provided for @endfield_external_modules.
+  ///
+  /// In en, this message translates to:
+  /// **'[ EXTERNAL MODULES ]'**
+  String get endfield_external_modules;
+
+  /// No description provided for @endfield_slingshot_preloader.
+  ///
+  /// In en, this message translates to:
+  /// **'SLINGSHOT // PRELOADER'**
+  String get endfield_slingshot_preloader;
+
+  /// No description provided for @endfield_exec.
+  ///
+  /// In en, this message translates to:
+  /// **'[EXEC]'**
+  String get endfield_exec;
+
+  /// No description provided for @endfield_utilities_tools.
+  ///
+  /// In en, this message translates to:
+  /// **'UTILITIES // TOOLS'**
+  String get endfield_utilities_tools;
+
+  /// No description provided for @endfield_open.
+  ///
+  /// In en, this message translates to:
+  /// **'[OPEN]'**
+  String get endfield_open;
+
+  /// No description provided for @endfield_language_select.
+  ///
+  /// In en, this message translates to:
+  /// **'LANGUAGE // SELECT'**
+  String get endfield_language_select;
+
+  /// No description provided for @endfield_payload_selector.
+  ///
+  /// In en, this message translates to:
+  /// **'PAYLOAD // SELECTOR'**
+  String get endfield_payload_selector;
+
+  /// No description provided for @endfield_initiate_sequence.
+  ///
+  /// In en, this message translates to:
+  /// **'INITIATE SEQUENCE'**
+  String get endfield_initiate_sequence;
+
+  /// No description provided for @endfield_system_overrides.
+  ///
+  /// In en, this message translates to:
+  /// **'// SYSTEM OVERRIDES'**
+  String get endfield_system_overrides;
+
+  /// No description provided for @endfield_p_boost.
+  ///
+  /// In en, this message translates to:
+  /// **'P-BOOST'**
+  String get endfield_p_boost;
+
+  /// No description provided for @endfield_execution_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'// EXECUTION MODE'**
+  String get endfield_execution_mode;
+
+  /// No description provided for @endfield_search_target.
+  ///
+  /// In en, this message translates to:
+  /// **'SEARCH_TARGET_PACKAGE...'**
+  String get endfield_search_target;
+
+  /// No description provided for @endfield_available_targets.
+  ///
+  /// In en, this message translates to:
+  /// **'AVAILABLE TARGETS: {count}'**
+  String endfield_available_targets(int count);
+
+  /// No description provided for @endfield_locked.
+  ///
+  /// In en, this message translates to:
+  /// **'LOCKED'**
+  String get endfield_locked;
 }
 
 class _AppLocalizationsDelegate

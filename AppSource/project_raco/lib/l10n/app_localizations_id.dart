@@ -618,4 +618,154 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get please_restart_app => 'Harap Restart Aplikasi';
+
+  @override
+  String get tips_title => 'Tahukah Kamu?';
+
+  @override
+  String get tip_1 =>
+      'Geser 3 kali di kiri di mana saja dan kamu bisa mengakses terminal tersembunyi';
+
+  @override
+  String get tip_2 => 'Geser 3 kali di kiri dan kamu bisa membatalkan eksekusi';
+
+  @override
+  String get tip_3 => 'Saluran Telegram Resmi Project Raco ada di Halaman Raco';
+
+  @override
+  String get tip_4 => 'Ketuk gambar Raco! Kamu akan disapa oleh Raco';
+
+  @override
+  String get tip_5 =>
+      'Project Raco tidak bisa mengubah hp kentang jadi hp gaming';
+
+  @override
+  String get tip_6 => 'Project Raco? GACOR KANG!';
+
+  @override
+  String get tip_7 =>
+      'Selamat datang di aplikasi Project Raco. Semoga harimu menyenangkan!';
+
+  @override
+  String error_launch_url(String url) {
+    return 'Tidak dapat membuka $url';
+  }
+
+  @override
+  String get root_required => 'Root Diperlukan';
+
+  @override
+  String get status_online => 'ONLINE';
+
+  @override
+  String get status_offline => 'OFFLINE';
+
+  @override
+  String get status_active => 'AKTIF';
+
+  @override
+  String get status_standby => 'STANDBY';
+
+  @override
+  String get status_ready => 'SIAP';
+
+  @override
+  String get no_results_found => 'Hasil tidak ditemukan';
+
+  @override
+  String get applist_title => 'Daftar Aplikasi';
+
+  @override
+  String get applist_description => 'Kelola aplikasi untuk profil performa.';
+
+  @override
+  String get open_applist_button => 'Buka Daftar App';
+
+  @override
+  String get search_apps_hint => 'Cari aplikasi...';
+
+  @override
+  String get status_enabled => 'DİAKTIFKAN';
+
+  @override
+  String get status_disabled => 'DINONAKTIFKAN';
+
+  @override
+  String get status_recommended => 'DIREKOMENDASIKAN';
+
+  @override
+  String get installer_config_title => 'Konfigurasi Installer';
+
+  @override
+  String get endfield_talos_protocol => 'PROTOKOL // TALOS-II';
+
+  @override
+  String get endfield_raco_terminal => 'TERMINAL RACO';
+
+  @override
+  String get endfield_system_status => 'STATUS_SISTEM';
+
+  @override
+  String get endfield_module => 'MODUL';
+
+  @override
+  String get endfield_sys_rdy => '// SIS.SIAP';
+
+  @override
+  String get endfield_performance_protocols => '[ PROTOKOL PERFORMA ]';
+
+  @override
+  String get endfield_system_log => '// OUTPUT LOG SISTEM';
+
+  @override
+  String get endfield_waiting_input => '> _menunggu input...';
+
+  @override
+  String endfield_memory_integrity(int integrity) {
+    return '> integritas_memori: $integrity%';
+  }
+
+  @override
+  String get endfield_external_modules => '[ MODUL EKSTERNAL ]';
+
+  @override
+  String get endfield_slingshot_preloader => 'SLINGSHOT // PRELOADER';
+
+  @override
+  String get endfield_exec => '[EKSEK]';
+
+  @override
+  String get endfield_utilities_tools => 'UTILITAS // ALAT';
+
+  @override
+  String get endfield_open => '[BUKA]';
+
+  @override
+  String get endfield_language_select => 'BAHASA // PILIH';
+
+  @override
+  String get endfield_payload_selector => 'PAYLOAD // PEMILIH';
+
+  @override
+  String get endfield_initiate_sequence => 'MULAI URUTAN';
+
+  @override
+  String get endfield_system_overrides => '// PENGAMBILALIHAN SISTEM';
+
+  @override
+  String get endfield_p_boost => 'P-BOOST';
+
+  @override
+  String get endfield_execution_mode => '// MODE EKSEKUSI';
+
+  @override
+  String get endfield_search_target => 'CARI_TARGET_PAKET...';
+
+  @override
+  String endfield_available_targets(int count) {
+    return 'TARGET TERSEDIA: $count';
+  }
+
+  @override
+  String get endfield_locked => 'TERKUNCI';
 }
