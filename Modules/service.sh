@@ -441,8 +441,6 @@ fi
 # Revert CPU governor to default after configured duration, only if INCLUDE_SANDEV=1
 if [ "$INCLUDE_SANDEV" = "1" ]; then
     SANDEV_DUR=$(grep '^SANDEV_DUR=' "$CONFIG_FILE" | cut -d'=' -f2)
-    # Default duration if not set
-    if [ -z "$SANDEV_DUR" ]; then SANDEV_DUR=60; fi
     sleep "$SANDEV_DUR"
     
     DEFAULT_CPU_GOV=$(grep '^GOV=' "$CONFIG_FILE" | cut -d'=' -f2)
