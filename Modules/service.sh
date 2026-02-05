@@ -59,11 +59,6 @@ if [ -n "$mali1_dir" ]; then
     tweak "$mali1_dir/js_ctx_scheduling_mode" "1"
 fi
 
-tweak 0 /proc/sys/kernel/panic
-tweak 0 /proc/sys/kernel/panic_on_oops
-tweak 0 /proc/sys/kernel/panic_on_warn
-tweak 0 /proc/sys/kernel/softlockup_panic
-
 ##############################
 # KamiGO (Open Source with Permission from kaminarich)
 # Version: 1.1
