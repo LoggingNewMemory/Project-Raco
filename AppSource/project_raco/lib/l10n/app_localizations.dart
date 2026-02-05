@@ -1225,6 +1225,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please Reboot to take effects'**
   String get reboot_to_take_effect;
+
+  /// No description provided for @please_restart_app.
+  ///
+  /// In en, this message translates to:
+  /// **'Please Restart The App'**
+  String get please_restart_app;
 }
 
 class _AppLocalizationsDelegate

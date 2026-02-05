@@ -593,4 +593,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get reboot_to_take_effect => '変更を適用するには再起動してください';
+
+  @override
+  String get please_restart_app => 'アプリを再起動してください';
 }

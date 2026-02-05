@@ -10,7 +10,7 @@ import 'package:material_color_utilities/material_color_utilities.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../main.dart'; // Import to access the global themeNotifier
+import '../main.dart';
 import '/l10n/app_localizations.dart';
 
 class AppearancePage extends StatefulWidget {
@@ -62,6 +62,11 @@ class _AppearancePageState extends State<AppearancePage> {
       setState(() {
         endfieldCollabEnabled = value;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.please_restart_app),
+        ),
+      );
     }
   }
 
@@ -585,7 +590,7 @@ class EndfieldSettingsCard extends StatelessWidget {
           style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
-          "Play Endfield theme when app starts",
+          "Switch to Endfield Theme",
           style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
         ),
         value: value,

@@ -221,5 +221,6 @@
     "zetamin_desc": "Tweak Layar All in One",
     "sandev_boot_title": "Boot Sandevistan",
     "sandev_boot_desc": "Percobaan untuk Mempercepat Boot",
-    "reboot_to_take_effect": "Harap Reboot untuk menerapkan efek"
+    "reboot_to_take_effect": "Harap Reboot untuk menerapkan efek",
+    "please_restart_app": "Harap Restart Aplikasi"
 }

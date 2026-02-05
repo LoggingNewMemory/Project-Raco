@@ -615,4 +615,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reboot_to_take_effect => 'Please Reboot to take effects';
+
+  @override
+  String get please_restart_app => 'Please Restart The App';
 }

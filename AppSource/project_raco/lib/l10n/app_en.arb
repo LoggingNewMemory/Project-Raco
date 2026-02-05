@@ -235,5 +235,6 @@
     "zetamin_desc": "All in One Display Tweaks",
     "sandev_boot_title": "Sandevistan Boot",
     "sandev_boot_desc": "An Attempt to Make Boot Faster",
-    "reboot_to_take_effect": "Please Reboot to take effects"
+    "reboot_to_take_effect": "Please Reboot to take effects",
+    "please_restart_app": "Please Restart The App"
 }

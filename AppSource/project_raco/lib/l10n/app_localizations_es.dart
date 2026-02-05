@@ -622,4 +622,7 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get reboot_to_take_effect =>
       'Por favor reinicie para aplicar los cambios';
+
+  @override
+  String get please_restart_app => 'Por favor, reinicie la aplicación';
 }

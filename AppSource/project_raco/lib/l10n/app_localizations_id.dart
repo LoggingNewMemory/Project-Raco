@@ -615,4 +615,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get reboot_to_take_effect => 'Harap Reboot untuk menerapkan efek';
+
+  @override
+  String get please_restart_app => 'Harap Restart Aplikasi';
 }

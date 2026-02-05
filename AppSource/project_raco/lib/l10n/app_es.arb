@@ -221,5 +221,6 @@
     "zetamin_desc": "Ajustes de pantalla Todo en Uno",
     "sandev_boot_title": "Arranque Sandevistan",
     "sandev_boot_desc": "Un intento de hacer el arranque más rápido",
-    "reboot_to_take_effect": "Por favor reinicie para aplicar los cambios"
+    "reboot_to_take_effect": "Por favor reinicie para aplicar los cambios",
+    "please_restart_app": "Por favor, reinicie la aplicación"
 }
