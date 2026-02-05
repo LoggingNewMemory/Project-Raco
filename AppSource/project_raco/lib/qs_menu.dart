@@ -204,33 +204,21 @@ class _QSMenuPageState extends State<QSMenuPage> {
           crossAxisSpacing: 12,
           childAspectRatio: 1.3,
           children: [
-            _buildBtn(
-              localization.power_save,
-              Icons.battery_saver,
-              "3",
-              Colors.green,
-            ),
-            _buildBtn(localization.balanced, Icons.balance, "2", Colors.blue),
-            _buildBtn(
-              localization.performance,
-              Icons.speed,
-              "1",
-              Colors.orange,
-            ),
+            _buildBtn(Icons.battery_saver, "3", Colors.green),
+            _buildBtn(Icons.balance, "2", Colors.blue),
+            _buildBtn(Icons.speed, "1", Colors.orange),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildBtn(String label, IconData icon, String scriptArg, Color color) {
+  Widget _buildBtn(IconData icon, String scriptArg, Color color) {
     final bool isLoading = _loadingArg == scriptArg;
     // Considered success if just clicked OR if it matches the system state
     final bool isActive = _activeMode == scriptArg;
     final bool isSuccess = _successArg == scriptArg || isActive;
     final bool isBusy = _loadingArg != null;
-
-    final onSurface = Theme.of(context).colorScheme.onSurface;
 
     return Material(
       color: Colors.transparent,
@@ -250,52 +238,36 @@ class _QSMenuPageState extends State<QSMenuPage> {
               width: (isSuccess || isLoading) ? 2 : 1,
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                height: 32,
-                width: 32,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return ScaleTransition(scale: animation, child: child);
-                      },
-                  child: isLoading
-                      ? CircularProgressIndicator(
-                          key: const ValueKey("spinner"),
-                          color: color,
-                          strokeWidth: 3,
-                        )
-                      : isSuccess
-                      ? Icon(
-                          Icons.check_circle_rounded,
-                          key: const ValueKey("check"),
-                          color: color,
-                          size: 32,
-                        )
-                      : Icon(
-                          icon,
-                          key: const ValueKey("icon"),
-                          color: color,
-                          size: 32,
-                        ),
-                ),
+          child: Center(
+            child: SizedBox(
+              height: 32,
+              width: 32,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return ScaleTransition(scale: animation, child: child);
+                },
+                child: isLoading
+                    ? CircularProgressIndicator(
+                        key: const ValueKey("spinner"),
+                        color: color,
+                        strokeWidth: 3,
+                      )
+                    : isSuccess
+                    ? Icon(
+                        Icons.check_circle_rounded,
+                        key: const ValueKey("check"),
+                        color: color,
+                        size: 32,
+                      )
+                    : Icon(
+                        icon,
+                        key: const ValueKey("icon"),
+                        color: color,
+                        size: 32,
+                      ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: (isSuccess || isLoading)
-                      ? FontWeight.w900
-                      : FontWeight.bold,
-                  color: onSurface,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
