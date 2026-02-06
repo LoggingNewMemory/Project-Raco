@@ -1,4 +1,4 @@
-import 'dart:async'; // Added for TypewriterText Timer
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,12 +11,18 @@ bool _isCacheInitialized = false;
 void initRacoVideoCache() {
   if (_isCacheInitialized) return;
 
-  _cachedController = VideoPlayerController.asset('assets/RacoL2D.mp4');
+  // FIX: Added VideoPlayerOptions(mixWithOthers: true)
+  // This prevents the silent video from stealing audio focus and stopping the BGM.
+  _cachedController = VideoPlayerController.asset(
+    'assets/RacoL2D.mp4',
+    videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+  );
+
   _initFuture = _cachedController
       .initialize()
       .then((_) {
         _cachedController.setLooping(true);
-        _cachedController.setVolume(0.0);
+        _cachedController.setVolume(0.0); // Ensure silence
         _isCacheInitialized = true;
       })
       .catchError((e) {
@@ -81,6 +87,8 @@ class _RacoPageState extends State<RacoPage> {
   }
 
   void _playVideo() {
+    // Ensure volume is 0 before playing to be double safe
+    _cachedController.setVolume(0.0);
     _cachedController.play();
     setState(() {
       _isReady = true;
@@ -166,7 +174,7 @@ class _RacoPageState extends State<RacoPage> {
                                 ),
                                 // Reduced spacing
                                 const SizedBox(height: 4),
-                                // --- MODIFIED: Uses TypewriterText ---
+                                // --- TypewriterText ---
                                 TypewriterText(
                                   text: _dialogues[_dialogueIndex],
                                   style: const TextStyle(
@@ -366,7 +374,7 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-// --- ADDED: TypewriterText Widget from main.dart ---
+// --- TypewriterText Widget ---
 class TypewriterText extends StatefulWidget {
   final String text;
   final TextStyle? style;
@@ -433,10 +441,7 @@ class _TypewriterTextState extends State<TypewriterText> {
       return;
     }
 
-    // Reset displayed text if we are starting fresh from empty
-    // (Note: if coming from delete, it's already empty)
     if (_displayedText.isNotEmpty && _displayedText != textToType) {
-      // Safety net: if we skipped delete logic somehow
       setState(() => _displayedText = "");
     }
 
