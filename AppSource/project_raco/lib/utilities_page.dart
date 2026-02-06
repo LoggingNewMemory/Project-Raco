@@ -14,6 +14,10 @@ import 'UtilitiesPage/RacoPlugins.dart';
 import 'UtilitiesPage/raco_extra.dart';
 import 'topo_background.dart';
 
+const String _expectedOfficialDev = "Kanagawa Yamada";
+const String _expectedOfficialHash =
+    "19c01460fa9089cb89085283380276717a12c7a817d1792172cfe0f5f3a276fb06fe487be993cefd4b9cce078c4eea83dba1c40d3284038a260a07cfcfd54fe6";
+
 class UtilityCategory {
   final String title;
   final IconData icon;
@@ -133,79 +137,60 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
   }
 
   Future<void> _loadBuildInfo() async {
-    const String path = '/data/adb/modules/ProjectRaco/';
-    final List<String> buildFiles = ['OFFICIAL', 'UNOFFICIAL'];
+    const String basePath = '/data/adb/modules/ProjectRaco/';
 
-    String? foundBuildType;
-    String? rawContent;
+    try {
+      final officialResult = await Process.run('su', [
+        '-c',
+        'cat ${basePath}OFFICIAL',
+      ]);
 
-    for (String fileName in buildFiles) {
-      final filePath = '$path$fileName';
-      try {
-        final fileExistsResult = await Process.run('su', [
-          '-c',
-          'test -f $filePath && echo "exists"',
-        ]);
+      if (officialResult.exitCode == 0) {
+        final content = officialResult.stdout.toString().trim();
+        final expectedString =
+            'Dev:$_expectedOfficialDev-$_expectedOfficialHash-OFFICIAL';
 
-        if (fileExistsResult.exitCode == 0 &&
-            (fileExistsResult.stdout as String).trim() == 'exists') {
-          final readFileResult = await Process.run('su', [
-            '-c',
-            'cat $filePath',
-          ]);
-          if (readFileResult.exitCode == 0) {
-            foundBuildType = fileName;
-            rawContent = (readFileResult.stdout as String).trim();
-            break;
+        if (content == expectedString) {
+          if (mounted) {
+            setState(() {
+              _buildType = 'OFFICIAL';
+              _buildBy = _expectedOfficialDev;
+            });
           }
+          return;
+        } else {
+          exit(0);
         }
-      } catch (e) {
-        print('Error running root command for $fileName: $e');
       }
-    }
+    } catch (e) {}
 
-    if (foundBuildType != null && rawContent != null) {
-      bool isValid = false;
-      String? devName;
+    try {
+      final unofficialResult = await Process.run('su', [
+        '-c',
+        'cat ${basePath}UNOFFICIAL',
+      ]);
 
-      try {
-        final RegExp regExp = RegExp(
-          r'^Dev:(.+)-([a-fA-F0-9]+)-(OFFICIAL|UNOFFICIAL)$',
-        );
+      if (unofficialResult.exitCode == 0) {
+        final content = unofficialResult.stdout.toString().trim();
+        final RegExp regExp = RegExp(r'^Dev:(.+)-([a-fA-F0-9]+)-UNOFFICIAL$');
+        final match = regExp.firstMatch(content);
 
-        if (regExp.hasMatch(rawContent)) {
-          final match = regExp.firstMatch(rawContent);
-          if (match != null) {
-            devName = match.group(1);
-            String type = match.group(3)!;
-
-            if (type == foundBuildType) {
-              isValid = true;
-            }
+        if (match != null) {
+          final devName = match.group(1);
+          if (mounted) {
+            setState(() {
+              _buildType = 'UNOFFICIAL';
+              _buildBy = devName;
+            });
           }
+          return;
+        } else {
+          exit(0);
         }
-      } catch (e) {
-        isValid = false;
       }
+    } catch (e) {}
 
-      if (!isValid) {
-        exit(0);
-      }
-
-      if (mounted) {
-        setState(() {
-          _buildType = foundBuildType;
-          _buildBy = devName;
-        });
-      }
-    } else {
-      if (mounted) {
-        setState(() {
-          _buildType = "Unknown";
-          _buildBy = "Unknown";
-        });
-      }
-    }
+    exit(0);
   }
 
   Future<void> _initializePage() async {
