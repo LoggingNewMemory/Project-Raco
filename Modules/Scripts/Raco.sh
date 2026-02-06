@@ -145,6 +145,55 @@ settings delete global angle_gl_driver_selection_values
 setprop debug.hwui.renderer none
 }
 
+############################
+# Yanz AIO Gaming 4.1
+# @Xyanz_25
+# Partial adding to avoid conflict
+############################
+
+yanz_mtk_boost() {
+    # PNPMGR
+    tweak "1" "/sys/pnpmgr/mwn"
+    tweak "1" "/sys/pnpmgr/boost_enable"
+    tweak "turbo" "/sys/pnpmgr/boost_mode"
+    
+    # GED
+    tweak "1" "/sys/module/ged/parameters/gx_boost_on"
+    tweak "1" "/sys/module/ged/parameters/gx_game_mode"
+    tweak "1" "/sys/module/ged/parameters/ged_smart_boost"
+    tweak "1" "/sys/module/ged/parameters/enable_gpu_boost"
+    tweak "1" "/sys/module/ged/parameters/ged_boost_enable"
+    tweak "100" "/sys/kernel/ged/hal/gpu_boost_level"
+    tweak "0" "/sys/module/ged/parameters/is_GED_KPI_enabled"
+    tweak "1" "/sys/module/ged/parameters/gx_frc_mode"
+    tweak "1" "/sys/module/ged/parameters/cpu_boost_policy"
+    tweak "1" "/sys/module/ged/parameters/boost_extra"
+}
+
+yanz_snapdragon_boost() {
+    # Adreno Boost
+    tweak "3" "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost"
+    # Adreno Idler
+    tweak "Y" "/sys/module/adreno_idler/parameters/adreno_idler_active"
+    # Gpu Throttling
+    tweak "0" "/sys/class/kgsl/kgsl-3d0/throttling"
+    # Gpu Power Level
+    tweak "1" "/sys/class/kgsl/kgsl-3d0/default_pwrlevel"
+    
+    # Touch Boost
+    tweak "1" "/sys/module/msm_perfmon/parameters/touch_boost_enable"
+    tweak "1" "/sys/module/msm_perfmon/parameters/touch_boost_freq"
+    tweak "1" "/sys/module/msm_performance/parameters/touchboost"
+    tweak "1" "/sys/power/pnpmgr/touch_boost"
+    
+    # Core Control
+    tweak "1" "/sys/devices/system/cpu/cpu0/core_ctl/enable"
+    tweak "1" "/sys/devices/system/cpu/cpu4/core_ctl/enable"
+}
+############################
+# End of Yanz AIO Gaming 4.1
+############################
+
 ###################################
 # MTKVest Functions 
 ###################################
@@ -445,6 +494,7 @@ mediatek_performance() {
     ) &
 
     mtkvest_perf
+    yanz_mtk_boost &
     wait
 }
 
@@ -485,6 +535,7 @@ snapdragon_performance() {
         tweak 0 /sys/class/kgsl/kgsl-3d0/bus_split
         tweak 1 /sys/class/kgsl/kgsl-3d0/force_clk_on
     ) &
+    yanz_snapdragon_boost &
     wait
 }
 

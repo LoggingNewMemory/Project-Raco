@@ -407,6 +407,54 @@ optimize_lmk
 # End of GHenna - Tweaks
 ############################
 
+############################
+# Yanz AIO Gaming 4.1
+# @Xyanz_25
+# Partial adding to avoid conflict
+############################
+yanz_universal() {
+    # Entropy Tweaks
+    tweak "64" "/proc/sys/kernel/random/read_wakeup/threshold"
+    tweak "128" "/proc/sys/kernel/random/write_wakeup/threshold"
+    tweak "128" "/proc/sys/kernel/random/read_wakeup_threshold"
+    tweak "1024" "/proc/sys/kernel/random/write_wakeup_threshold"
+
+    # Printk Tweaks
+    if [ -w /proc/sys/kernel/printk ]; then
+        echo "0 0 0 0" > /proc/sys/kernel/printk
+    fi
+    tweak "0" "/proc/sys/kernel/printk_devkmsg"
+    tweak "0" "/sys/module/binder/parameters/debug_mask"
+    tweak "0" "/sys/module/printk/parameters/cpu"
+    tweak "1" "/sys/module/printk/parameters/console_suspend"
+    tweak "1" "/sys/module/printk/parameters/ignore_loglevel"
+    tweak "0" "/sys/module/printk/parameters/pid"
+    tweak "0" "/sys/module/printk/parameters/time"
+    tweak "0" "/sys/module/printk/parameters/printk_ratelimit"
+
+    # Zram & VM Tweaks
+    tweak "0" "/sys/module/lowmemorykiller/parameters/enable_adaptive_lmk"
+    tweak "90" "/proc/sys/vm/overcommit_ratio"
+    tweak "0" "/proc/sys/vm/extra_free_kbytes"
+    tweak "3072" "/proc/sys/vm/min_free_kbytes"
+    tweak "0" "/proc/sys/vm/oom_kill_allocating_task"
+    
+    # Dirty Ratio (Performance bias)
+    tweak "30" "/proc/sys/vm/dirty_ratio"
+    tweak "5" "/proc/sys/vm/dirty_background_ratio"
+    tweak "3000" "/proc/sys/vm/dirty_writeback_centises"
+
+    # Disable Fsync & Vsync related
+    tweak "N" "/sys/module/sync/parameters/fsync_enabled"
+    tweak "0" "/sys/kernel/debug/mdss_panel_fb0/intf0/mipi/hw_vsync_mode"
+    tweak "0" "/sys/kernel/debug/mdss_panel_fb0/intf0/mipi/vsync_enable"
+}
+yanz_universal
+
+############################
+# End of Yanz AIO Gaming 4.1
+############################
+
 send_notif "Project Raco" "Project Raco - オンライン" "TagRaco" "/data/local/tmp/logo.png"
 
 # --- Project Raco Plugin Loader ---
