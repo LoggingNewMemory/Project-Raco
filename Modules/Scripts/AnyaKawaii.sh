@@ -15,8 +15,7 @@ write_val() {
 
 # Module 1: Filesystem & Permissions
 restore_filesystem() {
-    # 1. Unmount blocked binaries
-    umount /vendor/bin/hw/thermal-hal-2-0 2>/dev/null
+    # 1. Unmount blocked binaries (Excluded 'hal')
     umount /vendor/bin/thermald 2>/dev/null
 }
 
@@ -55,14 +54,15 @@ main() {
     cmd thermalservice reset 2>/dev/null
 
     # 3. Start Services
-    # We attempt to start them genuinely first
-    getprop | grep -E 'init.svc(\.vendor)?\.thermal' | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | while read -r svc; do
+    # We attempt to start them genuinely first (Excluded 'hal')
+    getprop | grep -E 'init.svc(\.vendor)?\.thermal' | grep -v "hal" | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | while read -r svc; do
         resetprop -n "init.svc.$svc" "stopped"
         start "$svc"
         setprop ctl.start "$svc"
     done
 
-    getprop | grep 'thermal' | cut -d '[' -f2 | cut -d ']' -f1 | while read -r prop; do
+    # Excluded 'hal' from status reset
+    getprop | grep 'thermal' | grep -v "hal" | cut -d '[' -f2 | cut -d ']' -f1 | while read -r prop; do
         if [ -n "$prop" ]; then
             resetprop -n "$prop" "running"
         fi
