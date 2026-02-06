@@ -170,6 +170,29 @@ yanz_mtk_boost() {
     tweak "1" "/sys/module/ged/parameters/boost_extra"
 }
 
+yanz_mtk_balance() {
+    # Revert PNPMGR
+    tweak "0" "/sys/pnpmgr/mwn"
+    tweak "0" "/sys/pnpmgr/boost_enable"
+    tweak "0" "/sys/pnpmgr/boost_mode"
+    
+    # Revert GED
+    tweak "0" "/sys/module/ged/parameters/gx_boost_on"
+    tweak "0" "/sys/module/ged/parameters/gx_game_mode"
+    tweak "0" "/sys/module/ged/parameters/ged_smart_boost"
+    tweak "0" "/sys/module/ged/parameters/enable_gpu_boost"
+    tweak "0" "/sys/module/ged/parameters/ged_boost_enable"
+    tweak "-1" "/sys/kernel/ged/hal/gpu_boost_level"
+    tweak "1" "/sys/module/ged/parameters/is_GED_KPI_enabled"
+    tweak "0" "/sys/module/ged/parameters/gx_frc_mode"
+    tweak "0" "/sys/module/ged/parameters/cpu_boost_policy"
+    tweak "0" "/sys/module/ged/parameters/boost_extra"
+}
+
+yanz_mtk_powersave() {
+    yanz_mtk_balance
+}
+
 yanz_snapdragon_boost() {
     # Adreno Boost
     tweak "3" "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost"
@@ -189,6 +212,23 @@ yanz_snapdragon_boost() {
     # Core Control
     tweak "1" "/sys/devices/system/cpu/cpu0/core_ctl/enable"
     tweak "1" "/sys/devices/system/cpu/cpu4/core_ctl/enable"
+}
+
+yanz_snapdragon_balance() {
+    # Reset Adreno Boost
+    tweak "0" "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost"
+    # Reset Gpu Throttling
+    tweak "1" "/sys/class/kgsl/kgsl-3d0/throttling"
+    # Reset Touch Boost
+    tweak "0" "/sys/module/msm_perfmon/parameters/touch_boost_enable"
+    tweak "0" "/sys/module/msm_perfmon/parameters/touch_boost_freq"
+    tweak "0" "/sys/module/msm_performance/parameters/touchboost"
+    tweak "0" "/sys/power/pnpmgr/touch_boost"
+}
+
+yanz_snapdragon_powersave() {
+    yanz_snapdragon_balance
+    tweak "Y" "/sys/module/adreno_idler/parameters/adreno_idler_active"
 }
 ############################
 # End of Yanz AIO Gaming 4.1
@@ -667,6 +707,7 @@ mediatek_normal() {
     ) &
 
     mtkvest_normal
+    yanz_mtk_balance &
     wait
 }
 
@@ -692,6 +733,7 @@ snapdragon_normal() {
     devfreq_unlock /sys/class/kgsl/kgsl-3d0/devfreq &
     tweak 1 /sys/class/kgsl/kgsl-3d0/bus_split &
     tweak 0 /sys/class/kgsl/kgsl-3d0/force_clk_on &
+    yanz_snapdragon_balance &
     wait
 }
 
@@ -763,10 +805,12 @@ mediatek_powersave() {
         local gpu_freq=$(sed -n 's/.*freq = \([0-9]\{1,\}\).*/\1/p' /proc/gpufreq/gpufreq_opp_dump | tail -n 1)
         tweak "$gpu_freq" /proc/gpufreq/gpufreq_opp_freq
     fi
+    yanz_mtk_powersave &
 }
 
 snapdragon_powersave() {
     devfreq_min_perf /sys/class/kgsl/kgsl-3d0/devfreq
+    yanz_snapdragon_powersave &
 }
 
 exynos_powersave() {
