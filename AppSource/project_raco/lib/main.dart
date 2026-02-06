@@ -21,7 +21,7 @@ import 'topo_background.dart';
 
 const String _expectedOfficialDev = "Kanagawa Yamada";
 const String _expectedOfficialHash =
-    "772899264b634230938388c256c716e9d116a4cef314554e8c205e3a4f2550e3109b46a39b7e0bd98f9ddc71b961a54b5d7931ccc4bdf8677f44cc575b8f0cb5";
+    "a057fbcaa0fb785a50d015c34ce8fe89fe0e9d83d7e4f3e53b540174e6cd4563372c4af12d510463fc70de4b41896fc96e5a94bb10c14344fb4c988e907ff385";
 
 // --- QUICK SETTINGS HANDLERS ---
 @pragma('vm:entry-point')
@@ -38,6 +38,7 @@ Tile onTileClicked(Tile tile) {
   tile.label = "Raco Mode";
   tile.tileStatus = TileStatus.active;
   tile.subtitle = "Tap for menu";
+  tile.drawableName = "qs_logo";
   return tile;
 }
 
