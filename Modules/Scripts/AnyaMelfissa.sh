@@ -9,16 +9,14 @@ write_val() {
 
 # Module 1: Process Killer (Priority)
 kill_thermal_services() {
-    # Direct kill for common thermal binaries (Excluded 'hal')
-    killall -9 thermald android.hardware.thermal@2.0-service 2>/dev/null
+    # Direct kill for common thermal binaries
+    killall -9 thermald thermal-hal-2-0 android.hardware.thermal@2.0-service 2>/dev/null
     
     # Aggressive sweep using pgrep (faster than ps | grep)
-    # Note: This is a broad kill, use caution if HAL processes share these names,
-    # though usually HALs are named explicitly 'hal'
-    pgrep -f "thermal" | grep -v "hal" | xargs -r kill -9 2>/dev/null
+    pgrep -f "thermal" | xargs -r kill -9 2>/dev/null
     
-    # Stop init services via property triggers (Excluded 'hal')
-    getprop | grep -E 'init.svc.*thermal' | grep -v "hal" | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | while read -r svc; do
+    # Stop init services via property triggers
+    getprop | grep -E 'init.svc.*thermal' | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | while read -r svc; do
         stop "$svc"
         setprop ctl.stop "$svc"
     done
@@ -26,7 +24,8 @@ kill_thermal_services() {
 
 # Module 2: Filesystem & Permissions (Heavy I/O)
 disable_fs_protections() {
-    # Bind mount blocks (Excluded 'hal' binary)
+    # Bind mount blocks
+    mount -o bind /dev/null /vendor/bin/hw/thermal-hal-2-0 2>/dev/null
     mount -o bind /dev/null /vendor/bin/thermald 2>/dev/null
     
     # Delete Cache
@@ -88,8 +87,8 @@ disable_gpu_limits() {
 
 # Module 5: Property Spoofing (The MUST Have)
 spoof_running_status() {
-    # 1. Reset specific thermal props (Excluded 'hal')
-    for prop in $(getprop | grep -E 'sys\..*thermal|thermal_config' | grep -v "hal" | cut -d: -f1 | tr -d '[]'); do
+    # 1. Reset specific thermal props
+    for prop in $(getprop | grep -E 'sys\..*thermal|thermal_config' | cut -d: -f1 | tr -d '[]'); do
         resetprop -n "$prop" "0"
     done
     
@@ -100,8 +99,7 @@ spoof_running_status() {
 
     # 3. THE RUNNING SPOOF (Critical)
     # Forces system to believe thermal services are running to prevent bootloops or crashes
-    # (Excluded 'hal' from spoofing)
-    getprop | grep 'thermal' | grep -v "hal" | cut -d '[' -f2 | cut -d ']' -f1 | while read -r prop; do
+    getprop | grep 'thermal' | cut -d '[' -f2 | cut -d ']' -f1 | while read -r prop; do
         if [ -n "$prop" ]; then
             resetprop -n "$prop" "running"
         fi
