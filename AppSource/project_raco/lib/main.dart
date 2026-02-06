@@ -19,6 +19,10 @@ import 'qs_menu.dart';
 import 'raco.dart';
 import 'topo_background.dart';
 
+const String _expectedOfficialDev = "Kanagawa Yamada";
+const String _expectedOfficialHash =
+    "19c01460fa9089cb89085283380276717a12c7a817d1792172cfe0f5f3a276fb06fe487be993cefd4b9cce078c4eea83dba1c40d3284038a260a07cfcfd54fe6";
+
 // --- QUICK SETTINGS HANDLERS ---
 @pragma('vm:entry-point')
 Tile onTileClicked(Tile tile) {
@@ -129,7 +133,6 @@ Future<void> main() async {
     final bool isEnabled = prefs.getBool('endfield_collab_enabled') ?? false;
 
     // Check if we are launching via Quick Settings or into the Menu directly
-    // If so, we SKIP audio initialization to prevent music in the QS overlay.
     final String defaultRouteName =
         PlatformDispatcher.instance.defaultRouteName;
     final bool isQsMenuLaunch =
@@ -225,7 +228,6 @@ class _MyAppState extends State<MyApp> {
         prefs.getBool('endfield_collab_enabled') ?? false;
 
     // Handle audio controller logic
-    // We also check route here to be safe, though main() handles the initial load
     final String defaultRouteName =
         PlatformDispatcher.instance.defaultRouteName;
     final bool isQsMenuLaunch =
@@ -233,19 +235,16 @@ class _MyAppState extends State<MyApp> {
         defaultRouteName.contains('/menu');
 
     if (isAudioEnabled && !isQsMenuLaunch) {
-      // If controller doesn't exist, create it
       if (_audioController == null) {
         _audioController = VideoPlayerController.asset('assets/Endfield.mp3');
         try {
           await _audioController!.initialize();
-          // Explicitly set looping to true
           await _audioController!.setLooping(true);
           await _audioController!.play();
         } catch (e) {
           print("Error loading audio late: $e");
         }
       } else {
-        // If it exists but isn't playing or looping, enforce it
         if (!_audioController!.value.isPlaying) {
           await _audioController!.play();
         }
@@ -370,7 +369,7 @@ class _MyAppState extends State<MyApp> {
                 backgroundOpacity: _backgroundOpacity,
                 backgroundBlur: _backgroundBlur,
                 endfieldEnabled: _endfieldCollabEnabled,
-                audioController: _audioController, // Pass audio controller
+                audioController: _audioController,
               ),
             ],
           ),
@@ -531,6 +530,10 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   bool _isEndfieldEngineRunning = false;
   bool _isContentVisible = false;
 
+  // Build Info
+  String? _buildType;
+  String? _buildBy;
+
   int _swipeRightCount = 0;
   Timer? _swipeResetTimer;
 
@@ -611,7 +614,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       _refreshDynamicState();
       // RESUME LOOPING IF APP COMES TO FOREGROUND
-      // Added check: Only play if NOT in QS Mode
       final String defaultRouteName =
           PlatformDispatcher.instance.defaultRouteName;
       final bool isQsMenuLaunch =
@@ -638,7 +640,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         setState(() {
           _hasRootAccess = false;
           _moduleInstalled = false;
-          // Localized string fetched later in UI, but setting state here
           _moduleVersion = 'Root Required';
           _currentMode = 'Root Required';
           _isLoading = false;
@@ -648,6 +649,10 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       return;
     }
     _hasRootAccess = true;
+
+    // Check Build Status now that we have root
+    await _checkBuildStatus();
+
     final moduleIsInstalled = await _checkModuleInstalled();
     _moduleInstalled = moduleIsInstalled;
     await Future.wait([
@@ -660,6 +665,70 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         _isContentVisible = true;
       });
     }
+  }
+
+  Future<void> _checkBuildStatus() async {
+    const String basePath = '/data/adb/modules/ProjectRaco/';
+
+    // Check OFFICIAL
+    try {
+      final officialResult = await Process.run('su', [
+        '-c',
+        'cat ${basePath}OFFICIAL',
+      ]);
+
+      if (officialResult.exitCode == 0) {
+        final content = officialResult.stdout.toString().trim();
+        final expectedString =
+            'Dev:$_expectedOfficialDev-$_expectedOfficialHash-OFFICIAL';
+
+        if (content == expectedString) {
+          if (mounted) {
+            setState(() {
+              _buildType = 'OFFICIAL';
+              _buildBy = _expectedOfficialDev;
+            });
+          }
+          return; // Success
+        } else {
+          exit(0); // Tampered official file
+        }
+      }
+    } catch (e) {
+      // Ignore and try unofficial
+    }
+
+    // Check UNOFFICIAL
+    try {
+      final unofficialResult = await Process.run('su', [
+        '-c',
+        'cat ${basePath}UNOFFICIAL',
+      ]);
+
+      if (unofficialResult.exitCode == 0) {
+        final content = unofficialResult.stdout.toString().trim();
+        final RegExp regExp = RegExp(r'^Dev:(.+)-([a-fA-F0-9]+)-UNOFFICIAL$');
+        final match = regExp.firstMatch(content);
+
+        if (match != null) {
+          final devName = match.group(1);
+          if (mounted) {
+            setState(() {
+              _buildType = 'UNOFFICIAL';
+              _buildBy = devName;
+            });
+          }
+          return; // Success
+        } else {
+          exit(0); // Tampered unofficial file
+        }
+      }
+    } catch (e) {
+      // Ignore
+    }
+
+    // If neither official nor unofficial matched:
+    exit(0);
   }
 
   Future<void> _refreshDynamicState() async {
@@ -895,6 +964,8 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           initialBackgroundImagePath: widget.backgroundImagePath,
           initialBackgroundOpacity: widget.backgroundOpacity,
           initialBackgroundBlur: widget.backgroundBlur,
+          buildType: _buildType,
+          buildBy: _buildBy,
         ),
         transitionDuration: const Duration(milliseconds: 300),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -1098,7 +1169,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     final localization = AppLocalizations.of(context)!;
 
     // Tech Colors
-    // final Color bgDark = const Color(0xFF0D0D0D); // Unused now to allow transparency
     final Color techYellow = const Color(0xFFFFD700); // Warning/Highlight
     final Color techBlue = const Color(0xFF00BFFF); // Data/Holo
 
@@ -1116,8 +1186,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       behavior: HitTestBehavior.translucent,
       child: SafeArea(
         child: Container(
-          color: Colors
-              .transparent, // Changed to transparent for TopoBackground visibility
+          color: Colors.transparent,
           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
           child: _isLoading
               ? Center(child: CircularProgressIndicator(color: techYellow))

@@ -14,10 +14,6 @@ import 'UtilitiesPage/RacoPlugins.dart';
 import 'UtilitiesPage/raco_extra.dart';
 import 'topo_background.dart';
 
-const String _expectedOfficialDev = "Kanagawa Yamada";
-const String _expectedOfficialHash =
-    "19c01460fa9089cb89085283380276717a12c7a817d1792172cfe0f5f3a276fb06fe487be993cefd4b9cce078c4eea83dba1c40d3284038a260a07cfcfd54fe6";
-
 class UtilityCategory {
   final String title;
   final IconData icon;
@@ -50,12 +46,16 @@ class UtilitiesPage extends StatefulWidget {
   final String? initialBackgroundImagePath;
   final double initialBackgroundOpacity;
   final double initialBackgroundBlur;
+  final String? buildType;
+  final String? buildBy;
 
   const UtilitiesPage({
     Key? key,
     required this.initialBackgroundImagePath,
     required this.initialBackgroundOpacity,
     required this.initialBackgroundBlur,
+    this.buildType,
+    this.buildBy,
   }) : super(key: key);
 
   @override
@@ -70,8 +70,6 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
   double _backgroundOpacity = 0.2;
   double _backgroundBlur = 0.0;
   bool _endfieldCollabEnabled = false;
-  String? _buildType;
-  String? _buildBy;
 
   final TextEditingController _searchController = TextEditingController();
 
@@ -136,68 +134,8 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
     });
   }
 
-  Future<void> _loadBuildInfo() async {
-    const String basePath = '/data/adb/modules/ProjectRaco/';
-
-    try {
-      final officialResult = await Process.run('su', [
-        '-c',
-        'cat ${basePath}OFFICIAL',
-      ]);
-
-      if (officialResult.exitCode == 0) {
-        final content = officialResult.stdout.toString().trim();
-        final expectedString =
-            'Dev:$_expectedOfficialDev-$_expectedOfficialHash-OFFICIAL';
-
-        if (content == expectedString) {
-          if (mounted) {
-            setState(() {
-              _buildType = 'OFFICIAL';
-              _buildBy = _expectedOfficialDev;
-            });
-          }
-          return;
-        } else {
-          exit(0);
-        }
-      }
-    } catch (e) {}
-
-    try {
-      final unofficialResult = await Process.run('su', [
-        '-c',
-        'cat ${basePath}UNOFFICIAL',
-      ]);
-
-      if (unofficialResult.exitCode == 0) {
-        final content = unofficialResult.stdout.toString().trim();
-        final RegExp regExp = RegExp(r'^Dev:(.+)-([a-fA-F0-9]+)-UNOFFICIAL$');
-        final match = regExp.firstMatch(content);
-
-        if (match != null) {
-          final devName = match.group(1);
-          if (mounted) {
-            setState(() {
-              _buildType = 'UNOFFICIAL';
-              _buildBy = devName;
-            });
-          }
-          return;
-        } else {
-          exit(0);
-        }
-      }
-    } catch (e) {}
-
-    exit(0);
-  }
-
   Future<void> _initializePage() async {
     final bool hasRoot = await checkRootAccess();
-    if (hasRoot) {
-      await _loadBuildInfo();
-    }
     await _loadBackgroundPreferences();
 
     if (!mounted) return;
@@ -526,9 +464,9 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
               duration: const Duration(milliseconds: 500),
               child: Column(
                 children: [
-                  if (_buildType != null &&
-                      _buildBy != null &&
-                      _buildBy!.isNotEmpty)
+                  if (widget.buildType != null &&
+                      widget.buildBy != null &&
+                      widget.buildBy!.isNotEmpty)
                     GestureDetector(
                       onHorizontalDragEnd: (details) {
                         if (details.primaryVelocity != null &&
@@ -565,7 +503,7 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
                                     children: [
                                       Text(
                                         localization.build_version_title(
-                                          _buildType!,
+                                          widget.buildType!,
                                         ),
                                         style: Theme.of(context)
                                             .textTheme
@@ -576,7 +514,9 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        localization.build_by_title(_buildBy!),
+                                        localization.build_by_title(
+                                          widget.buildBy!,
+                                        ),
                                         style: Theme.of(
                                           context,
                                         ).textTheme.bodySmall,
