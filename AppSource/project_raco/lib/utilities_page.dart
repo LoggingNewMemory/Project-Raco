@@ -14,7 +14,6 @@ import 'UtilitiesPage/RacoPlugins.dart';
 import 'UtilitiesPage/raco_extra.dart';
 import 'topo_background.dart';
 
-//region Models for Search and Navigation
 class UtilityCategory {
   final String title;
   final IconData icon;
@@ -42,7 +41,6 @@ class SearchResultItem {
     required this.searchKeywords,
   });
 }
-//endregion
 
 class UtilitiesPage extends StatefulWidget {
   final String? initialBackgroundImagePath;
@@ -77,7 +75,6 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
   List<SearchResultItem> _allSearchableItems = [];
   List<SearchResultItem> _filteredSearchResults = [];
 
-  // State for swipe detection
   int _swipeCount = 0;
   Timer? _swipeResetTimer;
 
@@ -137,9 +134,10 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
 
   Future<void> _loadBuildInfo() async {
     const String path = '/data/adb/modules/ProjectRaco/';
-    final List<String> buildFiles = ['Official', 'Canary', 'CBT'];
+    final List<String> buildFiles = ['OFFICIAL', 'UNOFFICIAL'];
+
     String? foundBuildType;
-    String? foundBuildBy;
+    String? rawContent;
 
     for (String fileName in buildFiles) {
       final filePath = '$path$fileName';
@@ -157,7 +155,7 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
           ]);
           if (readFileResult.exitCode == 0) {
             foundBuildType = fileName;
-            foundBuildBy = readFileResult.stdout as String;
+            rawContent = (readFileResult.stdout as String).trim();
             break;
           }
         }
@@ -166,18 +164,56 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
       }
     }
 
-    if (mounted) {
-      setState(() {
-        _buildType = foundBuildType;
-        _buildBy = foundBuildBy?.trim();
-      });
+    if (foundBuildType != null && rawContent != null) {
+      bool isValid = false;
+      String? devName;
+
+      try {
+        final RegExp regExp = RegExp(
+          r'^Dev:(.+)-([a-fA-F0-9]+)-(OFFICIAL|UNOFFICIAL)$',
+        );
+
+        if (regExp.hasMatch(rawContent)) {
+          final match = regExp.firstMatch(rawContent);
+          if (match != null) {
+            devName = match.group(1);
+            String type = match.group(3)!;
+
+            if (type == foundBuildType) {
+              isValid = true;
+            }
+          }
+        }
+      } catch (e) {
+        isValid = false;
+      }
+
+      if (!isValid) {
+        exit(0);
+      }
+
+      if (mounted) {
+        setState(() {
+          _buildType = foundBuildType;
+          _buildBy = devName;
+        });
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _buildType = "Unknown";
+          _buildBy = "Unknown";
+        });
+      }
     }
   }
 
   Future<void> _initializePage() async {
-    await _loadBuildInfo();
-    await _loadBackgroundPreferences(); // Load prefs including Endfield toggle
     final bool hasRoot = await checkRootAccess();
+    if (hasRoot) {
+      await _loadBuildInfo();
+    }
+    await _loadBackgroundPreferences();
 
     if (!mounted) return;
     setState(() {
@@ -191,7 +227,6 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
     _allCategories = [];
     _allSearchableItems = [];
 
-    // --- Core Tweaks ---
     final coreTweaksPage = CoreTweaksPage(
       backgroundImagePath: _backgroundImagePath,
       backgroundOpacity: _backgroundOpacity,
@@ -256,7 +291,6 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
       ),
     ]);
 
-    // --- Automation ---
     final automationPage = AutomationPage(
       backgroundImagePath: _backgroundImagePath,
       backgroundOpacity: _backgroundOpacity,
@@ -307,7 +341,6 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
       ),
     ]);
 
-    // --- System ---
     final systemPage = SystemPage(
       backgroundImagePath: _backgroundImagePath,
       backgroundOpacity: _backgroundOpacity,
@@ -372,7 +405,6 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
       ),
     ]);
 
-    // --- Appearance ---
     final appearancePage = AppearancePage(
       initialBackgroundImagePath: _backgroundImagePath,
       initialBackgroundOpacity: _backgroundOpacity,
@@ -409,7 +441,6 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
       ),
     ]);
 
-    // --- Installer Config (New) ---
     final racoExtraPage = RacoExtraPage(
       backgroundImagePath: _backgroundImagePath,
       backgroundOpacity: _backgroundOpacity,
@@ -432,7 +463,6 @@ class _UtilitiesPageState extends State<UtilitiesPage> {
       ),
     ]);
 
-    // --- Raco Plugins ---
     final pluginsPage = RacoPluginsPage(
       backgroundImagePath: _backgroundImagePath,
       backgroundOpacity: _backgroundOpacity,
