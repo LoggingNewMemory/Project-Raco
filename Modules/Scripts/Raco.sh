@@ -263,6 +263,16 @@ which_midfreq() {
     tr ' ' '\n' <"$1" | grep -v '^[[:space:]]*$' | sort -nr | head -n $mid_opp | tail -n 1
 }
 
+mtk_gpufreq_minfreq_index() {
+    awk -F'[][]' '{print $2}' "$1" | tail -n 1
+}
+
+mtk_gpufreq_midfreq_index() {
+    total_opp=$(wc -l <"$1")
+    mid_opp=$(((total_opp + 1) / 2))
+    awk -F'[][]' '{print $2}' "$1" | head -n $mid_opp | tail -n 1
+}
+
 # Unified devfreq handler
 set_devfreq() {
     local path="$1"
@@ -475,6 +485,31 @@ mediatek_performance() {
     tweak "stop 1" /proc/mtk_batoc_throttling/battery_oc_protect_stop
 
     if [ "$LITE_MODE" -eq 0 ]; then
+        if [ -d /proc/gpufreqv2 ]; then
+            tweak 0 /proc/gpufreqv2/fix_target_opp_index
+        else
+            gpu_freq=$(sed -n 's/.*freq = \([0-9]\{1,\}\).*/\1/p' /proc/gpufreq/gpufreq_opp_dump | head -n 1)
+            tweak "$gpu_freq" /proc/gpufreq/gpufreq_opp_freq
+        fi
+    else
+        tweak 0 /proc/gpufreq/gpufreq_opp_freq
+        tweak -1 /proc/gpufreqv2/fix_target_opp_index
+
+        if [ -d /proc/gpufreqv2 ]; then
+            mid_oppfreq=$(mtk_gpufreq_midfreq_index /proc/gpufreqv2/gpu_working_opp_table)
+        else
+            mid_oppfreq=$(mtk_gpufreq_midfreq_index /proc/gpufreq/gpufreq_opp_dump)
+        fi
+        tweak "$mid_oppfreq" /sys/kernel/ged/hal/custom_boost_gpu_freq
+    fi
+
+    [ -f "/proc/gpufreq/gpufreq_power_limited" ] && {
+        for setting in ignore_batt_oc ignore_batt_percent ignore_low_batt ignore_thermal_protect ignore_pbm_limited; do
+            tweak "$setting 1" /proc/gpufreq/gpufreq_power_limited
+        done
+    }
+
+    if [ "$LITE_MODE" -eq 0 ]; then
         tweak 0 /sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp
         tweak 0 /sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp
         devfreq_max_perf /sys/class/devfreq/mtk-dvfsrc-devfreq
@@ -606,6 +641,23 @@ mediatek_normal() {
     tweak 0 /sys/devices/platform/boot_dramboost/dramboost/dramboost
     tweak 2 /sys/devices/system/cpu/eas/enable
     tweak "stop 0" /proc/mtk_batoc_throttling/battery_oc_protect_stop
+
+    kakangkuh 0 /proc/gpufreq/gpufreq_opp_freq
+    kakangkuh -1 /proc/gpufreqv2/fix_target_opp_index
+
+    if [ -d /proc/gpufreqv2 ]; then
+        min_oppfreq=$(mtk_gpufreq_minfreq_index /proc/gpufreqv2/gpu_working_opp_table)
+    else
+        min_oppfreq=$(mtk_gpufreq_minfreq_index /proc/gpufreq/gpufreq_opp_dump)
+    fi
+    tweak "$min_oppfreq" /sys/kernel/ged/hal/custom_boost_gpu_freq
+
+    [ -f "/proc/gpufreq/gpufreq_power_limited" ] && {
+        for setting in ignore_batt_oc ignore_batt_percent ignore_low_batt ignore_thermal_protect ignore_pbm_limited; do
+            tweak "$setting 0" /proc/gpufreq/gpufreq_power_limited
+        done
+    }
+
     kakangkuh -1 /sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp
     kakangkuh -1 /sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp
     devfreq_unlock /sys/class/devfreq/mtk-dvfsrc-devfreq
@@ -690,6 +742,15 @@ tegra_normal() {
 
 mediatek_powersave() {
     tweak 1 /proc/cpufreq/cpufreq_power_mode
+    
+    if [ -d /proc/gpufreqv2 ]; then
+        min_gpufreq_index=$(mtk_gpufreq_minfreq_index /proc/gpufreqv2/gpu_working_opp_table)
+        tweak "$min_gpufreq_index" /proc/gpufreqv2/fix_target_opp_index
+    else
+        gpu_freq=$(sed -n 's/.*freq = \([0-9]\{1,\}\).*/\1/p' /proc/gpufreq/gpufreq_opp_dump | tail -n 1)
+        tweak "$gpu_freq" /proc/gpufreq/gpufreq_opp_freq
+    fi
+    
     yanz_mtk_powersave
 }
 
