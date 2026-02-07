@@ -230,8 +230,6 @@ yanz_snapdragon_powersave() {
 ###################################
 
 mtkvest_perf() {
-    tweak 1 /proc/perfmgr/syslimiter/syslimiter_force_disable
-    tweak 100 /sys/kernel/ged/hal/gpu_boost_level
     if [ -d /sys/kernel/ged/hal ]; then
         tweak 2 /sys/kernel/ged/hal/loading_base_dvfs_step
         tweak 1 /sys/kernel/ged/hal/loading_stride_size
@@ -240,8 +238,6 @@ mtkvest_perf() {
 }
 
 mtkvest_normal() {
-    tweak 0 /proc/perfmgr/syslimiter/syslimiter_force_disable
-    tweak -1 /sys/kernel/ged/hal/gpu_boost_level
     if [ -d /sys/kernel/ged/hal ]; then
         tweak 4 /sys/kernel/ged/hal/loading_base_dvfs_step
         tweak 2 /sys/kernel/ged/hal/loading_stride_size
@@ -471,7 +467,6 @@ mediatek_performance() {
     tweak 3 /proc/cpufreq/cpufreq_power_mode
     tweak 1 /sys/devices/platform/boot_dramboost/dramboost/dramboost
     tweak 0 /sys/devices/system/cpu/eas/enable
-    tweak 0 /sys/module/sspm_v3/holders/ged/parameters/is_GED_KPI_enabled
     tweak 0 /sys/kernel/eara_thermal/enable
 
     mtkvest_perf
@@ -610,7 +605,6 @@ mediatek_normal() {
     tweak 0 /proc/cpufreq/cpufreq_power_mode
     tweak 0 /sys/devices/platform/boot_dramboost/dramboost/dramboost
     tweak 2 /sys/devices/system/cpu/eas/enable
-    tweak 1 /sys/module/sspm_v3/holders/ged/parameters/is_GED_KPI_enabled
     tweak "stop 0" /proc/mtk_batoc_throttling/battery_oc_protect_stop
     kakangkuh -1 /sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp
     kakangkuh -1 /sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp

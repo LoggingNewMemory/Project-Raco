@@ -83,14 +83,6 @@ corin_perf() {
     tweak "deadline" "$deviceio/queue/scheduler"
     tweak 1 "$queue/rq_affinity"
 
-    # GPU Tweaks
-    tweak "performance" "/sys/class/devfreq/mtk-dvfsrc-devfreq/governor"
-    tweak "performance" "/sys/class/devfreq/13000000.mali/governor"
-    tweak "0" "/proc/trans_scheduler/enable"
-    tweak "1" "/proc/game_state"
-    tweak "always_on" "/sys/class/misc/mali0/device/power_policy"
-    tweak "enable" "/proc/gpufreqv2/aging_mode"
-
     # Settings
     settings put secure high_priority 1
     settings put secure low_priority 0
@@ -108,14 +100,6 @@ corin_balanced() {
     tweak "deadline" "$deviceio/queue/scheduler"
     tweak 1 "$queue/rq_affinity"
 
-    # GPU Tweaks
-    tweak "simple_ondemand" "/sys/class/devfreq/mtk-dvfsrc-devfreq/governor"
-    tweak "simple_ondemand" "/sys/class/devfreq/13000000.mali/governor"
-    tweak "1" "/proc/trans_scheduler/enable"
-    tweak "0" "/proc/game_state"
-    tweak "coarse_demand" "/sys/class/misc/mali0/device/power_policy"
-    tweak "enable" "/proc/gpufreqv2/aging_mode"
-
     # Settings
     settings put secure high_priority 1
     settings put secure low_priority 0
@@ -132,14 +116,6 @@ corin_powersave() {
     # FreakZy Storage
     tweak "deadline" "$deviceio/queue/scheduler"
     tweak 2 "$queue/rq_affinity"
-
-    # GPU Tweaks
-    tweak "powersave" "/sys/class/devfreq/mtk-dvfsrc-devfreq/governor"
-    tweak "powersave" "/sys/class/devfreq/13000000.mali/governor"
-    tweak "1" "/proc/trans_scheduler/enable"
-    tweak "0" "/proc/game_state"
-    tweak "coarse_demand" "/sys/class/misc/mali0/device/power_policy"
-    tweak "enable" "/proc/gpufreqv2/aging_mode"
 
     # Settings
     settings put secure high_priority 0
