@@ -306,9 +306,10 @@ class _EndfieldEngineCardState extends State<EndfieldEngineCard>
   Future<void> _toggleEndfieldEngine(bool enable) async {
     if (!await checkRootAccess()) return;
     if (mounted) setState(() => _isTogglingProcess = true);
+
     try {
       if (enable) {
-        await runRootCommandFireAndForget('su -c "$_endfieldStartCommand"');
+        await runRootCommandFireAndForget(_endfieldStartCommand);
         await Future.delayed(const Duration(milliseconds: 500));
       } else {
         await runRootCommandAndWait('killall Endfield');
