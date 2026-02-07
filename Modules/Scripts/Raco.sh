@@ -271,10 +271,6 @@ mtk_gpufreq_minfreq_index() {
     sed -nE 's/^\[([0-9]+)\]\[([0-9]+)\].*/\1 \2/p' "$1" | sort -n -k2 | head -n 1 | awk '{print $1}'
 }
 
-mtk_gpufreq_maxfreq_index() {
-    sed -nE 's/^\[([0-9]+)\]\[([0-9]+)\].*/\1 \2/p' "$1" | sort -rn -k2 | head -n 1 | awk '{print $1}'
-}
-
 mtk_gpufreq_midfreq_index() {
     total_opp=$(wc -l <"$1")
     mid_opp=$(((total_opp + 1) / 2))
@@ -488,15 +484,19 @@ mediatek_performance() {
     tweak 0 /sys/module/sspm_v3/holders/ged/parameters/is_GED_KPI_enabled
     tweak 0 /sys/kernel/eara_thermal/enable
 
+    mtkvest_perf
+    yanz_mtk_boost
+
     if [ "$LITE_MODE" -eq 0 ]; then
         if [ -d /proc/gpufreqv2 ]; then
-            local max_gpufreq_index=$(mtk_gpufreq_maxfreq_index /proc/gpufreqv2/gpu_working_opp_table)
-            tweak "$max_gpufreq_index" /proc/gpufreqv2/fix_target_opp_index
+            tweak "0" /proc/gpufreqv2/fix_target_opp_index
         else
+            # Legacy fallback for older MTK (non-v2)
             local gpu_freq=$(sed -n 's/.*freq = \([0-9]\{1,\}\).*/\1/p' /proc/gpufreq/gpufreq_opp_dump | sort -nr | head -n 1)
             tweak "$gpu_freq" /proc/gpufreq/gpufreq_opp_freq
         fi
     else
+        # LITE MODE: Uses Mid Freq
         tweak 0 /proc/gpufreq/gpufreq_opp_freq
         tweak -1 /proc/gpufreqv2/fix_target_opp_index
         local mid_oppfreq
@@ -525,9 +525,6 @@ mediatek_performance() {
         tweak -1 /sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp
         devfreq_mid_perf /sys/class/devfreq/mtk-dvfsrc-devfreq
     fi
-
-    mtkvest_perf
-    yanz_mtk_boost
 }
 
 snapdragon_performance() {
