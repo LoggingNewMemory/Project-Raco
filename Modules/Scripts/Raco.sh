@@ -750,13 +750,6 @@ tegra_normal() {
 
 mediatek_powersave() {
     tweak 1 /proc/cpufreq/cpufreq_power_mode
-    if [ -d /proc/gpufreqv2 ]; then
-        local min_gpufreq_index=$(mtk_gpufreq_minfreq_index /proc/gpufreqv2/gpu_working_opp_table)
-        tweak "$min_gpufreq_index" /proc/gpufreqv2/fix_target_opp_index
-    else
-        local gpu_freq=$(sed -n 's/.*freq = \([0-9]\{1,\}\).*/\1/p' /proc/gpufreq/gpufreq_opp_dump | sort -n | head -n 1)
-        tweak "$gpu_freq" /proc/gpufreq/gpufreq_opp_freq
-    fi
     yanz_mtk_powersave
 }
 
