@@ -611,9 +611,6 @@ mediatek_normal() {
     tweak 0 /sys/devices/platform/boot_dramboost/dramboost/dramboost
     tweak 2 /sys/devices/system/cpu/eas/enable
     tweak 1 /sys/module/sspm_v3/holders/ged/parameters/is_GED_KPI_enabled
-
-    tweak 0 /sys/kernel/ged/hal/custom_boost_gpu_freq
-
     tweak "stop 0" /proc/mtk_batoc_throttling/battery_oc_protect_stop
     kakangkuh -1 /sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp
     kakangkuh -1 /sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp
