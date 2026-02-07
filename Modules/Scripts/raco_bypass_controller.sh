@@ -45,7 +45,7 @@ cat <<EOF
 /sys/class/power_supply/battery_ext/smart_charging_interruption|1|0
 /proc/mtk_battery_cmd/current_cmd|0 1|0 0
 /proc/mtk_battery_cmd/en_power_path|0|1
-/sys/class/qcom-battery/input_suspend|0|1
+/sys/class/qcom-battery/input_suspend|1|0
 /sys/class/qcom-battery/charging_enabled|0|1
 /sys/class/qcom-battery/cool_mode|1|0
 /sys/class/qcom-battery/batt_protect_en|1|0
