@@ -268,11 +268,11 @@ which_midfreq() {
 }
 
 mtk_gpufreq_minfreq_index() {
-    awk -F'[][]' '{print $2, $3}' "$1" | sort -n -k2 | head -n 1 | awk '{print $1}'
+    sed -nE 's/^\[([0-9]+)\]\[([0-9]+)\].*/\1 \2/p' "$1" | sort -n -k2 | head -n 1 | awk '{print $1}'
 }
 
 mtk_gpufreq_maxfreq_index() {
-    awk -F'[][]' '{print $2, $3}' "$1" | sort -rn -k2 | head -n 1 | awk '{print $1}'
+    sed -nE 's/^\[([0-9]+)\]\[([0-9]+)\].*/\1 \2/p' "$1" | sort -rn -k2 | head -n 1 | awk '{print $1}'
 }
 
 mtk_gpufreq_midfreq_index() {
