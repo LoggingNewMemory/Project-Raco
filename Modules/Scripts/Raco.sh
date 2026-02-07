@@ -268,7 +268,11 @@ which_midfreq() {
 }
 
 mtk_gpufreq_minfreq_index() {
-    awk -F'[][]' '{print $2}' "$1" | tail -n 1
+    awk -F'[][]' '{print $2, $3}' "$1" | sort -n -k2 | head -n 1 | awk '{print $1}'
+}
+
+mtk_gpufreq_maxfreq_index() {
+    awk -F'[][]' '{print $2, $3}' "$1" | sort -rn -k2 | head -n 1 | awk '{print $1}'
 }
 
 mtk_gpufreq_midfreq_index() {
@@ -486,9 +490,10 @@ mediatek_performance() {
 
     if [ "$LITE_MODE" -eq 0 ]; then
         if [ -d /proc/gpufreqv2 ]; then
-            tweak 0 /proc/gpufreqv2/fix_target_opp_index
+            local max_gpufreq_index=$(mtk_gpufreq_maxfreq_index /proc/gpufreqv2/gpu_working_opp_table)
+            tweak "$max_gpufreq_index" /proc/gpufreqv2/fix_target_opp_index
         else
-            local gpu_freq=$(sed -n 's/.*freq = \([0-9]\{1,\}\).*/\1/p' /proc/gpufreq/gpufreq_opp_dump | head -n 1)
+            local gpu_freq=$(sed -n 's/.*freq = \([0-9]\{1,\}\).*/\1/p' /proc/gpufreq/gpufreq_opp_dump | sort -nr | head -n 1)
             tweak "$gpu_freq" /proc/gpufreq/gpufreq_opp_freq
         fi
     else
@@ -649,13 +654,7 @@ mediatek_normal() {
 
     kakangkuh 0 /proc/gpufreq/gpufreq_opp_freq
     kakangkuh -1 /proc/gpufreqv2/fix_target_opp_index
-
-    if [ -d /proc/gpufreqv2 ]; then
-        local min_oppfreq=$(mtk_gpufreq_minfreq_index /proc/gpufreqv2/gpu_working_opp_table)
-    else
-        local min_oppfreq=$(mtk_gpufreq_minfreq_index /proc/gpufreq/gpufreq_opp_dump)
-    fi
-    tweak "$min_oppfreq" /sys/kernel/ged/hal/custom_boost_gpu_freq
+    tweak 0 /sys/kernel/ged/hal/custom_boost_gpu_freq
 
     if [[ -f "/proc/gpufreq/gpufreq_limit_table" ]]; then
         for id in {0..8}; do
@@ -758,7 +757,7 @@ mediatek_powersave() {
         local min_gpufreq_index=$(mtk_gpufreq_minfreq_index /proc/gpufreqv2/gpu_working_opp_table)
         tweak "$min_gpufreq_index" /proc/gpufreqv2/fix_target_opp_index
     else
-        local gpu_freq=$(sed -n 's/.*freq = \([0-9]\{1,\}\).*/\1/p' /proc/gpufreq/gpufreq_opp_dump | tail -n 1)
+        local gpu_freq=$(sed -n 's/.*freq = \([0-9]\{1,\}\).*/\1/p' /proc/gpufreq/gpufreq_opp_dump | sort -n | head -n 1)
         tweak "$gpu_freq" /proc/gpufreq/gpufreq_opp_freq
     fi
     yanz_mtk_powersave
