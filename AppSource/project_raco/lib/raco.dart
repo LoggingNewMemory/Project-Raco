@@ -305,23 +305,50 @@ class _RacoPageState extends State<RacoPage> {
 
                     const SizedBox(height: 20),
                     Center(
-                      child: TextButton(
-                        onPressed: () async {
-                          final Uri url = Uri.parse('https://t.me/ProjectRaco');
-                          if (!await launchUrl(
-                            url,
-                            mode: LaunchMode.externalApplication,
-                          )) {
-                            debugPrint("Could not launch $url");
-                          }
-                        },
-                        child: Text(
-                          "Official Project Raco Telegram Group",
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.bold,
+                      child: Column(
+                        children: [
+                          TextButton(
+                            onPressed: () async {
+                              final Uri url = Uri.parse(
+                                'https://t.me/ProjectRaco',
+                              );
+                              if (!await launchUrl(
+                                url,
+                                mode: LaunchMode.externalApplication,
+                              )) {
+                                debugPrint("Could not launch $url");
+                              }
+                            },
+                            child: Text(
+                              "Official Project Raco Telegram Group",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
+                          // --- NEW DONATE BUTTON ---
+                          TextButton(
+                            onPressed: () async {
+                              final Uri url = Uri.parse(
+                                'https://t.me/KanagawaYamadaCH/2543',
+                              );
+                              if (!await launchUrl(
+                                url,
+                                mode: LaunchMode.externalApplication,
+                              )) {
+                                debugPrint("Could not launch $url");
+                              }
+                            },
+                            child: Text(
+                              "Donate for Project Raco",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 
