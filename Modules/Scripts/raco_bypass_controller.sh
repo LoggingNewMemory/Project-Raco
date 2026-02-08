@@ -49,8 +49,6 @@ cat <<EOF
 /sys/class/qcom-battery/charging_enabled|0|1
 /sys/class/qcom-battery/cool_mode|1|0
 /sys/class/qcom-battery/batt_protect_en|1|0
-/proc/mtk_battery_cmd/current_cmd|0 1|0 0
-/proc/mtk_battery_cmd/en_power_path|0|1
 
 # --- Asus (ROG / Zenfone) ---
 /sys/class/asuslib/bypass_charging|1|0
@@ -155,7 +153,6 @@ scan_and_update() {
     local found_count=0
     
     # Read database line by line
-    # We use a file descriptor to avoid subshell variable loss issues
     while IFS= read -r line; do
         [ -z "$line" ] && continue
         # Skip comments
