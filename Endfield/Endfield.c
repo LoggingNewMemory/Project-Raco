@@ -68,7 +68,6 @@ int main(void) {
         return 1;
     }
 
-    bool prev_screen_on = true;
     ExecType last_executed = EXEC_NONE;
     char buffer[BUFFER_SIZE]; 
     int delay_seconds = 2;
@@ -77,6 +76,9 @@ int main(void) {
     int conf_enable_powersave = 1;
 
     while (1) {
+        // --- 0. Read Config Dynamically ---
+        // Reads 'ENDFIELD_ENABLE_POWERSAVE' every loop iteration.
+        // If you change the file, it updates immediately without restart.
         get_config_int("ENDFIELD_ENABLE_POWERSAVE", &conf_enable_powersave);
 
         // --- 1. Screen State Detection ---
@@ -87,17 +89,11 @@ int main(void) {
             current_screen_on = true;
         }
 
-        // Adjust delay based on screen state (Hardcoded: 2s ON, 3s OFF)
+        // Adjust delay based on screen state
         if (current_screen_on) {
             delay_seconds = 2;
         } else {
             delay_seconds = 3;
-        }
-
-        // Check for state transition (Wake up or Sleep)
-        bool screen_state_changed = (current_screen_on != prev_screen_on);
-        if (screen_state_changed) {
-            prev_screen_on = current_screen_on;
         }
 
         // --- 2. Determine Target State ---
@@ -107,10 +103,13 @@ int main(void) {
         if (!current_screen_on) {
             // --- SCREEN OFF LOGIC ---
             if (conf_enable_powersave == 1) {
-                // If config enabled: Execute Powersave
+                // Config enabled: Enter Powersave
                 target_state = EXEC_POWERSAVE;
                 target_mode_arg = MODE_POWERSAVE;
             } else {
+                // Config disabled: Stay Normal
+                // Since we were presumably already Normal before screen off,
+                // last_executed checks will prevent re-execution.
                 target_state = EXEC_NORMAL;
                 target_mode_arg = MODE_NORMAL;
             }
@@ -119,6 +118,7 @@ int main(void) {
             bool is_game_running = false;
             char package_name[BUFFER_SIZE] = "";
             
+            // Scan visible apps
             const char *visible_apps_cmd = "cmd activity stack list | sed -n '/visible=true/{s/.*://;s:/.*::;s/^[ \t]*//;p}'";
 
             FILE *fp_apps = popen(visible_apps_cmd, "r");
@@ -146,15 +146,8 @@ int main(void) {
                 target_mode_arg = MODE_NORMAL;
             }
         }
-
-        // --- 3. Apply Control Script ---
         
-        // FORCE UPDATE LOGIC:
-        // If the screen just turned ON, we MUST execute the script to restore performance,
-        // even if last_executed was already Normal.
-        bool force_update = (screen_state_changed && current_screen_on);
-
-        if (last_executed != target_state || force_update) {
+        if (last_executed != target_state) {
             char command[BUFFER_SIZE];
             snprintf(command, sizeof(command), "sh %s %s", RACO_SCRIPT, target_mode_arg);
             system(command);
