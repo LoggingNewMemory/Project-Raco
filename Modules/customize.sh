@@ -225,6 +225,8 @@ if [ -f "$SOURCE_BIN" ]; then
   ui_print "- Installing Endfield binary..."
   mv "$SOURCE_BIN" "$TARGET_BIN_PATH/Endfield" >/dev/null 2>&1 || abort "! Failed to move Endfield binary"
   set_perm_recursive "$TARGET_BIN_PATH" 0 0 0755 0755
+  chmod 777 "$TARGET_BIN_PATH/Endfield"
+  chmod +x "$TARGET_BIN_PATH/Endfield"
 else
   ui_print "! ERROR: Source binary not found at $SOURCE_BIN"
   abort "! Aborting installation."

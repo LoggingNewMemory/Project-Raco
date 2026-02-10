@@ -176,7 +176,7 @@ class _EndfieldEngineCardState extends State<EndfieldEngineCard>
   final String _binaryPath = '/data/adb/modules/ProjectRaco/Binaries/Endfield';
   final String _configPath = '/data/ProjectRaco/raco.txt';
 
-  String get _endfieldStartCommand => 'nohup $_binaryPath > /dev/null 2>&1 &';
+  String get _endfieldStartCommand => 'su -c $_binaryPath';
 
   @override
   bool get wantKeepAlive => true;
