@@ -77,8 +77,7 @@ int main(void) {
     int conf_enable_powersave = 1;
 
     while (1) {
-        // --- 0. Read Config ---
-        get_config_int("HAMADA_ENABLE_POWERSAVE", &conf_enable_powersave);
+        get_config_int("ENDFIELD_ENABLE_POWERSAVE", &conf_enable_powersave);
 
         // --- 1. Screen State Detection ---
         bool current_screen_on = false;
@@ -112,7 +111,6 @@ int main(void) {
                 target_state = EXEC_POWERSAVE;
                 target_mode_arg = MODE_POWERSAVE;
             } else {
-                // If config disabled: Treat as Normal (Do not enter powersave)
                 target_state = EXEC_NORMAL;
                 target_mode_arg = MODE_NORMAL;
             }
@@ -121,7 +119,6 @@ int main(void) {
             bool is_game_running = false;
             char package_name[BUFFER_SIZE] = "";
             
-            // Scan visible apps
             const char *visible_apps_cmd = "cmd activity stack list | sed -n '/visible=true/{s/.*://;s:/.*::;s/^[ \t]*//;p}'";
 
             FILE *fp_apps = popen(visible_apps_cmd, "r");

@@ -776,7 +776,6 @@ class _AppListPageState extends State<AppListPage> {
             tooltip: 'Reload Apps',
             onPressed: () => _fetchInstalledApps(forceRefresh: true),
           ),
-          IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
         ],
       ),
       body: Column(
