@@ -117,7 +117,9 @@ bypass_on() {
 }
 
 bypass_off() {
+    if [ "$BYPASS_ENABLE" = "1" ]; then
     sh "$SCRIPT_PATH/raco_bypass_controller.sh" disable &
+    fi
 }
 
 notification() {
