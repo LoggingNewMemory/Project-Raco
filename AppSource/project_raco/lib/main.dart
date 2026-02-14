@@ -21,7 +21,7 @@ import 'topo_background.dart';
 
 const String _expectedOfficialDev = "Kanagawa Yamada";
 const String _expectedOfficialHash =
-    "8cd2dd9083221ba65b141220e8b0c6942660300b32e4d8b24c75e95c10cd6519b89f89abb8081bb572a5b01c0da72b0d39cb277df750205920ed0fa0c47ef7b3";
+    "14392e66f4b4ff5887a95d92bb9be1d06098efed392387b1e5a3236eef9d16d766f56d2974cfb809dad0e3ec2793e6a4d9937cce09dc1e5e82e65c384cb23660";
 
 // --- QUICK SETTINGS HANDLERS ---
 @pragma('vm:entry-point')
