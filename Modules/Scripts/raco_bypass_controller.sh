@@ -17,37 +17,95 @@ LOG_TAG="RacoBypass"
 # ---------------------------------------------------------
 get_database() {
 cat <<EOF
-# Generic / Universal (Standard Linux Power Supply Class)
-/sys/class/power_supply/battery/charging_enabled|0|1
-/sys/class/power_supply/main/charging_enabled|0|1
-/sys/class/power_supply/battery/batt_charging_enabled|0|1
-
-# Xiaomi / POCO / OnePlus (Qualcomm & MediaTek)
-/sys/class/power_supply/battery/battery_charging_enabled|0|1
-
-# Google Pixel (Pixel 3 through Pixel 7/8 series)
+# --- Universal / Generic ---
+/sys/class/power_supply/battery/input_suspend|1|0
+/sys/class/power_supply/battery/battery_input_suspend|1|0
 /sys/class/power_supply/battery/charge_disable|1|0
-/sys/devices/platform/google,battery/power_supply/battery/charge_disable|1|0
-/sys/class/power_supply/google_charger/charge_start_level|0|100
+/sys/class/power_supply/battery/charging_enabled|0|1
+/sys/class/power_supply/battery/charge_enabled|0|1
+/sys/class/power_supply/battery/battery_charging_enabled|0|1
+/sys/class/power_supply/battery/device/Charging_Enable|0|1
+/sys/class/power_supply/ac/charging_enabled|0|1
+/sys/class/power_supply/charge_data/enable_charger|0|1
+/sys/class/power_supply/dc/charging_enabled|0|1
+/sys/class/power_supply/main/charging_enabled|0|1
+/sys/class/power_supply/usb/charging_enabled|0|1
+/sys/class/power_supply/battery/stop_charge|1|0
+/sys/class/power_supply/battery/pause_charging|1|0
 
-# Samsung (Galaxy Series - Stops charging but keeps USB power)
-# batt_slate_mode: 1 = Retail/Demo Mode (Stops Charging), 0 = Normal
+# --- Oppo / OnePlus / Realme (VOOC/SuperVOOC) ---
+/sys/class/oplus_chg/battery/mmi_charging_enable|0|1
+/sys/class/power_supply/battery/mmi_charging_enable|0|1
+/sys/devices/virtual/oplus_chg/battery/mmi_charging_enable|0|1
+/sys/devices/platform/soc/soc:oplus,chg_intf/oplus_chg/battery/mmi_charging_enable|0|1
+/sys/devices/platform/soc/soc:oplus,chg_intf/oplus_chg/battery/chg_enable|0|1
+/sys/devices/platform/soc/soc:oplus,chg_intf/oplus_chg/battery/cool_down|1|0
+/proc/fastchg_fw_update|1|0
+
+# --- Xiaomi / Poco / Redmi (MIUI/HyperOS) ---
+/sys/class/qcom-battery/input_suspend|1|0
+/sys/class/qcom-battery/charging_enabled|0|1
+/sys/class/qcom-battery/cool_mode|1|0
+/sys/class/qcom-battery/batt_protect_en|1|0
+
+# --- Asus (ROG / Zenfone) ---
+/sys/class/asuslib/bypass_charging|1|0
+/sys/class/asuslib/enter_bypass|1|0
+/sys/class/asuslib/charger_limit_en|1|0
+/sys/class/asuslib/charging_suspend_en|1|0
+/proc/driver/charger_limit_enable|1|0
+/proc/driver/charger_limit|5|100
+
+# --- Google Pixel ---
+/sys/devices/platform/google,charger/charge_disable|1|0
+/sys/devices/platform/google,battery/power_supply/battery/charge_disable|1|0
+/sys/kernel/debug/google_charger/chg_suspend|1|0
+/sys/kernel/debug/google_charger/input_suspend|1|0
+/sys/devices/platform/soc/soc:google,charger/charge_disable|1|0
+/sys/devices/platform/soc/soc:google,charger/charge_stop_level|0|100
+
+# --- Samsung ---
 /sys/class/power_supply/battery/batt_slate_mode|1|0
 /sys/class/power_supply/battery/store_mode|1|0
+/sys/class/power_supply/battery/test_mode|1|2
+/sys/class/power_supply/battery/siop_level|0|100
+/sys/class/power_supply/battery_ext/smart_charging_interruption|1|0
+/sys/class/power_supply/battery/restricted_charging|1|0
+/sys/class/power_supply/wireless/restricted_charging|1|0
 
-# Motorola
-/sys/class/power_supply/battery/mmi_charging_enable|0|1
+# --- Huawei / Honor ---
+/sys/devices/platform/huawei_charger/enable_charger|0|1
+/sys/class/hw_power/charger/charge_data/enable_charger|0|1
+/sys/class/power_supply/battery/hmt_ta_charge|0|1
 
-# ASUS (ROG Phone / ZenFone - Hardware Bypass Support)
-/sys/class/power_supply/battery/device/bypass_charging|1|0
-/sys/class/power_supply/battery/ide_mode|1|0
-
-# Huawei / Honor
-/sys/class/power_supply/battery/mmi_charging_enable|0|1
-/sys/class/power_supply/bms/battery_charging_enabled|0|1
-
-# Lenovo
-/sys/class/power_supply/battery/conservation_mode|1|0
+# --- MediaTek / Misc Kernel Nodes ---
+/sys/devices/platform/charger/bypass_charger|1|0
+/sys/devices/platform/charger/tran_aichg_disable_charger|1|0
+/sys/devices/platform/mt-battery/disable_charger|1|0
+/sys/devices/platform/omap/omap_i2c.3/i2c-3/3-005f/charge_enable|0|1
+/sys/devices/soc/qpnp-smbcharger-18/power_supply/battery/battery_charging_enabled|0|1
+/sys/devices/platform/tegra12-i2c.0/i2c-0/0-006b/charging_state|disabled|enabled
+/sys/module/pmic8058_charger/parameters/disabled|1|0
+/sys/module/pm8921_charger/parameters/disabled|1|0
+/sys/module/smb137b/parameters/disabled|1|0
+/proc/smb1357_disable_chrg|1|0
+/sys/class/power_supply/bq2589x_charger/enable_charging|0|1
+/sys/devices/platform/soc/soc:qcom,pmic_glink/soc:qcom,pmic_glink:qcom,battery_charger/force_charger_suspend|1|0
+/sys/kernel/nubia_charge/charger_bypass|on|off
+/sys/devices/platform/lge-unified-nodes/charging_enable|0|1
+/sys/devices/platform/lge-unified-nodes/charging_completed|1|0
+/sys/module/lge_battery/parameters/charge_stop_level|5|100
+/sys/devices/virtual/power_supply/manta-battery/charge_enabled|0|1
+/sys/devices/platform/battery/CCIChargerSwitch|0|1
+/sys/module/qpnp_adaptive_charge/parameters/blocking|1|0
+/sys/kernel/debug/google_charger/chg_mode|0|1
+/sys/class/power_supply/battery/bd_trickle_cnt|1|0
+/sys/class/power_supply/idt/pin_enabled|1|0
+/sys/class/power_supply/battery/charge_charger_state|1|0
+/sys/class/power_supply/main/adapter_cc_mode|1|0
+/sys/class/power_supply/maxfg/offmode_charger|1|0
+/sys/class/power_supply/main/cool_mode|1|0
+/sys/class/power_supply/battery/charge_control_limit_max|1|0
 EOF
 }
 
