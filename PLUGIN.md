@@ -29,8 +29,10 @@ Your plugin `.zip` file must follow this exact directory structure:
 Raco Plugin.zip/
 ├── raco.prop
 ├── service.sh
+├── webroot / (If you want to add WebUI (added in Raco 5.0)
 ├── uninstall.sh
 ├── install.sh
+├── post-fs-data.sh
 └── Logo.png (Optional) - Max 512x512
 ```
 
@@ -50,4 +52,5 @@ If this line is missing, the installation will fail.
 | :--- | :--- | :--- |
 | **Plugin Example** | A reference implementation (PingImp) | [View Example](https://github.com/LoggingNewMemory/Project-Raco/blob/main/Raco%20Plugin%20Example/Raco%20PingImp.zip) |
 | **Plugin Template** | Empty starter template | [Download Template](https://github.com/LoggingNewMemory/Project-Raco/blob/main/Raco%20Plugin%20Example/Raco%20Plugin%20Template.zip) |
+
 
