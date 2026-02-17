@@ -57,7 +57,7 @@ Some modules may be compatible, but proceed with caution.
 
 - **Read Here** 
 - [ANGLE Documentation 1](https://chromium.googlesource.com/angle/angle.git/+/HEAD/doc/DevSetupAndroid.md)
-- [ANGLE Documentation 1](https://android.googlesource.com/platform/packages/modules/ANGLE/)
+- [ANGLE Documentation 2](https://android.googlesource.com/platform/packages/modules/ANGLE/)
 
 
 ### Intelligence & Automation
