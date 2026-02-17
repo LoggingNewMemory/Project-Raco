@@ -15,6 +15,7 @@ Some modules may be compatible, but proceed with caution.
 - **GPU Tweaks** - Graphics processor optimizations
 - **RAM Tweaks** - Memory management enhancements
 - **Storage Tweaks** - I/O performance improvements
+- **Max Priority** - RiProG Playboost (Raco Slingshot)
 
 ### System Optimizations
 - **GED Tweaks** - Game Engine Daemon optimizations
@@ -39,12 +40,12 @@ Some modules may be compatible, but proceed with caution.
 - **Kobo Fast Charge** - Enhanced fast charging implementation
 - **Bypass Charging** *(on supported devices)* - Direct power mode
 - **Disable Lock Frame Rate When Low Battery** - Maintain performance on low battery
+- **FPSGo Tweaks** - KamiGO OSS (Mediatek)
 
 ### Display & Graphics
-- **Vestia Zeta Display** - Display enhancement suite
 - **Ayunda Rusdi Color Enhancer Pro** *(Project Raco Exclusive)* - Advanced color calibration
 - **Downscale Resolution** - Reduce resolution for better performance
-- **AmeRender Gen II** *(Render & SurfaceFlinger Tweaks)*
+- **Zetamin** *(All in One Screen Tweaks)*
   - Compatible with SkiaVK/GL render modules
   - Advanced rendering pipeline optimizations
 - **Disable Frame Rate Limit** - Remove FPS caps (Vestia Zeta Display)
@@ -71,8 +72,15 @@ Some modules may be compatible, but proceed with caution.
 - **Raco Slingshot** - **Kasane Preload** - Preload apps file to improve loading screen and performance 
 - **Raco Plugin** - Extended functionality support
 
-### Input
-- **Touch Improve Tweak** - Enhanced touchscreen responsiveness
+### Battery, Misc
+- **Deep Sleep Opt** - Optimization of Deep Sleep
+- **GMS Doze** - Allow GMS to Doze
+- **Task Optimization** - Change task to optimize memory
+- **RCU, Scheduler, Kernel Optimization** 
+- **Disable some of Kernel Logging** - But not entirely because needed for debugging
+- **Disable Kernel Panic**
+- **Additional LMK Tweaks**
+- **Optimization of Memory Cache**
 
 ---
 
