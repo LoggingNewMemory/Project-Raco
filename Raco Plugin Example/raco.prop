@@ -1,6 +1,7 @@
 RacoPlugin=1
-id=PingImp
-name=PingImp - Raco Plugin
+id=PingPimp
+name=PingPimp
+version=v7.0
+versionCode=70
+author=@fuckyoustan
 description=Elevating connections with optimized performance
-version=7.0 - Raco
-author=@fuckyoustan / @KanagawaYamadaVTeacher

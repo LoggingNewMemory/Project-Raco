@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PingPimp</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-title">
+      <span class="material-symbols-rounded">electric_bolt</span>
+      PingPimp
+    </div>
+  </header>
+  <div class="main">
+    <div id="tab-home" class="tab-content active">
+      <div class="banner">
+        <img src="assets/a.gif" alt="Banner" />
+        <div class="banner-message" id="banner-message">Loading...</div>
+      </div>
+      <div class="device-info" role="group" aria-label="Device information">
+        <div class="device-info-item">
+          <div class="label">
+            <span class="material-symbols-rounded">stars</span>
+            <span>PingPimp Version</span>
+          </div>
+          <div class="value" id="PingPimpVer">Detecting...</div>
+        </div>
+        <div class="device-info-item">
+          <div class="label"><span class="material-symbols-rounded">smartphone</span> Device Model</div>
+          <div class="value" id="device-model">-</div>
+        </div>
+        <div class="device-info-item">
+          <div class="label"><span class="material-symbols-rounded">android</span> Android Version</div>
+          <div class="value" id="device-android">-</div>
+        </div>
+        <div class="device-info-item">
+          <div class="label"><span class="material-symbols-rounded">memory</span> Kernel</div>
+          <div class="value" id="device-kernel">-</div>
+        </div>
+        <div class="device-info-item">
+          <div class="label"><span class="material-symbols-rounded">laptop_mac</span> Chipset</div>
+          <div class="value" id="device-chipset">-</div>
+        </div>
+        <div class="device-info-item">
+          <div class="label"><span class="material-symbols-rounded">view_list</span> CPU ABI</div>
+          <div class="value" id="device-abis">-</div>
+        </div>
+      </div>
+      <div class="dev-card">
+        <div class="dev-profile">
+          <img src="assets/profil.png" alt="Developer Avatar" class="dev-avatar" />
+          <div class="dev-info">
+            <div class="dev-username">@fuckyoustan</div>
+            <div class="dev-desc">The Script Kiddie</div>
+          </div>
+        </div>
+        <div class="dev-links">
+          <a href="#" class="pill-btn" id="btn-github">
+            <span class="material-symbols-rounded" style="font-size:16px">code</span> GitHub
+          </a>
+          <a href="#" class="pill-btn" id="btn-telegram">
+            <span class="material-symbols-rounded" style="font-size:16px">send</span> Telegram
+          </a>
+        </div>
+      </div>
+      <div class="home-footer" style="text-align: center; font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 16px; padding-bottom: 8px;">
+        created by @fuckyoustan with ❤️
+      </div>
+    </div>
+    <div id="tab-config" class="tab-content">
+      <div class="custom-card">
+        <div class="custom-card-header">
+          <div class="custom-card-icon">
+            <span class="material-symbols-rounded">network_ping</span>
+          </div>
+          <div class="custom-card-title">Network Tweak</div>
+        </div>
+        <div class="custom-card-desc">
+          Set the preset tweak according to your needs and select the TCP algorithm you want.
+        </div>
+        <div class="custom-option">
+          <span class="custom-label">Preset Tweak</span>
+          <div class="custom-dropdown" id="dropdown-preset">
+            <div class="custom-dropdown-trigger">
+              <span class="current-text">Default</span>
+            </div>
+            <div class="custom-dropdown-menu"></div>
+          </div>
+        </div>
+        <div class="custom-option">
+          <span class="custom-label">TCP Algorithm</span>
+          <div class="custom-dropdown" id="dropdown-tcp">
+            <div class="custom-dropdown-trigger">
+              <span class="current-text">Loading...</span>
+            </div>
+            <div class="custom-dropdown-menu"></div>
+          </div>
+        </div>
+      </div>
+      <div class="custom-card">
+        <div class="custom-card-header">
+          <div class="custom-card-icon">
+            <span class="material-symbols-rounded">dns</span>
+          </div>
+          <div class="custom-card-title">Private DNS</div>
+        </div>
+        <div class="custom-card-desc">
+          Secure your DNS queries with encrypted DNS providers. Choose a trusted resolver below.
+        </div>
+        <div class="custom-option">
+          <span class="custom-label">DNS Option</span>
+          <div class="custom-dropdown" id="dropdown-dns">
+            <div class="custom-dropdown-trigger">
+              <span class="current-text">Default</span>
+            </div>
+            <div class="custom-dropdown-menu"></div>
+          </div>
+        </div>
+      </div>
+      <div class="custom-card">
+        <div class="custom-card-header">
+          <div class="custom-card-icon">
+            <span class="material-symbols-rounded">speed</span>
+          </div>
+          <div class="custom-card-title">Optimize Internet</div>
+        </div>
+        <div class="custom-card-desc">
+          Increase network speed by disable netstats and optimize wifi connectivity.
+        </div>
+        <div class="custom-option" style="padding-bottom:0; border-bottom:none;">
+          <span class="custom-label">Disable Network State</span>
+          <label class="custom-switch">
+            <input type="checkbox" id="switch-netstate">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="custom-card">
+        <div class="custom-card-header">
+          <div class="custom-card-icon">
+            <span class="material-symbols-rounded">data_saver_on</span>
+          </div>
+          <div class="custom-card-title">Ultra Data Saver</div>
+        </div>
+        <div class="custom-card-desc">
+          Restricts background data and limit internet speed to only 1mb/s.
+        </div>
+        <div class="custom-option" style="padding-bottom:0; border-bottom:none;">
+          <span class="custom-label">Enable Data Saver</span>
+          <label class="custom-switch">
+            <input type="checkbox" id="switch-saver">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div id="tab-isolate" class="tab-content">
+      <input type="text" id="isolate-search" placeholder="Search apps..." style="
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 24px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid var(--outline);
+        color: var(--on-surface);
+        font-size: 14px;
+        outline: none;
+        margin-bottom: 16px;
+      " />
+      <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+        <button class="filter-chip" data-chip="system" style="padding:6px 12px;border-radius:16px;background:transparent;color:var(--on-surface);border:1px solid var(--outline);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s ease;min-height:28px;line-height:1.2;">System</button>
+        <button class="filter-chip" data-chip="user" style="padding:6px 12px;border-radius:16px;background:transparent;color:var(--on-surface);border:1px solid var(--outline);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s ease;min-height:28px;line-height:1.2;">User</button>
+        <button class="filter-chip" data-chip="list" style="padding:6px 12px;border-radius:16px;background:transparent;color:var(--on-surface);border:1px solid var(--outline);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s ease;min-height:28px;line-height:1.2;">List</button>
+      </div>
+      <div id="app-list-container" class="device-info" style="margin-bottom: 16px;"></div>
+      <div id="selected-apps-container" style="display: none; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;"></div>
+    </div>
+  </div>
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-home">
+      <div class="nav-icon-container">
+        <span class="material-symbols-rounded nav-icon">home</span>
+      </div>
+      <span class="nav-label">Home</span>
+    </div>
+    <div class="nav-item" id="nav-config">
+      <div class="nav-icon-container">
+        <span class="material-symbols-rounded nav-icon">settings</span>
+      </div>
+      <span class="nav-label">Config</span>
+    </div>
+    <div class="nav-item" id="nav-isolate">
+      <div class="nav-icon-container">
+        <span class="material-symbols-rounded nav-icon">shield</span>
+      </div>
+      <span class="nav-label">Isolate</span>
+    </div>
+  </nav>
+  <div id="loading-overlay">Loading...</div>
+  <script src="assets/script.js"></script>
+</body>
+</html>
