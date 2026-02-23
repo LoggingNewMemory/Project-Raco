@@ -27,7 +27,6 @@ send_notif() {
 }
 
 # Define the function to change the CPU governor.
-# It will only be called if INCLUDE_SANDEV is set to 1.
 change_cpu_gov() {
   chmod 644 /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
   echo "$1" | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor >/dev/null
@@ -117,11 +116,7 @@ fi
 
 settings put global kernel_cpu_thread_reader "num_buckets=0,collected_uids=system,minimum_total_cpu_usage_millis=600000" >/dev/null 2>&1
 settings put global battery_stats_constants "battery_level_collection_delay_ms=1800000,proc_state_cpu_times_read_delay_ms=3600000000,read_binary_cpu_time=1,kernel_uid_readers_throttle_time=2000,track_cpu_active_cluster_time=false,external_stats_collection_rate_limit_ms=60000,max_history_files=1,max_history_buffer_kb=64" >/dev/null 2>&1
-
-settings put system device_idle_constants "inactive_to=60000,sensing_to=0,locating_to=0,motion_inactive_to=0,idle_after_inactive_to=300000,min_time_to_alarm=600000" >/dev/null 2>&1
-
 settings put global job_scheduler_constants "job_scheduler_quota_controller_constants=rate_limiting_window_ms=90000,max_job_count_active=60,max_session_count_active=60" >/dev/null 2>&1
-
 settings put global activity_manager_constants "max_cached_processes=32,background_settle_time=60000,fgs_start_deny_exposure_time=10000" >/dev/null 2>&1
 device_config put activity_manager proactive_kills_enabled false >/dev/null 2>&1
 
@@ -159,31 +154,13 @@ optimize_deep_sleep() {
     rm -f /data/log/*.log 2>/dev/null
     rm -f /cache/*.log 2>/dev/null
     
-    # Device Idle Configuration
     dumpsys deviceidle reset 2>/dev/null
     dumpsys deviceidle enable light 2>/dev/null
     dumpsys deviceidle enable deep 2>/dev/null
-    dumpsys deviceidle force-idle 2>/dev/null
     
-    # Aggressive Doze Constants
-    settings put global device_idle_constants inactive_to=30000,motion_inactive_to=0,wait_for_unlock=true 2>/dev/null
+    settings put global device_idle_constants light_after_inactive_to=15000,light_pre_idle_to=30000,light_idle_to=300000,light_max_idle_to=900000,inactive_to=1800000,idle_after_inactive_to=0,idle_pending_to=300000,max_idle_pending_to=600000,idle_to=3600000,max_idle_to=21600000 2>/dev/null
     
-    # Disable keep-alive mechanisms
-    settings put global low_power_mode 1 2>/dev/null
-    settings put global low_power_mode_trigger_level 20 2>/dev/null
-    
-    # Disable wakeup sources that prevent deep sleep
-    for wakeup in /sys/class/wakeup/*/active_count; do
-        if [ -d "$(dirname "$wakeup")" ]; then
-             echo "disabled" > "$(dirname "$wakeup")/active_wakeup" 2>/dev/null
-        fi
-    done
-    
-    # Disable wakelocks for common wake sources
-    echo "0" > /sys/power/wake_lock 2>/dev/null || true
-    
-    # Trim memory caches
-    pm trim-caches 999999999 2>/dev/null
+        pm trim-caches 999999999 2>/dev/null
 }
 optimize_deep_sleep
 
@@ -218,13 +195,6 @@ disable_tracing_and_logging
 optimize_logcat() {
     logcat -c 2>/dev/null
     logcat -G 16K 2>/dev/null
-    logcat -b all -G 16K 2>/dev/null
-    logcat -b main -G 32K 2>/dev/null
-    logcat -b system -G 16K 2>/dev/null
-    logcat -b events -G 16K 2>/dev/null
-    logcat -b crash -G 16K 2>/dev/null
-    logcat -b kernel -G 16K 2>/dev/null
-    
     setprop persist.sys.usb.config adb 2>/dev/null
     setprop ro.logd.size.stats 0 2>/dev/null
     setprop ro.logdumpd.enabled false 2>/dev/null
@@ -244,14 +214,7 @@ optimize_logcat() {
 optimize_logcat
 
 # 5. [BETA] Better Memory Management by Task Change
-settings put global kernel_cpu_thread_reader "num_buckets=0,collected_uids=system,minimum_total_cpu_usage_millis=600000" >/dev/null 2>&1
-settings put global battery_stats_constants "battery_level_collection_delay_ms=1800000,proc_state_cpu_times_read_delay_ms=3600000000,read_binary_cpu_time=1,kernel_uid_readers_throttle_time=2000,track_cpu_active_cluster_time=false,external_stats_collection_rate_limit_ms=60000,max_history_files=1,max_history_buffer_kb=64" >/dev/null 2>&1
-settings put global job_scheduler_constants "job_scheduler_quota_controller_constants=rate_limiting_window_ms=90000,max_job_count_active=60,max_session_count_active=60" >/dev/null 2>&1
-settings put global activity_manager_constants "max_cached_processes=32,background_settle_time=60000,fgs_start_deny_exposure_time=10000" >/dev/null 2>&1
-device_config put activity_manager proactive_kills_enabled false >/dev/null 2>&1
-
 change_task_affinity() {
-    # $1:task_name $2:cpu_mask (hex format)
     local ps_ret
     ps_ret=$(ps -A 2>/dev/null || ps 2>/dev/null)
     for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | grep -v "PID" | awk '{print $1}'); do
@@ -264,7 +227,6 @@ change_task_affinity() {
 }
 
 change_task_nice() {
-    # $1:task_name $2:nice(relative to 120)
     local ps_ret
     ps_ret=$(ps -A 2>/dev/null || ps 2>/dev/null)
     for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | grep -v "PID" | awk '{print $1}'); do
@@ -464,16 +426,13 @@ PLUGIN_DIR="/data/ProjectRaco/Plugins"
 if [ -f "$PLUGIN_TXT" ]; then
     # Read Plugin.txt line by line (format: PluginID=1)
     while IFS='=' read -r plugin_id enabled || [ -n "$plugin_id" ]; do
-        # Clean up whitespace/newlines just in case
         plugin_id=$(echo "$plugin_id" | tr -d '[:space:]')
         enabled=$(echo "$enabled" | tr -d '[:space:]')
 
-        # If plugin is enabled (1), execute its service.sh
         if [ "$enabled" = "1" ]; then
             plugin_service="$PLUGIN_DIR/$plugin_id/service.sh"
             if [ -f "$plugin_service" ]; then
                 chmod +x "$plugin_service"
-                # Run in background (&) to ensure it doesn't block the main script loop
                 sh "$plugin_service" &
             fi
         fi
