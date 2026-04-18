@@ -114,10 +114,6 @@ fi
 # Heavily modified to accomodate old devices
 ############################
 
-settings put global kernel_cpu_thread_reader "num_buckets=0,collected_uids=system,minimum_total_cpu_usage_millis=600000" >/dev/null 2>&1
-settings put global battery_stats_constants "battery_level_collection_delay_ms=1800000,proc_state_cpu_times_read_delay_ms=3600000000,read_binary_cpu_time=1,kernel_uid_readers_throttle_time=2000,track_cpu_active_cluster_time=false,external_stats_collection_rate_limit_ms=60000,max_history_files=1,max_history_buffer_kb=64" >/dev/null 2>&1
-settings put global job_scheduler_constants "job_scheduler_quota_controller_constants=rate_limiting_window_ms=90000,max_job_count_active=60,max_session_count_active=60" >/dev/null 2>&1
-settings put global activity_manager_constants "max_cached_processes=32,background_settle_time=60000,fgs_start_deny_exposure_time=10000" >/dev/null 2>&1
 device_config put activity_manager proactive_kills_enabled false >/dev/null 2>&1
 
 atrace --async_stop >/dev/null 2>&1
