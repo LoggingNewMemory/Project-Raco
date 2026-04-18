@@ -390,18 +390,6 @@ yanz_universal() {
     tweak "0" "/sys/module/printk/parameters/time"
     tweak "0" "/sys/module/printk/parameters/printk_ratelimit"
 
-    # Zram & VM Tweaks
-    tweak "0" "/sys/module/lowmemorykiller/parameters/enable_adaptive_lmk"
-    tweak "90" "/proc/sys/vm/overcommit_ratio"
-    tweak "0" "/proc/sys/vm/extra_free_kbytes"
-    tweak "3072" "/proc/sys/vm/min_free_kbytes"
-    tweak "0" "/proc/sys/vm/oom_kill_allocating_task"
-    
-    # Dirty Ratio (Performance bias)
-    tweak "30" "/proc/sys/vm/dirty_ratio"
-    tweak "5" "/proc/sys/vm/dirty_background_ratio"
-    tweak "3000" "/proc/sys/vm/dirty_writeback_centises"
-
     # Disable Fsync & Vsync related
     tweak "N" "/sys/module/sync/parameters/fsync_enabled"
     tweak "0" "/sys/kernel/debug/mdss_panel_fb0/intf0/mipi/hw_vsync_mode"
