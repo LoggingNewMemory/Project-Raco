@@ -33,7 +33,11 @@ import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -63,10 +67,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -149,8 +156,8 @@ fun HomeScreen() {
         label = "AccentColorAnim"
     )
 
-    // Background Transition Anim
-    val rightPaneColor by animateColorAsState(if (showPerfMenu) Color(0xFF0A0A0A) else Color(0xFF242424), label = "RightPaneColor")
+    // Right Pane Background perfectly clear transparent to allow the blurred icon to bleed edge-to-edge
+    val rightPaneColor by animateColorAsState(if (showPerfMenu) Color(0xFF0A0A0A) else Color.Transparent, label = "RightPaneColor")
     val lineAlpha by animateFloatAsState(if (showPerfMenu) 0f else 1f, label = "LineAlpha")
     var activeGradientMode by remember { mutableStateOf(currentMode) }
     val lineSlideProgress = remember { Animatable(1f) }
@@ -236,7 +243,6 @@ fun HomeScreen() {
                     fontFamily = gilmerBold, fontSize = 34.sp, letterSpacing = 2.sp
                 )
 
-                // Reduced bottom padding from 32.dp to 16.dp to account for the LazyColumn's new 16.dp top content padding
                 Text("$currentTime • $batteryLevel%", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp, top = 4.dp))
 
                 if (installedGames.isEmpty()) {
@@ -257,7 +263,7 @@ fun HomeScreen() {
                     // ── GAME LIST ──
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(vertical = 16.dp), // Prevents neon glow from cropping at the top/bottom edges
+                        contentPadding = PaddingValues(vertical = 16.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(installedGames.size) { index ->
@@ -291,15 +297,15 @@ fun HomeScreen() {
             }
 
             // RIGHT PANE: (Adaptive Hide - Dynamically clipped by background line coordinates)
+            // REMOVED displayCutoutPadding and normal padding from here so the background image touches the literal screen edges.
             Box(
                 modifier = Modifier
-                    .fillMaxSize() // Takes full size to share the same coordinate map for clipping
+                    .fillMaxSize()
                     .drawWithContent {
-                        val margin = 24.dp.toPx() // Same margin to create a perfect track for the glowing line
+                        val margin = 24.dp.toPx()
                         val splitStart = size.width * 0.70f + margin
                         val splitEnd = size.width * 0.45f + margin
 
-                        // Creating an inverted boundary path for the right side
                         val path = Path().apply {
                             moveTo(splitStart, 0f)
                             lineTo(size.width, 0f)
@@ -312,15 +318,18 @@ fun HomeScreen() {
                             this@drawWithContent.drawContent()
                         }
                     }
-                    .displayCutoutPadding()
-                    .padding(end = 24.dp, top = 24.dp, bottom = 24.dp)
             ) {
                 if (!showPerfMenu) {
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "Settings",
                         tint = Color.White,
-                        modifier = Modifier.align(Alignment.TopEnd).size(28.dp)
+                        // Placed padding directly on the icon instead of the container
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .displayCutoutPadding()
+                            .padding(end = 24.dp, top = 24.dp)
+                            .size(28.dp)
                             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { showPerfMenu = true }
                     )
                 }
@@ -334,13 +343,19 @@ fun HomeScreen() {
                                 }
                             }
                         ) {
-                            Column(horizontalAlignment = Alignment.End, modifier = Modifier.align(Alignment.CenterEnd)) {
+                            Column(
+                                horizontalAlignment = Alignment.End,
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .displayCutoutPadding()
+                                    .padding(end = 24.dp) // Padded the settings menu
+                            ) {
                                 Column(horizontalAlignment = Alignment.End) {
                                     Text("Performance", color = Color.White, fontFamily = gilmerRegular, fontSize = 36.sp)
                                     Text("Settings", color = Color.White, fontFamily = gilmerRegular, fontSize = 36.sp)
                                 }
                                 Spacer(modifier = Modifier.height(48.dp))
-                                PerfMode.values().forEach { mode ->
+                                PerfMode.entries.forEach { mode ->
                                     val isSelected = currentMode == mode
                                     Text(
                                         text = mode.title, color = Color.White, fontFamily = if (isSelected) gilmerBold else gilmerRegular, fontSize = 28.sp,
@@ -354,7 +369,6 @@ fun HomeScreen() {
                             if (installedGames.isNotEmpty()) {
                                 val activeGame = installedGames[selectedGameIndex]
 
-                                // Smooth transition with clip disabled to prevent the "cutout" wall effect
                                 AnimatedContent(
                                     targetState = activeGame,
                                     transitionSpec = {
@@ -364,46 +378,81 @@ fun HomeScreen() {
                                             SizeTransform(clip = false)
                                         )
                                     },
-                                    modifier = Modifier.align(Alignment.BottomEnd),
+                                    modifier = Modifier.fillMaxSize(),
                                     label = "GameDetailsAnimation"
                                 ) { game ->
-                                    Column(
-                                        horizontalAlignment = Alignment.End,
-                                        modifier = Modifier.fillMaxWidth(0.7f) // Let it span wide enough to cross the diagonal boundary
-                                    ) {
+                                    Box(modifier = Modifier.fillMaxSize()) {
 
-                                        // Create a continuous "ticker tape" by repeating the name.
-                                        // This guarantees the string exceeds bounds, permanently forcing basicMarquee to loop without stopping.
-                                        val tickerText = remember(game.name) {
-                                            Array(10) { game.name }.joinToString("      •      ")
+                                        // ── Edge-to-Edge Animated Game Icon Background ──
+                                        val infiniteTransition = rememberInfiniteTransition(label = "bgIconAnim")
+                                        val animProgress by infiniteTransition.animateFloat(
+                                            initialValue = 0f,
+                                            targetValue = 1f,
+                                            animationSpec = infiniteRepeatable(
+                                                animation = tween(15000, easing = FastOutSlowInEasing),
+                                                repeatMode = RepeatMode.Reverse
+                                            ),
+                                            label = "progress"
+                                        )
+
+                                        val offsetY = 100f - (animProgress * 200f)
+
+                                        if (game.icon != null) {
+                                            Image(
+                                                bitmap = game.icon,
+                                                contentDescription = "Animated Background",
+                                                contentScale = ContentScale.Crop,
+                                                filterQuality = androidx.compose.ui.graphics.FilterQuality.High,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .scale(2.0f) // Extreme 2.0x scale prevents bounds clipping during movement
+                                                    .offset(y = offsetY.dp)
+                                                    .alpha(0.35f)
+                                                    .blur(48.dp)
+                                            )
                                         }
 
-                                        Text(
-                                            text = tickerText,
-                                            color = Color.White,
-                                            fontSize = 34.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            maxLines = 1,
+                                        // ── Foreground Content ──
+                                        Column(
+                                            horizontalAlignment = Alignment.End,
                                             modifier = Modifier
-                                                .padding(bottom = 24.dp)
-                                                .basicMarquee(
-                                                    iterations = Int.MAX_VALUE,
-                                                    velocity = 40.dp
-                                                )
-                                        )
-                                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                            Box(
-                                                modifier = Modifier.size(56.dp).border(2.dp, animatedAccentColor, RoundedCornerShape(8.dp)).background(Color.Black, RoundedCornerShape(8.dp)).clickable { showPerfMenu = true },
-                                                contentAlignment = Alignment.Center
-                                            ) { Text("III", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp) }
-                                            Button(
-                                                onClick = {
-                                                    val intent = context.packageManager.getLaunchIntentForPackage(game.packageName)
-                                                    if (intent != null) { intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); context.startActivity(intent) }
-                                                },
-                                                colors = ButtonDefaults.buttonColors(containerColor = Color.Black), shape = RoundedCornerShape(8.dp),
-                                                modifier = Modifier.height(56.dp).width(160.dp).border(2.dp, animatedAccentColor, RoundedCornerShape(8.dp))
-                                            ) { Text("ENTER", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp) }
+                                                .fillMaxWidth(0.7f)
+                                                .align(Alignment.BottomEnd)
+                                                .displayCutoutPadding()
+                                                .padding(end = 24.dp, bottom = 24.dp) // Padding safely reapplied to the text/buttons
+                                        ) {
+
+                                            val tickerText = remember(game.name) {
+                                                Array(10) { game.name }.joinToString("      •      ")
+                                            }
+
+                                            Text(
+                                                text = tickerText,
+                                                color = Color.White,
+                                                fontSize = 34.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                maxLines = 1,
+                                                modifier = Modifier
+                                                    .padding(bottom = 24.dp)
+                                                    .basicMarquee(
+                                                        iterations = Int.MAX_VALUE,
+                                                        velocity = 40.dp
+                                                    )
+                                            )
+                                            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                                Box(
+                                                    modifier = Modifier.size(56.dp).border(2.dp, animatedAccentColor, RoundedCornerShape(8.dp)).background(Color.Black, RoundedCornerShape(8.dp)).clickable { showPerfMenu = true },
+                                                    contentAlignment = Alignment.Center
+                                                ) { Text("III", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp) }
+                                                Button(
+                                                    onClick = {
+                                                        val intent = context.packageManager.getLaunchIntentForPackage(game.packageName)
+                                                        if (intent != null) { intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); context.startActivity(intent) }
+                                                    },
+                                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black), shape = RoundedCornerShape(8.dp),
+                                                    modifier = Modifier.height(56.dp).width(160.dp).border(2.dp, animatedAccentColor, RoundedCornerShape(8.dp))
+                                                ) { Text("ENTER", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp) }
+                                            }
                                         }
                                     }
                                 }
@@ -514,6 +563,7 @@ fun rememberInstalledGames(context: Context, refreshTrigger: Int): State<List<Ga
                 val isAndroidGame = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     app.category == ApplicationInfo.CATEGORY_GAME
                 } else {
+                    @Suppress("DEPRECATION")
                     (app.flags and ApplicationInfo.FLAG_IS_GAME) != 0
                 }
 
@@ -542,11 +592,11 @@ fun formatDuration(millis: Long): String {
     return if (hours > 0) "$hours hrs $minutes mins played" else "$minutes mins played"
 }
 
-// Upgraded to extract Adaptive Icons, bypassing the system's circular mask
+// Fixed the root cause of Blurry background icons by extracting vector files into a massive 1024x1024 base canvas size!
 fun drawableToImageBitmap(drawable: Drawable): ImageBitmap? {
     try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && drawable is android.graphics.drawable.AdaptiveIconDrawable) {
-            val size = 256
+            val size = 1024 // Massively increased from 256 for perfectly sharp Full-Screen Backgrounds
             val bitmap = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
             val canvas = android.graphics.Canvas(bitmap)
 
@@ -564,8 +614,9 @@ fun drawableToImageBitmap(drawable: Drawable): ImageBitmap? {
 
         // Fallback for older legacy icons
         if (drawable is BitmapDrawable && drawable.bitmap != null) return drawable.bitmap.asImageBitmap()
-        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 256
-        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 256
+
+        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth.coerceAtLeast(1024) else 1024
+        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight.coerceAtLeast(1024) else 1024
         val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
         val canvas = android.graphics.Canvas(bitmap)
         drawable.setBounds(0, 0, canvas.width, canvas.height)
