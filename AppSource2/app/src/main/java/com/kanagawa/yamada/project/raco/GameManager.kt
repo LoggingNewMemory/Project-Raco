@@ -59,13 +59,11 @@ object GameManager {
     private const val PREFS_NAME = "raco_prefs"
     private const val KEY_CUSTOM_GAMES = "custom_games"
 
-    /** Retrieves the package names of games the user manually added */
     fun getManuallyAddedGames(context: Context): Set<String> {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return prefs.getStringSet(KEY_CUSTOM_GAMES, emptySet()) ?: emptySet()
     }
 
-    /** Saves a new manually added game */
     fun addGame(context: Context, packageName: String) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val currentGames = prefs.getStringSet(KEY_CUSTOM_GAMES, emptySet())?.toMutableSet() ?: mutableSetOf()
@@ -73,7 +71,6 @@ object GameManager {
         prefs.edit().putStringSet(KEY_CUSTOM_GAMES, currentGames).apply()
     }
 
-    /** Removes a game from the custom list */
     fun removeGame(context: Context, packageName: String) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val currentGames = prefs.getStringSet(KEY_CUSTOM_GAMES, emptySet())?.toMutableSet() ?: mutableSetOf()
@@ -81,14 +78,12 @@ object GameManager {
         prefs.edit().putStringSet(KEY_CUSTOM_GAMES, currentGames).apply()
     }
 
-    /** Fetches all user-installed applications (filtering out bloatware/system apps) */
     suspend fun getAllInstalledApps(context: Context): List<AppInfo> = withContext(Dispatchers.IO) {
         val pm = context.packageManager
         val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
         val appList = mutableListOf<AppInfo>()
 
         for (app in apps) {
-            // Only show user-installed apps, exclude core system apps
             if ((app.flags and ApplicationInfo.FLAG_SYSTEM) == 0 || (app.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0) {
                 val name = app.loadLabel(pm).toString()
                 val packageName = app.packageName
@@ -129,7 +124,7 @@ fun GamePickerScreen(onBack: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(bgColor)
-            .displayCutoutPadding() // Prevents UI from drawing under the device notch
+            .displayCutoutPadding()
     ) {
         // Top Bar
         Row(
@@ -236,7 +231,6 @@ fun GamePickerScreen(onBack: () -> Unit) {
 
 @Composable
 fun AppListItem(app: AppInfo, isAdded: Boolean, fontFamily: FontFamily, onToggle: (Boolean) -> Unit) {
-    // Animations for Background and Text Colors
     val excludeBgColor by animateColorAsState(if (!isAdded) Color(0xFF333544) else Color.Transparent, label = "excludeBg")
     val excludeTextColor by animateColorAsState(if (!isAdded) Color.White else Color.Gray, label = "excludeText")
 
@@ -249,14 +243,13 @@ fun AppListItem(app: AppInfo, isAdded: Boolean, fontFamily: FontFamily, onToggle
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        val imageBitmap = remember(app.icon) { drawableToImageBitmap(app.icon) }
+        // Fetch the original system icon without any unmasking or reshaping
+        val imageBitmap = remember(app.icon) { getOriginalImageBitmap(app.icon) }
         if (imageBitmap != null) {
             Image(
                 bitmap = imageBitmap,
                 contentDescription = app.name,
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                modifier = Modifier.size(48.dp) // Rendered in original shape, no clip or crop
             )
         }
 
@@ -270,14 +263,12 @@ fun AppListItem(app: AppInfo, isAdded: Boolean, fontFamily: FontFamily, onToggle
                 .padding(horizontal = 16.dp)
         )
 
-        // Segmented Toggle
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
                 .background(Color(0xFF20222D))
                 .padding(2.dp)
         ) {
-            // Exclude
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
@@ -288,7 +279,6 @@ fun AppListItem(app: AppInfo, isAdded: Boolean, fontFamily: FontFamily, onToggle
             ) {
                 Text("Exclude", color = excludeTextColor, fontSize = 13.sp, fontFamily = fontFamily)
             }
-            // Include
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
@@ -303,11 +293,12 @@ fun AppListItem(app: AppInfo, isAdded: Boolean, fontFamily: FontFamily, onToggle
     }
 }
 
-fun drawableToImageBitmap(drawable: Drawable): ImageBitmap? {
+// Uniquely named standard fallback extractor to render whatever original shape the OS provides
+fun getOriginalImageBitmap(drawable: Drawable): ImageBitmap? {
     try {
         if (drawable is BitmapDrawable && drawable.bitmap != null) return drawable.bitmap.asImageBitmap()
-        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 1
-        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 1
+        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 256
+        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 256
         val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
         val canvas = android.graphics.Canvas(bitmap)
         drawable.setBounds(0, 0, canvas.width, canvas.height)

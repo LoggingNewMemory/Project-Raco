@@ -22,7 +22,10 @@ import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.BlurMaskFilter
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.os.BatteryManager
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -63,6 +66,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
@@ -224,7 +228,7 @@ fun HomeScreen() {
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
                                     .clickable { showAppPicker = true }
-                                    .padding(vertical = 4.dp) // Removed horizontal padding to align properly
+                                    .padding(vertical = 4.dp)
                             ) {
                                 Box(
                                     modifier = Modifier.size(64.dp).border(2.dp, Color.DarkGray, RoundedCornerShape(8.dp)).background(Color.Transparent, RoundedCornerShape(8.dp)),
@@ -335,7 +339,7 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
                 Image(
                     bitmap = game.icon,
                     contentDescription = game.name,
-                    contentScale = ContentScale.Crop, // Forces any rectangle icon to crop down into a perfect square
+                    contentScale = ContentScale.Crop, // Crops down to exact Box bounds
                     modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
                 )
             }
@@ -367,9 +371,8 @@ fun rememberInstalledGames(context: Context, refreshTrigger: Int): State<List<Ga
         withContext(Dispatchers.IO) {
             val pm = context.packageManager
             val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
-            val customGames = GameManager.getManuallyAddedGames(context) // Fetch manually added apps
+            val customGames = GameManager.getManuallyAddedGames(context)
 
-            // Note: UsageStats requires the user to manually grant "Usage Access" in Android Settings to fetch real playtime
             val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
             val timeNow = System.currentTimeMillis()
             val thirtyDaysAgo = timeNow - 1000L * 60 * 60 * 24 * 30
@@ -377,13 +380,12 @@ fun rememberInstalledGames(context: Context, refreshTrigger: Int): State<List<Ga
 
             val gameList = mutableListOf<Game>()
             for (app in apps) {
-                val isAndroidGame = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                val isAndroidGame = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     app.category == ApplicationInfo.CATEGORY_GAME
                 } else {
                     (app.flags and ApplicationInfo.FLAG_IS_GAME) != 0
                 }
 
-                // If Android thinks it's a game OR the user manually added it, include it
                 if (isAndroidGame || customGames.contains(app.packageName)) {
                     val name = app.loadLabel(pm).toString()
                     val packageName = app.packageName
@@ -404,6 +406,38 @@ fun formatDuration(millis: Long): String {
     val hours = millis / (1000 * 60 * 60)
     val minutes = (millis % (1000 * 60 * 60)) / (1000 * 60)
     return if (hours > 0) "$hours hrs $minutes mins played" else "$minutes mins played"
+}
+
+// Upgraded to extract Adaptive Icons, bypassing the system's circular mask
+fun drawableToImageBitmap(drawable: Drawable): ImageBitmap? {
+    try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && drawable is android.graphics.drawable.AdaptiveIconDrawable) {
+            val size = 256
+            val bitmap = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(bitmap)
+
+            // Draw the unmasked background and foreground full-bleed
+            drawable.background?.apply {
+                setBounds(0, 0, size, size)
+                draw(canvas)
+            }
+            drawable.foreground?.apply {
+                setBounds(0, 0, size, size)
+                draw(canvas)
+            }
+            return bitmap.asImageBitmap()
+        }
+
+        // Fallback for older legacy icons
+        if (drawable is BitmapDrawable && drawable.bitmap != null) return drawable.bitmap.asImageBitmap()
+        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 256
+        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 256
+        val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return bitmap.asImageBitmap()
+    } catch (e: Exception) { return null }
 }
 
 @Composable
