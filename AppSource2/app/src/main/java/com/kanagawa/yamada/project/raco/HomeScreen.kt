@@ -7,7 +7,10 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,6 +35,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
@@ -94,6 +98,24 @@ fun HomeScreen() {
         label = "LineAlpha"
     )
 
+    // ── Animations for the Line Color Slide ──
+    var activeGradientMode by remember { mutableStateOf(currentMode) }
+    val lineSlideProgress = remember { Animatable(1f) }
+
+    LaunchedEffect(showPerfMenu) {
+        // Trigger the animation every time the menu is closed
+        if (!showPerfMenu) {
+            activeGradientMode = currentMode
+
+            // Snap to 0 (completely white base) and slide the color up
+            lineSlideProgress.snapTo(0f)
+            lineSlideProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+            )
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -101,8 +123,8 @@ fun HomeScreen() {
     ) {
         // ── Background Diagonal Canvas ──
         Canvas(modifier = Modifier.fillMaxSize().clipToBounds()) {
-            val splitStart = size.width * 0.70f // Shifted right to ~70% of screen width
-            val splitEnd = size.width * 0.45f   // Shifted right to ~45% to align with the list
+            val splitStart = size.width * 0.70f // Shifted right to align closely to game names
+            val splitEnd = size.width * 0.45f
 
             val path = Path().apply {
                 moveTo(splitStart, 0f)
@@ -115,21 +137,38 @@ fun HomeScreen() {
             // Dark Grey right pane (fades to Black when settings are open)
             drawPath(path, rightPaneColor)
 
-            // The colored accent line (Gradient from Performance Color to White)
             if (lineAlpha > 0f) {
+                // 1. Base Line (Completely White trail)
                 drawLine(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            currentMode.color.copy(alpha = lineAlpha),
-                            Color.White.copy(alpha = lineAlpha)
-                        ),
-                        start = Offset(splitStart, 0f),
-                        end = Offset(splitEnd, size.height)
-                    ),
+                    color = Color.White.copy(alpha = lineAlpha),
                     start = Offset(splitStart, 0f),
                     end = Offset(splitEnd, size.height),
-                    strokeWidth = 6.dp.toPx() // You can also increase this to 8.dp.toPx() if you want a thicker line
+                    strokeWidth = 6.dp.toPx()
                 )
+
+                // 2. Overlay Line (The Color Gradient, revealed bottom-to-top)
+                if (lineSlideProgress.value > 0f) {
+                    clipRect(
+                        top = size.height * (1f - lineSlideProgress.value), // Grows upwards
+                        bottom = size.height, // Fixed at the bottom
+                        left = 0f,
+                        right = size.width
+                    ) {
+                        drawLine(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    activeGradientMode.color.copy(alpha = lineAlpha),
+                                    Color.White.copy(alpha = lineAlpha)
+                                ),
+                                start = Offset(splitStart, 0f),
+                                end = Offset(splitEnd, size.height)
+                            ),
+                            start = Offset(splitStart, 0f),
+                            end = Offset(splitEnd, size.height),
+                            strokeWidth = 6.dp.toPx()
+                        )
+                    }
+                }
             }
         }
 
@@ -213,7 +252,8 @@ fun HomeScreen() {
                 // Crossfade between Game Details and Performance Settings
                 Crossfade(
                     targetState = showPerfMenu,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    label = "SettingsCrossfade"
                 ) { isSettings ->
                     if (isSettings) {
                         // ── Performance Settings Menu ──
