@@ -28,6 +28,10 @@ fun HomeScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF0A0A0A))
+            // ── Auto Notch Avoider ──
+            // Automatically detects the camera notch and applies exactly enough padding
+            // so your UI text/buttons aren't obscured, regardless of orientation.
+            .displayCutoutPadding()
             .padding(16.dp)
     ) {
         // LEFT PANE: Game List
