@@ -33,8 +33,10 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
@@ -346,7 +348,20 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
         }
         Column(modifier = Modifier.padding(start = 16.dp)) {
             Text(game.name, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Medium)
-            Text(game.durationPlayed, color = Color.LightGray, fontSize = 14.sp)
+
+            // Only show time played when this game is selected
+            AnimatedVisibility(
+                visible = isSelected,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Text(
+                    text = game.durationPlayed,
+                    color = Color.LightGray,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
         }
     }
 }
