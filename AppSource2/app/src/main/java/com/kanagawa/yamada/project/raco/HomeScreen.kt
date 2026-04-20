@@ -271,7 +271,7 @@ fun HomeScreen() {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .fillMaxWidth(0.6f) // Ensure click ripple doesn't cover whole screen
+                                    .fillMaxWidth(0.55f) // Restrict to left half so touch doesn't overlap the right pane
                                     .clickable { showAppPicker = true }
                                     .padding(vertical = 4.dp)
                             ) {
@@ -436,7 +436,7 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(0.55f) // Restrict width to the left half so the invisible touch target doesn't block the right pane
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
             .padding(vertical = 4.dp)
     ) {
@@ -459,7 +459,7 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
-                overflow = TextOverflow.Visible // Replaced Ellipsis to let it naturally meet the physical clip boundary
+                overflow = TextOverflow.Visible // Allows the text to draw OUTSIDE the 0.55f width boundary so it can reach the diagonal line
             )
 
             // Only show time played when this game is selected
