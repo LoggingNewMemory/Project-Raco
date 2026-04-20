@@ -105,7 +105,8 @@ data class Game(
     val name: String,
     val packageName: String,
     val durationPlayed: String,
-    val icon: ImageBitmap?
+    val icon: ImageBitmap?,
+    val lastTimeUsed: Long = 0L // Added for sorting logic
 )
 
 // ── Main Screen ────────────────────────────────────────────────────────
@@ -424,12 +425,14 @@ fun rememberInstalledGames(context: Context, refreshTrigger: Int): State<List<Ga
                     val packageName = app.packageName
                     val iconBitmap = drawableToImageBitmap(app.loadIcon(pm))
                     val totalTime = stats[packageName]?.totalTimeInForeground ?: 0L
+                    val lastUsed = stats[packageName]?.lastTimeUsed ?: 0L // Extract last used time for sorting
                     val durationStr = if (totalTime > 0) formatDuration(totalTime) else "0 mins played"
 
-                    gameList.add(Game(name, packageName, durationStr, iconBitmap))
+                    gameList.add(Game(name, packageName, durationStr, iconBitmap, lastUsed))
                 }
             }
-            gamesState.value = gameList.sortedBy { it.name }
+            // Sort by last time used in descending order (most recent first)
+            gamesState.value = gameList.sortedByDescending { it.lastTimeUsed }
         }
     }
     return gamesState
