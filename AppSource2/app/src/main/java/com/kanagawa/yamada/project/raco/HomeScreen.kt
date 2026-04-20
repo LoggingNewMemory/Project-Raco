@@ -106,7 +106,7 @@ data class Game(
     val packageName: String,
     val durationPlayed: String,
     val icon: ImageBitmap?,
-    val lastTimeUsed: Long = 0L // Added for sorting logic
+    val lastTimeUsed: Long = 0L
 )
 
 // ── Main Screen ────────────────────────────────────────────────────────
@@ -137,6 +137,13 @@ fun HomeScreen() {
     if (installedGames.isNotEmpty() && selectedGameIndex >= installedGames.size) {
         selectedGameIndex = 0
     }
+
+    // Smooth UI Color Transitions
+    val animatedAccentColor by animateColorAsState(
+        targetValue = currentMode.color,
+        animationSpec = tween(durationMillis = 400),
+        label = "AccentColorAnim"
+    )
 
     // Background Transition Anim
     val rightPaneColor by animateColorAsState(if (showPerfMenu) Color(0xFF0A0A0A) else Color(0xFF242424), label = "RightPaneColor")
@@ -195,7 +202,7 @@ fun HomeScreen() {
             Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
                 Text(
                     text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = currentMode.color)) { append("PROJECT ") }
+                        withStyle(style = SpanStyle(color = animatedAccentColor)) { append("PROJECT ") }
                         withStyle(style = SpanStyle(color = Color.White)) { append("RACO") }
                     },
                     fontFamily = gilmerBold, fontSize = 34.sp, letterSpacing = 2.sp
@@ -224,7 +231,7 @@ fun HomeScreen() {
                             GameListItem(
                                 game = installedGames[index],
                                 isSelected = index == selectedGameIndex,
-                                accentColor = currentMode.color,
+                                accentColor = animatedAccentColor, // Pass animated color
                                 onClick = { selectedGameIndex = index }
                             )
                         }
@@ -307,7 +314,7 @@ fun HomeScreen() {
                                         Text(game.name, color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 24.dp))
                                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                             Box(
-                                                modifier = Modifier.size(56.dp).border(2.dp, currentMode.color, RoundedCornerShape(8.dp)).background(Color.Black, RoundedCornerShape(8.dp)).clickable { showPerfMenu = true },
+                                                modifier = Modifier.size(56.dp).border(2.dp, animatedAccentColor, RoundedCornerShape(8.dp)).background(Color.Black, RoundedCornerShape(8.dp)).clickable { showPerfMenu = true },
                                                 contentAlignment = Alignment.Center
                                             ) { Text("III", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp) }
                                             Button(
@@ -316,7 +323,7 @@ fun HomeScreen() {
                                                     if (intent != null) { intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); context.startActivity(intent) }
                                                 },
                                                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black), shape = RoundedCornerShape(8.dp),
-                                                modifier = Modifier.height(56.dp).width(160.dp).border(2.dp, currentMode.color, RoundedCornerShape(8.dp))
+                                                modifier = Modifier.height(56.dp).width(160.dp).border(2.dp, animatedAccentColor, RoundedCornerShape(8.dp))
                                             ) { Text("ENTER", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp) }
                                         }
                                     }
