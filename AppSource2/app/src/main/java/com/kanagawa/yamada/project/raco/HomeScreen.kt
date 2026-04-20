@@ -66,6 +66,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -73,6 +74,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
@@ -83,7 +85,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
@@ -197,12 +198,36 @@ fun HomeScreen() {
             }
         }
 
-        // Foreground UI
-        Row(
-            modifier = Modifier.fillMaxSize().displayCutoutPadding().padding(24.dp)
+        // Foreground UI Overlay
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            // LEFT PANE
-            Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
+            // LEFT PANE (Adaptive Hide - Dynamically clipped by background line coordinates)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .drawWithContent {
+                        val margin = 24.dp.toPx() // Gap to ensure text visually respects the line
+                        val splitStart = size.width * 0.70f - margin
+                        val splitEnd = size.width * 0.45f - margin
+
+                        // Creating a matching boundary path
+                        val path = Path().apply {
+                            moveTo(0f, 0f)
+                            lineTo(splitStart, 0f)
+                            lineTo(splitEnd, size.height)
+                            lineTo(0f, size.height)
+                            close()
+                        }
+
+                        // Adaptively hide content exactly at the line margin
+                        clipPath(path) {
+                            this@drawWithContent.drawContent()
+                        }
+                    }
+                    .displayCutoutPadding()
+                    .padding(start = 24.dp, top = 24.dp, bottom = 24.dp)
+            ) {
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(color = animatedAccentColor)) { append("PROJECT ") }
@@ -229,7 +254,10 @@ fun HomeScreen() {
                     }
                 } else {
                     // ── GAME LIST ──
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
                         items(installedGames.size) { index ->
                             GameListItem(
                                 game = installedGames[index],
@@ -243,6 +271,7 @@ fun HomeScreen() {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
+                                    .fillMaxWidth(0.6f) // Ensure click ripple doesn't cover whole screen
                                     .clickable { showAppPicker = true }
                                     .padding(vertical = 4.dp)
                             ) {
@@ -259,15 +288,38 @@ fun HomeScreen() {
                 }
             }
 
-            // RIGHT PANE: Details or Settings
-            Box(modifier = Modifier.weight(1.2f).fillMaxHeight()) {
+            // RIGHT PANE: (Adaptive Hide - Dynamically clipped by background line coordinates)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize() // Takes full size to share the same coordinate map for clipping
+                    .drawWithContent {
+                        val margin = 24.dp.toPx() // Same margin to create a perfect track for the glowing line
+                        val splitStart = size.width * 0.70f + margin
+                        val splitEnd = size.width * 0.45f + margin
+
+                        // Creating an inverted boundary path for the right side
+                        val path = Path().apply {
+                            moveTo(splitStart, 0f)
+                            lineTo(size.width, 0f)
+                            lineTo(size.width, size.height)
+                            lineTo(splitEnd, size.height)
+                            close()
+                        }
+
+                        clipPath(path) {
+                            this@drawWithContent.drawContent()
+                        }
+                    }
+                    .displayCutoutPadding()
+                    .padding(end = 24.dp, top = 24.dp, bottom = 24.dp)
+            ) {
                 if (!showPerfMenu) {
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "Settings",
                         tint = Color.White,
                         modifier = Modifier.align(Alignment.TopEnd).size(28.dp)
-                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { }
+                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { showPerfMenu = true }
                     )
                 }
 
@@ -313,22 +365,29 @@ fun HomeScreen() {
                                     modifier = Modifier.align(Alignment.BottomEnd),
                                     label = "GameDetailsAnimation"
                                 ) { game ->
-                                    // Restrict to 80% of the Box width so it never crosses the diagonal line
                                     Column(
                                         horizontalAlignment = Alignment.End,
-                                        modifier = Modifier.fillMaxWidth(0.8f)
+                                        modifier = Modifier.fillMaxWidth(0.7f) // Let it span wide enough to cross the diagonal boundary
                                     ) {
+
+                                        // Create a continuous "ticker tape" by repeating the name.
+                                        // This guarantees the string exceeds bounds, permanently forcing basicMarquee to loop without stopping.
+                                        val tickerText = remember(game.name) {
+                                            Array(10) { game.name }.joinToString("      •      ")
+                                        }
+
                                         Text(
-                                            text = game.name,
+                                            text = tickerText,
                                             color = Color.White,
                                             fontSize = 34.sp,
                                             fontWeight = FontWeight.Bold,
                                             maxLines = 1,
-                                            textAlign = TextAlign.End,
                                             modifier = Modifier
                                                 .padding(bottom = 24.dp)
-                                                .fillMaxWidth()
-                                                .basicMarquee() // Keep marquee here for the right pane
+                                                .basicMarquee(
+                                                    iterations = Int.MAX_VALUE,
+                                                    velocity = 40.dp
+                                                )
                                         )
                                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                             Box(
@@ -376,7 +435,10 @@ fun HomeScreen() {
 fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick).padding(vertical = 4.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
+            .padding(vertical = 4.dp)
     ) {
         Box(
             modifier = Modifier.size(64.dp).then(if (isSelected) Modifier.neonGlow(accentColor, 16.dp) else Modifier).background(Color.DarkGray, RoundedCornerShape(8.dp))
@@ -397,7 +459,7 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis // <--- Replaced basicMarquee() with Ellipsis
+                overflow = TextOverflow.Visible // Replaced Ellipsis to let it naturally meet the physical clip boundary
             )
 
             // Only show time played when this game is selected
