@@ -22,15 +22,18 @@ import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.BlurMaskFilter
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.os.BatteryManager
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -40,14 +43,12 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -62,11 +63,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -76,7 +77,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -224,7 +224,7 @@ fun HomeScreen() {
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
                                     .clickable { showAppPicker = true }
-                                    .padding(vertical = 4.dp, horizontal = 8.dp)
+                                    .padding(vertical = 4.dp) // Removed horizontal padding to align properly
                             ) {
                                 Box(
                                     modifier = Modifier.size(64.dp).border(2.dp, Color.DarkGray, RoundedCornerShape(8.dp)).background(Color.Transparent, RoundedCornerShape(8.dp)),
@@ -302,66 +302,25 @@ fun HomeScreen() {
                 }
             }
         }
-    }
 
-    // App Picker Dialog
-    if (showAppPicker) {
-        GamePickerModal(
-            onDismiss = { showAppPicker = false },
-            onAppSelected = { pkgName ->
-                GameManager.addGame(context, pkgName)
-                listRefreshTrigger++ // Forces the game list to refresh
-                showAppPicker = false
-            }
-        )
+        // Launch Full Screen App Picker Over UI with Slide + Fade Transition
+        AnimatedVisibility(
+            visible = showAppPicker,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            GamePickerScreen(
+                onBack = {
+                    showAppPicker = false
+                    listRefreshTrigger++ // Forces the game list to refresh when returning
+                }
+            )
+        }
     }
 }
 
 // ── Components ─────────────────────────────────────────────────────────
-
-@Composable
-fun GamePickerModal(onDismiss: () -> Unit, onAppSelected: (String) -> Unit) {
-    val context = LocalContext.current
-    var appList by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        appList = GameManager.getAllInstalledApps(context)
-        isLoading = false
-    }
-
-    Dialog(onDismissRequest = onDismiss) {
-        Box(
-            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.8f).background(Color(0xFF121212), RoundedCornerShape(16.dp)).border(1.dp, Color.DarkGray, RoundedCornerShape(16.dp)).padding(16.dp)
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Text("Select Application", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
-
-                if (isLoading) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Color.White)
-                    }
-                } else {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(appList) { app ->
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth().clickable { onAppSelected(app.packageName) }.padding(vertical = 12.dp)
-                            ) {
-                                val imageBitmap = remember(app.icon) { drawableToImageBitmap(app.icon) }
-                                if (imageBitmap != null) {
-                                    Image(bitmap = imageBitmap, contentDescription = app.name, modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)))
-                                }
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text(app.name, color = Color.White, fontSize = 16.sp)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: () -> Unit) {
@@ -373,7 +332,12 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
             modifier = Modifier.size(64.dp).then(if (isSelected) Modifier.neonGlow(accentColor, 16.dp) else Modifier).background(Color.DarkGray, RoundedCornerShape(8.dp))
         ) {
             if (game.icon != null) {
-                Image(bitmap = game.icon, contentDescription = game.name, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)))
+                Image(
+                    bitmap = game.icon,
+                    contentDescription = game.name,
+                    contentScale = ContentScale.Crop, // Forces any rectangle icon to crop down into a perfect square
+                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
+                )
             }
         }
         Column(modifier = Modifier.padding(start = 16.dp)) {
@@ -440,19 +404,6 @@ fun formatDuration(millis: Long): String {
     val hours = millis / (1000 * 60 * 60)
     val minutes = (millis % (1000 * 60 * 60)) / (1000 * 60)
     return if (hours > 0) "$hours hrs $minutes mins played" else "$minutes mins played"
-}
-
-fun drawableToImageBitmap(drawable: Drawable): ImageBitmap? {
-    try {
-        if (drawable is BitmapDrawable && drawable.bitmap != null) return drawable.bitmap.asImageBitmap()
-        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 1
-        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 1
-        val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
-        val canvas = android.graphics.Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-        return bitmap.asImageBitmap()
-    } catch (e: Exception) { return null }
 }
 
 @Composable

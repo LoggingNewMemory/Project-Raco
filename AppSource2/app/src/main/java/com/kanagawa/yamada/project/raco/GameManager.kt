@@ -17,7 +17,35 @@ package com.kanagawa.yamada.project.raco
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -70,4 +98,220 @@ object GameManager {
         }
         appList.sortedBy { it.name.lowercase() }
     }
+}
+
+// ── UI Components ─────────────────────────────────────────────────────────
+
+@Composable
+fun GamePickerScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    var appList by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+    var addedGames by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    val bgColor = Color(0xFF101218)
+    val topBarColor = Color(0xFF1C1E2A)
+    val dividerColor = Color(0xFF232532)
+
+    val gilmerLight = remember {
+        FontFamily(androidx.compose.ui.text.font.Typeface(android.graphics.Typeface.createFromAsset(context.assets, "GilmerLight.otf")))
+    }
+
+    BackHandler { onBack() }
+
+    LaunchedEffect(Unit) {
+        appList = GameManager.getAllInstalledApps(context)
+        addedGames = GameManager.getManuallyAddedGames(context)
+        isLoading = false
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(bgColor)
+            .displayCutoutPadding() // Prevents UI from drawing under the device notch
+    ) {
+        // Top Bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(topBarColor)
+                .padding(horizontal = 16.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Back",
+                tint = Color.White,
+                modifier = Modifier
+                    .size(28.dp)
+                    .clickable { onBack() }
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = "Add Games",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontFamily = gilmerLight,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Color.White)
+            }
+        } else {
+            val addedList = appList.filter { it.packageName in addedGames }
+            val notAddedList = appList.filter { it.packageName !in addedGames }
+
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                // ADDED SECTION
+                if (addedList.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "${addedList.size} Added",
+                            color = Color.LightGray,
+                            fontSize = 14.sp,
+                            fontFamily = gilmerLight,
+                            modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 12.dp)
+                        )
+                    }
+                    items(addedList) { app ->
+                        AppListItem(
+                            app = app,
+                            isAdded = true,
+                            fontFamily = gilmerLight,
+                            onToggle = { isIncluded ->
+                                if (isIncluded) {
+                                    GameManager.addGame(context, app.packageName)
+                                    addedGames = addedGames + app.packageName
+                                } else {
+                                    GameManager.removeGame(context, app.packageName)
+                                    addedGames = addedGames - app.packageName
+                                }
+                            }
+                        )
+                        HorizontalDivider(color = dividerColor, thickness = 1.dp)
+                    }
+                }
+
+                // NOT ADDED SECTION
+                if (notAddedList.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "${notAddedList.size} Not added",
+                            color = Color.LightGray,
+                            fontSize = 14.sp,
+                            fontFamily = gilmerLight,
+                            modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 12.dp)
+                        )
+                    }
+                    items(notAddedList) { app ->
+                        AppListItem(
+                            app = app,
+                            isAdded = false,
+                            fontFamily = gilmerLight,
+                            onToggle = { isIncluded ->
+                                if (isIncluded) {
+                                    GameManager.addGame(context, app.packageName)
+                                    addedGames = addedGames + app.packageName
+                                } else {
+                                    GameManager.removeGame(context, app.packageName)
+                                    addedGames = addedGames - app.packageName
+                                }
+                            }
+                        )
+                        HorizontalDivider(color = dividerColor, thickness = 1.dp)
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AppListItem(app: AppInfo, isAdded: Boolean, fontFamily: FontFamily, onToggle: (Boolean) -> Unit) {
+    // Animations for Background and Text Colors
+    val excludeBgColor by animateColorAsState(if (!isAdded) Color(0xFF333544) else Color.Transparent, label = "excludeBg")
+    val excludeTextColor by animateColorAsState(if (!isAdded) Color.White else Color.Gray, label = "excludeText")
+
+    val includeBgColor by animateColorAsState(if (isAdded) Color(0xFFC62828) else Color.Transparent, label = "includeBg")
+    val includeTextColor by animateColorAsState(if (isAdded) Color.White else Color.Gray, label = "includeText")
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        val imageBitmap = remember(app.icon) { drawableToImageBitmap(app.icon) }
+        if (imageBitmap != null) {
+            Image(
+                bitmap = imageBitmap,
+                contentDescription = app.name,
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(10.dp))
+            )
+        }
+
+        Text(
+            text = app.name,
+            color = Color.White,
+            fontSize = 16.sp,
+            fontFamily = fontFamily,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 16.dp)
+        )
+
+        // Segmented Toggle
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xFF20222D))
+                .padding(2.dp)
+        ) {
+            // Exclude
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(excludeBgColor)
+                    .clickable { onToggle(false) }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Exclude", color = excludeTextColor, fontSize = 13.sp, fontFamily = fontFamily)
+            }
+            // Include
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(includeBgColor)
+                    .clickable { onToggle(true) }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Include", color = includeTextColor, fontSize = 13.sp, fontFamily = fontFamily)
+            }
+        }
+    }
+}
+
+fun drawableToImageBitmap(drawable: Drawable): ImageBitmap? {
+    try {
+        if (drawable is BitmapDrawable && drawable.bitmap != null) return drawable.bitmap.asImageBitmap()
+        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 1
+        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 1
+        val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return bitmap.asImageBitmap()
+    } catch (e: Exception) { return null }
 }
