@@ -502,6 +502,7 @@ fun rememberInstalledGames(context: Context, refreshTrigger: Int): State<List<Ga
             val pm = context.packageManager
             val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
             val customGames = GameManager.getManuallyAddedGames(context)
+            val hiddenGames = GameManager.getHiddenGames(context)
 
             val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
             val timeNow = System.currentTimeMillis()
@@ -516,7 +517,8 @@ fun rememberInstalledGames(context: Context, refreshTrigger: Int): State<List<Ga
                     (app.flags and ApplicationInfo.FLAG_IS_GAME) != 0
                 }
 
-                if (isAndroidGame || customGames.contains(app.packageName)) {
+                // Show it if it's explicitly added, OR if it's an auto-detected game that hasn't been explicitly hidden
+                if ((isAndroidGame && !hiddenGames.contains(app.packageName)) || customGames.contains(app.packageName)) {
                     val name = app.loadLabel(pm).toString()
                     val packageName = app.packageName
                     val iconBitmap = drawableToImageBitmap(app.loadIcon(pm))

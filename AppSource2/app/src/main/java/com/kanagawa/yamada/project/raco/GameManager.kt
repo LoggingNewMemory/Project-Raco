@@ -19,6 +19,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
@@ -52,12 +53,14 @@ import kotlinx.coroutines.withContext
 data class AppInfo(
     val name: String,
     val packageName: String,
-    val icon: Drawable
+    val icon: Drawable,
+    val isSystemGame: Boolean // Added so the UI knows if Android flagged this as a game
 )
 
 object GameManager {
     private const val PREFS_NAME = "raco_prefs"
     private const val KEY_CUSTOM_GAMES = "custom_games"
+    private const val KEY_HIDDEN_GAMES = "hidden_games"
 
     fun getManuallyAddedGames(context: Context): Set<String> {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -78,6 +81,25 @@ object GameManager {
         prefs.edit().putStringSet(KEY_CUSTOM_GAMES, currentGames).apply()
     }
 
+    fun getHiddenGames(context: Context): Set<String> {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getStringSet(KEY_HIDDEN_GAMES, emptySet()) ?: emptySet()
+    }
+
+    fun hideGame(context: Context, packageName: String) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val currentHidden = prefs.getStringSet(KEY_HIDDEN_GAMES, emptySet())?.toMutableSet() ?: mutableSetOf()
+        currentHidden.add(packageName)
+        prefs.edit().putStringSet(KEY_HIDDEN_GAMES, currentHidden).apply()
+    }
+
+    fun unhideGame(context: Context, packageName: String) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val currentHidden = prefs.getStringSet(KEY_HIDDEN_GAMES, emptySet())?.toMutableSet() ?: mutableSetOf()
+        currentHidden.remove(packageName)
+        prefs.edit().putStringSet(KEY_HIDDEN_GAMES, currentHidden).apply()
+    }
+
     suspend fun getAllInstalledApps(context: Context): List<AppInfo> = withContext(Dispatchers.IO) {
         val pm = context.packageManager
         val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
@@ -88,7 +110,14 @@ object GameManager {
                 val name = app.loadLabel(pm).toString()
                 val packageName = app.packageName
                 val icon = app.loadIcon(pm)
-                appList.add(AppInfo(name, packageName, icon))
+
+                val isAndroidGame = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    app.category == ApplicationInfo.CATEGORY_GAME
+                } else {
+                    (app.flags and ApplicationInfo.FLAG_IS_GAME) != 0
+                }
+
+                appList.add(AppInfo(name, packageName, icon, isAndroidGame))
             }
         }
         appList.sortedBy { it.name.lowercase() }
@@ -102,9 +131,9 @@ fun GamePickerScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     var appList by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
     var addedGames by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var hiddenGames by remember { mutableStateOf<Set<String>>(emptySet()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // Updated colors to match HomeScreen's deep black
     val bgColor = Color(0xFF0A0A0A)
     val topBarColor = Color(0xFF0A0A0A)
     val dividerColor = Color(0xFF1A1A1A)
@@ -118,6 +147,7 @@ fun GamePickerScreen(onBack: () -> Unit) {
     LaunchedEffect(Unit) {
         appList = GameManager.getAllInstalledApps(context)
         addedGames = GameManager.getManuallyAddedGames(context)
+        hiddenGames = GameManager.getHiddenGames(context)
         isLoading = false
     }
 
@@ -158,8 +188,9 @@ fun GamePickerScreen(onBack: () -> Unit) {
                 CircularProgressIndicator(color = Color.White)
             }
         } else {
-            val addedList = appList.filter { it.packageName in addedGames }
-            val notAddedList = appList.filter { it.packageName !in addedGames }
+            // An app is "Included" if it is an Android System Game (and not explicitly hidden) OR manually added
+            val addedList = appList.filter { (it.isSystemGame && it.packageName !in hiddenGames) || it.packageName in addedGames }
+            val notAddedList = appList.filter { !((it.isSystemGame && it.packageName !in hiddenGames) || it.packageName in addedGames) }
 
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 // ADDED SECTION
@@ -180,9 +211,18 @@ fun GamePickerScreen(onBack: () -> Unit) {
                             fontFamily = gilmerLight,
                             onToggle = { isIncluded ->
                                 if (isIncluded) {
-                                    GameManager.addGame(context, app.packageName)
-                                    addedGames = addedGames + app.packageName
+                                    if (app.isSystemGame) {
+                                        GameManager.unhideGame(context, app.packageName)
+                                        hiddenGames = hiddenGames - app.packageName
+                                    } else {
+                                        GameManager.addGame(context, app.packageName)
+                                        addedGames = addedGames + app.packageName
+                                    }
                                 } else {
+                                    if (app.isSystemGame) {
+                                        GameManager.hideGame(context, app.packageName)
+                                        hiddenGames = hiddenGames + app.packageName
+                                    }
                                     GameManager.removeGame(context, app.packageName)
                                     addedGames = addedGames - app.packageName
                                 }
@@ -210,9 +250,18 @@ fun GamePickerScreen(onBack: () -> Unit) {
                             fontFamily = gilmerLight,
                             onToggle = { isIncluded ->
                                 if (isIncluded) {
-                                    GameManager.addGame(context, app.packageName)
-                                    addedGames = addedGames + app.packageName
+                                    if (app.isSystemGame) {
+                                        GameManager.unhideGame(context, app.packageName)
+                                        hiddenGames = hiddenGames - app.packageName
+                                    } else {
+                                        GameManager.addGame(context, app.packageName)
+                                        addedGames = addedGames + app.packageName
+                                    }
                                 } else {
+                                    if (app.isSystemGame) {
+                                        GameManager.hideGame(context, app.packageName)
+                                        hiddenGames = hiddenGames + app.packageName
+                                    }
                                     GameManager.removeGame(context, app.packageName)
                                     addedGames = addedGames - app.packageName
                                 }
