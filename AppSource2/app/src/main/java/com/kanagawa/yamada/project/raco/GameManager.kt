@@ -104,9 +104,10 @@ fun GamePickerScreen(onBack: () -> Unit) {
     var addedGames by remember { mutableStateOf<Set<String>>(emptySet()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    val bgColor = Color(0xFF101218)
-    val topBarColor = Color(0xFF1C1E2A)
-    val dividerColor = Color(0xFF232532)
+    // Updated colors to match HomeScreen's deep black
+    val bgColor = Color(0xFF0A0A0A)
+    val topBarColor = Color(0xFF0A0A0A)
+    val dividerColor = Color(0xFF1A1A1A)
 
     val gilmerLight = remember {
         FontFamily(androidx.compose.ui.text.font.Typeface(android.graphics.Typeface.createFromAsset(context.assets, "GilmerLight.otf")))
