@@ -26,8 +26,10 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.BatteryManager
 import android.os.Build
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -39,6 +41,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -285,21 +288,36 @@ fun HomeScreen() {
                         Box(modifier = Modifier.fillMaxSize()) {
                             if (installedGames.isNotEmpty()) {
                                 val activeGame = installedGames[selectedGameIndex]
-                                Column(horizontalAlignment = Alignment.End, modifier = Modifier.align(Alignment.BottomEnd)) {
-                                    Text(activeGame.name, color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 24.dp))
-                                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                        Box(
-                                            modifier = Modifier.size(56.dp).border(2.dp, currentMode.color, RoundedCornerShape(8.dp)).background(Color.Black, RoundedCornerShape(8.dp)).clickable { showPerfMenu = true },
-                                            contentAlignment = Alignment.Center
-                                        ) { Text("III", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp) }
-                                        Button(
-                                            onClick = {
-                                                val intent = context.packageManager.getLaunchIntentForPackage(activeGame.packageName)
-                                                if (intent != null) { intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); context.startActivity(intent) }
-                                            },
-                                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black), shape = RoundedCornerShape(8.dp),
-                                            modifier = Modifier.height(56.dp).width(160.dp).border(2.dp, currentMode.color, RoundedCornerShape(8.dp))
-                                        ) { Text("ENTER", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp) }
+
+                                // Smooth transition with clip disabled to prevent the "cutout" wall effect
+                                AnimatedContent(
+                                    targetState = activeGame,
+                                    transitionSpec = {
+                                        (fadeIn(animationSpec = tween(400)) + slideInVertically(tween(400)) { 40 }).togetherWith(
+                                            fadeOut(animationSpec = tween(400)) + slideOutVertically(tween(400)) { -40 }
+                                        ).using(
+                                            SizeTransform(clip = false) // <--- Fixes the hard clipping box effect
+                                        )
+                                    },
+                                    modifier = Modifier.align(Alignment.BottomEnd),
+                                    label = "GameDetailsAnimation"
+                                ) { game ->
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text(game.name, color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 24.dp))
+                                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                            Box(
+                                                modifier = Modifier.size(56.dp).border(2.dp, currentMode.color, RoundedCornerShape(8.dp)).background(Color.Black, RoundedCornerShape(8.dp)).clickable { showPerfMenu = true },
+                                                contentAlignment = Alignment.Center
+                                            ) { Text("III", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp) }
+                                            Button(
+                                                onClick = {
+                                                    val intent = context.packageManager.getLaunchIntentForPackage(game.packageName)
+                                                    if (intent != null) { intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); context.startActivity(intent) }
+                                                },
+                                                colors = ButtonDefaults.buttonColors(containerColor = Color.Black), shape = RoundedCornerShape(8.dp),
+                                                modifier = Modifier.height(56.dp).width(160.dp).border(2.dp, currentMode.color, RoundedCornerShape(8.dp))
+                                            ) { Text("ENTER", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp) }
+                                        }
                                     }
                                 }
                             }
