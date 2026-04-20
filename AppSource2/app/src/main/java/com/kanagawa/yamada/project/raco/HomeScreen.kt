@@ -45,6 +45,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -82,6 +83,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -231,7 +234,7 @@ fun HomeScreen() {
                             GameListItem(
                                 game = installedGames[index],
                                 isSelected = index == selectedGameIndex,
-                                accentColor = animatedAccentColor, // Pass animated color
+                                accentColor = animatedAccentColor,
                                 onClick = { selectedGameIndex = index }
                             )
                         }
@@ -304,14 +307,29 @@ fun HomeScreen() {
                                         (fadeIn(animationSpec = tween(400)) + slideInVertically(tween(400)) { 40 }).togetherWith(
                                             fadeOut(animationSpec = tween(400)) + slideOutVertically(tween(400)) { -40 }
                                         ).using(
-                                            SizeTransform(clip = false) // <--- Fixes the hard clipping box effect
+                                            SizeTransform(clip = false)
                                         )
                                     },
                                     modifier = Modifier.align(Alignment.BottomEnd),
                                     label = "GameDetailsAnimation"
                                 ) { game ->
-                                    Column(horizontalAlignment = Alignment.End) {
-                                        Text(game.name, color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 24.dp))
+                                    // Restrict to 80% of the Box width so it never crosses the diagonal line
+                                    Column(
+                                        horizontalAlignment = Alignment.End,
+                                        modifier = Modifier.fillMaxWidth(0.8f)
+                                    ) {
+                                        Text(
+                                            text = game.name,
+                                            color = Color.White,
+                                            fontSize = 34.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            maxLines = 1,
+                                            textAlign = TextAlign.End,
+                                            modifier = Modifier
+                                                .padding(bottom = 24.dp)
+                                                .fillMaxWidth()
+                                                .basicMarquee() // Keep marquee here for the right pane
+                                        )
                                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                             Box(
                                                 modifier = Modifier.size(56.dp).border(2.dp, animatedAccentColor, RoundedCornerShape(8.dp)).background(Color.Black, RoundedCornerShape(8.dp)).clickable { showPerfMenu = true },
@@ -372,8 +390,15 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
                 )
             }
         }
-        Column(modifier = Modifier.padding(start = 16.dp)) {
-            Text(game.name, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        Column(modifier = Modifier.padding(start = 16.dp).weight(1f)) {
+            Text(
+                text = game.name,
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis // <--- Replaced basicMarquee() with Ellipsis
+            )
 
             // Only show time played when this game is selected
             AnimatedVisibility(
