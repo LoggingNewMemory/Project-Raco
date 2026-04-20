@@ -298,15 +298,15 @@ fun HomeScreen() {
             }
 
             // RIGHT PANE: (Adaptive Hide - Dynamically clipped by background line coordinates)
-            // REMOVED displayCutoutPadding and normal padding from here so the background image touches the literal screen edges.
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxSize() // Takes full size to share the same coordinate map for clipping
                     .drawWithContent {
-                        val margin = 24.dp.toPx()
+                        val margin = 24.dp.toPx() // Same margin to create a perfect track for the glowing line
                         val splitStart = size.width * 0.70f + margin
                         val splitEnd = size.width * 0.45f + margin
 
+                        // Creating an inverted boundary path for the right side
                         val path = Path().apply {
                             moveTo(splitStart, 0f)
                             lineTo(size.width, 0f)
@@ -325,7 +325,6 @@ fun HomeScreen() {
                         imageVector = Icons.Default.Settings,
                         contentDescription = "Settings",
                         tint = Color.White,
-                        // Placed padding directly on the icon instead of the container
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .displayCutoutPadding()
@@ -370,6 +369,46 @@ fun HomeScreen() {
                             if (installedGames.isNotEmpty()) {
                                 val activeGame = installedGames[selectedGameIndex]
 
+                                // ── 1. Edge-to-Edge Animated Background (Stationary Crossfade) ──
+                                // We use a smooth Crossfade here so the background stays completely locked to the edges.
+                                // It will simply dissolve into the new game's background without sliding up.
+                                Crossfade(
+                                    targetState = activeGame,
+                                    animationSpec = tween(600), // Smooth buttery dissolve
+                                    modifier = Modifier.fillMaxSize(),
+                                    label = "BgCrossfade"
+                                ) { game ->
+                                    val infiniteTransition = rememberInfiniteTransition(label = "bgIconAnim")
+                                    val animProgress by infiniteTransition.animateFloat(
+                                        initialValue = 0f,
+                                        targetValue = 1f,
+                                        animationSpec = infiniteRepeatable(
+                                            animation = tween(15000, easing = FastOutSlowInEasing),
+                                            repeatMode = RepeatMode.Reverse
+                                        ),
+                                        label = "progress"
+                                    )
+
+                                    val offsetY = 100f - (animProgress * 200f)
+
+                                    if (game.icon != null) {
+                                        Image(
+                                            bitmap = game.icon,
+                                            contentDescription = "Animated Background",
+                                            contentScale = ContentScale.Crop,
+                                            filterQuality = androidx.compose.ui.graphics.FilterQuality.High,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .scale(2.0f) // Extreme 2.0x scale prevents bounds clipping during movement
+                                                .offset(y = offsetY.dp)
+                                                .alpha(0.35f)
+                                                .blur(48.dp)
+                                        )
+                                    }
+                                }
+
+                                // ── 2. Foreground Content (Swipe Up Animated Transition) ──
+                                // We only apply the vertical slide animation to the text and buttons.
                                 AnimatedContent(
                                     targetState = activeGame,
                                     transitionSpec = {
@@ -383,37 +422,6 @@ fun HomeScreen() {
                                     label = "GameDetailsAnimation"
                                 ) { game ->
                                     Box(modifier = Modifier.fillMaxSize()) {
-
-                                        // ── Edge-to-Edge Animated Game Icon Background ──
-                                        val infiniteTransition = rememberInfiniteTransition(label = "bgIconAnim")
-                                        val animProgress by infiniteTransition.animateFloat(
-                                            initialValue = 0f,
-                                            targetValue = 1f,
-                                            animationSpec = infiniteRepeatable(
-                                                animation = tween(15000, easing = FastOutSlowInEasing),
-                                                repeatMode = RepeatMode.Reverse
-                                            ),
-                                            label = "progress"
-                                        )
-
-                                        val offsetY = 100f - (animProgress * 200f)
-
-                                        if (game.icon != null) {
-                                            Image(
-                                                bitmap = game.icon,
-                                                contentDescription = "Animated Background",
-                                                contentScale = ContentScale.Crop,
-                                                filterQuality = androidx.compose.ui.graphics.FilterQuality.High,
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .scale(2.0f) // Extreme 2.0x scale prevents bounds clipping during movement
-                                                    .offset(y = offsetY.dp)
-                                                    .alpha(0.35f)
-                                                    .blur(48.dp)
-                                            )
-                                        }
-
-                                        // ── Foreground Content ──
                                         Column(
                                             horizontalAlignment = Alignment.End,
                                             modifier = Modifier
@@ -422,7 +430,6 @@ fun HomeScreen() {
                                                 .displayCutoutPadding()
                                                 .padding(end = 24.dp, bottom = 24.dp) // Padding safely reapplied to the text/buttons
                                         ) {
-
                                             val tickerText = remember(game.name) {
                                                 Array(10) { game.name }.joinToString("      •      ")
                                             }
@@ -438,7 +445,7 @@ fun HomeScreen() {
                                                     .basicMarquee(
                                                         iterations = Int.MAX_VALUE,
                                                         velocity = 40.dp,
-                                                        initialDelayMillis = 0 // <--- OVERRIDES DEFAULT DELAY, STARTS INSTANTLY
+                                                        initialDelayMillis = 0 // OVERRIDES DEFAULT DELAY, STARTS INSTANTLY
                                                     )
                                             )
                                             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
