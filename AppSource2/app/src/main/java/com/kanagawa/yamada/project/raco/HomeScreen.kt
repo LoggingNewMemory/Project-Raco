@@ -236,11 +236,12 @@ fun HomeScreen() {
                     fontFamily = gilmerBold, fontSize = 34.sp, letterSpacing = 2.sp
                 )
 
-                Text("$currentTime • $batteryLevel%", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 32.dp, top = 4.dp))
+                // Reduced bottom padding from 32.dp to 16.dp to account for the LazyColumn's new 16.dp top content padding
+                Text("$currentTime • $batteryLevel%", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp, top = 4.dp))
 
                 if (installedGames.isEmpty()) {
                     // ── EMPTY STATE ──
-                    Column(modifier = Modifier.padding(top = 32.dp)) {
+                    Column(modifier = Modifier.padding(top = 16.dp)) {
                         Text("Empty Here.\nAdd Some Games.", color = Color.Gray, fontFamily = gilmerRegular, fontSize = 20.sp, modifier = Modifier.padding(bottom = 16.dp))
                         Button(
                             onClick = { showAppPicker = true },
@@ -256,6 +257,7 @@ fun HomeScreen() {
                     // ── GAME LIST ──
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(vertical = 16.dp), // Prevents neon glow from cropping at the top/bottom edges
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(installedGames.size) { index ->
