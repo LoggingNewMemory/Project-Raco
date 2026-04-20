@@ -22,6 +22,7 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -126,6 +127,7 @@ object GameManager {
 
 // ── UI Components ─────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GamePickerScreen(onBack: () -> Unit) {
     val context = LocalContext.current
@@ -195,84 +197,100 @@ fun GamePickerScreen(onBack: () -> Unit) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 // ADDED SECTION
                 if (addedList.isNotEmpty()) {
-                    item {
+                    item(key = "header_added") {
                         Text(
                             text = "${addedList.size} Added",
                             color = Color.LightGray,
                             fontSize = 14.sp,
                             fontFamily = gilmerLight,
-                            modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 12.dp)
+                            modifier = Modifier
+                                .animateItem() // Replaced animateItemPlacement
+                                .padding(start = 16.dp, top = 24.dp, bottom = 12.dp)
                         )
                     }
-                    items(addedList) { app ->
-                        AppListItem(
-                            app = app,
-                            isAdded = true,
-                            fontFamily = gilmerLight,
-                            onToggle = { isIncluded ->
-                                if (isIncluded) {
-                                    if (app.isSystemGame) {
-                                        GameManager.unhideGame(context, app.packageName)
-                                        hiddenGames = hiddenGames - app.packageName
+                    items(items = addedList, key = { it.packageName }) { app ->
+                        Column(
+                            modifier = Modifier.animateItem() // Replaced animateItemPlacement
+                        ) {
+                            AppListItem(
+                                app = app,
+                                isAdded = true,
+                                fontFamily = gilmerLight,
+                                onToggle = { isIncluded ->
+                                    if (isIncluded) {
+                                        if (app.isSystemGame) {
+                                            GameManager.unhideGame(context, app.packageName)
+                                            hiddenGames = hiddenGames - app.packageName
+                                        } else {
+                                            GameManager.addGame(context, app.packageName)
+                                            addedGames = addedGames + app.packageName
+                                        }
                                     } else {
-                                        GameManager.addGame(context, app.packageName)
-                                        addedGames = addedGames + app.packageName
+                                        if (app.isSystemGame) {
+                                            GameManager.hideGame(context, app.packageName)
+                                            hiddenGames = hiddenGames + app.packageName
+                                        }
+                                        GameManager.removeGame(context, app.packageName)
+                                        addedGames = addedGames - app.packageName
                                     }
-                                } else {
-                                    if (app.isSystemGame) {
-                                        GameManager.hideGame(context, app.packageName)
-                                        hiddenGames = hiddenGames + app.packageName
-                                    }
-                                    GameManager.removeGame(context, app.packageName)
-                                    addedGames = addedGames - app.packageName
                                 }
-                            }
-                        )
-                        HorizontalDivider(color = dividerColor, thickness = 1.dp)
+                            )
+                            HorizontalDivider(color = dividerColor, thickness = 1.dp)
+                        }
                     }
                 }
 
                 // NOT ADDED SECTION
                 if (notAddedList.isNotEmpty()) {
-                    item {
+                    item(key = "header_not_added") {
                         Text(
                             text = "${notAddedList.size} Not added",
                             color = Color.LightGray,
                             fontSize = 14.sp,
                             fontFamily = gilmerLight,
-                            modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 12.dp)
+                            modifier = Modifier
+                                .animateItem() // Replaced animateItemPlacement
+                                .padding(start = 16.dp, top = 24.dp, bottom = 12.dp)
                         )
                     }
-                    items(notAddedList) { app ->
-                        AppListItem(
-                            app = app,
-                            isAdded = false,
-                            fontFamily = gilmerLight,
-                            onToggle = { isIncluded ->
-                                if (isIncluded) {
-                                    if (app.isSystemGame) {
-                                        GameManager.unhideGame(context, app.packageName)
-                                        hiddenGames = hiddenGames - app.packageName
+                    items(items = notAddedList, key = { it.packageName }) { app ->
+                        Column(
+                            modifier = Modifier.animateItem() // Replaced animateItemPlacement
+                        ) {
+                            AppListItem(
+                                app = app,
+                                isAdded = false,
+                                fontFamily = gilmerLight,
+                                onToggle = { isIncluded ->
+                                    if (isIncluded) {
+                                        if (app.isSystemGame) {
+                                            GameManager.unhideGame(context, app.packageName)
+                                            hiddenGames = hiddenGames - app.packageName
+                                        } else {
+                                            GameManager.addGame(context, app.packageName)
+                                            addedGames = addedGames + app.packageName
+                                        }
                                     } else {
-                                        GameManager.addGame(context, app.packageName)
-                                        addedGames = addedGames + app.packageName
+                                        if (app.isSystemGame) {
+                                            GameManager.hideGame(context, app.packageName)
+                                            hiddenGames = hiddenGames + app.packageName
+                                        }
+                                        GameManager.removeGame(context, app.packageName)
+                                        addedGames = addedGames - app.packageName
                                     }
-                                } else {
-                                    if (app.isSystemGame) {
-                                        GameManager.hideGame(context, app.packageName)
-                                        hiddenGames = hiddenGames + app.packageName
-                                    }
-                                    GameManager.removeGame(context, app.packageName)
-                                    addedGames = addedGames - app.packageName
                                 }
-                            }
-                        )
-                        HorizontalDivider(color = dividerColor, thickness = 1.dp)
+                            )
+                            HorizontalDivider(color = dividerColor, thickness = 1.dp)
+                        }
                     }
                 }
 
-                item {
-                    Spacer(modifier = Modifier.height(32.dp))
+                item(key = "bottom_spacer") {
+                    Spacer(
+                        modifier = Modifier
+                            .animateItem() // Replaced animateItemPlacement
+                            .height(32.dp)
+                    )
                 }
             }
         }
