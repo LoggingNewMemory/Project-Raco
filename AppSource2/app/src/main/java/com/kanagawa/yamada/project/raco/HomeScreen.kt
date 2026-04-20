@@ -243,6 +243,7 @@ fun HomeScreen() {
                     fontFamily = gilmerBold, fontSize = 34.sp, letterSpacing = 2.sp
                 )
 
+                // Reduced bottom padding from 32.dp to 16.dp to account for the LazyColumn's new 16.dp top content padding
                 Text("$currentTime • $batteryLevel%", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp, top = 4.dp))
 
                 if (installedGames.isEmpty()) {
@@ -263,7 +264,7 @@ fun HomeScreen() {
                     // ── GAME LIST ──
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(vertical = 16.dp),
+                        contentPadding = PaddingValues(vertical = 16.dp), // Prevents neon glow from cropping at the top/bottom edges
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(installedGames.size) { index ->
@@ -436,7 +437,8 @@ fun HomeScreen() {
                                                     .padding(bottom = 24.dp)
                                                     .basicMarquee(
                                                         iterations = Int.MAX_VALUE,
-                                                        velocity = 40.dp
+                                                        velocity = 40.dp,
+                                                        initialDelayMillis = 0 // <--- OVERRIDES DEFAULT DELAY, STARTS INSTANTLY
                                                     )
                                             )
                                             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
