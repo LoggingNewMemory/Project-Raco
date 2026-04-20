@@ -101,8 +101,8 @@ fun HomeScreen() {
     ) {
         // ── Background Diagonal Canvas ──
         Canvas(modifier = Modifier.fillMaxSize().clipToBounds()) {
-            val splitStart = size.width * 0.5f // Top split point
-            val splitEnd = size.width * 0.35f  // Bottom split point
+            val splitStart = size.width * 0.70f // Shifted right to ~70% of screen width
+            val splitEnd = size.width * 0.45f   // Shifted right to ~45% to align with the list
 
             val path = Path().apply {
                 moveTo(splitStart, 0f)
@@ -128,7 +128,7 @@ fun HomeScreen() {
                     ),
                     start = Offset(splitStart, 0f),
                     end = Offset(splitEnd, size.height),
-                    strokeWidth = 6.dp.toPx()
+                    strokeWidth = 6.dp.toPx() // You can also increase this to 8.dp.toPx() if you want a thicker line
                 )
             }
         }
