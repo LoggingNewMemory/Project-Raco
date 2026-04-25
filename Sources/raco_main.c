@@ -128,7 +128,7 @@ void awaken_basic() {
     }
 
     corin_perf();
-    if (config.kcpu_mitigate == 0) carcpu_perf();
+    carcpu_perf();
     
     if (config.include_anya && config.anya) {
         system("sh /data/adb/modules/ProjectRaco/Scripts/AnyaMelfissa.sh &");
@@ -151,7 +151,7 @@ void balanced_basic() {
 
     kakangku("120", "/proc/sys/vm/vfs_cache_pressure");
 
-    change_cpu_gov(config.default_cpu_gov);
+    change_cpu_gov("schedutil");
     sleep(1);
     execute_cpufreq_mode(2);
 
@@ -165,7 +165,7 @@ void balanced_basic() {
     }
     
     corin_balanced();
-    if (config.kcpu_mitigate == 0) carcpu_balance();
+    carcpu_balance();
 
     if (config.include_anya && config.anya) {
         system("sh /data/adb/modules/ProjectRaco/Scripts/AnyaKawaii.sh &");
@@ -190,7 +190,7 @@ void powersave_basic() {
     }
 
     corin_powersave();
-    if (config.kcpu_mitigate == 0) carcpu_battery();
+    carcpu_battery();
 
     if (config.include_anya && config.anya) {
         system("sh /data/adb/modules/ProjectRaco/Scripts/AnyaKawaii.sh &");

@@ -125,9 +125,10 @@ void load_config() {
         if (sscanf(line, "%63[^=]=%63s", key, value) == 2) {
             if (strcmp(key, "SOC") == 0) config.soc = atoi(value);
             else if (strcmp(key, "LITE_MODE") == 0) config.lite_mode = atoi(value);
-            else if (strcmp(key, "BETTER_POWERAVE") == 0) config.better_powersave = atoi(value);
-            else if (strcmp(key, "KCPU_MITIGATE") == 0) config.kcpu_mitigate = atoi(value);
-            else if (strcmp(key, "GOV") == 0) strncpy(config.default_cpu_gov, value, 31);
+            else if (strcmp(key, "BETTER_POWERSAVE") == 0) config.better_powersave = atoi(value);
+            else if (strcmp(key, "DEVICE_MITIGATION") == 0) config.device_mitigation = atoi(value);
+            else if (strcmp(key, "ANYA") == 0) config.anya = atoi(value);
+            else if (strcmp(key, "INCLUDE_ANYA") == 0) config.include_anya = atoi(value);
         }
         line = strtok(NULL, "\n");
     }
