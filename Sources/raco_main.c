@@ -17,6 +17,7 @@ If not, see https://www.gnu.org/licenses/.
 #include <string.h>
 #include <unistd.h>
 #include <glob.h>
+#include <sys/stat.h>
 #include "raco_utils.h"
 #include "raco_devices.h"
 

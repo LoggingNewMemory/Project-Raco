@@ -126,3 +126,30 @@ void kobo_fast_charge() {
     find_and_tweak("/sys/class/power_supply/", "step_charging_enabled", "0", 1);
     find_and_tweak("/sys/class/power_supply/", "sw_jeita_enabled", "0", 1);
 }
+
+void raco_kill_all() {
+    sync();
+
+    system("cmd activity kill-all > /dev/null 2>&1");
+
+    FILE *fp = popen("pm list packages -3 | cut -f 2 -d ':'", "r");
+    if (fp) {
+        char pkg[256];
+        while (fgets(pkg, sizeof(pkg), fp)) {
+            pkg[strcspn(pkg, "\n")] = 0;
+            
+            if (strcmp(pkg, "com.google.android.inputmethod.latin") != 0 && strlen(pkg) > 0) {
+                char cmd[512];
+                snprintf(cmd, sizeof(cmd), "am force-stop \"%s\" > /dev/null 2>&1", pkg);
+                system(cmd);
+            }
+        }
+        pclose(fp);
+    }
+
+    system("pm trim-caches 100G > /dev/null 2>&1");
+    tweak("3", "/proc/sys/vm/drop_caches");
+
+    system("logcat -c");
+    system("logcat -b all -c");
+}
