@@ -277,6 +277,23 @@ build_modules() {
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/ayunda_rusdi"
 
     # ------------------------------------------
+    # VERIFICATION (ldd equivalent for NDK)
+    # ------------------------------------------
+    echo ""
+    echo "---------------------------------"
+    echo " Verifying Binaries (Dependencies) "
+    echo "---------------------------------"
+    
+    for bin in raco anya_thermal zetamin ayunda_rusdi; do
+        if [ -f "$MODULES_DIR/Compiled/$bin" ]; then
+            echo "[*] Dependencies for $bin:"
+            # Using llvm-readelf to extract NEEDED shared libraries
+            $TOOLCHAIN/llvm-readelf -d "$MODULES_DIR/Compiled/$bin" | grep NEEDED || echo "    (No dynamic dependencies)"
+            echo ""
+        fi
+    done
+
+    # ------------------------------------------
     # B. PACKAGING MODULE
     # ------------------------------------------
     echo ""
