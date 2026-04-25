@@ -99,6 +99,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -127,6 +130,7 @@ data class Game(
 @Composable
 fun HomeScreen() {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val gilmerBold = remember {
         FontFamily(androidx.compose.ui.text.font.Typeface(android.graphics.Typeface.createFromAsset(context.assets, "GilmerBold.otf")))
@@ -141,6 +145,21 @@ fun HomeScreen() {
     var selectedGameIndex by remember { mutableIntStateOf(0) }
     var showAppPicker by remember { mutableStateOf(false) }
     var listRefreshTrigger by remember { mutableIntStateOf(0) }
+
+    // Listen for app resume to refresh the game list
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                listRefreshTrigger++
+                selectedGameIndex = 0 // <-- FIX: Snap back to the top when returning
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     // Live Data
     val currentTime by rememberCurrentTime()
@@ -517,7 +536,13 @@ fun HomeScreen() {
                                                 Button(
                                                     onClick = {
                                                         val intent = context.packageManager.getLaunchIntentForPackage(game.packageName)
-                                                        if (intent != null) { intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); context.startActivity(intent) }
+                                                        if (intent != null) {
+                                                            // <-- FIX: Instantly save the launch time locally
+                                                            GameManager.setGameLastPlayed(context, game.packageName, System.currentTimeMillis())
+
+                                                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                            context.startActivity(intent)
+                                                        }
                                                     },
                                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black), shape = RoundedCornerShape(8.dp),
                                                     modifier = Modifier.height(56.dp).width(160.dp).border(2.dp, animatedAccentColor, RoundedCornerShape(8.dp))
@@ -624,7 +649,9 @@ fun rememberInstalledGames(context: Context, refreshTrigger: Int): State<List<Ga
             val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
             val timeNow = System.currentTimeMillis()
             val thirtyDaysAgo = timeNow - 1000L * 60 * 60 * 24 * 30
-            val stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_MONTHLY, thirtyDaysAgo, timeNow).associateBy { it.packageName }
+
+            // <-- FIX: Use queryAndAggregateUsageStats instead of queryUsageStats
+            val stats = usageStatsManager.queryAndAggregateUsageStats(thirtyDaysAgo, timeNow)
 
             val gameList = mutableListOf<Game>()
             for (app in apps) {
@@ -639,8 +666,14 @@ fun rememberInstalledGames(context: Context, refreshTrigger: Int): State<List<Ga
                     val name = app.loadLabel(pm).toString()
                     val packageName = app.packageName
                     val iconBitmap = drawableToImageBitmap(app.loadIcon(pm))
+
                     val totalTime = stats[packageName]?.totalTimeInForeground ?: 0L
-                    val lastUsed = stats[packageName]?.lastTimeUsed ?: 0L
+
+                    // <-- FIX: Compare OS delay vs Local cache and pick the highest
+                    val usageLastUsed = stats[packageName]?.lastTimeUsed ?: 0L
+                    val localLastUsed = GameManager.getGameLastPlayed(context, packageName)
+                    val lastUsed = maxOf(usageLastUsed, localLastUsed)
+
                     val durationStr = if (totalTime > 0) formatDuration(totalTime) else "0 mins played"
 
                     gameList.add(Game(name, packageName, durationStr, iconBitmap, lastUsed))

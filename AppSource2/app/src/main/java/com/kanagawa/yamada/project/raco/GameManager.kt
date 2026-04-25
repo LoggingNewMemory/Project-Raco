@@ -101,6 +101,17 @@ object GameManager {
         prefs.edit().putStringSet(KEY_HIDDEN_GAMES, currentHidden).apply()
     }
 
+    // --- Added Launch Time Cache to bypass OS UsageStats delay ---
+    fun setGameLastPlayed(context: Context, packageName: String, timestamp: Long) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putLong("last_played_$packageName", timestamp).apply()
+    }
+
+    fun getGameLastPlayed(context: Context, packageName: String): Long {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getLong("last_played_$packageName", 0L)
+    }
+
     suspend fun getAllInstalledApps(context: Context): List<AppInfo> = withContext(Dispatchers.IO) {
         val pm = context.packageManager
         val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
