@@ -73,22 +73,24 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -138,7 +140,7 @@ fun HomeScreen() {
     var showPerfMenu by remember { mutableStateOf(false) }
     var selectedGameIndex by remember { mutableIntStateOf(0) }
     var showAppPicker by remember { mutableStateOf(false) }
-    var listRefreshTrigger by remember { mutableIntStateOf(0) } // Used to re-trigger the games fetch
+    var listRefreshTrigger by remember { mutableIntStateOf(0) }
 
     // Live Data
     val currentTime by rememberCurrentTime()
@@ -156,7 +158,6 @@ fun HomeScreen() {
         label = "AccentColorAnim"
     )
 
-    // Right Pane Background perfectly clear transparent to allow the blurred icon to bleed edge-to-edge
     val rightPaneColor by animateColorAsState(if (showPerfMenu) Color(0xFF0A0A0A) else Color.Transparent, label = "RightPaneColor")
     val lineAlpha by animateFloatAsState(if (showPerfMenu) 0f else 1f, label = "LineAlpha")
     var activeGradientMode by remember { mutableStateOf(currentMode) }
@@ -209,16 +210,15 @@ fun HomeScreen() {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            // LEFT PANE (Adaptive Hide - Dynamically clipped by background line coordinates)
+            // LEFT PANE
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .drawWithContent {
-                        val margin = 24.dp.toPx() // Gap to ensure text visually respects the line
+                        val margin = 24.dp.toPx()
                         val splitStart = size.width * 0.70f - margin
                         val splitEnd = size.width * 0.45f - margin
 
-                        // Creating a matching boundary path
                         val path = Path().apply {
                             moveTo(0f, 0f)
                             lineTo(splitStart, 0f)
@@ -227,10 +227,7 @@ fun HomeScreen() {
                             close()
                         }
 
-                        // Adaptively hide content exactly at the line margin
-                        clipPath(path) {
-                            this@drawWithContent.drawContent()
-                        }
+                        clipPath(path) { this@drawWithContent.drawContent() }
                     }
                     .displayCutoutPadding()
                     .padding(start = 24.dp, top = 24.dp, bottom = 24.dp)
@@ -243,11 +240,9 @@ fun HomeScreen() {
                     fontFamily = gilmerBold, fontSize = 34.sp, letterSpacing = 2.sp
                 )
 
-                // Reduced bottom padding from 32.dp to 16.dp to account for the LazyColumn's new 16.dp top content padding
                 Text("$currentTime • $batteryLevel%", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp, top = 4.dp))
 
                 if (installedGames.isEmpty()) {
-                    // ── EMPTY STATE ──
                     Column(modifier = Modifier.padding(top = 16.dp)) {
                         Text("Empty Here.\nAdd Some Games.", color = Color.Gray, fontFamily = gilmerRegular, fontSize = 20.sp, modifier = Modifier.padding(bottom = 16.dp))
                         Button(
@@ -261,10 +256,9 @@ fun HomeScreen() {
                         }
                     }
                 } else {
-                    // ── GAME LIST ──
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(vertical = 16.dp), // Prevents neon glow from cropping at the top/bottom edges
+                        contentPadding = PaddingValues(vertical = 16.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(installedGames.size) { index ->
@@ -275,12 +269,11 @@ fun HomeScreen() {
                                 onClick = { selectedGameIndex = index }
                             )
                         }
-                        // Add Game List Item at the bottom
                         item {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .fillMaxWidth(0.55f) // Restrict to left half so touch doesn't overlap the right pane
+                                    .fillMaxWidth(0.55f)
                                     .clickable { showAppPicker = true }
                                     .padding(vertical = 4.dp)
                             ) {
@@ -297,16 +290,15 @@ fun HomeScreen() {
                 }
             }
 
-            // RIGHT PANE: (Adaptive Hide - Dynamically clipped by background line coordinates)
+            // RIGHT PANE
             Box(
                 modifier = Modifier
-                    .fillMaxSize() // Takes full size to share the same coordinate map for clipping
+                    .fillMaxSize()
                     .drawWithContent {
-                        val margin = 24.dp.toPx() // Same margin to create a perfect track for the glowing line
+                        val margin = 24.dp.toPx()
                         val splitStart = size.width * 0.70f + margin
                         val splitEnd = size.width * 0.45f + margin
 
-                        // Creating an inverted boundary path for the right side
                         val path = Path().apply {
                             moveTo(splitStart, 0f)
                             lineTo(size.width, 0f)
@@ -315,9 +307,7 @@ fun HomeScreen() {
                             close()
                         }
 
-                        clipPath(path) {
-                            this@drawWithContent.drawContent()
-                        }
+                        clipPath(path) { this@drawWithContent.drawContent() }
                     }
             ) {
                 if (!showPerfMenu) {
@@ -348,7 +338,7 @@ fun HomeScreen() {
                                 modifier = Modifier
                                     .align(Alignment.CenterEnd)
                                     .displayCutoutPadding()
-                                    .padding(end = 24.dp) // Padded the settings menu
+                                    .padding(end = 24.dp)
                             ) {
                                 Column(horizontalAlignment = Alignment.End) {
                                     Text("Performance", color = Color.White, fontFamily = gilmerRegular, fontSize = 36.sp)
@@ -369,54 +359,118 @@ fun HomeScreen() {
                             if (installedGames.isNotEmpty()) {
                                 val activeGame = installedGames[selectedGameIndex]
 
-                                // ── 1. Edge-to-Edge Animated Background (Stationary Crossfade) ──
-                                // We use a smooth Crossfade here so the background stays completely locked to the edges.
-                                // It will simply dissolve into the new game's background without sliding up.
+                                // ── 1. ULTRA-PREMIUM 3D FLOATING ICON ──
+
+                                // Hoisted infinite transition state to ensure continuity across game changes
+                                val infiniteTransition = rememberInfiniteTransition(label = "floatingIcon")
+                                val floatY by infiniteTransition.animateFloat(
+                                    initialValue = -25f,
+                                    targetValue = 25f,
+                                    animationSpec = infiniteRepeatable(tween(3500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                                    label = "yOffset"
+                                )
+                                val rotationTiltX by infiniteTransition.animateFloat(
+                                    initialValue = -4f,
+                                    targetValue = 4f,
+                                    animationSpec = infiniteRepeatable(tween(4500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                                    label = "tiltX"
+                                )
+                                val rotationTiltY by infiniteTransition.animateFloat(
+                                    initialValue = -6f,
+                                    targetValue = 6f,
+                                    animationSpec = infiniteRepeatable(tween(5500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                                    label = "tiltY"
+                                )
+
                                 Crossfade(
                                     targetState = activeGame,
-                                    animationSpec = tween(600), // Smooth buttery dissolve
+                                    animationSpec = tween(700, easing = FastOutSlowInEasing),
                                     modifier = Modifier.fillMaxSize(),
                                     label = "BgCrossfade"
                                 ) { game ->
-                                    val infiniteTransition = rememberInfiniteTransition(label = "bgIconAnim")
-                                    val animProgress by infiniteTransition.animateFloat(
-                                        initialValue = 0f,
-                                        targetValue = 1f,
-                                        animationSpec = infiniteRepeatable(
-                                            animation = tween(15000, easing = FastOutSlowInEasing),
-                                            repeatMode = RepeatMode.Reverse
-                                        ),
-                                        label = "progress"
-                                    )
+                                    Box(modifier = Modifier.fillMaxSize()) {
+                                        if (game.icon != null) {
 
-                                    val offsetY = 100f - (animProgress * 200f)
+                                            // ── BLURRED & DARKENED BACKGROUND LAYER ──
+                                            Image(
+                                                bitmap = game.icon,
+                                                contentDescription = "Blurred Game Background",
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .blur(64.dp) // High blur radius
+                                            )
+                                            // Darkening Overlay
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(Color.Black.copy(alpha = 0.65f)) // Adjust alpha for darkness
+                                            )
 
-                                    if (game.icon != null) {
-                                        Image(
-                                            bitmap = game.icon,
-                                            contentDescription = "Animated Background",
-                                            contentScale = ContentScale.Crop,
-                                            filterQuality = androidx.compose.ui.graphics.FilterQuality.High,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .scale(2.0f) // Extreme 2.0x scale prevents bounds clipping during movement
-                                                .offset(y = offsetY.dp)
-                                                .alpha(0.35f)
-                                                .blur(48.dp)
-                                        )
+                                            // ── FOREGROUND 3D ICON ──
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxHeight()
+                                                    .fillMaxWidth(0.45f)
+                                                    .align(Alignment.CenterEnd),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .graphicsLayer {
+                                                            rotationX = rotationTiltX
+                                                            rotationY = rotationTiltY
+                                                            translationY = floatY
+                                                            cameraDistance = 12f * density
+
+                                                            shadowElevation = (30f + (floatY * 0.5f)).coerceAtLeast(10f)
+                                                            shape = RoundedCornerShape(32.dp)
+                                                            clip = true
+                                                        }
+                                                        .size(220.dp) // Reduced size
+                                                        .border(
+                                                            width = 1.5.dp,
+                                                            color = Color.White.copy(alpha = 0.2f),
+                                                            shape = RoundedCornerShape(32.dp)
+                                                        )
+                                                ) {
+                                                    // Game Icon Layer
+                                                    Image(
+                                                        bitmap = game.icon,
+                                                        contentDescription = "Floating Background Icon",
+                                                        contentScale = ContentScale.Crop,
+                                                        modifier = Modifier.fillMaxSize()
+                                                    )
+
+                                                    // Glassmorphism Gloss Overlay
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxSize()
+                                                            .background(
+                                                                Brush.linearGradient(
+                                                                    colors = listOf(
+                                                                        Color.White.copy(alpha = 0.3f),
+                                                                        Color.Transparent,
+                                                                        Color.Black.copy(alpha = 0.4f)
+                                                                    ),
+                                                                    start = Offset(0f, 0f),
+                                                                    end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                                                                )
+                                                            )
+                                                    )
+                                                }
+                                            }
+                                        }
                                     }
                                 }
 
-                                // ── 2. Foreground Content (Swipe Up Animated Transition) ──
-                                // We only apply the vertical slide animation to the text and buttons.
+                                // ── 2. Foreground Content ──
                                 AnimatedContent(
                                     targetState = activeGame,
                                     transitionSpec = {
                                         (fadeIn(animationSpec = tween(400)) + slideInVertically(tween(400)) { 40 }).togetherWith(
                                             fadeOut(animationSpec = tween(400)) + slideOutVertically(tween(400)) { -40 }
-                                        ).using(
-                                            SizeTransform(clip = false)
-                                        )
+                                        ).using(SizeTransform(clip = false))
                                     },
                                     modifier = Modifier.fillMaxSize(),
                                     label = "GameDetailsAnimation"
@@ -428,7 +482,7 @@ fun HomeScreen() {
                                                 .fillMaxWidth(0.7f)
                                                 .align(Alignment.BottomEnd)
                                                 .displayCutoutPadding()
-                                                .padding(end = 24.dp, bottom = 24.dp) // Padding safely reapplied to the text/buttons
+                                                .padding(end = 24.dp, bottom = 24.dp)
                                         ) {
                                             val tickerText = remember(game.name) {
                                                 Array(10) { game.name }.joinToString("      •      ")
@@ -440,12 +494,19 @@ fun HomeScreen() {
                                                 fontSize = 34.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 maxLines = 1,
+                                                style = TextStyle(
+                                                    shadow = Shadow(
+                                                        color = Color.Black.copy(alpha = 0.8f),
+                                                        offset = Offset(0f, 4f),
+                                                        blurRadius = 12f
+                                                    )
+                                                ),
                                                 modifier = Modifier
                                                     .padding(bottom = 24.dp)
                                                     .basicMarquee(
                                                         iterations = Int.MAX_VALUE,
                                                         velocity = 40.dp,
-                                                        initialDelayMillis = 0 // OVERRIDES DEFAULT DELAY, STARTS INSTANTLY
+                                                        initialDelayMillis = 0
                                                     )
                                             )
                                             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -472,7 +533,6 @@ fun HomeScreen() {
             }
         }
 
-        // Launch Full Screen App Picker Over UI with Slide + Fade Transition
         AnimatedVisibility(
             visible = showAppPicker,
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -482,7 +542,7 @@ fun HomeScreen() {
             GamePickerScreen(
                 onBack = {
                     showAppPicker = false
-                    listRefreshTrigger++ // Forces the game list to refresh when returning
+                    listRefreshTrigger++
                 }
             )
         }
@@ -496,7 +556,7 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .fillMaxWidth(0.55f) // Restrict width to the left half so the invisible touch target doesn't block the right pane
+            .fillMaxWidth(0.55f)
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
             .padding(vertical = 4.dp)
     ) {
@@ -507,7 +567,7 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
                 Image(
                     bitmap = game.icon,
                     contentDescription = game.name,
-                    contentScale = ContentScale.Crop, // Crops down to exact Box bounds
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
                 )
             }
@@ -519,10 +579,9 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
-                overflow = TextOverflow.Visible // Allows the text to draw OUTSIDE the 0.55f width boundary so it can reach the diagonal line
+                overflow = TextOverflow.Visible
             )
 
-            // Only show time played when this game is selected
             AnimatedVisibility(
                 visible = isSelected,
                 enter = expandVertically() + fadeIn(),
@@ -576,19 +635,17 @@ fun rememberInstalledGames(context: Context, refreshTrigger: Int): State<List<Ga
                     (app.flags and ApplicationInfo.FLAG_IS_GAME) != 0
                 }
 
-                // Show it if it's explicitly added, OR if it's an auto-detected game that hasn't been explicitly hidden
                 if ((isAndroidGame && !hiddenGames.contains(app.packageName)) || customGames.contains(app.packageName)) {
                     val name = app.loadLabel(pm).toString()
                     val packageName = app.packageName
                     val iconBitmap = drawableToImageBitmap(app.loadIcon(pm))
                     val totalTime = stats[packageName]?.totalTimeInForeground ?: 0L
-                    val lastUsed = stats[packageName]?.lastTimeUsed ?: 0L // Extract last used time for sorting
+                    val lastUsed = stats[packageName]?.lastTimeUsed ?: 0L
                     val durationStr = if (totalTime > 0) formatDuration(totalTime) else "0 mins played"
 
                     gameList.add(Game(name, packageName, durationStr, iconBitmap, lastUsed))
                 }
             }
-            // Sort by last time used in descending order (most recent first)
             gamesState.value = gameList.sortedByDescending { it.lastTimeUsed }
         }
     }
@@ -601,15 +658,13 @@ fun formatDuration(millis: Long): String {
     return if (hours > 0) "$hours hrs $minutes mins played" else "$minutes mins played"
 }
 
-// Fixed the root cause of Blurry background icons by extracting vector files into a massive 1024x1024 base canvas size!
 fun drawableToImageBitmap(drawable: Drawable): ImageBitmap? {
     try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && drawable is android.graphics.drawable.AdaptiveIconDrawable) {
-            val size = 1024 // Massively increased from 256 for perfectly sharp Full-Screen Backgrounds
+            val size = 1024
             val bitmap = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
             val canvas = android.graphics.Canvas(bitmap)
 
-            // Draw the unmasked background and foreground full-bleed
             drawable.background?.apply {
                 setBounds(0, 0, size, size)
                 draw(canvas)
@@ -621,7 +676,6 @@ fun drawableToImageBitmap(drawable: Drawable): ImageBitmap? {
             return bitmap.asImageBitmap()
         }
 
-        // Fallback for older legacy icons
         if (drawable is BitmapDrawable && drawable.bitmap != null) return drawable.bitmap.asImageBitmap()
 
         val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth.coerceAtLeast(1024) else 1024
