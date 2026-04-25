@@ -1,6 +1,15 @@
 #!/bin/bash
 
 # ==========================================
+# 0. QUICK CONFIGURATION
+# ==========================================
+# Uncomment and modify these to skip interactive prompts.
+# Comment them out to return to normal interactive mode.
+RACOVER="6.0"
+BUILD="LAB"
+TELEGRAM="NO"
+
+# ==========================================
 # 1. ENVIRONMENT & CONFIGURATION
 # ==========================================
 export NDK=/opt/android-ndk
@@ -19,8 +28,8 @@ if [ -f "megumi.sh" ]; then
 fi
 
 mkdir -p "$BUILD_DIR"
-# The Compiled Sources folder will be mapped to Modules/Compiled
 mkdir -p "$MODULES_DIR/Compiled"
+mkdir -p "$MODULES_DIR/CoreSys"
 
 # ==========================================
 # 2. UI & HELPER FUNCTIONS
@@ -58,13 +67,11 @@ send_to_telegram() {
 
     echo "Uploading $(basename "$file_path") to chat ID: $chat_id..."
 
-    # Send document to Telegram
     response=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument" \
         -F "chat_id=$chat_id" \
         -F "document=@$file_path" \
         -F "caption=$caption")
 
-    # Check if upload was successful
     if echo "$response" | grep -q '"ok":true'; then
         echo "✓ Successfully uploaded $(basename "$file_path") to $chat_id"
         return 0
@@ -192,6 +199,17 @@ prompt_changelog() {
 }
 
 prompt_telegram_post() {
+    # Check if TELEGRAM is set in Quick Config
+    if [ -n "$TELEGRAM" ]; then
+        if [ "${TELEGRAM^^}" = "NO" ]; then
+            echo "Telegram upload skipped (Quick Config)."
+            return 1
+        elif [ "${TELEGRAM^^}" = "YES" ]; then
+            echo "Telegram upload auto-accepted (Quick Config)."
+            return 0
+        fi
+    fi
+
     echo ""
     read -p "Post to Telegram groups? (y/N): " POST_TO_TELEGRAM
     POST_TO_TELEGRAM=${POST_TO_TELEGRAM,,}
@@ -209,18 +227,30 @@ prompt_telegram_post() {
 build_modules() {
     rm -rf "$BUILD_DIR"/*
 
-    read -p "Enter Version (e.g., V1.0): " VERSION
+    # Check Quick Config for VERSION
+    if [ -n "$RACOVER" ]; then
+        VERSION="$RACOVER"
+        echo "Auto-set Version: $VERSION"
+    else
+        read -p "Enter Version (e.g., V1.0): " VERSION
+    fi
 
-    while true; do
-        read -p "Enter Build Type (LAB/RELEASE): " BUILD_TYPE
-        BUILD_TYPE=${BUILD_TYPE^^}
-        if [[ "$BUILD_TYPE" == "LAB" || "$BUILD_TYPE" == "RELEASE" ]]; then
-            break
-        fi
-        echo "Invalid input. Please enter LAB or RELEASE."
-    done
+    # Check Quick Config for BUILD TYPE
+    if [ -n "$BUILD" ]; then
+        BUILD_TYPE="${BUILD^^}"
+        echo "Auto-set Build Type: $BUILD_TYPE"
+    else
+        while true; do
+            read -p "Enter Build Type (LAB/RELEASE): " BUILD_TYPE
+            BUILD_TYPE=${BUILD_TYPE^^}
+            if [[ "$BUILD_TYPE" == "LAB" || "$BUILD_TYPE" == "RELEASE" ]]; then
+                break
+            fi
+            echo "Invalid input. Please enter LAB or RELEASE."
+        done
+    fi
 
-# ------------------------------------------
+    # ------------------------------------------
     # A. COMPILE NATIVE BINARIES
     # ------------------------------------------
     echo ""
@@ -228,7 +258,7 @@ build_modules() {
     echo "      Compiling Source Code      "
     echo "---------------------------------"
 
-    echo "[1/4] Building Project Raco Core..."
+    echo "[1/5] Building Project Raco Core..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/raco" \
         "$SRC_DIR/raco_main.c" \
@@ -240,7 +270,7 @@ build_modules() {
         exit 1
     fi
 
-    echo "[2/4] Building Anya Thermal..."
+    echo "[2/5] Building Anya Thermal..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/anya_thermal" \
         "$SRC_DIR/anya_thermal.c" \
@@ -250,7 +280,7 @@ build_modules() {
         exit 1
     fi
 
-    echo "[3/4] Building Zetamin..."
+    echo "[3/5] Building Zetamin..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/zetamin" \
         "$SRC_DIR/zetamin.c" \
@@ -260,7 +290,7 @@ build_modules() {
         exit 1
     fi
 
-    echo "[4/4] Building Ayunda Rusdi..."
+    echo "[4/5] Building Ayunda Rusdi..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/ayunda_rusdi" \
         "$SRC_DIR/ayunda_rusdi.c" \
@@ -270,11 +300,22 @@ build_modules() {
         exit 1
     fi
 
+    echo "[5/5] Building Raco Core Service..."
+    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
+        -o "$MODULES_DIR/CoreSys/raco_service" \
+        "$SRC_DIR/raco_service.c" \
+        "$SRC_DIR/raco_utils.c" \
+        "$SRC_DIR/raco_write.s"; then
+        echo "❌ ERROR: Compilation of Raco Service failed!"
+        exit 1
+    fi
+
     # Strip the binaries to reduce file size
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/raco"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/anya_thermal"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/zetamin"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/ayunda_rusdi"
+    $TOOLCHAIN/llvm-strip "$MODULES_DIR/CoreSys/raco_service"
 
     # ------------------------------------------
     # VERIFICATION (ldd equivalent for NDK)
@@ -287,11 +328,17 @@ build_modules() {
     for bin in raco anya_thermal zetamin ayunda_rusdi; do
         if [ -f "$MODULES_DIR/Compiled/$bin" ]; then
             echo "[*] Dependencies for $bin:"
-            # Using llvm-readelf to extract NEEDED shared libraries
             $TOOLCHAIN/llvm-readelf -d "$MODULES_DIR/Compiled/$bin" | grep NEEDED || echo "    (No dynamic dependencies)"
             echo ""
         fi
     done
+
+    # Verify Raco Service separately
+    if [ -f "$MODULES_DIR/CoreSys/raco_service" ]; then
+        echo "[*] Dependencies for raco_service:"
+        $TOOLCHAIN/llvm-readelf -d "$MODULES_DIR/CoreSys/raco_service" | grep NEEDED || echo "    (No dynamic dependencies)"
+        echo ""
+    fi
 
     # ------------------------------------------
     # B. PACKAGING MODULE
