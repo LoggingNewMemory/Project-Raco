@@ -20,19 +20,20 @@ If not, see https://www.gnu.org/licenses/.
 #include "raco_utils.h"
 
 int _get_cpu_load() {
-    FILE *stat = fopen("/proc/stat", "r");
-    if (!stat) return 0;
+    char buffer[512] = {0};
     unsigned long long u, n, s, i, iw, irq, sirq, steal;
-    fscanf(stat, "cpu %llu %llu %llu %llu %llu %llu %llu %llu", &u, &n, &s, &i, &iw, &irq, &sirq, &steal);
-    fclose(stat);
+
+    // First Read
+    if (moco("/proc/stat", buffer, sizeof(buffer)) <= 0) return 0;
+    sscanf(buffer, "cpu %llu %llu %llu %llu %llu %llu %llu %llu", &u, &n, &s, &i, &iw, &irq, &sirq, &steal);
     unsigned long long t1 = u + n + s + i + iw + irq + sirq + steal;
     unsigned long long i1 = i + iw;
 
     usleep(100000); 
 
-    stat = fopen("/proc/stat", "r");
-    fscanf(stat, "cpu %llu %llu %llu %llu %llu %llu %llu %llu", &u, &n, &s, &i, &iw, &irq, &sirq, &steal);
-    fclose(stat);
+    // Second Read
+    if (moco("/proc/stat", buffer, sizeof(buffer)) <= 0) return 0;
+    sscanf(buffer, "cpu %llu %llu %llu %llu %llu %llu %llu %llu", &u, &n, &s, &i, &iw, &irq, &sirq, &steal);
     unsigned long long t2 = u + n + s + i + iw + irq + sirq + steal;
     unsigned long long i2 = i + iw;
 

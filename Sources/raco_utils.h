@@ -20,6 +20,7 @@ If not, see https://www.gnu.org/licenses/.
 // External ARM64 Assembly bindings
 extern void tweak(const char *value, const char *path);
 extern void kakangku(const char *value, const char *path);
+extern int moco(const char *path, char *buffer, int size);
 
 // Global Configuration
 typedef struct {

@@ -29,13 +29,16 @@ int cmp_int(const void *a, const void *b) {
 }
 
 int get_freqs(const char *path, int *freqs, int max_size) {
-    FILE *f = fopen(path, "r");
-    if (!f) return 0;
+    char buffer[4096] = {0};
+    if (moco(path, buffer, sizeof(buffer)) <= 0) return 0;
+    
     int count = 0;
-    while (count < max_size && fscanf(f, "%d", &freqs[count]) == 1) {
-        count++;
+    char *token = strtok(buffer, " \n");
+    while (token != NULL && count < max_size) {
+        freqs[count++] = atoi(token);
+        token = strtok(NULL, " \n");
     }
-    fclose(f);
+    
     qsort(freqs, count, sizeof(int), cmp_int);
     return count;
 }
@@ -112,10 +115,13 @@ void change_cpu_gov(const char *gov) {
 }
 
 void load_config() {
-    FILE *f = fopen(RACO_CONFIG, "r");
-    if (!f) return;
-    char line[256], key[64], value[64];
-    while (fgets(line, sizeof(line), f)) {
+    char buffer[1024] = {0};
+    if (moco(RACO_CONFIG, buffer, sizeof(buffer)) <= 0) return;
+    
+    char *line = strtok(buffer, "\n");
+    char key[64], value[64];
+    
+    while (line != NULL) {
         if (sscanf(line, "%63[^=]=%63s", key, value) == 2) {
             if (strcmp(key, "SOC") == 0) config.soc = atoi(value);
             else if (strcmp(key, "LITE_MODE") == 0) config.lite_mode = atoi(value);
@@ -123,8 +129,8 @@ void load_config() {
             else if (strcmp(key, "KCPU_MITIGATE") == 0) config.kcpu_mitigate = atoi(value);
             else if (strcmp(key, "GOV") == 0) strncpy(config.default_cpu_gov, value, 31);
         }
+        line = strtok(NULL, "\n");
     }
-    fclose(f);
 }
 
 void set_state(int new_state) {

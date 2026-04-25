@@ -34,10 +34,13 @@ void apply_cpufreq_policy(const char *policy_path, int mode) {
     snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", policy_path);
     snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", policy_path);
 
-    // Read hardware frequency limits directly
-    FILE *f;
-    if ((f = fopen(hw_min_path, "r"))) { fscanf(f, "%31s", hw_min); fclose(f); }
-    if ((f = fopen(hw_max_path, "r"))) { fscanf(f, "%31s", hw_max); fclose(f); }
+    // Read hardware frequency limits using Assembly
+    moco(hw_min_path, hw_min, sizeof(hw_min));
+    moco(hw_max_path, hw_max, sizeof(hw_max));
+
+    // Strip trailing newlines typical of sysfs nodes
+    hw_min[strcspn(hw_min, "\n")] = 0;
+    hw_max[strcspn(hw_max, "\n")] = 0;
 
     // Safety check to ensure we obtained valid frequencies
     if (!hw_min[0] || !hw_max[0]) return;

@@ -17,9 +17,11 @@ If not, see https://www.gnu.org/licenses/.
 .align 2
 .global tweak
 .global kakangku
+.global moco
 .extern chmod
 .extern open
 .extern write
+.extern read
 .extern close
 .extern strlen
 
@@ -109,6 +111,58 @@ kakangku:
     bl close
 
 .Lkakangku_end:
+    // Epilogue
+    ldp x29, x30, [sp], 48
+    ret
+
+// int moco(const char *path, char *buffer, int size)
+// x0 = path, x1 = buffer, x2 = size
+moco:
+    // Prologue
+    stp x29, x30, [sp, -48]!
+    mov x29, sp
+    str x0, [sp, 16] // save path
+    str x1, [sp, 24] // save buffer
+    str x2, [sp, 32] // save size
+
+    // open(path, O_RDONLY)
+    // O_RDONLY is 0
+    ldr x0, [sp, 16]
+    mov x1, 0
+    bl open
+    cmp w0, 0
+    blt .Lmoco_fail      // Exit if open fails
+    str w0, [sp, 36]     // save file descriptor
+
+    // read(fd, buffer, size - 1)
+    ldr w0, [sp, 36]
+    ldr x1, [sp, 24]
+    ldr x2, [sp, 32]
+    sub x2, x2, 1        // Reserve 1 byte for null terminator
+    bl read
+    cmp x0, 0
+    blt .Lmoco_close
+
+    // Null-terminate the buffer: buffer[bytes_read] = '\0'
+    ldr x1, [sp, 24]
+    strb wzr, [x1, x0]
+
+.Lmoco_close:
+    // save bytes read count across close
+    str x0, [sp, 40]
+
+    // close(fd)
+    ldr w0, [sp, 36]
+    bl close
+
+    // return bytes read
+    ldr x0, [sp, 40]
+    b .Lmoco_end
+
+.Lmoco_fail:
+    mov x0, -1
+
+.Lmoco_end:
     // Epilogue
     ldp x29, x30, [sp], 48
     ret
