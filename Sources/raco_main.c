@@ -17,26 +17,30 @@ If not, see https://www.gnu.org/licenses/.
 #include <string.h>
 #include <unistd.h>
 #include <glob.h>
-#include "raco.h"
 #include "raco_utils.h"
+#include "raco_devices.h"
+
+// ==========================================
+// Generic CPUFreq Setters
+// ==========================================
 
 void cpufreq_reset_limits() {
     glob_t globbuf;
     if (glob("/sys/devices/system/cpu/cpufreq/policy*", 0, NULL, &globbuf) == 0) {
         for (size_t i = 0; i < globbuf.gl_pathc; i++) {
-            char path_min[256], path_max[256], path_info_min[256], path_info_max[256];
+            char path_min[256], path_max[256], info_min[256], info_max[256];
             snprintf(path_min, sizeof(path_min), "%s/scaling_min_freq", globbuf.gl_pathv[i]);
             snprintf(path_max, sizeof(path_max), "%s/scaling_max_freq", globbuf.gl_pathv[i]);
-            snprintf(path_info_min, sizeof(path_info_min), "%s/cpuinfo_min_freq", globbuf.gl_pathv[i]);
-            snprintf(path_info_max, sizeof(path_info_max), "%s/cpuinfo_max_freq", globbuf.gl_pathv[i]);
+            snprintf(info_min, sizeof(info_min), "%s/cpuinfo_min_freq", globbuf.gl_pathv[i]);
+            snprintf(info_max, sizeof(info_max), "%s/cpuinfo_max_freq", globbuf.gl_pathv[i]);
 
-            FILE *f;
-            char min_val[32] = {0}, max_val[32] = {0};
-            if ((f = fopen(path_info_min, "r"))) { fscanf(f, "%31s", min_val); fclose(f); }
-            if ((f = fopen(path_info_max, "r"))) { fscanf(f, "%31s", max_val); fclose(f); }
+            FILE *f; char hw_min[32] = {0}, hw_max[32] = {0};
+            if ((f = fopen(info_min, "r"))) { fscanf(f, "%31s", hw_min); fclose(f); }
+            if ((f = fopen(info_max, "r"))) { fscanf(f, "%31s", hw_max); fclose(f); }
 
-            if (min_val[0]) tweak(min_val, path_min);
-            if (max_val[0]) tweak(max_val, path_max);
+            chmod(path_min, 0644); chmod(path_max, 0644);
+            if (hw_min[0]) tweak(hw_min, path_min);
+            if (hw_max[0]) tweak(hw_max, path_max);
         }
         globfree(&globbuf);
     }
@@ -47,115 +51,162 @@ void cpufreq_max_perf() {
     glob_t globbuf;
     if (glob("/sys/devices/system/cpu/cpufreq/policy*", 0, NULL, &globbuf) == 0) {
         for (size_t i = 0; i < globbuf.gl_pathc; i++) {
-            char path_max_info[256], path_min[256], path_max[256];
-            snprintf(path_max_info, sizeof(path_max_info), "%s/cpuinfo_max_freq", globbuf.gl_pathv[i]);
+            char path_min[256], path_max[256], info_max[256], avail[256];
             snprintf(path_min, sizeof(path_min), "%s/scaling_min_freq", globbuf.gl_pathv[i]);
             snprintf(path_max, sizeof(path_max), "%s/scaling_max_freq", globbuf.gl_pathv[i]);
+            snprintf(info_max, sizeof(info_max), "%s/cpuinfo_max_freq", globbuf.gl_pathv[i]);
+            snprintf(avail, sizeof(avail), "%s/scaling_available_frequencies", globbuf.gl_pathv[i]);
 
-            FILE *f = fopen(path_max_info, "r");
-            if (f) {
-                char max_val[32] = {0};
-                fscanf(f, "%31s", max_val);
-                fclose(f);
-                if (max_val[0]) {
-                    tweak(max_val, path_min);
-                    tweak(max_val, path_max);
-                }
+            FILE *f; char hw_max[32] = {0};
+            if ((f = fopen(info_max, "r"))) { fscanf(f, "%31s", hw_max); fclose(f); }
+            
+            if (config.lite_mode == 0) {
+                tweak(hw_max, path_min);
+            } else {
+                tweak(get_midfreq(avail), path_min);
+            }
+            tweak(hw_max, path_max);
+        }
+        globfree(&globbuf);
+    }
+}
+
+void cpufreq_min_perf() {
+    cpufreq_reset_limits();
+    glob_t globbuf;
+    if (glob("/sys/devices/system/cpu/cpufreq/policy*", 0, NULL, &globbuf) == 0) {
+        for (size_t i = 0; i < globbuf.gl_pathc; i++) {
+            char path_min[256], path_max[256], info_min[256], avail[256];
+            snprintf(path_min, sizeof(path_min), "%s/scaling_min_freq", globbuf.gl_pathv[i]);
+            snprintf(path_max, sizeof(path_max), "%s/scaling_max_freq", globbuf.gl_pathv[i]);
+            snprintf(info_min, sizeof(info_min), "%s/cpuinfo_min_freq", globbuf.gl_pathv[i]);
+            snprintf(avail, sizeof(avail), "%s/scaling_available_frequencies", globbuf.gl_pathv[i]);
+
+            FILE *f; char hw_min[32] = {0};
+            if ((f = fopen(info_min, "r"))) { fscanf(f, "%31s", hw_min); fclose(f); }
+
+            tweak(hw_min, path_min);
+            if (config.better_powersave == 1) {
+                tweak(get_midfreq(avail), path_max);
+            } else {
+                tweak(hw_min, path_max);
             }
         }
         globfree(&globbuf);
     }
 }
 
-void mtk_perf() {
-    tweak("1", "/proc/cpufreq/cpufreq_cci_mode");
-    tweak("3", "/proc/cpufreq/cpufreq_power_mode");
-    tweak("1", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
-    tweak("0", "/sys/devices/system/cpu/eas/enable");
-    tweak("stop 1", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
-    
-    tweak("1", "/sys/pnpmgr/mwn");
-    tweak("1", "/sys/pnpmgr/boost_enable");
-    tweak("turbo", "/sys/pnpmgr/boost_mode");
-    tweak("1", "/sys/module/ged/parameters/gx_boost_on");
-    tweak("1", "/sys/module/ged/parameters/gx_game_mode");
-    tweak("100", "/sys/kernel/ged/hal/gpu_boost_level");
-}
-
-void qcom_perf() {
-    tweak("3", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
-    tweak("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active");
-    tweak("0", "/sys/class/kgsl/kgsl-3d0/throttling");
-    tweak("1", "/sys/class/kgsl/kgsl-3d0/default_pwrlevel");
-}
-
-void raco_kill_all() {
-    sync();
-    system("cmd activity kill-all > /dev/null 2>&1");
-    system("pm trim-caches 100G > /dev/null 2>&1");
-    kakangku("3", "/proc/sys/vm/drop_caches");
-}
-
-void set_block_iostats(const char *val, const char *ra_val) {
-    glob_t globbuf;
-    if (glob("/sys/block/*/queue/iostats", 0, NULL, &globbuf) == 0) {
-        for (size_t i = 0; i < globbuf.gl_pathc; i++) tweak(val, globbuf.gl_pathv[i]);
-        globfree(&globbuf);
-    }
-    if (ra_val && glob("/sys/block/*/queue/read_ahead_kb", 0, NULL, &globbuf) == 0) {
-        for (size_t i = 0; i < globbuf.gl_pathc; i++) tweak(ra_val, globbuf.gl_pathv[i]);
-        globfree(&globbuf);
-    }
-}
+// ==========================================
+// Mode Executives
+// ==========================================
 
 void performance_basic() {
     sync();
-    set_block_iostats("0", "32");
+    
+    // Block IO
+    glob_t globbuf;
+    if (glob("/sys/block/*/queue/iostats", 0, NULL, &globbuf) == 0) {
+        for (size_t i = 0; i < globbuf.gl_pathc; i++) tweak("0", globbuf.gl_pathv[i]);
+        globfree(&globbuf);
+    }
+    if (glob("/sys/block/*/queue/read_ahead_kb", 0, NULL, &globbuf) == 0) {
+        for (size_t i = 0; i < globbuf.gl_pathc; i++) tweak("32", globbuf.gl_pathv[i]);
+        globfree(&globbuf);
+    }
+
+    // Network & Kernel
     tweak("1", "/proc/sys/net/ipv4/tcp_low_latency");
     tweak("3", "/proc/sys/net/ipv4/tcp_fastopen");
-
     tweak("3", "/proc/sys/kernel/perf_cpu_time_max_percent");
     tweak("0", "/proc/sys/kernel/sched_schedstats");
     tweak("1", "/proc/sys/kernel/sched_child_runs_first");
     
-    // Virtual Memory Tweaks (Combined)
     tweak("0", "/proc/sys/vm/page-cluster");
     tweak("15", "/proc/sys/vm/stat_interval");
     tweak("80", "/proc/sys/vm/vfs_cache_pressure");
 
+    // Apply Profile CPU
     change_cpu_gov("performance");
     sleep(1);
     cpufreq_max_perf();
 
     switch (config.soc) {
-        case 1: mtk_perf(); break;
-        case 2: qcom_perf(); break;
-        default: break;
+        case 1: mediatek_performance(); break;
+        case 2: snapdragon_performance(); break;
+        case 3: exynos_performance(); break;
+        case 4: unisoc_performance(); break;
+        case 5: tensor_performance(); break;
+        case 6: tegra_performance(); break;
     }
 
     corin_perf();
     if (config.kcpu_mitigate == 0) carcpu_perf();
-}
-
-void powersave_basic() {
-    sync();
-    tweak("100", "/proc/sys/vm/vfs_cache_pressure");
-    cpufreq_reset_limits();
-    change_cpu_gov("powersave");
-    corin_powersave();
-    if (config.kcpu_mitigate == 0) carcpu_battery();
+    
+    if (config.include_anya && config.anya) {
+        system("sh /data/adb/modules/ProjectRaco/Scripts/AnyaMelfissa.sh &");
+    }
 }
 
 void balanced_basic() {
     sync();
-    set_block_iostats("1", NULL);
+
+    // Reset Block IO
+    glob_t globbuf;
+    if (glob("/sys/block/*/queue/iostats", 0, NULL, &globbuf) == 0) {
+        for (size_t i = 0; i < globbuf.gl_pathc; i++) kakangku("1", globbuf.gl_pathv[i]);
+        globfree(&globbuf);
+    }
+    if (glob("/sys/block/*/queue/read_ahead_kb", 0, NULL, &globbuf) == 0) {
+        for (size_t i = 0; i < globbuf.gl_pathc; i++) kakangku("128", globbuf.gl_pathv[i]);
+        globfree(&globbuf);
+    }
+
     kakangku("120", "/proc/sys/vm/vfs_cache_pressure");
 
     cpufreq_reset_limits();
     change_cpu_gov(config.default_cpu_gov);
+
+    switch (config.soc) {
+        case 1: mediatek_normal(); break;
+        case 2: snapdragon_normal(); break;
+        case 3: exynos_normal(); break;
+        case 4: unisoc_normal(); break;
+        case 5: tensor_normal(); break;
+        case 6: tegra_normal(); break;
+    }
     
     corin_balanced();
     if (config.kcpu_mitigate == 0) carcpu_balance();
+
+    if (config.include_anya && config.anya) {
+        system("sh /data/adb/modules/ProjectRaco/Scripts/AnyaKawaii.sh &");
+    }
+}
+
+void powersave_basic() {
+    sync();
+    kakangku("100", "/proc/sys/vm/vfs_cache_pressure");
+
+    cpufreq_reset_limits();
+    change_cpu_gov("powersave");
+    sleep(1);
+    cpufreq_min_perf();
+
+    switch (config.soc) {
+        case 1: mediatek_powersave(); break;
+        case 2: snapdragon_powersave(); break;
+        case 3: exynos_powersave(); break;
+        case 4: unisoc_powersave(); break;
+        case 5: tensor_powersave(); break;
+        case 6: tegra_powersave(); break;
+    }
+
+    corin_powersave();
+    if (config.kcpu_mitigate == 0) carcpu_battery();
+
+    if (config.include_anya && config.anya) {
+        system("sh /data/adb/modules/ProjectRaco/Scripts/AnyaKawaii.sh &");
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -171,43 +222,39 @@ int main(int argc, char *argv[]) {
         case 1:
             performance_basic();
             set_state(1);
-            printf("Performance Mode Activated\n");
+            printf("Performance Mode Activated 🔥\n");
             break;
         case 2:
             balanced_basic();
             set_state(2);
-            printf("Balanced Mode Activated\n");
+            printf("Balanced Mode Activated ⚖️\n");
             break;
         case 3:
             powersave_basic();
             set_state(3);
-            printf("Powersave Mode Activated\n");
+            printf("Powersave Mode Activated 🔋\n");
             break;
         case 4:
             performance_basic();
             raco_kill_all();
             set_state(4);
-            printf("Gaming Pro Mode Activated\n");
+            printf("Gaming Pro Mode Activated 🚀\n");
             break;
         case 5:
             powersave_basic();
-            printf("Cool Down initiated for 2 minutes...\n");
+            set_state(5);
+            printf("Cool Down initiated for 2 minutes... ❄️\n");
             sleep(120);
             balanced_basic();
             set_state(2);
+            printf("Cool Down finished. Switched to Balanced Mode.\n");
             break;
         case 6:
-            clear_cache(); 
             raco_kill_all();
-            run_fstrim();  
-            printf("Background cleared, Cache trimmed.\n");
-            break;
-        case 7:
-            kobo_fast_charge(); 
-            printf("Kobo Fast Charge variables locked.\n");
+            printf("All background applications cleared. ✅\n");
             break;
         default:
-            printf("Invalid mode.\n");
+            printf("Error: Invalid mode '%d'.\n", mode);
             return 1;
     }
     return 0;
