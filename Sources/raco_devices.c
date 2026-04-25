@@ -117,8 +117,6 @@ void yanz_mtk_balance() {
 }
 
 void mediatek_performance() {
-    tweak("1", "/proc/cpufreq/cpufreq_cci_mode");
-    tweak("3", "/proc/cpufreq/cpufreq_power_mode");
     tweak("1", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
     tweak("0", "/sys/devices/system/cpu/eas/enable");
     tweak("0", "/sys/kernel/eara_thermal/enable");
@@ -136,8 +134,6 @@ void mediatek_performance() {
 }
 
 void mediatek_normal() {
-    tweak("0", "/proc/cpufreq/cpufreq_cci_mode");
-    tweak("0", "/proc/cpufreq/cpufreq_power_mode");
     tweak("0", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
     tweak("2", "/sys/devices/system/cpu/eas/enable");
     tweak("stop 0", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
@@ -150,7 +146,6 @@ void mediatek_normal() {
 }
 
 void mediatek_powersave() {
-    tweak("1", "/proc/cpufreq/cpufreq_power_mode");
     yanz_mtk_balance();
 }
 
