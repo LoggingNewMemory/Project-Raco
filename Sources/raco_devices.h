@@ -15,21 +15,21 @@ If not, see https://www.gnu.org/licenses/.
 #ifndef RACO_DEVICES_H
 #define RACO_DEVICES_H
 
-// SoC Performance Profiles
-void mediatek_performance();
-void snapdragon_performance();
-void exynos_performance();
-void unisoc_performance();
-void tensor_performance();
-void tegra_performance();
+// SoC Awaken Profiles
+void mediatek_awaken();
+void snapdragon_awaken();
+void exynos_awaken();
+void unisoc_awaken();
+void tensor_awaken();
+void tegra_awaken();
 
-// SoC Normal/Balanced Profiles
-void mediatek_normal();
-void snapdragon_normal();
-void exynos_normal();
-void unisoc_normal();
-void tensor_normal();
-void tegra_normal();
+// SoC Balanced Profiles
+void mediatek_balanced();
+void snapdragon_balanced();
+void exynos_balanced();
+void unisoc_balanced();
+void tensor_balanced();
+void tegra_balanced();
 
 // SoC Powersave Profiles
 void mediatek_powersave();
@@ -38,6 +38,14 @@ void exynos_powersave();
 void unisoc_powersave();
 void tensor_powersave();
 void tegra_powersave();
+
+// SoC Normal Profiles (Neutral)
+void mediatek_normal();
+void snapdragon_normal();
+void exynos_normal();
+void unisoc_normal();
+void tensor_normal();
+void tegra_normal();
 
 // Devfreq Helpers
 void devfreq_max_perf(const char *path);

@@ -116,7 +116,7 @@ void yanz_mtk_balance() {
     tweak("-1", "/sys/kernel/ged/hal/gpu_boost_level");
 }
 
-void mediatek_performance() {
+void mediatek_awaken() {
     tweak("1", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
     tweak("0", "/sys/devices/system/cpu/eas/enable");
     tweak("0", "/sys/kernel/eara_thermal/enable");
@@ -124,13 +124,19 @@ void mediatek_performance() {
     yanz_mtk_boost();
     tweak("stop 1", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
 
-    if (config.lite_mode == 0) {
-        tweak("0", "/proc/gpufreqv2/fix_target_opp_index");
-        tweak("0", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
-        devfreq_max_perf("/sys/class/devfreq/mtk-dvfsrc-devfreq");
-    } else {
-        devfreq_mid_perf("/sys/class/devfreq/mtk-dvfsrc-devfreq");
-    }
+    tweak("0", "/proc/gpufreqv2/fix_target_opp_index");
+    tweak("0", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
+    devfreq_max_perf("/sys/class/devfreq/mtk-dvfsrc-devfreq");
+}
+
+void mediatek_balanced() {
+    yanz_mtk_balance();
+    devfreq_mid_perf("/sys/class/devfreq/mtk-dvfsrc-devfreq");
+}
+
+void mediatek_powersave() {
+    yanz_mtk_balance();
+    devfreq_unlock("/sys/class/devfreq/mtk-dvfsrc-devfreq");
 }
 
 void mediatek_normal() {
@@ -142,10 +148,6 @@ void mediatek_normal() {
     devfreq_unlock("/sys/class/devfreq/mtk-dvfsrc-devfreq");
     tweak("1", "/sys/kernel/eara_thermal/enable");
 
-    yanz_mtk_balance();
-}
-
-void mediatek_powersave() {
     yanz_mtk_balance();
 }
 
@@ -189,25 +191,34 @@ void process_qcom_devfreqs(int mode) {
     }
 }
 
-void snapdragon_performance() {
+void snapdragon_awaken() {
     if (config.device_mitigation == 0) {
-        process_qcom_devfreqs(config.lite_mode == 1 ? 2 : 1);
-        
+        process_qcom_devfreqs(1);
         const char *dcvs[] = {"DDR", "LLCC", "L3"};
         for (int i = 0; i < 3; i++) {
             char path[256];
             snprintf(path, sizeof(path), "/sys/devices/system/cpu/bus_dcvs/%s", dcvs[i]);
-            if (config.lite_mode == 1) qcom_cpudcvs_mid_perf(path);
-            else qcom_cpudcvs_max_perf(path);
+            qcom_cpudcvs_max_perf(path);
         }
     }
 
-    if (config.lite_mode == 0) devfreq_max_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
-    else devfreq_mid_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
-
+    devfreq_max_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
     tweak("0", "/sys/class/kgsl/kgsl-3d0/bus_split");
     tweak("1", "/sys/class/kgsl/kgsl-3d0/force_clk_on");
     yanz_snapdragon_boost();
+}
+
+void snapdragon_balanced() {
+    if (config.device_mitigation == 0) process_qcom_devfreqs(2);
+    devfreq_mid_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
+    yanz_snapdragon_balance();
+}
+
+void snapdragon_powersave() {
+    // Flowchart requires GPU Set Release (No Clock Lock) for Powersave
+    devfreq_unlock("/sys/class/kgsl/kgsl-3d0/devfreq");
+    yanz_snapdragon_balance();
+    tweak("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active");
 }
 
 void snapdragon_normal() {
@@ -227,26 +238,42 @@ void snapdragon_normal() {
     yanz_snapdragon_balance();
 }
 
-void snapdragon_powersave() {
-    devfreq_min_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
-    yanz_snapdragon_balance();
-    tweak("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active");
-}
-
 // ==========================================
 // Exynos Profiles
 // ==========================================
 
-void exynos_performance() {
+void exynos_awaken() {
     char *gpu_path = "/sys/kernel/gpu";
     if (access(gpu_path, F_OK) == 0) {
         char avail_path[256];
         snprintf(avail_path, sizeof(avail_path), "%s/gpu_available_frequencies", gpu_path);
         char *max_freq = get_maxfreq(avail_path);
         tweak(max_freq, "/sys/kernel/gpu/gpu_max_clock");
-        tweak(config.lite_mode ? get_midfreq(avail_path) : max_freq, "/sys/kernel/gpu/gpu_min_clock");
+        tweak(max_freq, "/sys/kernel/gpu/gpu_min_clock");
     }
 }
+
+void exynos_balanced() {
+    char *gpu_path = "/sys/kernel/gpu";
+    if (access(gpu_path, F_OK) == 0) {
+        char avail_path[256];
+        snprintf(avail_path, sizeof(avail_path), "%s/gpu_available_frequencies", gpu_path);
+        tweak(get_maxfreq(avail_path), "/sys/kernel/gpu/gpu_max_clock");
+        tweak(get_midfreq(avail_path), "/sys/kernel/gpu/gpu_min_clock");
+    }
+}
+
+void exynos_powersave() {
+    char *gpu_path = "/sys/kernel/gpu";
+    if (access(gpu_path, F_OK) == 0) {
+        char avail_path[256];
+        snprintf(avail_path, sizeof(avail_path), "%s/gpu_available_frequencies", gpu_path);
+        // Release Lock
+        kakangku(get_maxfreq(avail_path), "/sys/kernel/gpu/gpu_max_clock");
+        kakangku(get_minfreq(avail_path), "/sys/kernel/gpu/gpu_min_clock");
+    }
+}
+
 void exynos_normal() {
     char *gpu_path = "/sys/kernel/gpu";
     if (access(gpu_path, F_OK) == 0) {
@@ -256,24 +283,19 @@ void exynos_normal() {
         kakangku(get_minfreq(avail_path), "/sys/kernel/gpu/gpu_min_clock");
     }
 }
-void exynos_powersave() {
-    char *gpu_path = "/sys/kernel/gpu";
-    if (access(gpu_path, F_OK) == 0) {
-        char avail_path[256];
-        snprintf(avail_path, sizeof(avail_path), "%s/gpu_available_frequencies", gpu_path);
-        char *min_freq = get_minfreq(avail_path);
-        tweak(min_freq, "/sys/kernel/gpu/gpu_min_clock");
-        tweak(min_freq, "/sys/kernel/gpu/gpu_max_clock");
-    }
-}
 
 // Stubs for Unisoc, Tensor, Tegra to match logic flow
-void unisoc_performance() {}
-void unisoc_normal() {}
+void unisoc_awaken() {}
+void unisoc_balanced() {}
 void unisoc_powersave() {}
-void tensor_performance() {}
-void tensor_normal() {}
+void unisoc_normal() {}
+
+void tensor_awaken() {}
+void tensor_balanced() {}
 void tensor_powersave() {}
-void tegra_performance() {}
-void tegra_normal() {}
+void tensor_normal() {}
+
+void tegra_awaken() {}
+void tegra_balanced() {}
 void tegra_powersave() {}
+void tegra_normal() {}

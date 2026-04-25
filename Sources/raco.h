@@ -18,9 +18,10 @@ If not, see https://www.gnu.org/licenses/.
 #include "raco_utils.h"
 
 // Core Logic Functions
-void performance_basic();
+void awaken_basic();
 void balanced_basic();
 void powersave_basic();
+void normal_basic();
 void kill_all();
 
 #endif // RACO_H
