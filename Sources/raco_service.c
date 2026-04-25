@@ -29,7 +29,6 @@ int anya_val = 0;
 int include_kobo = 0;
 int include_zetamin = 0;
 int legacy_notif = 0;
-int sandev_dur = 0;
 char default_gov[64] = "";
 
 void wait_for_boot() {
@@ -63,7 +62,6 @@ void load_service_config() {
             else if (strcmp(key, "INCLUDE_KOBO") == 0) include_kobo = atoi(value);
             else if (strcmp(key, "INCLUDE_ZETAMIN") == 0) include_zetamin = atoi(value);
             else if (strcmp(key, "LEGACY_NOTIF") == 0) legacy_notif = atoi(value);
-            else if (strcmp(key, "SANDEV_DUR") == 0) sandev_dur = atoi(value);
             else if (strcmp(key, "GOV") == 0) strcpy(default_gov, value);
         }
         line = strtok(NULL, "\n");
@@ -132,7 +130,6 @@ void facur_tweaks() {
 }
 
 void ghenna_optimize_tasks() {
-    // 5. Better Memory Management by Task Change wrapped safely
     const char *task_script = 
         "change_task_opt() {\n"
         "  ps_ret=$(ps -A 2>/dev/null || ps 2>/dev/null)\n"
@@ -204,7 +201,7 @@ void ghenna_tweaks() {
     kakangku("TTWU_QUEUE", "/sys/kernel/debug/sched_features");
     kakangku("ENERGY_AWARE", "/sys/kernel/debug/sched_features");
 
-    // 7. Sched Parameters (IO blocks already done by facur, but repeated safely)
+    // 7. Sched Parameters
     kakangku("1", "/proc/sys/kernel/sched_energy_aware");
     kakangku("32", "/proc/sys/kernel/sched_nr_migrate");
     kakangku("1", "/proc/sys/kernel/sched_child_runs_first");
@@ -305,7 +302,7 @@ int main() {
     load_service_config();
 
     if (include_sandev == 1) {
-        change_cpu_gov("performance"); // tweak locked via raco_utils
+        change_cpu_gov("performance"); 
     }
 
     apply_mali_tweaks();
@@ -327,7 +324,7 @@ int main() {
     send_notif("Project Raco", "Project Raco - オンライン", "TagRaco", "/data/local/tmp/logo.png");
 
     if (include_sandev == 1) {
-        sleep(sandev_dur);
+        sleep(40); // Hardcoded 40 seconds
         
         if (strlen(default_gov) == 0) {
             char avail[256] = {0};
