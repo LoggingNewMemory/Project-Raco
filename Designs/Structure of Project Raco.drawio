@@ -1,6 +1,6 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36" version="29.6.1">
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36">
   <diagram name="Page-1" id="RafS2GZK1M6LYWt_0SCt">
-    <mxGraphModel dx="1665" dy="558" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2080" dy="849" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -127,8 +127,20 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-15" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;Using&lt;/div&gt;&lt;div&gt;TYPE_WINDOW_STATE_CHANGED&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Using&lt;/div&gt;&lt;div&gt;Daemon Implementation (Run on service during boot). This is&amp;nbsp;Local UNIX Socket that listen for executing either modes or normal states&lt;/div&gt;" vertex="1">
+        <mxCell id="t5QTQC3ebWH6XtvLZvS4-15" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value=" " vertex="1">
           <mxGeometry height="120" width="290" x="150.03" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="USiz9r6OqI96Ol3waZUV-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="585" width="940" x="-160" y="855" as="geometry" />
+        </mxCell>
+        <mxCell id="USiz9r6OqI96Ol3waZUV-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Structure of Project Raco Main Script" vertex="1">
+          <mxGeometry height="60" width="120" x="-150" y="870" as="geometry" />
+        </mxCell>
+        <mxCell id="USiz9r6OqI96Ol3waZUV-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Get the Config and read&lt;div&gt;/data/ProjectRaco/raco.txt&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="180" x="170" y="870" as="geometry" />
+        </mxCell>
+        <mxCell id="USiz9r6OqI96Ol3waZUV-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Load The External Script" vertex="1">
+          <mxGeometry height="50" width="180" x="170" y="940" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
