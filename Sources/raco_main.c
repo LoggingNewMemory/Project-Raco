@@ -21,80 +21,55 @@ If not, see https://www.gnu.org/licenses/.
 #include "raco_devices.h"
 
 // ==========================================
-// Generic CPUFreq Setters
+// CPUFreq Setters
 // ==========================================
 
-void cpufreq_reset_limits() {
+void apply_cpufreq_policy(const char *policy_path, int mode) {
+    char min_path[256], max_path[256], hw_min_path[256], hw_max_path[256];
+    char hw_min[32] = {0}, hw_max[32] = {0};
+
+    // Construct paths using Tenebrion's logic pattern
+    snprintf(hw_min_path, sizeof(hw_min_path), "%s/cpuinfo_min_freq", policy_path);
+    snprintf(hw_max_path, sizeof(hw_max_path), "%s/cpuinfo_max_freq", policy_path);
+    snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", policy_path);
+    snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", policy_path);
+
+    // Read hardware frequency limits directly
+    FILE *f;
+    if ((f = fopen(hw_min_path, "r"))) { fscanf(f, "%31s", hw_min); fclose(f); }
+    if ((f = fopen(hw_max_path, "r"))) { fscanf(f, "%31s", hw_max); fclose(f); }
+
+    // Safety check to ensure we obtained valid frequencies
+    if (!hw_min[0] || !hw_max[0]) return;
+
+    chmod(min_path, 0644); 
+    chmod(max_path, 0644);
+
+    if (mode == 1) {
+        // Mode 1: Max Performance
+        tweak(config.lite_mode ? hw_min : hw_max, min_path); 
+        tweak(hw_max, max_path);
+    } else if (mode == 2) {
+        // Mode 2: Minimum Performance / Powersave
+        tweak(hw_min, min_path);
+        tweak(config.better_powersave ? hw_max : hw_min, max_path); 
+    }
+}
+
+void execute_cpufreq_mode(int mode) {
     glob_t globbuf;
     if (glob("/sys/devices/system/cpu/cpufreq/policy*", 0, NULL, &globbuf) == 0) {
         for (size_t i = 0; i < globbuf.gl_pathc; i++) {
-            char path_min[256], path_max[256], info_min[256], info_max[256];
-            snprintf(path_min, sizeof(path_min), "%s/scaling_min_freq", globbuf.gl_pathv[i]);
-            snprintf(path_max, sizeof(path_max), "%s/scaling_max_freq", globbuf.gl_pathv[i]);
-            snprintf(info_min, sizeof(info_min), "%s/cpuinfo_min_freq", globbuf.gl_pathv[i]);
-            snprintf(info_max, sizeof(info_max), "%s/cpuinfo_max_freq", globbuf.gl_pathv[i]);
-
-            FILE *f; char hw_min[32] = {0}, hw_max[32] = {0};
-            if ((f = fopen(info_min, "r"))) { fscanf(f, "%31s", hw_min); fclose(f); }
-            if ((f = fopen(info_max, "r"))) { fscanf(f, "%31s", hw_max); fclose(f); }
-
-            chmod(path_min, 0644); chmod(path_max, 0644);
-            if (hw_min[0]) tweak(hw_min, path_min);
-            if (hw_max[0]) tweak(hw_max, path_max);
+            // Directly apply the bounds
+            apply_cpufreq_policy(globbuf.gl_pathv[i], mode);
         }
         globfree(&globbuf);
     }
 }
 
-void cpufreq_max_perf() {
-    cpufreq_reset_limits();
-    glob_t globbuf;
-    if (glob("/sys/devices/system/cpu/cpufreq/policy*", 0, NULL, &globbuf) == 0) {
-        for (size_t i = 0; i < globbuf.gl_pathc; i++) {
-            char path_min[256], path_max[256], info_max[256], avail[256];
-            snprintf(path_min, sizeof(path_min), "%s/scaling_min_freq", globbuf.gl_pathv[i]);
-            snprintf(path_max, sizeof(path_max), "%s/scaling_max_freq", globbuf.gl_pathv[i]);
-            snprintf(info_max, sizeof(info_max), "%s/cpuinfo_max_freq", globbuf.gl_pathv[i]);
-            snprintf(avail, sizeof(avail), "%s/scaling_available_frequencies", globbuf.gl_pathv[i]);
-
-            FILE *f; char hw_max[32] = {0};
-            if ((f = fopen(info_max, "r"))) { fscanf(f, "%31s", hw_max); fclose(f); }
-            
-            if (config.lite_mode == 0) {
-                tweak(hw_max, path_min);
-            } else {
-                tweak(get_midfreq(avail), path_min);
-            }
-            tweak(hw_max, path_max);
-        }
-        globfree(&globbuf);
-    }
-}
-
-void cpufreq_min_perf() {
-    cpufreq_reset_limits();
-    glob_t globbuf;
-    if (glob("/sys/devices/system/cpu/cpufreq/policy*", 0, NULL, &globbuf) == 0) {
-        for (size_t i = 0; i < globbuf.gl_pathc; i++) {
-            char path_min[256], path_max[256], info_min[256], avail[256];
-            snprintf(path_min, sizeof(path_min), "%s/scaling_min_freq", globbuf.gl_pathv[i]);
-            snprintf(path_max, sizeof(path_max), "%s/scaling_max_freq", globbuf.gl_pathv[i]);
-            snprintf(info_min, sizeof(info_min), "%s/cpuinfo_min_freq", globbuf.gl_pathv[i]);
-            snprintf(avail, sizeof(avail), "%s/scaling_available_frequencies", globbuf.gl_pathv[i]);
-
-            FILE *f; char hw_min[32] = {0};
-            if ((f = fopen(info_min, "r"))) { fscanf(f, "%31s", hw_min); fclose(f); }
-
-            tweak(hw_min, path_min);
-            if (config.better_powersave == 1) {
-                tweak(get_midfreq(avail), path_max);
-            } else {
-                tweak(hw_min, path_max);
-            }
-        }
-        globfree(&globbuf);
-    }
-}
+// Simplified function calls
+void cpufreq_max_perf()     { execute_cpufreq_mode(1); }
+void cpufreq_min_perf()     { execute_cpufreq_mode(2); }
 
 // ==========================================
 // Mode Executives
@@ -163,7 +138,6 @@ void balanced_basic() {
 
     kakangku("120", "/proc/sys/vm/vfs_cache_pressure");
 
-    cpufreq_reset_limits();
     change_cpu_gov(config.default_cpu_gov);
 
     switch (config.soc) {
@@ -187,7 +161,6 @@ void powersave_basic() {
     sync();
     kakangku("100", "/proc/sys/vm/vfs_cache_pressure");
 
-    cpufreq_reset_limits();
     change_cpu_gov("powersave");
     sleep(1);
     cpufreq_min_perf();
