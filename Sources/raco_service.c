@@ -298,26 +298,6 @@ void yanz_universal() {
     kakangku("0", "/sys/kernel/debug/mdss_panel_fb0/intf0/mipi/vsync_enable");
 }
 
-void execute_plugins() {
-    FILE *fp = fopen("/data/ProjectRaco/Plugin.txt", "r");
-    if (!fp) return;
-    
-    char line[128];
-    while (fgets(line, sizeof(line), fp)) {
-        char plugin_id[64] = {0};
-        int enabled = 0;
-        
-        if (sscanf(line, "%63[^=]=%d", plugin_id, &enabled) == 2) {
-            if (enabled == 1) {
-                char cmd[256];
-                snprintf(cmd, sizeof(cmd), "chmod +x /data/ProjectRaco/Plugins/%s/service.sh; sh /data/ProjectRaco/Plugins/%s/service.sh &", plugin_id, plugin_id);
-                system(cmd);
-            }
-        }
-    }
-    fclose(fp);
-}
-
 int main() {
     wait_for_boot();
 
@@ -345,7 +325,6 @@ int main() {
     yanz_universal();
 
     send_notif("Project Raco", "Project Raco - オンライン", "TagRaco", "/data/local/tmp/logo.png");
-    execute_plugins();
 
     if (include_sandev == 1) {
         sleep(sandev_dur);
