@@ -128,6 +128,8 @@ sleep 1.5
 
 ui_print "- Setting up module files..."
 unzip -o "$ZIPFILE" 'Scripts/*' -d $MODPATH >&2
+unzip -o "$ZIPFILE" 'Compiled/*' -d $MODPATH >&2
+unzip -o "$ZIPFILE" 'CoreSys/*' -d $MODPATH >&2
 unzip -o "$ZIPFILE" 'raco.txt' -d $MODPATH >&2
 
 # File copy operations
@@ -144,23 +146,20 @@ else
 fi
 ui_print " "
 
+# Set standard directory permissions
 set_perm_recursive $MODPATH 0 0 0755 0755
 set_perm_recursive $MODPATH/Scripts 0 0 0777 0755
 
-sleep 1.5
+# Apply 0755 execution permissions to the C binaries per diagram architecture
+ui_print "- Setting executable permissions for binaries..."
+if [ -d "$MODPATH/Compiled" ]; then
+  set_perm_recursive "$MODPATH/Compiled" 0 0 0755 0755
+fi
+if [ -d "$MODPATH/CoreSys" ]; then
+  set_perm_recursive "$MODPATH/CoreSys" 0 0 0755 0755
+fi
 
-choose() {
-  while true; do
-    /system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > "$TMPDIR/events"
-    if [ -s "$TMPDIR/events" ]; then
-      if grep -q "KEY_VOLUMEUP" "$TMPDIR/events"; then
-        return 0
-      else
-        return 1
-      fi
-    fi
-  done
-}
+sleep 1.5
 
 # --- Main Configuration Logic ---
 
@@ -200,37 +199,9 @@ pm install --user 0 /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
 if pm path "$PACKAGE_NAME" >/dev/null 2>&1; then
   ui_print "- Project Raco App installed/updated successfully."
 else
-  ui_print "! CRITICAL: Failed to install the Project Raco App."
+  ui_print "! CRITICAL: Installation of Project Raco Failed."
+  ui_print "! WARNING: Please unzip the module and install the apk by yourself."
 fi
 
 # Clean up APK file
 rm /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
-
-ui_print " "
-ui_print "      INSTALLING ENDFIELD ENGINE      "
-ui_print " "
-
-TARGET_BIN_PATH="$MODPATH/Binaries"
-
-ARCH=$(getprop ro.product.cpu.abi)
-if [[ "$ARCH" == *"arm64"* ]]; then
-  ui_print "- Detected 64-bit ARM architecture ($ARCH)"
-  SOURCE_BIN=$MODPATH/Endfield/Endfield_arm64
-else
-  ui_print "- Detected 32-bit ARM architecture or other ($ARCH)"
-  SOURCE_BIN=$MODPATH/Endfield/Endfield_arm32
-fi
-
-if [ -f "$SOURCE_BIN" ]; then
-  ui_print "- Installing Endfield binary..."
-  mv "$SOURCE_BIN" "$TARGET_BIN_PATH/Endfield" >/dev/null 2>&1 || abort "! Failed to move Endfield binary"
-  set_perm_recursive "$TARGET_BIN_PATH" 0 0 0755 0755
-  chmod 777 "$TARGET_BIN_PATH/Endfield"
-  chmod +x "$TARGET_BIN_PATH/Endfield"
-else
-  ui_print "! ERROR: Source binary not found at $SOURCE_BIN"
-  abort "! Aborting installation."
-fi
-
-ui_print "- Cleaning up installation files..."
-rm -rf "$MODPATH/Endfield"
