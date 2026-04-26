@@ -21,6 +21,8 @@ If not, see https://www.gnu.org/licenses/.
 #include "raco_utils.h"
 #include "raco_devices.h"
 
+void notification(const char *message);
+
 // ==========================================
 // CPUFreq Setters
 // ==========================================
@@ -231,40 +233,48 @@ int main(int argc, char *argv[]) {
             awaken_basic();
             set_state(1);
             printf("Awaken Mode Activated 🔥\n");
+            notification("Performance Mode Activated 🔥");
             break;
         case 2:
             balanced_basic();
             set_state(2);
             printf("Balanced Mode Activated ⚖️\n");
+            notification("Balanced Mode Activated ⚖️");
             break;
         case 3:
             powersave_basic();
             set_state(3);
             printf("Powersave Mode Activated 🔋\n");
+            notification("Powersave Mode Activated 🔋");
             break;
         case 4:
             normal_basic();
             set_state(4);
             printf("Normal State Activated ⚪\n");
+            notification("Normal State Activated ⚪");
             break;
         case 5:
             awaken_basic();
             raco_kill_all();
             set_state(5);
             printf("Gaming Pro Mode Activated 🚀\n");
+            notification("Gaming Pro Mode Activated 🚀");
             break;
         case 6:
             powersave_basic();
             set_state(6);
             printf("Cool Down initiated for 2 minutes... ❄️\n");
+            notification("Cool Down initiated for 2 minutes... ❄️");
             sleep(120);
             balanced_basic();
             set_state(2);
             printf("Cool Down finished. Switched to Balanced Mode.\n");
+            notification("Cool Down finished. Switched to Balanced Mode.");
             break;
         case 7:
             raco_kill_all();
             printf("All background applications cleared. ✅\n");
+            notification("All background applications cleared. ✅");
             break;
         default:
             printf("Error: Invalid mode '%d'.\n", mode);

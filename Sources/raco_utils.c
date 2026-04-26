@@ -24,6 +24,9 @@ If not, see https://www.gnu.org/licenses/.
 RacoConfig config;
 #define RACO_CONFIG "/data/ProjectRaco/raco.txt"
 
+int r_silent_notif = 1;
+int r_legacy_notif = 0;
+
 int cmp_int(const void *a, const void *b) {
     return (*(int*)a - *(int*)b);
 }
@@ -122,13 +125,15 @@ void load_config() {
     char key[64], value[64];
     
     while (line != NULL) {
-        if (sscanf(line, "%63[^=]=%63s", key, value) == 2) {
+        if (sscanf(line, "%63s %63s", key, value) == 2) {
             if (strcmp(key, "SOC") == 0) config.soc = atoi(value);
             else if (strcmp(key, "LITE_MODE") == 0) config.lite_mode = atoi(value);
             else if (strcmp(key, "BETTER_POWERSAVE") == 0) config.better_powersave = atoi(value);
             else if (strcmp(key, "DEVICE_MITIGATION") == 0) config.device_mitigation = atoi(value);
             else if (strcmp(key, "ANYA") == 0) config.anya = atoi(value);
             else if (strcmp(key, "INCLUDE_ANYA") == 0) config.include_anya = atoi(value);
+            else if (strcmp(key, "SILENT_NOTIF") == 0) r_silent_notif = atoi(value);
+            else if (strcmp(key, "LEGACY_NOTIF") == 0) r_legacy_notif = atoi(value);
         }
         line = strtok(NULL, "\n");
     }
@@ -136,4 +141,21 @@ void load_config() {
 
 void set_state(int new_state) {
     config.state = new_state;
+    char cmd[256];
+    snprintf(cmd, sizeof(cmd), "if grep -q '^STATE ' %s; then sed -i 's/^STATE .*/STATE %d/' %s; else echo 'STATE %d' >> %s; fi", RACO_CONFIG, new_state, RACO_CONFIG, new_state, RACO_CONFIG);
+    system(cmd);
+}
+
+void notification(const char *message) {
+    if (r_silent_notif == 0) {
+        return; // Muted via user setting
+    }
+
+    char cmd[1024];
+    if (r_legacy_notif == 1) {
+        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' TagRaco '%s' &\"", message);
+    } else {
+        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' -i file:///data/local/tmp/logo.png -I file:///data/local/tmp/logo.png TagRaco '%s' &\"", message);
+    }
+    system(cmd);
 }

@@ -75,9 +75,9 @@ void send_notif(const char *title, const char *message, const char *tag, const c
 
     char cmd[1024];
     if (legacy_notif == 1) {
-        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t '%s' '%s' '%s'\"", title, tag, message);
+        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t '%s' %s '%s' &\"", title, tag, message);
     } else {
-        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t '%s' -i file://%s -I file://%s '%s' '%s'\"", title, icon_path, icon_path, tag, message);
+        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t '%s' -i file://%s -I file://%s %s '%s' &\"", title, icon_path, icon_path, tag, message);
     }
     system(cmd);
 }
@@ -288,7 +288,8 @@ void yanz_universal() {
 int main() {
     wait_for_boot();
 
-    system("sed -i 's/^STATE=.*/STATE=/' " CONFIG_FILE);
+    // Replaced `=` with space for the STATE initialization to match your new file logic
+    system("if grep -q '^STATE ' " CONFIG_FILE "; then sed -i 's/^STATE .*/STATE /' " CONFIG_FILE "; fi");
     load_service_config();
 
     if (include_sandev == 1) {
