@@ -131,7 +131,7 @@ void awaken_basic() {
     carcpu_perf();
     
     if (config.include_anya && config.anya) {
-        system("sh /data/adb/modules/ProjectRaco/Scripts/AnyaMelfissa.sh &");
+        system("/data/adb/modules/ProjectRaco/Compiled/anya_thermal disable &");
     }
 }
 
@@ -168,7 +168,7 @@ void balanced_basic() {
     carcpu_balance();
 
     if (config.include_anya && config.anya) {
-        system("sh /data/adb/modules/ProjectRaco/Scripts/AnyaKawaii.sh &");
+        system("/data/adb/modules/ProjectRaco/Compiled/anya_thermal restore &");
     }
 }
 
@@ -193,7 +193,7 @@ void powersave_basic() {
     carcpu_battery();
 
     if (config.include_anya && config.anya) {
-        system("sh /data/adb/modules/ProjectRaco/Scripts/AnyaKawaii.sh &");
+        system("/data/adb/modules/ProjectRaco/Compiled/anya_thermal restore &");
     }
 }
 

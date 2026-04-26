@@ -155,7 +155,6 @@ void ghenna_optimize_tasks() {
 }
 
 void ghenna_tweaks() {
-    // 1. Deep Sleep
     system("rm -f /storage/emulated/0/*.log 2>/dev/null");
     system("rm -f /data/log/*.log 2>/dev/null; rm -f /cache/*.log 2>/dev/null");
     system("dumpsys deviceidle reset 2>/dev/null");
@@ -164,12 +163,10 @@ void ghenna_tweaks() {
     system("settings put global device_idle_constants light_after_inactive_to=15000,light_pre_idle_to=30000,light_idle_to=300000,light_max_idle_to=900000,inactive_to=1800000,idle_after_inactive_to=0,idle_pending_to=300000,max_idle_pending_to=600000,idle_to=3600000,max_idle_to=21600000 2>/dev/null");
     system("pm trim-caches 999999999 2>/dev/null");
 
-    // 2. GMS Doze
     system("su -c \"pm set-inactive com.google.android.gms true\" 2>/dev/null");
     system("su -c \"dumpsys deviceidle whitelist -com.google.android.gms\" 2>/dev/null");
     system("su -c \"dumpsys deviceidle tempwhitelist -c com.google.android.gms\" 2>/dev/null");
 
-    // 3. Tracing
     system("cmd accessibility stop-trace 2>/dev/null; cmd input_method tracing stop 2>/dev/null");
     system("cmd window tracing size 0 2>/dev/null; cmd window tracing stop 2>/dev/null");
     system("cmd statusbar tracing stop 2>/dev/null; cmd memory_trace disable 2>/dev/null");
@@ -177,7 +174,6 @@ void ghenna_tweaks() {
     system("cmd wm tracing stop 2>/dev/null; cmd activity tracing stop 2>/dev/null");
     system("cmd broadcast tracing disable 2>/dev/null; atrace --async_stop >/dev/null 2>&1");
 
-    // 4. Logcat
     system("logcat -c 2>/dev/null; logcat -G 16K 2>/dev/null");
     system("setprop persist.sys.usb.config adb 2>/dev/null");
     system("setprop ro.logd.size.stats 0 2>/dev/null");
@@ -190,10 +186,8 @@ void ghenna_tweaks() {
     system("setprop debug.atrace.tags.enableflags 0 2>/dev/null");
     system("setprop debug.force_rtl false 2>/dev/null");
 
-    // 5. Tasks
     ghenna_optimize_tasks();
 
-    // 6. RCU / Scheduler
     kakangku("1", "/sys/kernel/rcu_normal");
     kakangku("0", "/sys/kernel/rcu_expedited");
     kakangku("1", "/proc/sys/kernel/timer_migration");
@@ -205,7 +199,6 @@ void ghenna_tweaks() {
     kakangku("TTWU_QUEUE", "/sys/kernel/debug/sched_features");
     kakangku("ENERGY_AWARE", "/sys/kernel/debug/sched_features");
 
-    // 7. Sched Parameters
     kakangku("1", "/proc/sys/kernel/sched_energy_aware");
     kakangku("32", "/proc/sys/kernel/sched_nr_migrate");
     kakangku("1", "/proc/sys/kernel/sched_child_runs_first");
@@ -215,14 +208,12 @@ void ghenna_tweaks() {
     kakangku("1000000", "/proc/sys/kernel/sched_min_granularity_ns");
     kakangku("1500000", "/proc/sys/kernel/sched_wakeup_granularity_ns");
 
-    // 8. Module Params
     kakangku("0", "/sys/module/mmc_core/parameters/use_spi_crc");
     kakangku("0", "/sys/module/cpufreq_bouncing/parameters/enable");
     kakangku("819", "/sys/module/tcp_cubic/parameters/beta");
     kakangku("1", "/sys/module/tcp_cubic/parameters/fast_convergence");
     kakangku("1000000", "/sys/module/timer/parameters/sample_period");
 
-    // 9. Kernel Logging
     kakangku("0 0 0 0", "/proc/sys/kernel/printk");
     kakangku("off", "/proc/sys/kernel/printk_devkmsg");
     kakangku("0", "/sys/module/printk/parameters/pid");
@@ -230,7 +221,6 @@ void ghenna_tweaks() {
     kakangku("N", "/sys/module/sync/parameters/fsync_enabled");
     kakangku("0", "/sys/module/printk/parameters/printk_ratelimit");
 
-    // 10. Disable Panic
     const char *panic_nodes[] = {
         "/proc/sys/kernel/panic", "/proc/sys/kernel/panic_on_oops",
         "/proc/sys/kernel/panic_on_warn", "/proc/sys/kernel/panic_on_rcu_stall",
@@ -249,21 +239,18 @@ void ghenna_tweaks() {
         globfree(&gbuf);
     }
 
-    // 11. Memory Cache
     kakangku("3", "/proc/sys/vm/drop_caches");
     kakangku("1", "/proc/sys/vm/compact_memory");
     kakangku("0", "/proc/sys/debug/exception-trace");
     kakangku("80", "/proc/sys/vm/vfs_cache_pressure");
     kakangku("60", "/proc/sys/vm/swappiness");
 
-    // 12. GPU Debug
     kakangku("0", "/sys/kernel/debug/dri/0/debug/enable");
     kakangku("1", "/sys/module/spurious/parameters/noirqdebug");
     kakangku("0", "/sys/kernel/debug/gpu/enable");
     kakangku("1", "/sys/kernel/debug/hwcomposer/disable_debug");
     kakangku("0", "/sys/kernel/debug/gpumemdebug");
 
-    // 13. HWUI Performance
     system("setprop debug.sf.hw 1");
     system("setprop debug.sf.latch_unsignaled 1");
     system("setprop debug.hwui.drop_shadow_cache_size 6");
@@ -271,7 +258,6 @@ void ghenna_tweaks() {
     system("setprop ro.hwui.render_ahead_lines 2");
     system("setprop ro.hwui.texture_cache_size 72");
 
-    // 14. LMK
     kakangku("1024,2048,4096,8192,12288,16384", "/sys/module/lowmemorykiller/parameters/minfree");
     kakangku("32", "/sys/module/lowmemorykiller/parameters/cost");
     kakangku("256", "/proc/sys/kernel/random/read_wakeup_threshold");
@@ -314,7 +300,7 @@ int main() {
     if (include_soc == 1) kamigo_tweaks();
 
     if (include_anya == 1 && anya_val == 1) {
-        system("sh /data/adb/modules/ProjectRaco/Scripts/AnyaMelfissa.sh");
+        system("/data/adb/modules/ProjectRaco/Compiled/anya_thermal disable");
         send_notif("Anya Melfissa", "Good Day! Thermal Is Dead BTW", "TagAnya", "/data/local/tmp/Anya.png");
     }
 
