@@ -55,27 +55,53 @@ void carcpu_balance() { apply_carcpu(55); }
 void carcpu_battery() { apply_carcpu(40); }
 
 void clear_cache() {
-    glob_t globbuf;
-    if (glob("/data/data/*/cache/*", GLOB_NOSORT, NULL, &globbuf) == 0) {
-        for (size_t i = 0; i < globbuf.gl_pathc; i++) remove(globbuf.gl_pathv[i]);
-        globfree(&globbuf);
-    }
-    if (glob("/data/data/*/code_cache/*", GLOB_NOSORT, NULL, &globbuf) == 0) {
-        for (size_t i = 0; i < globbuf.gl_pathc; i++) remove(globbuf.gl_pathv[i]);
-        globfree(&globbuf);
-    }
+    // Equivalent of Clear_cache.sh using system calls for recursive folder deletion
+    system("rm -rf /data/data/*/cache/* 2>/dev/null");
+    system("rm -rf /data/data/*/no_backup/* 2>/dev/null");
+    system("rm -rf /data/data/*/app_webview/* 2>/dev/null");
+    system("rm -rf /data/data/*/code_cache/* 2>/dev/null");
+    system("rm -rf /data/user_de/*/*/cache/* 2>/dev/null");
+    system("rm -rf /data/user_de/*/*/code_cache/* 2>/dev/null");
+    system("rm -rf /sdcard/Android/data/*/cache/* 2>/dev/null");
+
+    const char *cmds[] = {
+        "pm trim-caches 1024G",
+        "cmd stats clear-puller-cache",
+        "cmd activity clear-debug-app",
+        "cmd activity clear-watch-heap -a",
+        "cmd activity clear-exit-info",
+        "cmd content reset-today-stats",
+        "cmd companiondevice refresh-cache",
+        "cmd companiondevice remove-inactive-associations",
+        "cmd blob_store clear-all-blobs",
+        "cmd blob_store clear-all-sessions",
+        "cmd device_policy clear-freeze-period-record",
+        "wm tracing size 0",
+        "cmd font clear",
+        "cmd location_time_zone_manager clear_recorded_provider_states",
+        "cmd lock_settings remove-cache",
+        "cmd media.camera clear-stream-use-case-override",
+        "cmd media.camera watch clear",
+        "cmd safety_center clear-data",
+        "cmd time_detector clear_network_time",
+        "cmd time_detector clear_system_clock_network_time",
+        "dumpsys procstats --clear",
+        "cmd package art cleanup"
+    };
     
-    system("pm trim-caches 1024G >/dev/null 2>&1");
-    system("cmd stats clear-puller-cache");
-    system("cmd activity clear-debug-app");
-    system("cmd activity clear-watch-heap -a");
-    system("cmd package art cleanup");
+    for (int i = 0; i < 22; i++) {
+        char full_cmd[256];
+        snprintf(full_cmd, sizeof(full_cmd), "%s >/dev/null 2>&1", cmds[i]);
+        system(full_cmd);
+    }
 }
 
 void run_fstrim() {
+    // Equivalent of Fstrim.sh
     system("busybox fstrim -v /data >/dev/null 2>&1");
-    usleep(100000);
+    usleep(100000); // 0.1 seconds
     system("busybox fstrim -v /cache >/dev/null 2>&1");
+    usleep(100000); 
 }
 
 void corin_perf() {

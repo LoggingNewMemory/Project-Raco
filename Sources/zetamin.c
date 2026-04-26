@@ -44,7 +44,6 @@ void mask_val(const char *val, const char *path) {
     }
 }
 
-// Rewritten to scan process tasks natively using C loop hooks instead of heavy shell pipelining
 void change_task_cgroup(const char *pattern, const char *group, const char *type) {
     char cmd[256];
     snprintf(cmd, sizeof(cmd), "pgrep -f -i '%s'", pattern);
@@ -73,19 +72,34 @@ void change_task_cgroup(const char *pattern, const char *group, const char *type
     pclose(fp);
 }
 
-void apply_flux_and_facur() {
+void apply_sf_flux() {
     int max_rate = exec_get_int("cmd display dump 2>/dev/null | grep -Eo 'fps=[0-9.]+' | cut -f2 -d= | sort -nr | head -n1 | cut -d . -f 1", 60);
 
     if (max_rate > 60) {
         char cmd[128];
-        snprintf(cmd, sizeof(cmd), "settings put system min_refresh_rate %d", max_rate);
-        system(cmd);
-        snprintf(cmd, sizeof(cmd), "settings put system peak_refresh_rate %d", max_rate);
-        system(cmd);
-        snprintf(cmd, sizeof(cmd), "resetprop ro.surface_flinger.game_default_frame_rate_override %d", max_rate);
-        system(cmd);
+        snprintf(cmd, sizeof(cmd), "settings put system min_refresh_rate %d", max_rate); system(cmd);
+        snprintf(cmd, sizeof(cmd), "settings put system peak_refresh_rate %d", max_rate); system(cmd);
+        snprintf(cmd, sizeof(cmd), "resetprop ro.surface_flinger.game_default_frame_rate_override %d", max_rate); system(cmd);
     }
 
+    int fps = exec_get_int("dumpsys display | grep -m1 \"mDefaultPeak\" | awk '{print int($2)}'", 60);
+    if (fps <= 0) fps = 60;
+
+    // Derived from Zetamin.sh frame-time calculations
+    long long ft = 1000000000LL / fps;
+    int base_const = (ft <= 13000000) ? 70 : 72;
+    int thresh = (int)((ft / 1000000) + base_const + 2);
+    long long next_vsync = (ft / 6) + (thresh * 4800);
+
+    char cmd[128];
+    snprintf(cmd, sizeof(cmd), "setprop debug.sf.set_idle_timer_ms %d", thresh); system(cmd);
+    snprintf(cmd, sizeof(cmd), "setprop debug.sf.phase_offset_threshold_for_next_vsync_ns %lld", next_vsync); system(cmd);
+
+    float threshold_multiplier = (ft <= 10000000) ? 0.85f : 0.75f;
+    snprintf(cmd, sizeof(cmd), "setprop debug.sf.frame_rate_multiple_threshold %.6f", (ft / 1000000000.0) * threshold_multiplier); system(cmd);
+}
+
+void apply_facur() {
     int fps = exec_get_int("dumpsys display | grep -m1 \"mDefaultPeak\" | awk '{print int($2)}'", 60);
     if (fps <= 0) fps = 60;
 
@@ -103,8 +117,7 @@ void apply_flux_and_facur() {
         "debug.sf.high_fps.late.app.duration", "debug.sf.late.app.duration"
     };
     for (int i = 0; i < 6; i++) {
-        snprintf(cmd, sizeof(cmd), "setprop %s %lld", prop_e[i], val_e);
-        system(cmd);
+        snprintf(cmd, sizeof(cmd), "setprop %s %lld", prop_e[i], val_e); system(cmd);
     }
 
     const char *prop_f[] = {
@@ -113,8 +126,7 @@ void apply_flux_and_facur() {
         "debug.sf.high_fps.late.sf.duration", "debug.sf.late.sf.duration"
     };
     for (int i = 0; i < 6; i++) {
-        snprintf(cmd, sizeof(cmd), "setprop %s %lld", prop_f[i], val_f);
-        system(cmd);
+        snprintf(cmd, sizeof(cmd), "setprop %s %lld", prop_f[i], val_f); system(cmd);
     }
 
     const char *prop_g[] = {
@@ -129,10 +141,8 @@ void apply_flux_and_facur() {
     };
     
     for (int i = 0; i < 6; i++) {
-        snprintf(cmd, sizeof(cmd), "setprop %s %lld", prop_g[i], val_g);
-        system(cmd);
-        snprintf(cmd, sizeof(cmd), "setprop %s %lld", prop_h[i], val_h);
-        system(cmd);
+        snprintf(cmd, sizeof(cmd), "setprop %s %lld", prop_g[i], val_g); system(cmd);
+        snprintf(cmd, sizeof(cmd), "setprop %s %lld", prop_h[i], val_h); system(cmd);
     }
 
     system("setprop debug.sf.prime_shader_cache.solid_layers true");
@@ -150,8 +160,7 @@ void apply_flux_and_facur() {
 
     float n = load1 / b;
     int target = (int)(35 + (n * 15) / (1 + n));
-    snprintf(cmd, sizeof(cmd), "setprop debug.hwui.target_cpu_time_percent %d", target);
-    system(cmd);
+    snprintf(cmd, sizeof(cmd), "setprop debug.hwui.target_cpu_time_percent %d", target); system(cmd);
 }
 
 void optimize_gpu() {
@@ -159,6 +168,7 @@ void optimize_gpu() {
     char fps_str[16];
     snprintf(fps_str, sizeof(fps_str), "%d", fps);
 
+    // Deep GED adjustments (Zetamin.sh specific)
     if (access("/sys/module/ged/parameters", F_OK) == 0) {
         kakangku("1000", "/sys/module/ged/parameters/ged_smart_boost");
         kakangku("100", "/sys/module/ged/parameters/boost_upper_bound");
@@ -169,29 +179,71 @@ void optimize_gpu() {
         kakangku("1", "/sys/module/ged/parameters/enable_gpu_boost");
         kakangku("1", "/sys/module/ged/parameters/gx_game_mode");
         kakangku("1", "/sys/module/ged/parameters/gx_boost_on");
+        
+        // Expanded GED properties from Bash script
+        kakangku("1", "/sys/module/ged/parameters/boost_amp");
+        kakangku("1", "/sys/module/ged/parameters/gx_3D_benchmark_on");
+        kakangku("1", "/sys/module/ged/parameters/is_GED_KPI_enabled");
+        kakangku("1", "/sys/module/ged/parameters/gpu_dvfs_enable");
+        kakangku("0", "/sys/module/ged/parameters/ged_monitor_3D_fence_disable");
+        kakangku("0", "/sys/module/ged/parameters/ged_monitor_3D_fence_debug");
         kakangku("0", "/sys/module/ged/parameters/ged_log_perf_trace_enable");
         kakangku("0", "/sys/module/ged/parameters/ged_log_trace_enable");
+        kakangku("0", "/sys/module/ged/parameters/gpu_bw_err_debug");
+        kakangku("0", "/sys/module/ged/parameters/gx_frc_mode");
+        kakangku("0", "/sys/module/ged/parameters/gpu_idle");
+        kakangku("0", "/sys/module/ged/parameters/gpu_debug_enable");
     }
 
     if (access("/sys/kernel/debug/ged/hal", F_OK) == 0) {
         kakangku("2", "/sys/kernel/debug/ged/hal/gpu_boost_level");
         kakangku("1", "/sys/kernel/debug/ged/hal/custom_upbound_gpu_freq");
     }
+    
+    // FPSGo Block boost
+    if (access("/sys/kernel/debug/fpsgo/common/gpu_block_boost", F_OK) == 0) {
+        kakangku("60 120 1", "/sys/kernel/debug/fpsgo/common/gpu_block_boost");
+    }
 
     if (access("/proc/gpufreq", F_OK) == 0) {
         kakangku("1 1 1", "/proc/gpufreq/limit_table");
         kakangku("1", "/proc/gpufreq/gpufreq_limited_thermal_ignore");
+        kakangku("1", "/proc/gpufreq/gpufreq_limited_oc_ignore");
+        kakangku("1", "/proc/gpufreq/gpufreq_limited_low_batt_volume_ignore");
+        kakangku("1", "/proc/gpufreq/gpufreq_limited_low_batt_volt_ignore");
+        kakangku("0", "/proc/gpufreq/gpufreq_fixed_freq_volt");
+        kakangku("0", "/proc/gpufreq/gpufreq_opp_stress_test");
         kakangku("0", "/proc/gpufreq/gpufreq_power_dump");
         kakangku("0", "/proc/gpufreq/gpufreq_power_limited");
     }
 
+    if (access("/proc/gpufreqv2", F_OK) == 0) {
+        kakangku("disable", "/proc/gpufreqv2/aging_mode");
+    }
+
+    // PVR Tuning
     if (access("/sys/module/pvrsrvkm/parameters", F_OK) == 0) {
         kakangku("2", "/sys/module/pvrsrvkm/parameters/gpu_power");
         kakangku("512", "/sys/module/pvrsrvkm/parameters/HTBufferSizeInKB");
         kakangku("1", "/sys/module/pvrsrvkm/parameters/DisableClockGating");
+        kakangku("2", "/sys/module/pvrsrvkm/parameters/EmuMaxFreq");
+        kakangku("1", "/sys/module/pvrsrvkm/parameters/EnableFWContextSwitch");
+        kakangku("0", "/sys/module/pvrsrvkm/parameters/gPVRDebugLevel");
         kakangku("1", "/sys/module/pvrsrvkm/parameters/gpu_dvfs_enable");
     }
 
+    // PVR Apphints
+    if (access("/sys/kernel/debug/pvr/apphint", F_OK) == 0) {
+        kakangku("1", "/sys/kernel/debug/pvr/apphint/CacheOpConfig");
+        kakangku("512", "/sys/kernel/debug/pvr/apphint/CacheOpUMKMThresholdSize");
+        kakangku("0", "/sys/kernel/debug/pvr/apphint/EnableFTraceGPU");
+        kakangku("2", "/sys/kernel/debug/pvr/apphint/HTBOperationMode");
+        kakangku("1", "/sys/kernel/debug/pvr/apphint/TimeCorrClock");
+        kakangku("1", "/sys/kernel/debug/pvr/apphint/0/DisableFEDLogging");
+        kakangku("0", "/sys/kernel/debug/pvr/apphint/0/EnableAPM");
+    }
+
+    // Adreno Tuning
     if (access("/sys/class/kgsl/kgsl-3d0", F_OK) == 0) {
         int pwrlvl = exec_get_int("cat /sys/class/kgsl/kgsl-3d0/num_pwrlevels", 1) - 1;
         char pwr_str[16];
@@ -202,7 +254,14 @@ void optimize_gpu() {
         mask_val("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
         mask_val("1", "/sys/class/kgsl/kgsl-3d0/bus_split");
         mask_val("1", "/sys/class/kgsl/kgsl-3d0/force_clk_on");
+        mask_val("1", "/sys/class/kgsl/kgsl-3d0/force_no_nap");
+        mask_val("1", "/sys/class/kgsl/kgsl-3d0/force_rail_on");
+        mask_val("0", "/sys/class/kgsl/kgsl-3d0/force_bus_on");
+        mask_val("0", "/sys/class/kgsl/kgsl-3d0/thermal_pwrlevel");
+        mask_val("0", "/sys/class/kgsl/kgsl-3d0/perfcounter");
         mask_val("0", "/sys/class/kgsl/kgsl-3d0/throttling");
+        mask_val("0", "/sys/class/kgsl/kgsl-3d0/fsync_enable");
+        mask_val("0", "/sys/class/kgsl/kgsl-3d0/vsync_enable");
     }
     
     mask_val("0", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
@@ -211,10 +270,16 @@ void optimize_gpu() {
     kakangku("1", "/sys/module/msm_performance/parameters/touchboost");
 
     kakangku("1", "/proc/mali/dvfs_enable");
+    kakangku("1", "/sys/devices/platform/gpu/dvfs_enable");
+    kakangku("1", "/sys/devices/platform/gpu/gpu_busy");
     
     glob_t globbuf;
     if (glob("/sys/devices/platform/soc/*mali*/scheduling/serialize_jobs", 0, NULL, &globbuf) == 0) {
         if (globbuf.gl_pathc > 0) kakangku("full", globbuf.gl_pathv[0]);
+        globfree(&globbuf);
+    }
+    if (glob("/sys/devices/platform/soc/*mali*/js_ctx_scheduling_mode", 0, NULL, &globbuf) == 0) {
+        if (globbuf.gl_pathc > 0) kakangku("1", globbuf.gl_pathv[0]);
         globfree(&globbuf);
     }
     
@@ -239,7 +304,8 @@ void optimize_cgroups() {
 int main(int argc, char *argv[]) {
     printf("[*] Executing Zetamin Rendering Optimizations...\n");
     sync();
-    apply_flux_and_facur();
+    apply_sf_flux();
+    apply_facur();
     sync();
     optimize_gpu();
     optimize_cgroups();
