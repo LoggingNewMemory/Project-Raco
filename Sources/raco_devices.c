@@ -215,7 +215,6 @@ void snapdragon_balanced() {
 }
 
 void snapdragon_powersave() {
-    // Flowchart requires GPU Set Release (No Clock Lock) for Powersave
     devfreq_unlock("/sys/class/kgsl/kgsl-3d0/devfreq");
     yanz_snapdragon_balance();
     tweak("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active");
@@ -268,7 +267,6 @@ void exynos_powersave() {
     if (access(gpu_path, F_OK) == 0) {
         char avail_path[256];
         snprintf(avail_path, sizeof(avail_path), "%s/gpu_available_frequencies", gpu_path);
-        // Release Lock
         kakangku(get_maxfreq(avail_path), "/sys/kernel/gpu/gpu_max_clock");
         kakangku(get_minfreq(avail_path), "/sys/kernel/gpu/gpu_min_clock");
     }
@@ -284,18 +282,179 @@ void exynos_normal() {
     }
 }
 
-// Stubs for Unisoc, Tensor, Tegra to match logic flow
-void unisoc_awaken() {}
-void unisoc_balanced() {}
-void unisoc_powersave() {}
-void unisoc_normal() {}
+// ==========================================
+// Unisoc Profiles
+// ==========================================
 
-void tensor_awaken() {}
-void tensor_balanced() {}
-void tensor_powersave() {}
-void tensor_normal() {}
+void process_unisoc_gpu(int mode) {
+    glob_t globbuf;
+    if (glob("/sys/class/devfreq/*.gpu", 0, NULL, &globbuf) == 0) {
+        for (size_t i = 0; i < globbuf.gl_pathc; i++) {
+            if (mode == 1) devfreq_max_perf(globbuf.gl_pathv[i]);
+            else if (mode == 2) devfreq_mid_perf(globbuf.gl_pathv[i]);
+            else if (mode == 3) devfreq_min_perf(globbuf.gl_pathv[i]);
+            else devfreq_unlock(globbuf.gl_pathv[i]);
+        }
+        globfree(&globbuf);
+    }
+}
 
-void tegra_awaken() {}
-void tegra_balanced() {}
-void tegra_powersave() {}
-void tegra_normal() {}
+void unisoc_awaken() {
+    process_unisoc_gpu(config.lite_mode == 1 ? 2 : 1);
+}
+
+void unisoc_balanced() {
+    process_unisoc_gpu(0);
+}
+
+void unisoc_powersave() {
+    process_unisoc_gpu(3);
+}
+
+void unisoc_normal() {
+    process_unisoc_gpu(0);
+}
+
+// ==========================================
+// Tensor Profiles
+// ==========================================
+
+char* get_tensor_gpu_path() {
+    static char path[256] = "";
+    if (strlen(path) > 0) return path;
+    
+    glob_t globbuf;
+    if (glob("/sys/devices/platform/*mali*", 0, NULL, &globbuf) == 0 && globbuf.gl_pathc > 0) {
+        strcpy(path, globbuf.gl_pathv[0]);
+        globfree(&globbuf);
+    }
+    return path;
+}
+
+void process_tensor_mif(int mode) {
+    glob_t globbuf;
+    if (glob("/sys/class/devfreq/*devfreq_mif*", 0, NULL, &globbuf) == 0) {
+        for (size_t i = 0; i < globbuf.gl_pathc; i++) {
+            if (mode == 1) devfreq_max_perf(globbuf.gl_pathv[i]);
+            else if (mode == 2) devfreq_mid_perf(globbuf.gl_pathv[i]);
+            else devfreq_unlock(globbuf.gl_pathv[i]);
+        }
+        globfree(&globbuf);
+    }
+}
+
+void tensor_awaken() {
+    char *gpu_path = get_tensor_gpu_path();
+    if (strlen(gpu_path) > 0) {
+        char avail_path[256], max_path[256], min_path[256];
+        snprintf(avail_path, sizeof(avail_path), "%s/available_frequencies", gpu_path);
+        snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", gpu_path);
+        snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", gpu_path);
+
+        if (access(avail_path, F_OK) == 0) {
+            char *max_freq = get_maxfreq(avail_path);
+            tweak(max_freq, max_path);
+            if (config.lite_mode == 1) {
+                tweak(get_midfreq(avail_path), min_path);
+            } else {
+                tweak(max_freq, min_path);
+            }
+        }
+    }
+    
+    if (config.device_mitigation == 0) {
+        process_tensor_mif(config.lite_mode == 1 ? 2 : 1);
+    }
+}
+
+void tensor_balanced() {
+    tensor_normal();
+}
+
+void tensor_powersave() {
+    char *gpu_path = get_tensor_gpu_path();
+    if (strlen(gpu_path) > 0) {
+        char avail_path[256], max_path[256], min_path[256];
+        snprintf(avail_path, sizeof(avail_path), "%s/available_frequencies", gpu_path);
+        snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", gpu_path);
+        snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", gpu_path);
+
+        if (access(avail_path, F_OK) == 0) {
+            char *min_freq = get_minfreq(avail_path);
+            tweak(min_freq, min_path);
+            tweak(min_freq, max_path);
+        }
+    }
+}
+
+void tensor_normal() {
+    char *gpu_path = get_tensor_gpu_path();
+    if (strlen(gpu_path) > 0) {
+        char avail_path[256], max_path[256], min_path[256];
+        snprintf(avail_path, sizeof(avail_path), "%s/available_frequencies", gpu_path);
+        snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", gpu_path);
+        snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", gpu_path);
+
+        if (access(avail_path, F_OK) == 0) {
+            kakangku(get_maxfreq(avail_path), max_path);
+            kakangku(get_minfreq(avail_path), min_path);
+        }
+    }
+    
+    if (config.device_mitigation == 0) {
+        process_tensor_mif(0);
+    }
+}
+
+// ==========================================
+// Tegra Profiles
+// ==========================================
+
+void tegra_awaken() {
+    const char *gpu_path = "/sys/kernel/tegra_gpu";
+    char avail_path[256], cap_path[256], floor_path[256];
+    snprintf(avail_path, sizeof(avail_path), "%s/available_frequencies", gpu_path);
+    snprintf(cap_path, sizeof(cap_path), "%s/gpu_cap_rate", gpu_path);
+    snprintf(floor_path, sizeof(floor_path), "%s/gpu_floor_rate", gpu_path);
+
+    if (access(avail_path, F_OK) == 0) {
+        char *max_freq = get_maxfreq(avail_path);
+        tweak(max_freq, cap_path);
+        if (config.lite_mode == 1) {
+            tweak(get_midfreq(avail_path), floor_path);
+        } else {
+            tweak(max_freq, floor_path);
+        }
+    }
+}
+
+void tegra_balanced() {
+    tegra_normal();
+}
+
+void tegra_powersave() {
+    const char *gpu_path = "/sys/kernel/tegra_gpu";
+    char avail_path[256], cap_path[256], floor_path[256];
+    snprintf(avail_path, sizeof(avail_path), "%s/available_frequencies", gpu_path);
+    snprintf(cap_path, sizeof(cap_path), "%s/gpu_cap_rate", gpu_path);
+    snprintf(floor_path, sizeof(floor_path), "%s/gpu_floor_rate", gpu_path);
+
+    if (access(avail_path, F_OK) == 0) {
+        char *min_freq = get_minfreq(avail_path);
+        tweak(min_freq, floor_path);
+        tweak(min_freq, cap_path);
+    }
+}
+
+void tegra_normal() {
+    const char *gpu_path = "/sys/kernel/tegra_gpu";
+    char avail_path[256], cap_path[256], floor_path[256];
+    snprintf(avail_path, sizeof(avail_path), "%s/available_frequencies", gpu_path);
+    snprintf(cap_path, sizeof(cap_path), "%s/gpu_cap_rate", gpu_path);
+    snprintf(floor_path, sizeof(floor_path), "%s/gpu_floor_rate", gpu_path);
+
+    if (access(avail_path, F_OK) == 0) {
+        kakangku(get_maxfreq(avail_path), cap_path);
+        kakangku(get_minfreq(avail_path), floor_path);
+    }
+}
