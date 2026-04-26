@@ -258,7 +258,7 @@ build_modules() {
     echo "      Compiling Source Code      "
     echo "---------------------------------"
 
-    echo "[1/5] Building Project Raco Core..."
+    echo "[1/6] Building Project Raco Core..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/raco" \
         "$SRC_DIR/raco_main.c" \
@@ -270,7 +270,7 @@ build_modules() {
         exit 1
     fi
 
-    echo "[2/5] Building Anya Thermal..."
+    echo "[2/6] Building Anya Thermal..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/anya_thermal" \
         "$SRC_DIR/anya_thermal.c" \
@@ -280,7 +280,7 @@ build_modules() {
         exit 1
     fi
 
-    echo "[3/5] Building Zetamin..."
+    echo "[3/6] Building Zetamin..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/zetamin" \
         "$SRC_DIR/zetamin.c" \
@@ -290,7 +290,7 @@ build_modules() {
         exit 1
     fi
 
-    echo "[4/5] Building Ayunda Rusdi..."
+    echo "[4/6] Building Ayunda Rusdi..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/ayunda_rusdi" \
         "$SRC_DIR/ayunda_rusdi.c" \
@@ -299,8 +299,18 @@ build_modules() {
         echo "❌ ERROR: Compilation of Ayunda Rusdi failed!"
         exit 1
     fi
+    
+    echo "[5/6] Building Kobo Kanaeru..."
+    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
+        -o "$MODULES_DIR/Compiled/kobo_kanaeru" \
+        "$SRC_DIR/kobo_kanaeru.c" \
+        "$SRC_DIR/raco_utils.c" \
+        "$SRC_DIR/raco_write.s"; then
+        echo "❌ ERROR: Compilation of Kobo Kanaeru failed!"
+        exit 1
+    fi
 
-    echo "[5/5] Building Raco Core Service..."
+    echo "[6/6] Building Raco Core Service..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/CoreSys/raco_service" \
         "$SRC_DIR/raco_service.c" \
@@ -315,6 +325,7 @@ build_modules() {
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/anya_thermal"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/zetamin"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/ayunda_rusdi"
+    $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/kobo_kanaeru"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/CoreSys/raco_service"
 
     # ------------------------------------------
@@ -325,7 +336,7 @@ build_modules() {
     echo " Verifying Binaries (Dependencies) "
     echo "---------------------------------"
     
-    for bin in raco anya_thermal zetamin ayunda_rusdi; do
+    for bin in raco anya_thermal zetamin ayunda_rusdi kobo_kanaeru; do
         if [ -f "$MODULES_DIR/Compiled/$bin" ]; then
             echo "[*] Dependencies for $bin:"
             $TOOLCHAIN/llvm-readelf -d "$MODULES_DIR/Compiled/$bin" | grep NEEDED || echo "    (No dynamic dependencies)"

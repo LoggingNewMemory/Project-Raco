@@ -102,31 +102,6 @@ void corin_powersave() {
     system("cmd power set-mode 1; cmd power thermalservice override-status 3");
 }
 
-void kobo_fast_charge() {
-    const char* MAX_CURR = "9000000";
-    const char* MAX_VOLT = "12000000";
-
-    const char* cp_paths[] = {"cp_enable", "cp_switcher_en", "cp_charging_enabled", "slave_chg_enable"};
-    for (int i = 0; i < 4; i++) find_and_tweak("/sys/class/power_supply/", cp_paths[i], "1", 1);
-    
-    find_and_tweak("/sys/class/power_supply/", "cp_current_limit", MAX_CURR, 1);
-    find_and_tweak("/sys/class/power_supply/", "cp_ilim", MAX_CURR, 1);
-
-    if (access("/sys/class/typec/port0", F_OK) == 0) {
-        tweak("sink", "/sys/class/typec/port0/power_role");
-        tweak("1", "/sys/class/typec/port0/vbus_vsafe0v");
-    }
-
-    find_and_tweak("/sys/class/power_supply/", "fast_charge", "1", 1);
-    find_and_tweak("/sys/class/power_supply/", "pd_allowed", "1", 1);
-    find_and_tweak("/sys/class/power_supply/", "input_current_limit", MAX_CURR, 1);
-    find_and_tweak("/sys/class/power_supply/", "constant_charge_current", MAX_CURR, 1);
-    find_and_tweak("/sys/class/power_supply/", "voltage_max", MAX_VOLT, 1);
-    
-    find_and_tweak("/sys/class/power_supply/", "step_charging_enabled", "0", 1);
-    find_and_tweak("/sys/class/power_supply/", "sw_jeita_enabled", "0", 1);
-}
-
 void raco_kill_all() {
     sync();
 

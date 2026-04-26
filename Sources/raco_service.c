@@ -314,8 +314,13 @@ int main() {
         send_notif("Anya Melfissa", "Good Day! Thermal Is Dead BTW", "TagAnya", "/data/local/tmp/Anya.png");
     }
 
-    if (include_kobo == 1) system("sh /data/adb/modules/ProjectRaco/Scripts/KoboKanaeru.sh");
-    if (include_zetamin == 1) system("sh /data/adb/modules/ProjectRaco/Scripts/Zetamin.sh");
+    if (include_kobo == 1) {
+        system("/data/adb/modules/ProjectRaco/Compiled/kobo_kanaeru");
+    }
+    
+    if (include_zetamin == 1) {
+        system("/data/adb/modules/ProjectRaco/Compiled/zetamin");
+    }
 
     facur_tweaks();
     ghenna_tweaks();
