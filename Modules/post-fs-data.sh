@@ -2,8 +2,7 @@
 
 CONFIG_FILE="/data/ProjectRaco/raco.txt"
 
-# Strict check for INCLUDE_ZETAMIN (avoids matching comments like # INCLUDE_ZETAMIN=1)
-INCLUDE_ZETAMIN=$(grep '^INCLUDE_ZETAMIN=' "$CONFIG_FILE" | cut -d'=' -f2)
+INCLUDE_ZETAMIN=$(grep '^INCLUDE_ZETAMIN ' "$CONFIG_FILE" | awk '{print $2}')
 
 if [ "$INCLUDE_ZETAMIN" = "1" ]; then
 
