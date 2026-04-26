@@ -329,29 +329,6 @@ build_modules() {
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/CoreSys/raco_service"
 
     # ------------------------------------------
-    # VERIFICATION (ldd equivalent for NDK)
-    # ------------------------------------------
-    echo ""
-    echo "---------------------------------"
-    echo " Verifying Binaries (Dependencies) "
-    echo "---------------------------------"
-    
-    for bin in raco anya_thermal zetamin ayunda_rusdi kobo_kanaeru; do
-        if [ -f "$MODULES_DIR/Compiled/$bin" ]; then
-            echo "[*] Dependencies for $bin:"
-            $TOOLCHAIN/llvm-readelf -d "$MODULES_DIR/Compiled/$bin" | grep NEEDED || echo "    (No dynamic dependencies)"
-            echo ""
-        fi
-    done
-
-    # Verify Raco Service separately
-    if [ -f "$MODULES_DIR/CoreSys/raco_service" ]; then
-        echo "[*] Dependencies for raco_service:"
-        $TOOLCHAIN/llvm-readelf -d "$MODULES_DIR/CoreSys/raco_service" | grep NEEDED || echo "    (No dynamic dependencies)"
-        echo ""
-    fi
-
-    # ------------------------------------------
     # B. PACKAGING MODULE
     # ------------------------------------------
     echo ""
