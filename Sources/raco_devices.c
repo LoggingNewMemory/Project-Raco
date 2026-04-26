@@ -94,7 +94,11 @@ void qcom_cpudcvs_unlock(const char *path) {
 // MediaTek Profiles
 // ==========================================
 
-void yanz_mtk_boost() {
+void mediatek_awaken() {
+    tweak("1", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
+    tweak("0", "/sys/devices/system/cpu/eas/enable");
+    tweak("0", "/sys/kernel/eara_thermal/enable");
+    
     tweak("1", "/sys/pnpmgr/mwn");
     tweak("1", "/sys/pnpmgr/boost_enable");
     tweak("turbo", "/sys/pnpmgr/boost_mode");
@@ -103,39 +107,32 @@ void yanz_mtk_boost() {
     tweak("1", "/sys/module/ged/parameters/ged_smart_boost");
     tweak("1", "/sys/module/ged/parameters/enable_gpu_boost");
     tweak("1", "/sys/module/ged/parameters/ged_boost_enable");
-    tweak("100", "/sys/kernel/ged/hal/gpu_boost_level");
-}
-
-void yanz_mtk_balance() {
-    tweak("0", "/sys/pnpmgr/mwn");
-    tweak("0", "/sys/pnpmgr/boost_enable");
-    tweak("0", "/sys/pnpmgr/boost_mode");
-    tweak("0", "/sys/module/ged/parameters/gx_boost_on");
-    tweak("0", "/sys/module/ged/parameters/gx_game_mode");
-    tweak("0", "/sys/module/ged/parameters/ged_smart_boost");
-    tweak("-1", "/sys/kernel/ged/hal/gpu_boost_level");
-}
-
-void mediatek_awaken() {
-    tweak("1", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
-    tweak("0", "/sys/devices/system/cpu/eas/enable");
-    tweak("0", "/sys/kernel/eara_thermal/enable");
     
-    yanz_mtk_boost();
     tweak("stop 1", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
-
     tweak("0", "/proc/gpufreqv2/fix_target_opp_index");
     tweak("0", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
     devfreq_max_perf("/sys/class/devfreq/mtk-dvfsrc-devfreq");
 }
 
 void mediatek_balanced() {
-    yanz_mtk_balance();
+    tweak("0", "/sys/pnpmgr/mwn");
+    tweak("0", "/sys/pnpmgr/boost_enable");
+    tweak("0", "/sys/pnpmgr/boost_mode");
+    tweak("0", "/sys/module/ged/parameters/gx_boost_on");
+    tweak("0", "/sys/module/ged/parameters/gx_game_mode");
+    tweak("0", "/sys/module/ged/parameters/ged_smart_boost");
+
     devfreq_mid_perf("/sys/class/devfreq/mtk-dvfsrc-devfreq");
 }
 
 void mediatek_powersave() {
-    yanz_mtk_balance();
+    tweak("0", "/sys/pnpmgr/mwn");
+    tweak("0", "/sys/pnpmgr/boost_enable");
+    tweak("0", "/sys/pnpmgr/boost_mode");
+    tweak("0", "/sys/module/ged/parameters/gx_boost_on");
+    tweak("0", "/sys/module/ged/parameters/gx_game_mode");
+    tweak("0", "/sys/module/ged/parameters/ged_smart_boost");
+
     devfreq_unlock("/sys/class/devfreq/mtk-dvfsrc-devfreq");
 }
 
@@ -148,28 +145,17 @@ void mediatek_normal() {
     devfreq_unlock("/sys/class/devfreq/mtk-dvfsrc-devfreq");
     tweak("1", "/sys/kernel/eara_thermal/enable");
 
-    yanz_mtk_balance();
+    tweak("0", "/sys/pnpmgr/mwn");
+    tweak("0", "/sys/pnpmgr/boost_enable");
+    tweak("0", "/sys/pnpmgr/boost_mode");
+    tweak("0", "/sys/module/ged/parameters/gx_boost_on");
+    tweak("0", "/sys/module/ged/parameters/gx_game_mode");
+    tweak("0", "/sys/module/ged/parameters/ged_smart_boost");
 }
 
 // ==========================================
 // Snapdragon Profiles
 // ==========================================
-
-void yanz_snapdragon_boost() {
-    tweak("3", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
-    tweak("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active");
-    tweak("0", "/sys/class/kgsl/kgsl-3d0/throttling");
-    tweak("1", "/sys/class/kgsl/kgsl-3d0/default_pwrlevel");
-    tweak("1", "/sys/module/msm_perfmon/parameters/touch_boost_enable");
-    tweak("1", "/sys/module/msm_performance/parameters/touchboost");
-}
-
-void yanz_snapdragon_balance() {
-    tweak("0", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
-    tweak("1", "/sys/class/kgsl/kgsl-3d0/throttling");
-    tweak("0", "/sys/module/msm_perfmon/parameters/touch_boost_enable");
-    tweak("0", "/sys/module/msm_performance/parameters/touchboost");
-}
 
 void process_qcom_devfreqs(int mode) {
     const char *patterns[] = {
@@ -205,18 +191,33 @@ void snapdragon_awaken() {
     devfreq_max_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
     tweak("0", "/sys/class/kgsl/kgsl-3d0/bus_split");
     tweak("1", "/sys/class/kgsl/kgsl-3d0/force_clk_on");
-    yanz_snapdragon_boost();
+    
+    tweak("3", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
+    tweak("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active");
+    tweak("0", "/sys/class/kgsl/kgsl-3d0/throttling");
+    tweak("1", "/sys/class/kgsl/kgsl-3d0/default_pwrlevel");
+    tweak("1", "/sys/module/msm_perfmon/parameters/touch_boost_enable");
+    tweak("1", "/sys/module/msm_performance/parameters/touchboost");
 }
 
 void snapdragon_balanced() {
     if (config.device_mitigation == 0) process_qcom_devfreqs(2);
     devfreq_mid_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
-    yanz_snapdragon_balance();
+    
+    tweak("0", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
+    tweak("1", "/sys/class/kgsl/kgsl-3d0/throttling");
+    tweak("0", "/sys/module/msm_perfmon/parameters/touch_boost_enable");
+    tweak("0", "/sys/module/msm_performance/parameters/touchboost");
 }
 
 void snapdragon_powersave() {
     devfreq_unlock("/sys/class/kgsl/kgsl-3d0/devfreq");
-    yanz_snapdragon_balance();
+    
+    tweak("0", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
+    tweak("1", "/sys/class/kgsl/kgsl-3d0/throttling");
+    tweak("0", "/sys/module/msm_perfmon/parameters/touch_boost_enable");
+    tweak("0", "/sys/module/msm_performance/parameters/touchboost");
+    
     tweak("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active");
 }
 
@@ -234,7 +235,11 @@ void snapdragon_normal() {
     devfreq_unlock("/sys/class/kgsl/kgsl-3d0/devfreq");
     tweak("1", "/sys/class/kgsl/kgsl-3d0/bus_split");
     tweak("0", "/sys/class/kgsl/kgsl-3d0/force_clk_on");
-    yanz_snapdragon_balance();
+    
+    tweak("0", "/sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost");
+    tweak("1", "/sys/class/kgsl/kgsl-3d0/throttling");
+    tweak("0", "/sys/module/msm_perfmon/parameters/touch_boost_enable");
+    tweak("0", "/sys/module/msm_performance/parameters/touchboost");
 }
 
 // ==========================================
