@@ -183,17 +183,22 @@ ui_print " "
 
 PACKAGE_NAME="com.kanagawa.yamada.project.raco"
 ui_print "- Copying ProjectRaco.apk..."
-cp "$MODPATH/ProjectRaco.apk" "/data/local/tmp" >/dev/null 2>&1 || abort "! Failed to copy ProjectRaco.apk"
 
-ui_print "- Installing APK..."
-pm install --user 0 /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
+# Soft check for APK copy to prevent installation failure
+if cp "$MODPATH/ProjectRaco.apk" "/data/local/tmp" >/dev/null 2>&1; then
+  ui_print "- Installing APK..."
+  pm install --user 0 /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
 
-if pm path "$PACKAGE_NAME" >/dev/null 2>&1; then
-  ui_print "- Project Raco App installed/updated successfully."
+  if pm path "$PACKAGE_NAME" >/dev/null 2>&1; then
+    ui_print "- Project Raco App installed/updated successfully."
+  else
+    ui_print "! WARNING: Installation of Project Raco App failed."
+    ui_print "! Please unzip the module and install the APK manually."
+  fi
+
+  # Clean up APK file
+  rm -f /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
 else
-  ui_print "! CRITICAL: Installation of Project Raco Failed."
-  ui_print "! WARNING: Please unzip the module and install the apk by yourself."
+  ui_print "! WARNING: Failed to copy ProjectRaco.apk to temp directory."
+  ui_print "! Please unzip the module and install the APK manually."
 fi
-
-# Clean up APK file
-rm /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
