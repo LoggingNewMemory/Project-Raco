@@ -332,10 +332,7 @@ int main() {
         sleep(40); // Hardcoded 40 seconds
         
         if (strlen(default_gov) == 0) {
-            char avail[256] = {0};
-            moco("/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors", avail, sizeof(avail));
-            if (strstr(avail, "schedhorizon")) strcpy(default_gov, "schedhorizon");
-            else strcpy(default_gov, "schedutil");
+            strcpy(default_gov, "schedutil");
         }
         
         change_cpu_gov(default_gov);
