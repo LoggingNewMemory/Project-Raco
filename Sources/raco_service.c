@@ -29,7 +29,7 @@ int anya_val = 0;
 int include_kobo = 0;
 int include_zetamin = 0;
 int legacy_notif = 0;
-char default_gov[64] = "";
+int silent_notif = 1;
 
 void wait_for_boot() {
     char buf[128];
@@ -54,7 +54,7 @@ void load_service_config() {
     char key[64], value[64];
     
     while (line != NULL) {
-        if (sscanf(line, "%63[^=]=%63s", key, value) == 2) {
+        if (sscanf(line, "%63s %63s", key, value) == 2) {
             if (strcmp(key, "INCLUDE_SANDEV") == 0) include_sandev = atoi(value);
             else if (strcmp(key, "SOC") == 0) include_soc = atoi(value);
             else if (strcmp(key, "INCLUDE_ANYA") == 0) include_anya = atoi(value);
@@ -62,13 +62,17 @@ void load_service_config() {
             else if (strcmp(key, "INCLUDE_KOBO") == 0) include_kobo = atoi(value);
             else if (strcmp(key, "INCLUDE_ZETAMIN") == 0) include_zetamin = atoi(value);
             else if (strcmp(key, "LEGACY_NOTIF") == 0) legacy_notif = atoi(value);
-            else if (strcmp(key, "GOV") == 0) strcpy(default_gov, value);
+            else if (strcmp(key, "SILENT_NOTIF") == 0) silent_notif = atoi(value);
         }
         line = strtok(NULL, "\n");
     }
 }
 
 void send_notif(const char *title, const char *message, const char *tag, const char *icon_path) {
+    if (silent_notif == 0) {
+        return;
+    }
+
     char cmd[1024];
     if (legacy_notif == 1) {
         snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t '%s' '%s' '%s'\"", title, tag, message);
@@ -330,12 +334,7 @@ int main() {
 
     if (include_sandev == 1) {
         sleep(40); // Hardcoded 40 seconds
-        
-        if (strlen(default_gov) == 0) {
-            strcpy(default_gov, "schedutil");
-        }
-        
-        change_cpu_gov(default_gov);
+        change_cpu_gov("schedutil");
     }
 
     return 0;
