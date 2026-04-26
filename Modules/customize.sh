@@ -46,13 +46,11 @@ ui_print "------------------------------------"
 ui_print "         By: Kanagawa Yamada        "
 ui_print "------------------------------------"
 ui_print " "
-sleep 1.5
 
 ui_print "------------------------------------"
 ui_print "DO NOT COMBINE WITH ANY PERF MODULE!"
 ui_print "------------------------------------"
 ui_print " "
-sleep 1.5
 
 # Ensure the persistent data directory exists
 mkdir -p /data/ProjectRaco
@@ -122,11 +120,9 @@ ui_print "------------------------------------"
 ui_print "Name : Project Raco"
 ui_print "Version : 6.0"
 ui_print " "
-sleep 1.5
 
 ui_print "      INSTALLING Project Raco       "
 ui_print " "
-sleep 1.5
 
 ui_print "- Setting up module files..."
 unzip -o "$ZIPFILE" 'Compiled/*' -d $MODPATH >&2
@@ -150,8 +146,6 @@ ui_print "- Setting executable permissions for binaries..."
 set_perm_recursive "$MODPATH/Compiled" 0 0 0755 0755
 set_perm_recursive "$MODPATH/CoreSys" 0 0 0755 0755
 set_perm_recursive "$MODPATH/Binaries" 0 0 0755 0755
-
-sleep 1.5
 
 # --- Main Configuration Logic ---
 

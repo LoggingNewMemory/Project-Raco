@@ -299,7 +299,6 @@ prompt_adb_flash() {
 }
 
 prompt_telegram_post() {
-    # Check if TELEGRAM is set in Quick Config
     if [ -n "$TELEGRAM" ]; then
         if [ "${TELEGRAM^^}" = "NO" ]; then
             echo "Telegram upload skipped (Quick Config)."
@@ -327,7 +326,6 @@ prompt_telegram_post() {
 build_modules() {
     rm -rf "$BUILD_DIR"/*
 
-    # Check Quick Config for VERSION
     if [ -n "$RACOVER" ]; then
         VERSION="$RACOVER"
         echo "Auto-set Version: $VERSION"
@@ -335,7 +333,6 @@ build_modules() {
         read -p "Enter Version (e.g., V1.0): " VERSION
     fi
 
-    # Check Quick Config for BUILD TYPE
     if [ -n "$BUILD" ]; then
         BUILD_TYPE="${BUILD^^}"
         echo "Auto-set Build Type: $BUILD_TYPE"
