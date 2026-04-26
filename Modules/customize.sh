@@ -14,16 +14,17 @@ merge_configs() {
   # 1. Start with the clean/tidy template
   cp "$new_template" "$temp_config"
 
-  # 2. Read values from the old (potentially untidy) file
-  while IFS='=' read -r key value || [ -n "$key" ]; do
+  # 2. Read values from the old (potentially untidy) file. 
+  # Now uses space as delimiter instead of '='
+  while read -r key value || [ -n "$key" ]; do
     [[ "$key" =~ ^# ]] || [ -z "$key" ] && continue    
     
     # Escape special characters for sed
     local escaped_key=$(echo "$key" | sed -e 's/[]\/$*.^[]/\\&/g')
     
     # 3. Inject old values into the clean template
-    if grep -q "^${escaped_key}=" "$temp_config"; then
-      sed -i "s/^${escaped_key}=.*/${key}=${value}/" "$temp_config"
+    if grep -q "^${escaped_key} " "$temp_config"; then
+      sed -i "s/^${escaped_key} .*/${key} ${value}/" "$temp_config"
     fi
   done < "$persistent_config"
 
@@ -57,7 +58,8 @@ sleep 1.5
 mkdir -p /data/ProjectRaco
 
 if [ -f "$RACO_PERSIST_CONFIG" ]; then
-  SAVED_SOC=$(grep '^SOC=' "$RACO_PERSIST_CONFIG" | cut -d'=' -f2)
+  # Updated to check for space delimiter
+  SAVED_SOC=$(grep '^SOC ' "$RACO_PERSIST_CONFIG" | awk '{print $2}')
   if [ -n "$SAVED_SOC" ] && [ "$SAVED_SOC" -gt 0 ]; then
     SOC=$SAVED_SOC
   fi
@@ -127,9 +129,9 @@ ui_print " "
 sleep 1.5
 
 ui_print "- Setting up module files..."
-unzip -o "$ZIPFILE" 'Scripts/*' -d $MODPATH >&2
 unzip -o "$ZIPFILE" 'Compiled/*' -d $MODPATH >&2
 unzip -o "$ZIPFILE" 'CoreSys/*' -d $MODPATH >&2
+unzip -o "$ZIPFILE" 'Binaries/*' -d $MODPATH >&2
 unzip -o "$ZIPFILE" 'raco.txt' -d $MODPATH >&2
 
 # File copy operations
@@ -138,26 +140,16 @@ cp "$MODPATH/logo.png" "/data/local/tmp" >/dev/null 2>&1 || abort "! Failed to c
 rm -f "/data/local/tmp/Anya.png" >/dev/null 2>&1
 cp "$MODPATH/Anya.png" "/data/local/tmp" >/dev/null 2>&1 || abort "! Failed to copy Anya.png"
 
-if [ -f "/data/ProjectRaco/game.txt" ]; then
-    ui_print "- Existing game.txt found, preserving user settings."
-else
-    ui_print "- Performing first-time setup for game.txt."
-    cp "$MODPATH/game.txt" "/data/ProjectRaco" >/dev/null 2>&1 || abort "! Failed to copy game.txt"
-fi
 ui_print " "
 
 # Set standard directory permissions
 set_perm_recursive $MODPATH 0 0 0755 0755
-set_perm_recursive $MODPATH/Scripts 0 0 0777 0755
 
 # Apply 0755 execution permissions to the C binaries per diagram architecture
 ui_print "- Setting executable permissions for binaries..."
-if [ -d "$MODPATH/Compiled" ]; then
-  set_perm_recursive "$MODPATH/Compiled" 0 0 0755 0755
-fi
-if [ -d "$MODPATH/CoreSys" ]; then
-  set_perm_recursive "$MODPATH/CoreSys" 0 0 0755 0755
-fi
+set_perm_recursive "$MODPATH/Compiled" 0 0 0755 0755
+set_perm_recursive "$MODPATH/CoreSys" 0 0 0755 0755
+set_perm_recursive "$MODPATH/Binaries" 0 0 0755 0755
 
 sleep 1.5
 
@@ -178,9 +170,9 @@ else
   ui_print "- Configuration updated with new structure."
 fi
 
-# Finalize by writing the detected SOC code to the persistent config.
+# Finalize by writing the detected SOC code to the persistent config (using space delimiter)
 ui_print "- Finalizing SOC Code ($SOC) in config"
-sed -i "s/^SOC=.*/SOC=$SOC/" "$RACO_PERSIST_CONFIG"
+sed -i "s/^SOC .*/SOC $SOC/" "$RACO_PERSIST_CONFIG"
 
 # Clean up the template file from the module directory.
 rm -f "$RACO_MODULE_TEMPLATE"
