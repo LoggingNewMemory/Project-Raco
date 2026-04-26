@@ -24,20 +24,38 @@ If not, see https://www.gnu.org/licenses/.
 // ==========================================
 
 void kill_thermal_services() {
-    system("killall -9 thermald android.hardware.thermal@2.0-service 2>/dev/null");
-    
-    // FIXED: Exclude 'anya_thermal' so the binary doesn't kill itself!
-    system("pgrep -f \"thermal\" | grep -v \"hal\" | grep -v \"anya_thermal\" | xargs -r kill -9 2>/dev/null");
-
-    FILE *fp = popen("getprop | grep -E 'init.svc.*thermal' | grep -v \"hal\" | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]'", "r");
-    if (fp) {
-        char svc[128];
-        while (fgets(svc, sizeof(svc), fp)) {
-            svc[strcspn(svc, "\n")] = 0;
-            if (strlen(svc) > 0) {
-                char cmd[256];
-                snprintf(cmd, sizeof(cmd), "stop \"%s\"; setprop ctl.stop \"%s\"", svc, svc);
+    // 1. Universal dynamic kill 
+    // Scans all processes for the word "thermal" (case-insensitive).
+    // Safely excludes our own binary (anya_thermal) and the grep command itself.
+    FILE *fp_ps = popen("ps -A | grep -i thermal | grep -v anya_thermal | grep -v grep | awk '{print $2}'", "r");
+    if (fp_ps) {
+        char pid[32];
+        while (fgets(pid, sizeof(pid), fp_ps)) {
+            pid[strcspn(pid, "\n")] = 0;
+            if (strlen(pid) > 0) {
+                char cmd[64];
+                snprintf(cmd, sizeof(cmd), "kill -9 %s 2>/dev/null", pid);
                 system(cmd);
+            }
+        }
+        pclose(fp_ps);
+    }
+    
+    // 2. Stop init.svc thermal processes
+    FILE *fp = popen("getprop", "r");
+    if (fp) {
+        char line[256];
+        while(fgets(line, sizeof(line), fp)) {
+            if(strstr(line, "init.svc") && strstr(line, "thermal") && !strstr(line, "hal")) {
+                char prop[128];
+                if (sscanf(line, "[%127[^]]]", prop) == 1) {
+                    char svc[128];
+                    if (sscanf(prop, "init.svc.%127s", svc) == 1) {
+                        char cmd[512];
+                        snprintf(cmd, sizeof(cmd), "stop \"%s\"; setprop ctl.stop \"%s\"", svc, svc);
+                        system(cmd);
+                    }
+                }
             }
         }
         pclose(fp);
@@ -46,21 +64,26 @@ void kill_thermal_services() {
 
 void disable_fs_protections() {
     system("mount -o bind /dev/null /vendor/bin/thermald 2>/dev/null");
-    system("rm -f /data/vendor/thermal/config /data/vendor/thermal/*.dump 2>/dev/null");
+    unlink("/data/vendor/thermal/config");
+    
+    glob_t globbuf;
+    if (glob("/data/vendor/thermal/*.dump", 0, NULL, &globbuf) == 0) {
+        for (size_t i = 0; i < globbuf.gl_pathc; i++) unlink(globbuf.gl_pathv[i]);
+        globfree(&globbuf);
+    }
 }
 
 void disable_cpu_limits() {
     glob_t globbuf;
     if (glob("/sys/devices/system/cpu/cpu*/core_ctl/enable", 0, NULL, &globbuf) == 0) {
-        for (size_t i = 0; i < globbuf.gl_pathc; i++) {
-            tweak("0", globbuf.gl_pathv[i]);
-        }
+        for (size_t i = 0; i < globbuf.gl_pathc; i++) tweak("0", globbuf.gl_pathv[i]); 
         globfree(&globbuf);
     }
 
-    FILE *fp = popen("find /sys/ -name enabled 2>/dev/null | grep 'msm_thermal'", "r");
+    // Safely uses Linux 'find' to avoid C-recursive symlink infinite loop (Segfault)
+    FILE *fp = popen("find /sys/ -type f -name enabled 2>/dev/null | grep 'msm_thermal'", "r");
     if (fp) {
-        char path[256];
+        char path[512];
         while (fgets(path, sizeof(path), fp)) {
             path[strcspn(path, "\n")] = 0;
             if (strlen(path) > 0) {
@@ -72,11 +95,8 @@ void disable_cpu_limits() {
     }
 
     kakangku("1", "/proc/ppm/enabled");
-    kakangku("2 0", "/proc/ppm/policy_status");
-    kakangku("3 0", "/proc/ppm/policy_status");
-    kakangku("4 0", "/proc/ppm/policy_status");
-    kakangku("6 0", "/proc/ppm/policy_status");
-    kakangku("7 0", "/proc/ppm/policy_status");
+    const char *ppm_policies[] = {"2 0", "3 0", "4 0", "6 0", "7 0"};
+    for (int i = 0; i < 5; i++) kakangku(ppm_policies[i], "/proc/ppm/policy_status");
 
     kakangku("0", "/proc/sys/kernel/sched_boost");
     kakangku("0", "/proc/sys/kernel/panic");
@@ -84,7 +104,6 @@ void disable_cpu_limits() {
     
     kakangku("N", "/sys/module/workqueue/parameters/power_efficient");
     kakangku("N", "/sys/module/workqueue/parameters/disable_numa");
-    
     kakangku("0", "/sys/kernel/fpsgo/fbt/thrm_enable");
     kakangku("0", "/sys/kernel/eara_thermal/enable");
 }
@@ -104,53 +123,61 @@ void disable_gpu_limits() {
 }
 
 void spoof_running_status() {
-    FILE *fp = popen("getprop | grep -E 'sys\\..*thermal|thermal_config' | grep -v 'hal' | cut -d: -f1 | tr -d '[]'", "r");
+    FILE *fp = popen("getprop", "r");
     if (fp) {
-        char prop[128];
-        while (fgets(prop, sizeof(prop), fp)) {
-            prop[strcspn(prop, "\n")] = 0;
-            if (strlen(prop) > 0) {
-                char cmd[256];
-                snprintf(cmd, sizeof(cmd), "resetprop -n \"%s\" \"0\"", prop);
-                system(cmd);
+        char line[256];
+        while (fgets(line, sizeof(line), fp)) {
+            if (strstr(line, "thermal") && !strstr(line, "hal")) {
+                char prop[128];
+                if (sscanf(line, "[%127[^]]]", prop) == 1) {
+                    char cmd[512];
+                    if (strncmp(prop, "sys.", 4) == 0 || strstr(prop, "thermal_config")) {
+                        snprintf(cmd, sizeof(cmd), "resetprop -n \"%s\" \"0\"", prop);
+                        system(cmd);
+                    } else {
+                        snprintf(cmd, sizeof(cmd), "resetprop -n \"%s\" \"running\"", prop);
+                        system(cmd);
+                    }
+                }
             }
         }
         pclose(fp);
     }
-
+    
     system("if resetprop debug.thermal.throttle.support | grep -q 'yes'; then resetprop -n -v debug.thermal.throttle.support no; fi");
+}
 
-    fp = popen("getprop | grep 'thermal' | grep -v 'hal' | cut -d '[' -f2 | cut -d ']' -f1", "r");
-    if (fp) {
-        char prop[128];
-        while (fgets(prop, sizeof(prop), fp)) {
-            prop[strcspn(prop, "\n")] = 0;
-            if (strlen(prop) > 0) {
-                char cmd[256];
-                snprintf(cmd, sizeof(cmd), "resetprop -n \"%s\" \"running\"", prop);
-                system(cmd);
-            }
-        }
-        pclose(fp);
-    }
+void disable_thermal() {
+    printf("[*] Initializing AnyaMelfissa (Disabling Thermal)...\n");
+    kill_thermal_services();
+    system("cmd thermalservice override-status 0 2>/dev/null");
+
+    disable_fs_protections();
+    disable_cpu_limits();
+    disable_gpu_limits();
+    spoof_running_status();
+    
+    printf("[+] Thermal successfully disabled.\n");
 }
 
 // ==========================================
 // ANYA KAWAII (RESTORE THERMAL)
 // ==========================================
 
+void restore_filesystem() {
+    system("umount /vendor/bin/thermald 2>/dev/null");
+}
+
 void restore_hardware() {
     glob_t globbuf;
     if (glob("/sys/devices/system/cpu/cpu*/core_ctl/enable", 0, NULL, &globbuf) == 0) {
-        for (size_t i = 0; i < globbuf.gl_pathc; i++) {
-            kakangku("1", globbuf.gl_pathv[i]);
-        }
+        for (size_t i = 0; i < globbuf.gl_pathc; i++) kakangku("1", globbuf.gl_pathv[i]);
         globfree(&globbuf);
     }
 
-    FILE *fp = popen("find /sys/ -name enabled 2>/dev/null | grep 'msm_thermal'", "r");
+    FILE *fp = popen("find /sys/ -type f -name enabled 2>/dev/null | grep 'msm_thermal'", "r");
     if (fp) {
-        char path[256];
+        char path[512];
         while (fgets(path, sizeof(path), fp)) {
             path[strcspn(path, "\n")] = 0;
             if (strlen(path) > 0) {
@@ -169,41 +196,37 @@ void restore_hardware() {
 
 void restore_thermal() {
     printf("[*] Initializing AnyaKawaii (Restoring Thermal)...\n");
-    
-    system("umount /vendor/bin/thermald 2>/dev/null");
+    restore_filesystem();
     restore_hardware();
 
     system("cmd thermalservice override-status 1 2>/dev/null");
     system("cmd thermalservice reset 2>/dev/null");
 
-    FILE *fp = popen("getprop | grep -E 'init.svc(\\.vendor)?\\.thermal' | grep -v 'hal' | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]'", "r");
+    FILE *fp = popen("getprop", "r");
     if (fp) {
-        char svc[128];
-        while (fgets(svc, sizeof(svc), fp)) {
-            svc[strcspn(svc, "\n")] = 0;
-            if (strlen(svc) > 0) {
-                char cmd[256];
-                snprintf(cmd, sizeof(cmd), "resetprop -n \"init.svc.%s\" \"stopped\"; start \"%s\"; setprop ctl.start \"%s\"", svc, svc, svc);
-                system(cmd);
+        char line[256];
+        while(fgets(line, sizeof(line), fp)) {
+            if(strstr(line, "init.svc") && strstr(line, "thermal") && !strstr(line, "hal")) {
+                char prop[128];
+                if (sscanf(line, "[%127[^]]]", prop) == 1) {
+                    char svc[128];
+                    if (sscanf(prop, "init.svc.%127s", svc) == 1) {
+                        char cmd[512];
+                        snprintf(cmd, sizeof(cmd), "resetprop -n \"%s\" \"stopped\"; start \"%s\"; setprop ctl.start \"%s\"", prop, svc, svc);
+                        system(cmd);
+                    }
+                }
+            } else if (strstr(line, "thermal") && !strstr(line, "hal") && !strstr(line, "init.svc")) {
+                char prop[128];
+                if (sscanf(line, "[%127[^]]]", prop) == 1) {
+                    char cmd[512];
+                    snprintf(cmd, sizeof(cmd), "resetprop -n \"%s\" \"running\"", prop);
+                    system(cmd);
+                }
             }
         }
         pclose(fp);
     }
-
-    fp = popen("getprop | grep 'thermal' | grep -v 'hal' | cut -d '[' -f2 | cut -d ']' -f1", "r");
-    if (fp) {
-        char prop[128];
-        while (fgets(prop, sizeof(prop), fp)) {
-            prop[strcspn(prop, "\n")] = 0;
-            if (strlen(prop) > 0) {
-                char cmd[256];
-                snprintf(cmd, sizeof(cmd), "resetprop -n \"%s\" \"running\"", prop);
-                system(cmd);
-            }
-        }
-        pclose(fp);
-    }
-
     printf("[+] Thermal successfully restored.\n");
 }
 
@@ -214,23 +237,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (strcmp(argv[1], "disable") == 0) {
-        printf("[*] Initializing AnyaMelfissa (Disabling Thermal)...\n");
-        kill_thermal_services();
-        system("cmd thermalservice override-status 0 2>/dev/null");
-        disable_fs_protections();
-        disable_cpu_limits();
-        disable_gpu_limits();
-        spoof_running_status();
-        printf("[+] Thermal successfully disabled.\n");
-    } 
-    else if (strcmp(argv[1], "restore") == 0 || strcmp(argv[1], "enable") == 0) {
-        restore_thermal();
-    } 
+    if (strcmp(argv[1], "disable") == 0) disable_thermal();
+    else if (strcmp(argv[1], "restore") == 0 || strcmp(argv[1], "enable") == 0) restore_thermal();
     else {
         printf("Error: Invalid argument '%s'\n", argv[1]);
         return 1;
     }
-    
     return 0;
 }
