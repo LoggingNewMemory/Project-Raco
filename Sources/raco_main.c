@@ -48,16 +48,7 @@ void apply_cpufreq_policy(const char *policy_path, int mode) {
         // Fallback to min if available freqs are unreadable
         tweak(mid_freq[0] ? mid_freq : hw_min, min_path);
         tweak(hw_max, max_path);
-    } else if (mode == 3) {
-        // Mode 3: Powersave (CPU capped at 75%)
-        int max_f = atoi(hw_max);
-        char target_75[32];
-        snprintf(target_75, sizeof(target_75), "%d", (int)(max_f * 0.75));
-        
-        tweak(hw_min, min_path);
-        tweak(target_75, max_path); 
-    } else if (mode == 4) {
-        // Mode 4: Normal State (Release CPU Freq)
+    } else if (mode == 3 || mode == 4) {
         kakangku(hw_min, min_path);
         kakangku(hw_max, max_path);
     }
