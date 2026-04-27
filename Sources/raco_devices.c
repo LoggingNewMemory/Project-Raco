@@ -305,7 +305,7 @@ void process_unisoc_gpu(int mode) {
 }
 
 void unisoc_awaken() {
-    process_unisoc_gpu(config.lite_mode == 1 ? 2 : 1);
+    process_unisoc_gpu(1);
 }
 
 void unisoc_balanced() {
@@ -359,16 +359,12 @@ void tensor_awaken() {
         if (access(avail_path, F_OK) == 0) {
             char *max_freq = get_maxfreq(avail_path);
             tweak(max_freq, max_path);
-            if (config.lite_mode == 1) {
-                tweak(get_midfreq(avail_path), min_path);
-            } else {
-                tweak(max_freq, min_path);
-            }
+            tweak(max_freq, min_path);
         }
     }
     
     if (config.device_mitigation == 0) {
-        process_tensor_mif(config.lite_mode == 1 ? 2 : 1);
+        process_tensor_mif(1);
     }
 }
 
@@ -425,11 +421,7 @@ void tegra_awaken() {
     if (access(avail_path, F_OK) == 0) {
         char *max_freq = get_maxfreq(avail_path);
         tweak(max_freq, cap_path);
-        if (config.lite_mode == 1) {
-            tweak(get_midfreq(avail_path), floor_path);
-        } else {
-            tweak(max_freq, floor_path);
-        }
+        tweak(max_freq, floor_path);
     }
 }
 

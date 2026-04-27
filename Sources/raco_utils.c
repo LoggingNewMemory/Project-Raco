@@ -127,7 +127,6 @@ void load_config() {
     while (line != NULL) {
         if (sscanf(line, "%63s %63s", key, value) == 2) {
             if (strcmp(key, "SOC") == 0) config.soc = atoi(value);
-            else if (strcmp(key, "LITE_MODE") == 0) config.lite_mode = atoi(value);
             else if (strcmp(key, "BETTER_POWERSAVE") == 0) config.better_powersave = atoi(value);
             else if (strcmp(key, "DEVICE_MITIGATION") == 0) config.device_mitigation = atoi(value);
             else if (strcmp(key, "ANYA") == 0) config.anya = atoi(value);
