@@ -6,7 +6,6 @@ Copyright (C) 2026 Kanagawa Yamada
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/stat.h>
 #include <glob.h>
 #include "raco_utils.h"
 
@@ -25,20 +24,13 @@ void kobo_fast_charge() {
     find_and_tweak("/sys/class/power_supply/", "cp_ilim", MAX_CURR, 1);
 
     // DC Charger
-    if (access("/sys/class/power_supply/dc_charger", F_OK) == 0) {
-        tweak("1", "/sys/class/power_supply/dc_charger/present");
-        tweak("1", "/sys/class/power_supply/dc_charger/online");
-        tweak(MAX_CURR, "/sys/class/power_supply/dc_charger/current_max");
-    }
+    tweak("1", "/sys/class/power_supply/dc_charger/present");
+    tweak("1", "/sys/class/power_supply/dc_charger/online");
+    tweak(MAX_CURR, "/sys/class/power_supply/dc_charger/current_max");
 
     // TypeC Paths
-    if (access("/sys/class/typec/port0", F_OK) == 0) {
-        if (access("/sys/class/typec/port0/power_operation_mode", F_OK) == 0) {
-            chmod("/sys/class/typec/port0/power_operation_mode", 0666);
-        }
-        tweak("sink", "/sys/class/typec/port0/power_role");
-        tweak("1", "/sys/class/typec/port0/vbus_vsafe0v");
-    }
+    tweak("sink", "/sys/class/typec/port0/power_role");
+    tweak("1", "/sys/class/typec/port0/vbus_vsafe0v");
 
     // Module Paths (SMB & PHY)
     const char* mod_paths[] = {
@@ -56,11 +48,9 @@ void kobo_fast_charge() {
     }
 
     // VOOC Paths
-    if (access("/proc/vooc_mp", F_OK) == 0) tweak("1", "/proc/vooc_mp/allow_reading");
-    if (access("/sys/class/power_supply/vooc", F_OK) == 0) {
-        tweak("1", "/sys/class/power_supply/vooc/fast_chg_ing");
-        tweak("1", "/sys/class/power_supply/vooc/allow_reading");
-    }
+    tweak("1", "/proc/vooc_mp/allow_reading");
+    tweak("1", "/sys/class/power_supply/vooc/fast_chg_ing");
+    tweak("1", "/sys/class/power_supply/vooc/allow_reading");
 
     // Thermal Zone Disabling
     glob_t gbuf;
@@ -112,25 +102,17 @@ void kobo_fast_charge() {
     for(int i = 0; i < 8; i++) find_and_tweak("/sys/class/power_supply/", safeties[i], "0", 1);
 
     // Vendor Specific Batteries (MTK, QCOM, SEC)
-    if (access("/sys/devices/mtk-battery", F_OK) == 0 || access("/sys/bus/platform/drivers/mtk-battery", F_OK) == 0) {
-        tweak(MAX_CURR, "/sys/devices/mtk-battery/restricted_current");
-        tweak(MAX_CURR, "/sys/devices/mtk-battery/fc_current_limit");
-        tweak("1", "/sys/devices/mtk-battery/pump_express_enable");
-    }
+    tweak(MAX_CURR, "/sys/devices/mtk-battery/restricted_current");
+    tweak(MAX_CURR, "/sys/devices/mtk-battery/fc_current_limit");
+    tweak("1", "/sys/devices/mtk-battery/pump_express_enable");
 
-    if (access("/sys/class/qcom-battery", F_OK) == 0) {
-        tweak("0", "/sys/class/qcom-battery/restricted_charging");
-        tweak("0", "/sys/class/qcom-battery/restrict_chg");
-        tweak(MAX_CURR, "/sys/class/qcom-battery/restricted_current");
-        if (access("/sys/class/qcom-battery/rerun_aicl", F_OK) == 0) {
-            tweak("1", "/sys/class/qcom-battery/rerun_aicl");
-        }
-    }
+    tweak("0", "/sys/class/qcom-battery/restricted_charging");
+    tweak("0", "/sys/class/qcom-battery/restrict_chg");
+    tweak(MAX_CURR, "/sys/class/qcom-battery/restricted_current");
+    tweak("1", "/sys/class/qcom-battery/rerun_aicl");
 
-    if (access("/sys/class/power_supply/sec-charger", F_OK) == 0) {
-        tweak(MAX_CURR, "/sys/class/power_supply/sec-charger/input_current_max");
-        tweak("0", "/sys/class/power_supply/sec-charger/otg_enable");
-    }
+    tweak(MAX_CURR, "/sys/class/power_supply/sec-charger/input_current_max");
+    tweak("0", "/sys/class/power_supply/sec-charger/otg_enable");
 
     // Misc Settings
     find_and_tweak("/sys/class/power_supply/usb/", "real_type", "DCP", 1);

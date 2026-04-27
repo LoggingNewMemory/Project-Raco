@@ -1,16 +1,7 @@
 /*
 Project Raco - Performance Module
 Copyright (C) 2026 Kanagawa Yamada 
-This program is free software: you can redistribute it and/or modify it under the terms of 
-the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. 
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-See the GNU General Public License for more details. 
-You should have received a copy of the GNU General Public License along with this program. 
-
-If not, see https://www.gnu.org/licenses/.
- */
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,9 +21,9 @@ void devfreq_set_mode(const char *path, const char *mode) {
     snprintf(min_path, sizeof(min_path), "%s/min_freq", path);
     snprintf(max_path, sizeof(max_path), "%s/max_freq", path);
 
-    if (access(avail_path, F_OK) != 0) return;
-
     char *max_freq = get_maxfreq(avail_path);
+    if (!max_freq || !max_freq[0]) return; // 'moco' failed to open the file
+
     char *min_freq = get_minfreq(avail_path);
     char *mid_freq = get_midfreq(avail_path);
 
@@ -61,8 +52,9 @@ void qcom_cpudcvs_max_perf(const char *path) {
     snprintf(avail_path, sizeof(avail_path), "%s/available_frequencies", path);
     snprintf(hw_max, sizeof(hw_max), "%s/hw_max_freq", path);
     snprintf(hw_min, sizeof(hw_min), "%s/hw_min_freq", path);
-    if (access(avail_path, F_OK) == 0) {
-        char *freq = get_maxfreq(avail_path);
+    
+    char *freq = get_maxfreq(avail_path);
+    if (freq && freq[0]) {
         tweak(freq, hw_max);
         tweak(freq, hw_min);
     }
@@ -73,9 +65,12 @@ void qcom_cpudcvs_mid_perf(const char *path) {
     snprintf(avail_path, sizeof(avail_path), "%s/available_frequencies", path);
     snprintf(hw_max, sizeof(hw_max), "%s/hw_max_freq", path);
     snprintf(hw_min, sizeof(hw_min), "%s/hw_min_freq", path);
-    if (access(avail_path, F_OK) == 0) {
-        tweak(get_maxfreq(avail_path), hw_max);
-        tweak(get_midfreq(avail_path), hw_min);
+
+    char *max_freq = get_maxfreq(avail_path);
+    char *mid_freq = get_midfreq(avail_path);
+    if (max_freq && max_freq[0]) {
+        tweak(max_freq, hw_max);
+        tweak(mid_freq, hw_min);
     }
 }
 
@@ -84,9 +79,12 @@ void qcom_cpudcvs_unlock(const char *path) {
     snprintf(avail_path, sizeof(avail_path), "%s/available_frequencies", path);
     snprintf(hw_max, sizeof(hw_max), "%s/hw_max_freq", path);
     snprintf(hw_min, sizeof(hw_min), "%s/hw_min_freq", path);
-    if (access(avail_path, F_OK) == 0) {
-        kakangku(get_maxfreq(avail_path), hw_max);
-        kakangku(get_minfreq(avail_path), hw_min);
+
+    char *max_freq = get_maxfreq(avail_path);
+    char *min_freq = get_minfreq(avail_path);
+    if (max_freq && max_freq[0]) {
+        kakangku(max_freq, hw_max);
+        kakangku(min_freq, hw_min);
     }
 }
 
@@ -247,43 +245,45 @@ void snapdragon_normal() {
 // ==========================================
 
 void exynos_awaken() {
-    char *gpu_path = "/sys/kernel/gpu";
-    if (access(gpu_path, F_OK) == 0) {
-        char avail_path[256];
-        snprintf(avail_path, sizeof(avail_path), "%s/gpu_available_frequencies", gpu_path);
-        char *max_freq = get_maxfreq(avail_path);
+    char avail_path[256];
+    snprintf(avail_path, sizeof(avail_path), "/sys/kernel/gpu/gpu_available_frequencies");
+    char *max_freq = get_maxfreq(avail_path);
+    if (max_freq && max_freq[0]) {
         tweak(max_freq, "/sys/kernel/gpu/gpu_max_clock");
         tweak(max_freq, "/sys/kernel/gpu/gpu_min_clock");
     }
 }
 
 void exynos_balanced() {
-    char *gpu_path = "/sys/kernel/gpu";
-    if (access(gpu_path, F_OK) == 0) {
-        char avail_path[256];
-        snprintf(avail_path, sizeof(avail_path), "%s/gpu_available_frequencies", gpu_path);
-        tweak(get_maxfreq(avail_path), "/sys/kernel/gpu/gpu_max_clock");
-        tweak(get_midfreq(avail_path), "/sys/kernel/gpu/gpu_min_clock");
+    char avail_path[256];
+    snprintf(avail_path, sizeof(avail_path), "/sys/kernel/gpu/gpu_available_frequencies");
+    char *max_freq = get_maxfreq(avail_path);
+    char *mid_freq = get_midfreq(avail_path);
+    if (max_freq && max_freq[0]) {
+        tweak(max_freq, "/sys/kernel/gpu/gpu_max_clock");
+        tweak(mid_freq, "/sys/kernel/gpu/gpu_min_clock");
     }
 }
 
 void exynos_powersave() {
-    char *gpu_path = "/sys/kernel/gpu";
-    if (access(gpu_path, F_OK) == 0) {
-        char avail_path[256];
-        snprintf(avail_path, sizeof(avail_path), "%s/gpu_available_frequencies", gpu_path);
-        kakangku(get_maxfreq(avail_path), "/sys/kernel/gpu/gpu_max_clock");
-        kakangku(get_minfreq(avail_path), "/sys/kernel/gpu/gpu_min_clock");
+    char avail_path[256];
+    snprintf(avail_path, sizeof(avail_path), "/sys/kernel/gpu/gpu_available_frequencies");
+    char *max_freq = get_maxfreq(avail_path);
+    char *min_freq = get_minfreq(avail_path);
+    if (max_freq && max_freq[0]) {
+        kakangku(max_freq, "/sys/kernel/gpu/gpu_max_clock");
+        kakangku(min_freq, "/sys/kernel/gpu/gpu_min_clock");
     }
 }
 
 void exynos_normal() {
-    char *gpu_path = "/sys/kernel/gpu";
-    if (access(gpu_path, F_OK) == 0) {
-        char avail_path[256];
-        snprintf(avail_path, sizeof(avail_path), "%s/gpu_available_frequencies", gpu_path);
-        kakangku(get_maxfreq(avail_path), "/sys/kernel/gpu/gpu_max_clock");
-        kakangku(get_minfreq(avail_path), "/sys/kernel/gpu/gpu_min_clock");
+    char avail_path[256];
+    snprintf(avail_path, sizeof(avail_path), "/sys/kernel/gpu/gpu_available_frequencies");
+    char *max_freq = get_maxfreq(avail_path);
+    char *min_freq = get_minfreq(avail_path);
+    if (max_freq && max_freq[0]) {
+        kakangku(max_freq, "/sys/kernel/gpu/gpu_max_clock");
+        kakangku(min_freq, "/sys/kernel/gpu/gpu_min_clock");
     }
 }
 
@@ -356,8 +356,8 @@ void tensor_awaken() {
         snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", gpu_path);
         snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", gpu_path);
 
-        if (access(avail_path, F_OK) == 0) {
-            char *max_freq = get_maxfreq(avail_path);
+        char *max_freq = get_maxfreq(avail_path);
+        if (max_freq && max_freq[0]) {
             tweak(max_freq, max_path);
             tweak(max_freq, min_path);
         }
@@ -380,8 +380,8 @@ void tensor_powersave() {
         snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", gpu_path);
         snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", gpu_path);
 
-        if (access(avail_path, F_OK) == 0) {
-            char *min_freq = get_minfreq(avail_path);
+        char *min_freq = get_minfreq(avail_path);
+        if (min_freq && min_freq[0]) {
             tweak(min_freq, min_path);
             tweak(min_freq, max_path);
         }
@@ -396,9 +396,11 @@ void tensor_normal() {
         snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", gpu_path);
         snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", gpu_path);
 
-        if (access(avail_path, F_OK) == 0) {
-            kakangku(get_maxfreq(avail_path), max_path);
-            kakangku(get_minfreq(avail_path), min_path);
+        char *max_freq = get_maxfreq(avail_path);
+        char *min_freq = get_minfreq(avail_path);
+        if (max_freq && max_freq[0]) {
+            kakangku(max_freq, max_path);
+            kakangku(min_freq, min_path);
         }
     }
     
@@ -418,8 +420,8 @@ void tegra_awaken() {
     snprintf(cap_path, sizeof(cap_path), "%s/gpu_cap_rate", gpu_path);
     snprintf(floor_path, sizeof(floor_path), "%s/gpu_floor_rate", gpu_path);
 
-    if (access(avail_path, F_OK) == 0) {
-        char *max_freq = get_maxfreq(avail_path);
+    char *max_freq = get_maxfreq(avail_path);
+    if (max_freq && max_freq[0]) {
         tweak(max_freq, cap_path);
         tweak(max_freq, floor_path);
     }
@@ -436,8 +438,8 @@ void tegra_powersave() {
     snprintf(cap_path, sizeof(cap_path), "%s/gpu_cap_rate", gpu_path);
     snprintf(floor_path, sizeof(floor_path), "%s/gpu_floor_rate", gpu_path);
 
-    if (access(avail_path, F_OK) == 0) {
-        char *min_freq = get_minfreq(avail_path);
+    char *min_freq = get_minfreq(avail_path);
+    if (min_freq && min_freq[0]) {
         tweak(min_freq, floor_path);
         tweak(min_freq, cap_path);
     }
@@ -450,8 +452,10 @@ void tegra_normal() {
     snprintf(cap_path, sizeof(cap_path), "%s/gpu_cap_rate", gpu_path);
     snprintf(floor_path, sizeof(floor_path), "%s/gpu_floor_rate", gpu_path);
 
-    if (access(avail_path, F_OK) == 0) {
-        kakangku(get_maxfreq(avail_path), cap_path);
-        kakangku(get_minfreq(avail_path), floor_path);
+    char *max_freq = get_maxfreq(avail_path);
+    char *min_freq = get_minfreq(avail_path);
+    if (max_freq && max_freq[0]) {
+        kakangku(max_freq, cap_path);
+        kakangku(min_freq, floor_path);
     }
-}
+}   

@@ -1,23 +1,13 @@
 /*
 Project Raco - Performance Module
 Copyright (C) 2026 Kanagawa Yamada 
-This program is free software: you can redistribute it and/or modify it under the terms of 
-the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. 
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-See the GNU General Public License for more details. 
-You should have received a copy of the GNU General Public License along with this program. 
-
-If not, see https://www.gnu.org/licenses/.
- */
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <glob.h>
-#include <sys/stat.h>
 #include "raco_utils.h"
 #include "raco_devices.h"
 
@@ -38,7 +28,7 @@ void apply_cpufreq_policy(const char *policy_path, int mode) {
     snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", policy_path);
     snprintf(avail_path, sizeof(avail_path), "%s/scaling_available_frequencies", policy_path);
 
-    // Read hardware frequency limits
+    // Read hardware frequency limits ('moco' safely handles non-existent files via ASM)
     moco(hw_min_path, hw_min, sizeof(hw_min));
     moco(hw_max_path, hw_max, sizeof(hw_max));
 
@@ -47,9 +37,6 @@ void apply_cpufreq_policy(const char *policy_path, int mode) {
     hw_max[strcspn(hw_max, "\n")] = 0;
 
     if (!hw_min[0] || !hw_max[0]) return;
-
-    chmod(min_path, 0644); 
-    chmod(max_path, 0644);
 
     if (mode == 1) {
         // Mode 1: Awaken (Max CPUFreq)

@@ -1,16 +1,7 @@
 /*
 Project Raco - Performance Module
 Copyright (C) 2026 Kanagawa Yamada 
-This program is free software: you can redistribute it and/or modify it under the terms of 
-the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. 
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-See the GNU General Public License for more details. 
-You should have received a copy of the GNU General Public License along with this program. 
-
-If not, see https://www.gnu.org/licenses/.
- */
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -85,7 +76,9 @@ void find_and_tweak_filter_recursive(const char *base_path, const char *target_n
         
         snprintf(path, sizeof(path), "%s/%s", base_path, entry->d_name);
         struct stat statbuf;
-        if (stat(path, &statbuf) == 0) {
+        
+        // Use lstat() to avoid following symlink loops in sysfs
+        if (lstat(path, &statbuf) == 0) {
             if (S_ISDIR(statbuf.st_mode)) {
                 find_and_tweak_filter_recursive(path, target_name, filter, val, lock);
             } else if (S_ISREG(statbuf.st_mode) && strcmp(entry->d_name, target_name) == 0) {
