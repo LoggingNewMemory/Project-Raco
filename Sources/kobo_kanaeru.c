@@ -73,10 +73,10 @@ void kobo_fast_charge() {
     find_and_tweak("/sys/class/power_supply/", "connector_temp_mitigation", "0", 1);
     
     // Thermal Limitations Override
-    find_and_tweak("/sys/", "temp_cool", TEMP_COOL, 1);
-    find_and_tweak("/sys/", "temp_hot", TEMP_HOT, 1);
-    find_and_tweak("/sys/", "temp_warm", TEMP_WARM, 1);
-    find_and_tweak("/sys/", "temp_ambient", TEMP_COOL, 1);
+    find_and_tweak("/sys/class/power_supply/", "temp_cool", TEMP_COOL, 1);
+    find_and_tweak("/sys/class/power_supply/", "temp_hot", TEMP_HOT, 1);
+    find_and_tweak("/sys/class/power_supply/", "temp_warm", TEMP_WARM, 1);
+    find_and_tweak("/sys/class/power_supply/", "temp_ambient", TEMP_COOL, 1);
 
     // Fast Charge Features Array
     const char* features[] = {
@@ -134,8 +134,8 @@ void kobo_fast_charge() {
 
     // Misc Settings
     find_and_tweak("/sys/class/power_supply/usb/", "real_type", "DCP", 1);
-    find_and_tweak("/sys/", "store_mode", "0", 1);
-    find_and_tweak("/sys/", "batt_slate_mode", "0", 1);
+    find_and_tweak("/sys/class/power_supply/", "store_mode", "0", 1);
+    find_and_tweak("/sys/class/power_supply/", "batt_slate_mode", "0", 1);
 
     tweak("0", "/sys/class/power_supply/battery/input_current_limited");
     tweak("1", "/sys/class/power_supply/battery/input_current_settled");
