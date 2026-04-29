@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36">
   <diagram name="Page-1" id="RafS2GZK1M6LYWt_0SCt">
-    <mxGraphModel dx="2197" dy="930" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1793" dy="651" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -8,7 +8,7 @@
           <mxGeometry height="580" width="670" x="130" y="260" as="geometry" />
         </mxCell>
         <mxCell id="Mku9C3x5ve99xOo_dCDD-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="345" width="670" x="-840" y="855" as="geometry" />
+          <mxGeometry height="375" width="670" x="-840" y="855" as="geometry" />
         </mxCell>
         <mxCell id="I-TilSuo9_9ndQIc43lT-26" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value=" " vertex="1">
           <mxGeometry height="360" width="960" x="-840" y="480" as="geometry" />
@@ -19,13 +19,13 @@
         <mxCell id="I-TilSuo9_9ndQIc43lT-1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;b&gt;Assembly (only arm64) + C Scripts Concept&lt;/b&gt;&lt;div&gt;Do take a note that using shell is &lt;b&gt;PROHIBITED&lt;/b&gt; by any means&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="280" x="-670" y="20" as="geometry" />
         </mxCell>
-        <mxCell id="I-TilSuo9_9ndQIc43lT-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Tweak (Case if Need Permission to Set 444)&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Works like this&lt;div&gt;1. Check if file exist&lt;/div&gt;&lt;div&gt;2. Change Permission to 644&lt;/div&gt;&lt;div&gt;3. Write the value&lt;/div&gt;&lt;div&gt;4. Change Permission to 444&lt;/div&gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="I-TilSuo9_9ndQIc43lT-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Case if Need Permission to Set 444&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Works like this&lt;div&gt;1. Check if file exist&lt;/div&gt;&lt;div&gt;2. Change Permission to 644&lt;/div&gt;&lt;div&gt;3. Write the value&lt;/div&gt;&lt;div&gt;4. Change Permission to 444&lt;/div&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="110" width="310" x="-830" y="230" as="geometry" />
         </mxCell>
-        <mxCell id="I-TilSuo9_9ndQIc43lT-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;" value="C will handle:&lt;div&gt;- Handle the logic&lt;/div&gt;&lt;div&gt;- Accept the &lt;b&gt;Tweak &lt;/b&gt;and &lt;b&gt;Kakangku&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Example:&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;tweak /sys/pnpmgr/mwn 1&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;kakangku /proc/gpufreq/gpufreq_opp_freq&amp;nbsp;&lt;/b&gt;&lt;b style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;0&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;So Basically the structure that the C accepts is&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;tweak [path] [value]&lt;/div&gt;&lt;div style=&quot;&quot;&gt;kakangku [path] [value]&lt;/div&gt;" vertex="1">
+        <mxCell id="I-TilSuo9_9ndQIc43lT-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;" value="C will handle:&lt;div&gt;- Handle the logic&lt;/div&gt;&lt;div&gt;- Accept the &lt;b&gt;case of writing and read file&lt;/b&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="190" width="260" x="-510" y="270" as="geometry" />
         </mxCell>
-        <mxCell id="I-TilSuo9_9ndQIc43lT-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Kakangku (Case If No Need Permission to Set 444)&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Works like this&lt;div&gt;1. Check if file exist&lt;/div&gt;&lt;div&gt;2. Change Permission to 644&lt;/div&gt;&lt;div&gt;3. Write the value&lt;/div&gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="I-TilSuo9_9ndQIc43lT-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Case If No Need Permission to Set 444&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Works like this&lt;div&gt;1. Check if file exist&lt;/div&gt;&lt;div&gt;2. Change Permission to 644&lt;/div&gt;&lt;div&gt;3. Write the value&lt;/div&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="110" width="310" x="-830" y="350" as="geometry" />
         </mxCell>
         <mxCell id="I-TilSuo9_9ndQIc43lT-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Unless, it only can be done via shell, it is &lt;b&gt;forgiveable&lt;/b&gt;. But use it &lt;b&gt;as minimal as it can&lt;/b&gt;" vertex="1">
@@ -67,17 +67,17 @@
         <mxCell id="Mku9C3x5ve99xOo_dCDD-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;The Performance Preset&lt;/b&gt;" vertex="1">
           <mxGeometry height="30" width="170" x="-590" y="870" as="geometry" />
         </mxCell>
-        <mxCell id="Mku9C3x5ve99xOo_dCDD-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;b&gt;Awaken&lt;/b&gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;u&gt;Max CPUFreq&amp;nbsp;&lt;/u&gt;&lt;/div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_min_freq&lt;/div&gt;&lt;div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;Max GPUFreq&lt;/div&gt;&lt;div&gt;performance misc tweaks&lt;/div&gt;" vertex="1">
-          <mxGeometry height="130" width="210" x="-830" y="910" as="geometry" />
+        <mxCell id="Mku9C3x5ve99xOo_dCDD-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;b&gt;Awaken&lt;/b&gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;u&gt;Max CPUFreq&amp;nbsp;&lt;/u&gt;&lt;/div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_min_freq&lt;/div&gt;&lt;div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;Max GPUFreq&lt;/div&gt;&lt;div&gt;performance misc tweaks&lt;/div&gt;&lt;div&gt;GOV is performance&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="210" x="-830" y="910" as="geometry" />
         </mxCell>
-        <mxCell id="Mku9C3x5ve99xOo_dCDD-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;b&gt;Balanced&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;u&gt;CPU MidFreq as minfreq&lt;/u&gt;&lt;/div&gt;&lt;div&gt;cpu mid freq &amp;gt;&amp;nbsp;scaling_min_freq&lt;/div&gt;&lt;div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;GPU Midfreq as GPU minfreq&lt;/div&gt;&lt;div&gt;balanced misc tweaks&lt;/div&gt;" vertex="1">
-          <mxGeometry height="130" width="210" x="-610" y="910" as="geometry" />
+        <mxCell id="Mku9C3x5ve99xOo_dCDD-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;b&gt;Balanced&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;u&gt;CPU MidFreq as minfreq&lt;/u&gt;&lt;/div&gt;&lt;div&gt;cpu mid freq &amp;gt;&amp;nbsp;scaling_min_freq&lt;/div&gt;&lt;div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;GPU Midfreq as GPU minfreq&lt;/div&gt;&lt;div&gt;balanced misc tweaks&lt;/div&gt;&lt;div&gt;GOV is schedutil&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="210" x="-610" y="910" as="geometry" />
         </mxCell>
-        <mxCell id="Mku9C3x5ve99xOo_dCDD-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Powersave&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;u&gt;CPU is capped at 75%&lt;/u&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;cpuinfo_min_freq&lt;/span&gt;&amp;nbsp;&amp;gt;&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;scaling_min_freq&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;cpu 75% freq&lt;/span&gt;&amp;nbsp;&amp;gt;&amp;nbsp;scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;GPU Set Release (No Clock Lock)&lt;/div&gt;&lt;div&gt;powersave misc tweaks&lt;/div&gt;" vertex="1">
-          <mxGeometry height="130" width="210" x="-390" y="910" as="geometry" />
+        <mxCell id="Mku9C3x5ve99xOo_dCDD-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Powersave&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;GOV set to powersave&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;GPU Set Release (No Clock Lock)&lt;/div&gt;&lt;div&gt;powersave misc tweaks&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="210" x="-390" y="910" as="geometry" />
         </mxCell>
-        <mxCell id="Mku9C3x5ve99xOo_dCDD-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Normal State (Neutral)&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;u&gt;Release CPU Freq&lt;/u&gt;&amp;nbsp;&lt;/div&gt;&lt;div&gt;cpuinfo_min_freq &amp;gt;&amp;nbsp;scaling_min_freq&lt;/div&gt;&lt;div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;GPU Set Release (No Clock Lock)&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;balanced misc tweaks&lt;/span&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="130" width="210" x="-830" y="1050" as="geometry" />
+        <mxCell id="Mku9C3x5ve99xOo_dCDD-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Normal State (Neutral)&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;u&gt;Release CPU Freq&lt;/u&gt;&amp;nbsp;&lt;/div&gt;&lt;div&gt;cpuinfo_min_freq &amp;gt;&amp;nbsp;scaling_min_freq&lt;/div&gt;&lt;div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;GPU Set Release (No Clock Lock)&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;balanced misc tweaks&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;GOV is schedutil&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="145" width="210" x="-830" y="1072.5" as="geometry" />
         </mxCell>
         <mxCell id="t5QTQC3ebWH6XtvLZvS4-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="The App Design&lt;div&gt;The Game Monitoring Service Design&lt;/div&gt;" vertex="1">
           <mxGeometry height="40" width="290.03" x="170" y="270" as="geometry" />
@@ -216,6 +216,33 @@
         </mxCell>
         <mxCell id="XmydyrQZc527x0N56Icg-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="GameSpace Flag" vertex="1">
           <mxGeometry height="30" width="149.97" x="30" y="865" as="geometry" />
+        </mxCell>
+        <mxCell id="MQ6Wz3K3cny55tXldDVf-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Structure of Script" vertex="1">
+          <mxGeometry height="45" width="120" x="-840" y="1270" as="geometry" />
+        </mxCell>
+        <mxCell id="MQ6Wz3K3cny55tXldDVf-7" edge="1" parent="1" source="MQ6Wz3K3cny55tXldDVf-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="MQ6Wz3K3cny55tXldDVf-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="MQ6Wz3K3cny55tXldDVf-8" edge="1" parent="1" source="MQ6Wz3K3cny55tXldDVf-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="MQ6Wz3K3cny55tXldDVf-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="MQ6Wz3K3cny55tXldDVf-9" edge="1" parent="1" source="MQ6Wz3K3cny55tXldDVf-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="MQ6Wz3K3cny55tXldDVf-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="MQ6Wz3K3cny55tXldDVf-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="raco_tool.s&lt;div&gt;Contains of&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;read, write (case 444 and 644)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="180" x="-840" y="1330" as="geometry" />
+        </mxCell>
+        <mxCell id="MQ6Wz3K3cny55tXldDVf-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;" value="raco_main.c&lt;div&gt;- Basic Generic Tweaks&lt;/div&gt;&lt;div&gt;- The controller of everything&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;(Awaken, Balanced, Powersave, Normal)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Use example:&lt;/div&gt;&lt;div&gt;su -c raco_main 4&lt;/div&gt;" vertex="1">
+          <mxGeometry height="120" width="390" x="-600" y="1270" as="geometry" />
+        </mxCell>
+        <mxCell id="MQ6Wz3K3cny55tXldDVf-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="4 = Awaken&lt;div&gt;3 = Balanced&lt;/div&gt;&lt;div&gt;2 = Powersave&lt;/div&gt;&lt;div&gt;1 = Normal State&lt;/div&gt;" vertex="1">
+          <mxGeometry height="137.5" width="120" x="-300" y="1072.5" as="geometry" />
+        </mxCell>
+        <mxCell id="MQ6Wz3K3cny55tXldDVf-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;" value="raco_devices.c&lt;div&gt;- Tweaks of Device Specific (Awaken, Balanced, Powersave, Normal)&lt;/div&gt;&lt;div&gt;- It will be called on raco_main.c&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="390" x="-600" y="1400" as="geometry" />
+        </mxCell>
+        <mxCell id="MQ6Wz3K3cny55tXldDVf-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;" value="raco_tools.c&lt;div&gt;- Contains of tools of Raco (CPUFreq calculation, Notifications Post, etc)&lt;/div&gt;&lt;div&gt;- It will be called on raco_main.c&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="390" x="-600" y="1470" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
