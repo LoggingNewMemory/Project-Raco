@@ -175,14 +175,18 @@ raco_kakikomi:
 /*
 Function of raco_read. 
 This will do:
-1. Check exists -> 2. Read file chunk -> 3. Print to stdout -> loop
+1. Check exists -> 2. Open Read-Only -> 3. Read into C Buffer -> 4. Close
 */
 raco_read:
-    stp x29, x30, [sp, #-288]! // Store pointer of 288. 32 for register. 256 for buffer
-    stp x19, x20, [sp, #256]   // Store the registered x19 and x20 with offset of 256
-    mov x29, sp                // Update Frame Pointer to current Stack 
+    stp x29, x30, [sp, #-48]! // Store pointer of 48
+    stp x19, x20, [sp, #16]   // Store the registered x19 and x20 with offset of 16
+    stp x21, x22 [sp, #32]    // Original value that registers x21 and x22
+    mov x29, sp               // Update Frame Pointer to current Stack 
 
-    mov x19, x0 // Backup the path
+    // Backup for C integration
+    mov x19, x0 // Path used
+    mov x20, x1 // Pointer of C
+    mov x21, x2 // Maximum size. Reference before is 32 byte
 
     // Check if file exist 
     mov x0, #AT_FDCWD         // Use work directory
@@ -202,42 +206,32 @@ raco_read:
     svc #0                    // Trigger kernel syscall 
     cmp x0, #0                // Compare FD with 0
     blt .L_read_fail          // Compare and branch less than. IF x0 < 0, jump to fail
-    mov x20, x0               // Backup FD Open to x20
+    mov x22, x0               // Backup FD Open to x22
 
-.L_read_loop:
-    // Read File
-    mov x0, x20               // File descriptor
-    mov x1, sp                // Buffer pointer (stack)
-    mov x2, #256              // Max byte to read
-    mov x8, #SYS_READ         // Syscall to read
-    svc #0                    // Trigger syscall
+    // File Reading
+    mov x0, x22 // x22 which is FD
+    mov x1, x20 // C Buffer
+    mov x2, x21 // Max byte to read
+    mov x8, #SYS_READ // Syscall for Read
+    svc #0 // Trigger syscall
 
-    cmp x0, #0                // Check if we hit End of File
-    ble .L_read_done          // If read 0 bytes, jump to done
+    mov x21, x0 // Backup so no lose during close file
 
-    // Print to stdout
-    mov x2, x0                // Number of bytes to print
-    mov x0, #1                // FD 1 is Standard Output
-    mov x1, sp                // Buffer pointer
-    mov x8, #SYS_WRITE        // Syscall to write
-    svc #0                    // Trigger syscall
+    // File closing
+    mov x0, x22 // FD Close
+    mov x8, #SYS_CLOSE // syscall for close
+    svc #0 // Trigger syscall
 
-    b .L_read_loop            // To loop read next chunk
-
-.L_read_done:
-    // Close file
-    mov x0, x20               // File descriptor x20 into x0
-    mov x8, #SYS_CLOSE        // Load syscall for close into x8
-    svc #0                    // Trigger Syscall
-    
-    mov x0, #0                // Return 0. OK
-    b .L_read_exit            // Jump to exit
+    // Return point of bytes
+    mov x0, x21 // This is for return of file content
+    b .L_read_exit
 
 .L_read_fail:
     mov x0, #-1               // Return -1. Error
 
 .L_read_exit:
     // Restore stack
-    ldp x19, x20, [sp, #256]  // Load Pair: Restore x19 and x20
-    ldp x29, x30, [sp], #288  // Load Pair: Restore Frame Pointer and Link Register, deallocate 288
+    ldp x21, x22, [sp, #32] // For file content
+    ldp x19, x20, [sp, #16]  // For file pointer
+    ldp x29, x30, [sp], #48  // Load Pair: Restore Frame Pointer and Link Register, deallocate 48 bytes
     ret                       // Return

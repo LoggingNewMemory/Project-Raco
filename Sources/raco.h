@@ -37,8 +37,10 @@ typedef struct {
 } FreqData;
 
 // Tool of raco_tool.c Declaration
-void tweak(const char *val, const char *path);
-void kakangku(const char *val, const char *path);
+void rawrite(const char *val, const char *path);
+void rakakikomi(const char *val, const char *path);
+void raread(const char *path);
+
 void load_config(const char *config_path);
 void notification(const char *message);
 void dnd_on();
