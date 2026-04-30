@@ -147,13 +147,13 @@ void clear_slingshot() {
 
 void anyamelfissa() {
     if (config.include_anya == 1 && config.anya == 1) {
-        // TODO: Need porting of Anya
+    system("su -c /data/adb/modules/ProjectRaco/CoreSys/anya 1");
     }
 }
 
 void anyakawaii() {
     if (config.include_anya == 1 && config.anya == 1) {
-        // TODO: Need porting of Anya
+    system("su -c /data/adb/modules/ProjectRaco/CoreSys/anya 0");
     }
 }
 
