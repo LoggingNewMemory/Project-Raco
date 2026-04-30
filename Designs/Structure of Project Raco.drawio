@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36">
   <diagram name="Page-1" id="RafS2GZK1M6LYWt_0SCt">
-    <mxGraphModel dx="1793" dy="651" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1793" dy="648" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -131,13 +131,13 @@
           <mxGeometry height="120" width="290" x="170.03" y="320" as="geometry" />
         </mxCell>
         <mxCell id="USiz9r6OqI96Ol3waZUV-21" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="345" width="169.97" x="-159.97" y="855" as="geometry" />
+          <mxGeometry height="365" width="169.97" x="-159.97" y="855" as="geometry" />
         </mxCell>
         <mxCell id="USiz9r6OqI96Ol3waZUV-22" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="Config Flags" vertex="1">
           <mxGeometry height="30" width="149.97" x="-149.97" y="865" as="geometry" />
         </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-24" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div&gt;&lt;div&gt;ANGLE 0&lt;/div&gt;&lt;div&gt;SKIAVK 0&lt;/div&gt;&lt;div&gt;PLAYBOOST 0&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;INCLUDE_ANYA 0&lt;/div&gt;&lt;div&gt;INCLUDE_KOBO 0&lt;/div&gt;&lt;div&gt;INCLUDE_SANDEV 0&lt;/div&gt;&lt;div&gt;INCLUDE_ZETAMIN 0&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;BETTER_POWERSAVE 0&lt;/div&gt;&lt;div&gt;ANYA 1&lt;/div&gt;&lt;div&gt;DND 0&lt;/div&gt;&lt;div&gt;SOC 0&lt;/div&gt;&lt;div&gt;LITE_MODE 0&lt;/div&gt;&lt;div&gt;DEVICE_MITIGATION 0&lt;/div&gt;&lt;div&gt;AYUNDA_RUSDI&amp;nbsp;&lt;/div&gt;&lt;div&gt;LEGACY_NOTIF 0&lt;/div&gt;&lt;div&gt;SILENT_NOTIF 0&lt;/div&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="260" width="149.97" x="-150" y="910" as="geometry" />
+        <mxCell id="USiz9r6OqI96Ol3waZUV-24" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div&gt;STATE&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;ANGLE 0&lt;/div&gt;&lt;div&gt;SKIAVK 0&lt;/div&gt;&lt;div&gt;PLAYBOOST 0&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;INCLUDE_ANYA 0&lt;/div&gt;&lt;div&gt;INCLUDE_KOBO 0&lt;/div&gt;&lt;div&gt;INCLUDE_SANDEV 0&lt;/div&gt;&lt;div&gt;INCLUDE_ZETAMIN 0&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;SOC 0&lt;/div&gt;&lt;div&gt;ANYA 1&lt;/div&gt;&lt;div&gt;DND 0&lt;/div&gt;&lt;div&gt;DEVICE_MITIGATION 0&lt;/div&gt;&lt;div&gt;LEGACY_NOTIF 0&lt;/div&gt;&lt;div&gt;SILENT_NOTIF 0&lt;/div&gt;&lt;div&gt;GOV&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;AYUNDA_RUSDI&lt;/div&gt;" vertex="1">
+          <mxGeometry height="300" width="149.97" x="-150" y="910" as="geometry" />
         </mxCell>
         <mxCell id="USiz9r6OqI96Ol3waZUV-25" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
           <mxGeometry height="345" width="560" x="20" y="970" as="geometry" />

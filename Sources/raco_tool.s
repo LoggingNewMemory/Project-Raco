@@ -180,7 +180,7 @@ This will do:
 raco_read:
     stp x29, x30, [sp, #-48]! // Store pointer of 48
     stp x19, x20, [sp, #16]   // Store the registered x19 and x20 with offset of 16
-    stp x21, x22 [sp, #32]    // Original value that registers x21 and x22
+    stp x21, x22, [sp, #32]    // Original value that registers x21 and x22
     mov x29, sp               // Update Frame Pointer to current Stack 
 
     // Backup for C integration

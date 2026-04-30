@@ -11,16 +11,13 @@
 // Call Assembly Functions
 extern int raco_write (const char *path, const char *val, unsigned int len);
 extern int raco_kakikomi (const char *path, const char *val, unsigned int len);
-extern int raco_read (const char *path);
+extern int raco_read (const char *path, char *out_buffer, unsigned int max_size);
 
 // Config Structure
 typedef struct {
     int soc;
-    int lite_mode; // Supposed I need to refine how I should put ts
-    int better_powersave;
     int anya;
     int include_anya; // TODO: Refine Anya Implementation. It doesn't make any sense
-    int kcpu_mitigate;
     int legacy_notif;
     int silent_notif;
     int device_mitigation;
@@ -39,7 +36,7 @@ typedef struct {
 // Tool of raco_tool.c Declaration
 void rawrite(const char *val, const char *path);
 void rakakikomi(const char *val, const char *path);
-void raread(const char *path);
+int raread(const char *path, char *out_buffer, int max_size);
 
 void load_config(const char *config_path);
 void notification(const char *message);
@@ -53,14 +50,14 @@ void anyakawaii();
 // Tool of Frequency
 FreqData get_target_freq(const char *path, int mode); // 0=Max 1=Min 2=Mid
 void set_devfreq(const char *path, const char *mode);
-void devfreq_max_perf(const char *path);
-void devfreq_mid_perf(const char *path);
+void devfreq_max(const char *path);
+void devfreq_balanced(const char *path);
 void devfreq_min_perf(const char *path);
-void devfreq_unlock(const char *path);
+void devfreq_release(const char *path);
 void change_cpu_gov(const char *gov);
-void cpufreq_max_perf();
-void cpufreq_min_perf();
-void cpufreq_unlock();
+void cpufreq_awaken();
+void cpufreq_balanced();
+void cpufreq_normal();
 
 // Raco Device Specific. raco_devices.c 
 void mediatek_performance();
