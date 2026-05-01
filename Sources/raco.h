@@ -17,7 +17,7 @@ extern int raco_read (const char *path, char *out_buffer, unsigned int max_size)
 typedef struct {
     int soc;
     int anya;
-    int include_anya; // TODO: Refine Anya Implementation. It doesn't make any sense
+    int include_anya;
     int legacy_notif;
     int silent_notif;
     int device_mitigation;
@@ -60,28 +60,34 @@ void cpufreq_balanced();
 void cpufreq_normal();
 
 // Raco Device Specific. raco_devices.c 
-void mediatek_performance();
+void mediatek_awaken();
 void mediatek_normal();
 void mediatek_powersave();
+void mediatek_balanced();
 
-void snapdragon_performance();
+void snapdragon_awaken();
 void snapdragon_normal();
 void snapdragon_powersave();
+void snapdragon_balanced();
 
-void exynos_performance();
+void exynos_awaken();
 void exynos_normal();
 void exynos_powersave();
+void exynos_balanced();
 
-void unisoc_performance();
+void unisoc_awaken();
 void unisoc_normal();
 void unisoc_powersave();
+void unisoc_balanced();
 
-void tensor_performance();
+void tensor_awaken();
 void tensor_normal();
 void tensor_powersave();
+void tensor_balanced();
 
-void tegra_performance();
+void tegra_awaken();
 void tegra_normal();
 void tegra_powersave();
+void tegra_balanced();
 
 #endif // RACO_H
