@@ -58,7 +58,7 @@ void mtk_get_mid_freq(char *out) {
             line = strtok_r(NULL, "\n", &saveptr);
         }
     }
-    if (count > 0) snprintf(out, 32, "%d", indices[count / 2]);
+    if (count > 0) snprintf(out, 32, "%d", indices[(count - 1) / 2]);
     else strcpy(out, "");
 }
 
@@ -131,8 +131,8 @@ void mediatek_awaken() {
     rawrite("stop 1", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
 
     // GPU Tweaks
-    rakakikomi("0", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
-    rakakikomi("0", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
+    rawrite("0", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
+    rawrite("0", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
     // Power Limits
     const char *power_limits[] = {
@@ -195,8 +195,8 @@ void mediatek_balanced() {
     rawrite("stop 0", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
 
     // GPU Tweaks
-    rakakikomi("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
-    rakakikomi("-1", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
+    rawrite("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
+    rawrite("-1", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
     // Power Limits
     const char *power_limits[] = {
@@ -208,8 +208,8 @@ void mediatek_balanced() {
     // ==============================
     // GPU & FREQ TWEAKS
     // ==============================
-    rakakikomi("0", "/proc/gpufreq/gpufreq_opp_freq");
-    rakakikomi("-1", "/proc/gpufreqv2/fix_target_opp_index");
+    rawrite("0", "/proc/gpufreq/gpufreq_opp_freq");
+    rawrite("-1", "/proc/gpufreqv2/fix_target_opp_index");
 
     char mid_idx[32];
     mtk_get_mid_freq(mid_idx);
