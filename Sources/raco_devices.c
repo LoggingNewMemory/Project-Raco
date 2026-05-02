@@ -17,7 +17,7 @@ void raco_bulk(const char *base, const char *files[], int count, const char *val
     }
 }
 
-void  mtk_get_max_freq(char *out) {
+void mtk_get_max_freq(char *out) {
     char buffer[4096];
     if (raread("/proc/gpufreq/gpufreq_opp_dump", buffer, sizeof(buffer)) > 0) {
         long max_val = 0;
@@ -39,7 +39,7 @@ void  mtk_get_max_freq(char *out) {
     }
 }
 
-void  mtk_get_mid_freq(char *out) {
+void mtk_get_mid_freq(char *out) {
     char buffer[4096];
     int indices[50];
     int count = 0; 
@@ -59,6 +59,30 @@ void  mtk_get_mid_freq(char *out) {
         }
     }
     if (count > 0) snprintf(out, 32, "%d", indices[count / 2]);
+    else strcpy(out, "");
+}
+
+void mtk_get_min_freq(char *out) {
+    char buffer[4096];
+    int indices[50];
+    int count = 0; 
+
+    if (raread("/proc/gpufreqv2/gpu_working_opp_table", buffer, sizeof(buffer)) > 0 || 
+        raread("/proc/gpufreq/gpufreq_opp_dump", buffer, sizeof(buffer)) > 0) {
+        char *saveptr;
+        char *line = strtok_r(buffer, "\n", &saveptr);
+
+        while (line != NULL && count < 50) {
+            char *bracket = strchr(line, '[');
+            if (bracket) {
+                indices[count] = atol(bracket + 1);
+                count++;
+            }
+            line = strtok_r(NULL, "\n", &saveptr);
+        }
+    }
+    // The last element is the highest index number (lowest frequency)
+    if (count > 0) snprintf(out, 32, "%d", indices[count - 1]);
     else strcpy(out, "");
 }
 
@@ -107,8 +131,8 @@ void mediatek_awaken() {
     rawrite("stop 1", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
 
     // GPU Tweaks
-    rawrite("0", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
-    rawrite("0", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
+    rakakikomi("0", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
+    rakakikomi("0", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
     // Power Limits
     const char *power_limits[] = {
@@ -144,31 +168,31 @@ void mediatek_balanced() {
         "ged_boost_enable", "gx_frc_mode", "cpu_boost_policy", "boost_extra"
     };
     int ged_count = sizeof(ged_files) / sizeof(ged_files[0]);
-    raco_bulk(ged_base, ged_files, ged_count, "0", 0);
+    raco_bulk(ged_base, ged_files, ged_count, "0", 1);
 
     // Disable GED KPI
-    rakakikomi("1", "/sys/module/ged/parameters/is_GED_KPI_enabled");
+    rawrite("1", "/sys/module/ged/parameters/is_GED_KPI_enabled");
 
     // PNPMGR
     const char *pnp_base = "/sys/pnpmgr";
     const char *pnp_files[] = {"mwn", "boost_enable", "boost_mode"};
     int pnp_count = sizeof(pnp_files) / sizeof(pnp_files[0]);
-    raco_bulk(pnp_base, pnp_files, pnp_count, "0", 0);
+    raco_bulk(pnp_base, pnp_files, pnp_count, "0", 1);
 
     // GED HAL
     const char *ged_hal = "/sys/kernel/ged/hal";
     char path_buf[256];
-    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_base_dvfs_step"); rakakikomi("4", path_buf);
-    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_stride_size"); rakakikomi("2", path_buf);
-    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_window_size"); rakakikomi("8", path_buf);
-    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "gpu_boost_level"); rakakikomi("-1", path_buf);
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_base_dvfs_step"); rawrite("4", path_buf);
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_stride_size"); rawrite("2", path_buf);
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_window_size"); rawrite("8", path_buf);
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "gpu_boost_level"); rawrite("-1", path_buf);
 
     // Standalone Mediatek Tweaks
-    rakakikomi("0", "/proc/cpufreq/cpufreq_cci_mode");
-    rakakikomi("0", "/proc/cpufreq/cpufreq_power_mode");
-    rakakikomi("0", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
-    rakakikomi("2", "/sys/devices/system/cpu/eas/enable");
-    rakakikomi("stop 0", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
+    rawrite("0", "/proc/cpufreq/cpufreq_cci_mode");
+    rawrite("0", "/proc/cpufreq/cpufreq_power_mode");
+    rawrite("0", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
+    rawrite("2", "/sys/devices/system/cpu/eas/enable");
+    rawrite("stop 0", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
 
     // GPU Tweaks
     rakakikomi("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
@@ -189,73 +213,10 @@ void mediatek_balanced() {
 
     char mid_idx[32];
     mtk_get_mid_freq(mid_idx);
-    if (strlen(mid_idx) > 0) rakakikomi(mid_idx, "/sys/kernel/ged/hal/custom_boost_gpu_freq");
+    if (strlen(mid_idx) > 0) rawrite(mid_idx, "/sys/kernel/ged/hal/custom_boost_gpu_freq");
 
     // Defreq Tweaks
     devfreq_balanced("/sys/class/devfreq/mtk-dvfsrc-devfreq");
-}
-
-void mediatek_powersave() {
-    // ==============================
-    // MISC TWEAKS
-    // ==============================
-
-    // GED Tweaks
-    const char *ged_base = "/sys/module/ged/parameters";
-    const char *ged_files[] = {
-        "gx_boost_on", "gx_game_mode", "ged_smart_boost", "enable_gpu_boost",
-        "ged_boost_enable", "gx_frc_mode", "cpu_boost_policy", "boost_extra"
-    };
-    int ged_count = sizeof(ged_files) / sizeof(ged_files[0]);
-    raco_bulk(ged_base, ged_files, ged_count, "0", 0);
-
-    // Disable GED KPI
-    rakakikomi("1", "/sys/module/ged/parameters/is_GED_KPI_enabled");
-
-    // PNPMGR
-    const char *pnp_base = "/sys/pnpmgr";
-    const char *pnp_files[] = {"mwn", "boost_enable", "boost_mode"};
-    int pnp_count = sizeof(pnp_files) / sizeof(pnp_files[0]);
-    raco_bulk(pnp_base, pnp_files, pnp_count, "0", 0);
-
-    // GED HAL
-    const char *ged_hal = "/sys/kernel/ged/hal";
-    char path_buf[256];
-    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_base_dvfs_step"); rakakikomi("4", path_buf);
-    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_stride_size"); rakakikomi("2", path_buf);
-    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_window_size"); rakakikomi("8", path_buf);
-    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "gpu_boost_level"); rakakikomi("-1", path_buf);
-
-    // Standalone Mediatek Tweaks
-    rakakikomi("0", "/proc/cpufreq/cpufreq_cci_mode");
-
-    rakakikomi("0", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
-    rakakikomi("2", "/sys/devices/system/cpu/eas/enable");
-    rakakikomi("stop 0", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
-
-    // GPU Tweaks
-    rakakikomi("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
-    rakakikomi("-1", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
-
-    // Power Limits
-    const char *power_limits[] = {
-        "ignore_batt_oc 0", "ignore_batt_percent 0", "ignore_low_batt 0",
-        "ignore_thermal_protect 0", "ignore_pbm_limited 0"
-    };
-    for (int i = 0; i < 5; i++) rakakikomi(power_limits[i], "/proc/gpufreq/gpufreq_power_limited");
-
-    // ==============================
-    // GPU & FREQ TWEAKS
-    // ==============================
-    rawrite("1", "/proc/cpufreq/cpufreq_power_mode");
-    
-    rakakikomi("0", "/proc/gpufreq/gpufreq_opp_freq");
-    rakakikomi("-1", "/proc/gpufreqv2/fix_target_opp_index");
-
-    rakakikomi("0", "/sys/kernel/ged/hal/custom_boost_gpu_freq");
-
-    // Defreq Tweaks
-    devfreq_release("/sys/class/devfreq/mtk-dvfsrc-devfreq");
 }
 
 void mediatek_normal() {
@@ -270,31 +231,31 @@ void mediatek_normal() {
         "ged_boost_enable", "gx_frc_mode", "cpu_boost_policy", "boost_extra"
     };
     int ged_count = sizeof(ged_files) / sizeof(ged_files[0]);
-    raco_bulk(ged_base, ged_files, ged_count, "0", 0);
+    raco_bulk(ged_base, ged_files, ged_count, "0", 1);
 
     // Disable GED KPI
-    rakakikomi("1", "/sys/module/ged/parameters/is_GED_KPI_enabled");
+    rawrite("1", "/sys/module/ged/parameters/is_GED_KPI_enabled");
 
     // PNPMGR
     const char *pnp_base = "/sys/pnpmgr";
     const char *pnp_files[] = {"mwn", "boost_enable", "boost_mode"};
     int pnp_count = sizeof(pnp_files) / sizeof(pnp_files[0]);
-    raco_bulk(pnp_base, pnp_files, pnp_count, "0", 0);
+    raco_bulk(pnp_base, pnp_files, pnp_count, "0", 1);
 
     // GED HAL
     const char *ged_hal = "/sys/kernel/ged/hal";
     char path_buf[256];
-    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_base_dvfs_step"); rakakikomi("4", path_buf);
-    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_stride_size"); rakakikomi("2", path_buf);
-    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_window_size"); rakakikomi("8", path_buf);
-    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "gpu_boost_level"); rakakikomi("-1", path_buf);
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_base_dvfs_step"); rawrite("4", path_buf);
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_stride_size"); rawrite("2", path_buf);
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_window_size"); rawrite("8", path_buf);
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "gpu_boost_level"); rawrite("-1", path_buf);
 
     // Standalone Mediatek Tweaks
-    rakakikomi("0", "/proc/cpufreq/cpufreq_cci_mode");
-    rakakikomi("0", "/proc/cpufreq/cpufreq_power_mode");
-    rakakikomi("0", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
-    rakakikomi("2", "/sys/devices/system/cpu/eas/enable");
-    rakakikomi("stop 0", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
+    rawrite("0", "/proc/cpufreq/cpufreq_cci_mode");
+    rawrite("0", "/proc/cpufreq/cpufreq_power_mode");
+    rawrite("0", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
+    rawrite("2", "/sys/devices/system/cpu/eas/enable");
+    rawrite("stop 0", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
 
     // GPU Tweaks
     rakakikomi("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
@@ -305,7 +266,7 @@ void mediatek_normal() {
         "ignore_batt_oc 0", "ignore_batt_percent 0", "ignore_low_batt 0",
         "ignore_thermal_protect 0", "ignore_pbm_limited 0"
     };
-    for (int i = 0; i < 5; i++) rakakikomi(power_limits[i], "/proc/gpufreq/gpufreq_power_limited");
+    for (int i = 0; i < 5; i++) rawrite(power_limits[i], "/proc/gpufreq/gpufreq_power_limited");
 
     // ==============================
     // GPU & FREQ TWEAKS
@@ -313,7 +274,73 @@ void mediatek_normal() {
     rakakikomi("0", "/proc/gpufreq/gpufreq_opp_freq");
     rakakikomi("-1", "/proc/gpufreqv2/fix_target_opp_index");
 
-    rakakikomi("0", "/sys/kernel/ged/hal/custom_boost_gpu_freq");
+    char min_idx[32];
+    mtk_get_min_freq(min_idx);
+    if (strlen(min_idx) > 0) rawrite(min_idx, "/sys/kernel/ged/hal/custom_boost_gpu_freq");
+
+    // Defreq Tweaks
+    devfreq_release("/sys/class/devfreq/mtk-dvfsrc-devfreq");
+}
+
+void mediatek_powersave() {
+    // ==============================
+    // MISC TWEAKS
+    // ==============================
+
+    // GED Tweaks
+    const char *ged_base = "/sys/module/ged/parameters";
+    const char *ged_files[] = {
+        "gx_boost_on", "gx_game_mode", "ged_smart_boost", "enable_gpu_boost",
+        "ged_boost_enable", "gx_frc_mode", "cpu_boost_policy", "boost_extra"
+    };
+    int ged_count = sizeof(ged_files) / sizeof(ged_files[0]);
+    raco_bulk(ged_base, ged_files, ged_count, "0", 1);
+
+    // Disable GED KPI
+    rawrite("1", "/sys/module/ged/parameters/is_GED_KPI_enabled");
+
+    // PNPMGR
+    const char *pnp_base = "/sys/pnpmgr";
+    const char *pnp_files[] = {"mwn", "boost_enable", "boost_mode"};
+    int pnp_count = sizeof(pnp_files) / sizeof(pnp_files[0]);
+    raco_bulk(pnp_base, pnp_files, pnp_count, "0", 1);
+
+    // GED HAL
+    const char *ged_hal = "/sys/kernel/ged/hal";
+    char path_buf[256];
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_base_dvfs_step"); rawrite("4", path_buf);
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_stride_size"); rawrite("2", path_buf);
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "loading_window_size"); rawrite("8", path_buf);
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", ged_hal, "gpu_boost_level"); rawrite("-1", path_buf);
+
+    // Standalone Mediatek Tweaks
+    rawrite("0", "/proc/cpufreq/cpufreq_cci_mode");
+    rawrite("0", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
+    rawrite("2", "/sys/devices/system/cpu/eas/enable");
+    rawrite("stop 0", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
+
+    // GPU Tweaks
+    rakakikomi("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
+    rakakikomi("-1", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
+
+    // Power Limits
+    const char *power_limits[] = {
+        "ignore_batt_oc 0", "ignore_batt_percent 0", "ignore_low_batt 0",
+        "ignore_thermal_protect 0", "ignore_pbm_limited 0"
+    };
+    for (int i = 0; i < 5; i++) rawrite(power_limits[i], "/proc/gpufreq/gpufreq_power_limited");
+
+    // ==============================
+    // GPU & FREQ TWEAKS
+    // ==============================
+    rawrite("1", "/proc/cpufreq/cpufreq_power_mode");
+    
+    rakakikomi("0", "/proc/gpufreq/gpufreq_opp_freq");
+    rakakikomi("-1", "/proc/gpufreqv2/fix_target_opp_index");
+
+    char min_idx[32];
+    mtk_get_min_freq(min_idx);
+    if (strlen(min_idx) > 0) rawrite(min_idx, "/sys/kernel/ged/hal/custom_boost_gpu_freq");
 
     // Defreq Tweaks
     devfreq_release("/sys/class/devfreq/mtk-dvfsrc-devfreq");
