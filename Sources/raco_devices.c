@@ -17,6 +17,10 @@ void raco_bulk(const char *base, const char *files[], int count, const char *val
     }
 }
 
+// ==============================
+// MEDIATEK DEVICES
+// ==============================
+
 void mtk_get_max_freq(char *out) {
     char buffer[4096];
     if (raread("/proc/gpufreq/gpufreq_opp_dump", buffer, sizeof(buffer)) > 0) {
@@ -86,9 +90,7 @@ void mtk_get_min_freq(char *out) {
     else strcpy(out, "");
 }
 
-// ==============================
-// MEDIATEK DEVICES
-// ==============================
+// Device Performance Settings
 
 void mediatek_awaken() {
     // ==============================
@@ -344,4 +346,281 @@ void mediatek_powersave() {
 
     // Defreq Tweaks
     devfreq_release("/sys/class/devfreq/mtk-dvfsrc-devfreq");
+}
+
+// ==============================
+// SNAPDRAGON DEVICES
+// ==============================
+
+void snapdragon_core_ctl_apply(const char *val, int lock) {
+    DIR *dir;
+    struct dirent *ent;
+
+    if ((dir = opendir("/sys/devices/system/cpu")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strncmp(ent->d_name, "cpu", 3) == 0) {
+                char path[256];
+                snprintf(path, sizeof(path), "/sys/devices/system/cpu/%s/core_ctl/enable", ent->d_name);
+
+                if (access(path, F_OK) == 0) {
+                    if (lock == 1) {
+                        rawrite(val, path);
+                    } else {
+                        rakakikomi(val,path);
+                    }
+                }
+            }
+        }
+        closedir(dir);
+    }
+}
+
+void snapdragon_devfreq_apply(int mode) {
+    if(config.device_mitigation == 1) return;
+    DIR *dir; struct dirent *ent;
+    if ((dir = opendir("/sys/class/devfreq")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+
+            if ((strstr(ent->d_name, "cpu") && strstr (ent->d_name, "-lat")) ||
+                (strstr(ent->d_name, "cpu") && strstr (ent->d_name, "-bw")) ||
+                strstr(ent->d_name, "llccbw") ||
+                strstr (ent->d_name, "bus_llcc") ||
+                strstr(ent->d_name, "bus_ddr") ||
+                strstr (ent->d_name, "memlat") ||
+                strstr(ent->d_name, "cpubw") ||
+                strstr (ent->d_name, "kgsl-ddr-qos")) {
+                
+                char path[256];
+                
+                snprintf(path, sizeof(path), "/sys/class/devfreq/%s", ent->d_name);
+
+                    if (mode == 0) devfreq_max(path);
+                    else if (mode == 1) devfreq_release(path);
+                    else if (mode == 2) devfreq_mid_perf(path);
+            }
+        }
+        closedir(dir);
+    }
+    const char *dcvs_paths[] = {
+        "/sys/devices/system/cpu/bus_dcvs/DDR",
+        "/sys/devices/system/cpu/bus_dcvs/LLCC",
+        "/sys/devices/system/cpu/bus_dcvs/L3"
+    };
+    for (int i = 0; i < 3; i++) {
+        if (mode == 0) devfreq_max(dcvs_paths[i]);
+        else if (mode == 1) devfreq_release(dcvs_paths[i]);
+        else if (mode == 2) devfreq_mid_perf(dcvs_paths[i]);
+    }
+}
+
+// Device Performance Settings
+
+void snapdragon_awaken() {
+    // ==============================
+    // MISC TWEAKS
+    // ==============================
+
+    // Force CLK & PWR Level
+    const char *kgsl_base = "/sys/class/kgsl/kgsl-3d0";
+    const char *kgsl_1[] = {"force_clk_on", "default_pwrlevel"};
+    raco_bulk(kgsl_base, kgsl_1, 2, "1", 1);
+
+    // Bus Split & Throttling
+    const char *kgsl_0[] = {"bus_split", "throttling"};
+    raco_bulk(kgsl_base, kgsl_0, 2, "0", 1);
+
+    // Adreno Boost
+    char path_buf[256];
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", kgsl_base, "devfreq/adrenoboost");
+    rawrite("3", path_buf);
+
+    // MSM Parameters & Touch Boost Freq
+    const char *msm_base = "/sys/module/msm_perfmon/parameters";
+    const char *msm_files[] = {"touch_boost_enable", "touch_boost_freq"};
+    raco_bulk(msm_base, msm_files, 2, "1", 1);
+
+    rawrite("1", "/sys/module/msm_performance/parameters/touchboost"); // Enable Touchboost
+    rawrite("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
+
+    snapdragon_core_ctl_apply("1", 1);
+
+    // ==============================
+    // GPU & FREQ TWEAKS
+    // ==============================
+
+    snapdragon_devfreq_apply(0);
+    devfreq_max("/sys/class/kgsl/kgsl-3d0/devfreq");
+}
+
+void snapdragon_balanced() {
+    // ==============================
+    // MISC TWEAKS
+    // ==============================
+
+    // Force CLK & PWR Level
+    const char *kgsl_base = "/sys/class/kgsl/kgsl-3d0";
+    const char *kgsl_1[] = {"force_clk_on", "default_pwrlevel"};
+    raco_bulk(kgsl_base, kgsl_1, 2, "0", 0);
+
+    // Bus Split & Throttling
+    const char *kgsl_0[] = {"bus_split", "throttling"};
+    raco_bulk(kgsl_base, kgsl_0, 2, "1", 0);
+
+    // Adreno Boost
+    char path_buf[256];
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", kgsl_base, "devfreq/adrenoboost");
+    rakakikomi("0", path_buf);
+
+    // MSM Parameters & Touch Boost Freq
+    const char *msm_base = "/sys/module/msm_perfmon/parameters";
+    const char *msm_files[] = {"touch_boost_enable", "touch_boost_freq"};
+    raco_bulk(msm_base, msm_files, 2, "0", 0);
+
+    rakakikomi("0", "/sys/module/msm_performance/parameters/touchboost"); // Enable Touchboost
+    rakakikomi("N", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
+
+    snapdragon_core_ctl_apply("0", 0);
+
+    // ==============================
+    // GPU & FREQ TWEAKS
+    // ==============================
+
+    snapdragon_devfreq_apply(2);
+    devfreq_mid_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
+}
+
+void snapdragon_normal() {
+    // ==============================
+    // MISC TWEAKS
+    // ==============================
+
+    // Force CLK & PWR Level
+    const char *kgsl_base = "/sys/class/kgsl/kgsl-3d0";
+    const char *kgsl_1[] = {"force_clk_on", "default_pwrlevel"};
+    raco_bulk(kgsl_base, kgsl_1, 2, "0", 0);
+
+    // Bus Split & Throttling
+    const char *kgsl_0[] = {"bus_split", "throttling"};
+    raco_bulk(kgsl_base, kgsl_0, 2, "1", 0);
+
+    // Adreno Boost
+    char path_buf[256];
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", kgsl_base, "devfreq/adrenoboost");
+    rakakikomi("0", path_buf);
+
+    // MSM Parameters & Touch Boost Freq
+    const char *msm_base = "/sys/module/msm_perfmon/parameters";
+    const char *msm_files[] = {"touch_boost_enable", "touch_boost_freq"};
+    raco_bulk(msm_base, msm_files, 2, "0", 0);
+
+    rakakikomi("0", "/sys/module/msm_performance/parameters/touchboost"); // Enable Touchboost
+    rakakikomi("N", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
+
+    snapdragon_core_ctl_apply("0", 0);
+
+    // ==============================
+    // GPU & FREQ TWEAKS
+    // ==============================
+
+    snapdragon_devfreq_apply(1);
+    devfreq_mid_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
+}
+
+void snapdragon_powersave() {
+    // ==============================
+    // MISC TWEAKS
+    // ==============================
+
+    // Force CLK & PWR Level
+    const char *kgsl_base = "/sys/class/kgsl/kgsl-3d0";
+    const char *kgsl_1[] = {"force_clk_on", "default_pwrlevel"};
+    raco_bulk(kgsl_base, kgsl_1, 2, "0", 0);
+
+    // Bus Split & Throttling
+    const char *kgsl_0[] = {"bus_split", "throttling"};
+    raco_bulk(kgsl_base, kgsl_0, 2, "1", 0);
+
+    // Adreno Boost
+    char path_buf[256];
+    snprintf(path_buf, sizeof(path_buf), "%s/%s", kgsl_base, "devfreq/adrenoboost");
+    rakakikomi("0", path_buf);
+
+    // MSM Parameters & Touch Boost Freq
+    const char *msm_base = "/sys/module/msm_perfmon/parameters";
+    const char *msm_files[] = {"touch_boost_enable", "touch_boost_freq"};
+    raco_bulk(msm_base, msm_files, 2, "0", 0);
+
+    rakakikomi("0", "/sys/module/msm_performance/parameters/touchboost"); // Enable Touchboost
+    rakakikomi("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
+
+    snapdragon_core_ctl_apply("0", 0);
+
+    // ==============================
+    // GPU & FREQ TWEAKS
+    // ==============================
+
+    snapdragon_devfreq_apply(1);
+    devfreq_mid_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
+}
+
+// =================================================================
+// MINOR CHIPSETS HELPER FUNCTIONS (Exynos, Unisoc, Tensor, Tegra)
+// =================================================================
+
+void scan_minor_devfreq_and_apply(const char *target, int mode) {
+    if (config.device_mitigation == 1) return;
+
+    DIR *dir;
+    struct dirent *ent;
+
+    if ((dir = opendir("/sys/class/devfreq")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (struct(ent->d_name, target)) {
+                snprintf(path, sizeof(path), "/sys/class/devfreq/%s", ent->d_name);
+
+                if (mode == 0) devfreq_max(path);
+                else if (mode == 1) devfreq_release(path);
+                else if (mode == 2) devfreq_mid_perf(path);
+                else if (mode == 3) devfreq_min_perf(path);
+            }
+        }
+        closedir(dir);
+    }
+}
+
+void set_custom_gpu_bounds(const char *base, const char *avail, const char *max_f, const char *min_f, int mode) {
+    char avail_path[256], max_path[256], min_path[256];
+    snprintf(avail_path, sizeof(avail_path), "%s/%s", base, avail);
+    snprintf(max_path, sizeof(max_path), "%s/%s", base, avail);
+    snprintf(min_path, sizeof(min_path), "%s/%s", base, avail);
+
+    FreqData f_max = get_target_freq(avail_path, 0);
+    FreqData f_min = get_target_freq(avail_path, 1);
+    FreqData f_mid = get_target_freq(avail_path, 2);
+
+    if (f_max.freq == -1) return;
+
+    char v_max[32], v_min[32], v_mid[32];
+    snprintf(v_max, sizeof(v_max), "%ld", f_max.freq);
+    snprintf(v_min, sizeof(v_min), "%ld", f_min.freq);
+    snprintf(v_mid, sizeof(v_mid), "%ld", f_mid.freq);
+
+    if (mode == 0) {
+        rawrite(v_max, max_path); rawrite(v_max, min_path);
+    } else if (mode == 1) {
+        rakakikomi(v_max, max_path); rakakikomi(v_min, min_path);
+    } else if (mode == 2) {
+        rawrite(v_max, max_path); rawrite(v_mid, min_path);
+    } else if (mode == 3) {
+        rawrite(v_min, max_path); rawrite(v_mid, min_path);
+    }
+}
+
+// ==============================
+// EXYNOS DEVICES
+// ==============================
+
+void exynos_awaken() {
+    DIR *dir; struct dirent *ent;
+    
 }
