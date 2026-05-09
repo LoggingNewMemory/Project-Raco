@@ -1,3 +1,8 @@
+/*
+Project Raco - Performance Module
+Copyright (C) 2026 Kanagawa Yamada 
+ */
+
 #ifndef RACO_H
 #define RACO_H
 
@@ -58,6 +63,7 @@ void change_cpu_gov(const char *gov);
 void cpufreq_awaken();
 void cpufreq_balanced();
 void cpufreq_normal();
+void cpufreq_powersave();
 
 // Raco Device Specific. raco_devices.c 
 void mediatek_awaken();
@@ -69,6 +75,9 @@ void snapdragon_awaken();
 void snapdragon_normal();
 void snapdragon_powersave();
 void snapdragon_balanced();
+
+// Minor SOC
+void scan_minor_devfreq_and_apply();
 
 void exynos_awaken();
 void exynos_normal();

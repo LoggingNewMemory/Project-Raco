@@ -1,3 +1,8 @@
+/*
+Project Raco - Performance Module
+Copyright (C) 2026 Kanagawa Yamada 
+ */
+
 #include "raco.h"
 
 /*
@@ -218,7 +223,7 @@ void mediatek_balanced() {
     if (strlen(mid_idx) > 0) rawrite(mid_idx, "/sys/kernel/ged/hal/custom_boost_gpu_freq");
 
     // Defreq Tweaks
-    devfreq_balanced("/sys/class/devfreq/mtk-dvfsrc-devfreq");
+    devfreq_mid_perf("/sys/class/devfreq/mtk-dvfsrc-devfreq");
 }
 
 void mediatek_normal() {
@@ -523,7 +528,7 @@ void snapdragon_normal() {
     // ==============================
 
     snapdragon_devfreq_apply(1);
-    devfreq_mid_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
+    devfreq_release("/sys/class/kgsl/kgsl-3d0/devfreq");
 }
 
 void snapdragon_powersave() {
@@ -560,7 +565,7 @@ void snapdragon_powersave() {
     // ==============================
 
     snapdragon_devfreq_apply(1);
-    devfreq_mid_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
+    devfreq_release("/sys/class/kgsl/kgsl-3d0/devfreq");
 }
 
 // =================================================================
@@ -575,7 +580,8 @@ void scan_minor_devfreq_and_apply(const char *target, int mode) {
 
     if ((dir = opendir("/sys/class/devfreq")) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
-            if (struct(ent->d_name, target)) {
+            if (strstr(ent->d_name, target)) {
+                char path[256];
                 snprintf(path, sizeof(path), "/sys/class/devfreq/%s", ent->d_name);
 
                 if (mode == 0) devfreq_max(path);
@@ -591,8 +597,8 @@ void scan_minor_devfreq_and_apply(const char *target, int mode) {
 void set_custom_gpu_bounds(const char *base, const char *avail, const char *max_f, const char *min_f, int mode) {
     char avail_path[256], max_path[256], min_path[256];
     snprintf(avail_path, sizeof(avail_path), "%s/%s", base, avail);
-    snprintf(max_path, sizeof(max_path), "%s/%s", base, avail);
-    snprintf(min_path, sizeof(min_path), "%s/%s", base, avail);
+    snprintf(max_path, sizeof(max_path), "%s/%s", base, max_f);
+    snprintf(min_path, sizeof(min_path), "%s/%s", base, min_f);
 
     FreqData f_max = get_target_freq(avail_path, 0);
     FreqData f_min = get_target_freq(avail_path, 1);
@@ -612,7 +618,7 @@ void set_custom_gpu_bounds(const char *base, const char *avail, const char *max_
     } else if (mode == 2) {
         rawrite(v_max, max_path); rawrite(v_mid, min_path);
     } else if (mode == 3) {
-        rawrite(v_min, max_path); rawrite(v_mid, min_path);
+        rawrite(v_min, max_path); rawrite(v_min, min_path);
     }
 }
 
@@ -622,5 +628,134 @@ void set_custom_gpu_bounds(const char *base, const char *avail, const char *max_
 
 void exynos_awaken() {
     DIR *dir; struct dirent *ent;
-    
+    if ((dir = opendir("/sys/devices/platform")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strstr(ent->d_name, ".mali")) {
+                char path[256];
+                snprintf(path, sizeof(path), "/sys/devices/platform/%s/power_policy", ent->d_name);
+                rawrite("always_on", path); break;
+            }
+        }
+        closedir(dir);
+    }
+    set_custom_gpu_bounds("/sys/kernel/gpu", "gpu_available_frequencies", "gpu_max_clock", "gpu_min_clock", 0);
+    scan_minor_devfreq_and_apply("devfreq_mif", 0);
 }
+
+void exynos_balanced() {
+    DIR *dir; struct dirent *ent;
+    if ((dir = opendir("/sys/devices/platform")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strstr(ent->d_name, ".mali")) {
+                char path[256];
+                snprintf(path, sizeof(path), "/sys/devices/platform/%s/power_policy", ent->d_name);
+                rakakikomi("coarse_demand", path); break;
+            }
+        }
+        closedir(dir);
+    }
+    set_custom_gpu_bounds("/sys/kernel/gpu", "gpu_available_frequencies", "gpu_max_clock", "gpu_min_clock", 2);
+    scan_minor_devfreq_and_apply("devfreq_mif", 2);
+}
+
+void exynos_normal() {
+    DIR *dir; struct dirent *ent;
+    if ((dir = opendir("/sys/devices/platform")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strstr(ent->d_name, ".mali")) {
+                char path[256];
+                snprintf(path, sizeof(path), "/sys/devices/platform/%s/power_policy", ent->d_name);
+                rakakikomi("coarse_demand", path); break;
+            }
+        }
+        closedir(dir);
+    }
+    set_custom_gpu_bounds("/sys/kernel/gpu", "gpu_available_frequencies", "gpu_max_clock", "gpu_min_clock", 1);
+    scan_minor_devfreq_and_apply("devfreq_mif", 1);
+}
+
+void exynos_powersave() {
+    set_custom_gpu_bounds("/sys/kernel/gpu", "gpu_available_frequencies", "gpu_max_clock", "gpu_min_clock", 1);   
+}
+
+// ==============================
+// UNISOC DEVICES
+// ==============================
+
+void unisoc_awaken() { scan_minor_devfreq_and_apply(".gpu", 0); }
+void unisoc_balanced() { scan_minor_devfreq_and_apply(".gpu", 2); }
+void unisoc_normal() { scan_minor_devfreq_and_apply(".gpu", 1); }
+void unisoc_powersave() { scan_minor_devfreq_and_apply(".gpu", 1); }
+
+// ==============================
+// TENSOR DEVICES
+// ==============================
+
+void tensor_awaken() {
+    scan_minor_devfreq_and_apply("devfreq_mif", 0);
+    DIR *dir; struct dirent *ent;
+    if ((dir = opendir("/sys/devices/platform")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strstr(ent->d_name, ".mali")) {
+                char path[256];
+                snprintf(path, sizeof(path), "/sys/devices/platform/%s", ent->d_name);
+                set_custom_gpu_bounds(path, "available_frequencies", "scaling_max_freq", "scaling_min_freq", 0);
+            }
+        }
+        closedir(dir);
+    }
+}
+
+void tensor_balanced() {
+    scan_minor_devfreq_and_apply("devfreq_mif", 2);
+    DIR *dir; struct dirent *ent;
+    if ((dir = opendir("/sys/devices/platform")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strstr(ent->d_name, ".mali")) {
+                char path[256];
+                snprintf(path, sizeof(path), "/sys/devices/platform/%s", ent->d_name);
+                set_custom_gpu_bounds(path, "available_frequencies", "scaling_max_freq", "scaling_min_freq", 2);
+            }
+        }
+        closedir(dir);
+    }
+}
+
+void tensor_normal() {
+    scan_minor_devfreq_and_apply("devfreq_mif", 1);
+    DIR *dir; struct dirent *ent;
+    if ((dir = opendir("/sys/devices/platform")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strstr(ent->d_name, ".mali")) {
+                char path[256];
+                snprintf(path, sizeof(path), "/sys/devices/platform/%s", ent->d_name);
+                set_custom_gpu_bounds(path, "available_frequencies", "scaling_max_freq", "scaling_min_freq", 1);
+            }
+        }
+        closedir(dir);
+    }
+}
+
+void tensor_powersave() {
+    scan_minor_devfreq_and_apply("devfreq_mif", 1);
+    DIR *dir; struct dirent *ent;
+    if ((dir = opendir("/sys/devices/platform")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strstr(ent->d_name, ".mali")) {
+                char path[256];
+                snprintf(path, sizeof(path), "/sys/devices/platform/%s", ent->d_name);
+                set_custom_gpu_bounds(path, "available_frequencies", "scaling_max_freq", "scaling_min_freq", 1);
+            }
+        }
+        closedir(dir);
+    }
+}
+
+// ==============================
+// TEGRA DEVICES
+// ==============================
+
+void tegra_awaken() { set_custom_gpu_bounds("/sys/kernel/tegra_gpu", "available_frequencies", "gpu_cap_rate", "gpu_floor_rate", 0); }
+void tegra_balanced() { set_custom_gpu_bounds("/sys/kernel/tegra_gpu", "available_frequencies", "gpu_cap_rate", "gpu_floor_rate", 2); }
+void tegra_normal() { set_custom_gpu_bounds("/sys/kernel/tegra_gpu", "available_frequencies", "gpu_cap_rate", "gpu_floor_rate", 1); }
+void tegra_powersave() { set_custom_gpu_bounds("/sys/kernel/tegra_gpu", "available_frequencies", "gpu_cap_rate", "gpu_floor_rate", 1); }

@@ -1,3 +1,8 @@
+/*
+Project Raco - Performance Module
+Copyright (C) 2026 Kanagawa Yamada 
+ */
+
 #include "raco.h"
 #include <stdio.h>
 #include <stdlib.h>
