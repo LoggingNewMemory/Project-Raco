@@ -64,6 +64,59 @@ void route_soc(int mode) {
     }
 }
 
+// Carlotta CPU
+void carlotta_cpu(int hardlock) {
+    system("setprop debug.hwui.use_hint_manager true");
+    system("setprop debug.sf.enable_adpf_cpu_hint true");
+
+    long long u1 = 0, n1 = 0, s1 = 0, i1 = 0, io1 = 0, irq1 = 0, sirq1 = 0, st1 = 0;
+    long long u2 = 0, n2 = 0, s2 = 0, i2 = 0, io2 = 0, irq2 = 0, sirq2 = 0, st2 = 0;
+    int current_load = 0;
+    char buffer[4096];
+
+    if (raread("/proc/stat", buffer, sizeof(buffer)) > 0) {
+        sscanf(buffer, "cpu %lld %lld %lld %lld %lld %lld %lld %lld", &u1, &n1, &s1, &i1, &io1, &irq1, &sirq1, &st1);
+
+        usleep(100000); // Measure Delta
+
+        if (raread("/proc/stat", buffer, sizeof(buffer)) > 0) {
+            sscanf(buffer, "cpu %lld %lld %lld %lld %lld %lld %lld %lld", &u2, &n2, &s2, &i2, &io2, &irq2, &sirq2, &st2);
+
+            long long total1 = u1 + n1 + s1 + i1 + io1 + irq1 + sirq1 + st1;
+            long long idle1 = i1 + io1;
+
+            long long total2 = u2 + n2 + s2 + i2 + io2 + irq2 + sirq2 + st2;
+            long long idle2 = i2 + io2;
+
+            long long diff_total = total2 - total1;
+            long long diff_idle = idle2 - idle1;
+
+            if (diff_total > 0) {
+                long long load = (1000 * (diff_total - diff_idle)) / diff_total;
+                int adjusted_load = load / 10;
+
+                int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+                if (num_cores < 1) num_cores = 1;
+
+                if (num_cores > 8) {
+                    adjusted_load = (adjusted_load * 8) / num_cores;
+                }
+                current_load = adjusted_load;
+            }
+        } 
+    }
+    int target_percent = (current_load > hardlock) ? hardlock : current_load;
+
+    char cmd[256];
+    snprintf(cmd, sizeof(cmd), "setprop debug.hwui.target_cpu_time_percent %d", target_percent);
+    system(cmd);
+    
+    pid_t pid = getpid();
+    snprintf(cmd, sizeof(cmd), "iorenice %d 7 idle >/dev/null 2>&1", pid); system(cmd); 
+    snprintf(cmd, sizeof(cmd), "renice -n 19 -p %d >/dev/null 2>&1", pid); system(cmd); 
+    snprintf(cmd, sizeof(cmd), "taskset -ap 1 %d >/dev/null 2>&1", pid); system(cmd); 
+}
+
 // Master Profiles
 void mode_awaken() {
     system("sync");
@@ -73,6 +126,7 @@ void mode_awaken() {
     rawrite("0", "/proc/sys/kernel/split_lock_mitigate");
     rawrite("0", "/proc/sys/vm/page-cluster");
     rawrite("80", "/proc/sys/vm/vfs_cache_pressure");
+    carlotta_cpu(80);
 
     change_cpu_gov("performance");
     cpufreq_awaken();
@@ -92,6 +146,7 @@ void mode_balanced() {
     rakakikomi("1", "/proc/sys/kernel/split_lock_mitigate");
     rakakikomi("3", "/proc/sys/vm/page-cluster");
     rakakikomi("120", "/proc/sys/vm/vfs_cache_pressure");
+    carlotta_cpu(55);
 
     change_cpu_gov(config.default_gov);
     cpufreq_balanced();
@@ -111,6 +166,7 @@ void mode_powersave() {
     rakakikomi("1", "/proc/sys/kernel/split_lock_mitigate");
     rakakikomi("3", "/proc/sys/vm/page-cluster");
     rakakikomi("100", "/proc/sys/vm/vfs_cache_pressure");
+    carlotta_cpu(40);
 
     change_cpu_gov("powersave");
     cpufreq_powersave();
@@ -130,6 +186,7 @@ void mode_normal() {
     rakakikomi("1", "/proc/sys/kernel/split_lock_mitigate");
     rakakikomi("3", "/proc/sys/vm/page-cluster");
     rakakikomi("120", "/proc/sys/vm/vfs_cache_pressure");
+    carlotta_cpu(55);
 
     change_cpu_gov(config.default_gov);
     cpufreq_normal();
