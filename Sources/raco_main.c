@@ -117,6 +117,24 @@ void carlotta_cpu(int hardlock) {
     snprintf(cmd, sizeof(cmd), "taskset -ap 1 %d >/dev/null 2>&1", pid); system(cmd); 
 }
 
+// Corin Function
+void corin_storage(const char *sched, const char *rq) {
+    DIR *dir; struct dirent *ent;
+    if ((dir = opendir("/sys/block")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (ent->d_name[0] != '.' && strncmp(ent->d_name, "loop", 4) != 0) {
+                char path[256];
+                snprintf(path, sizeof(path), "/sys/block/%s/queue/scheduler", ent->d_name);
+                rawrite(sched, path);
+
+                snprintf(path, sizeof(path), "/sys/block/%s/queue/rq_affinity", ent->d_name);
+                rawrite(rq, path);
+            }
+        }
+        closedir(dir);
+    }
+}
+
 // Master Profiles
 void mode_awaken() {
     system("sync");
@@ -127,6 +145,30 @@ void mode_awaken() {
     rawrite("0", "/proc/sys/vm/page-cluster");
     rawrite("80", "/proc/sys/vm/vfs_cache_pressure");
     carlotta_cpu(80);
+
+    corin_storage("deadline", "1");
+    system("settings put secure high_priority 1; settings put secure low_priority 0; "
+           "cmd power set-adaptive-power-saver-enabled false; "
+           "cmd power set-fixed-performance-mode-enabled true; "
+           "cmd looper_stats disable; "
+           "cmd power set-mode 0; cmd power thermalservice override-status 0 &");
+    
+    system("atrace --async_stop >/dev/null 2>&1; "
+           "cmd looper_stats reset >/dev/null 2>&1; "
+           "setprop debug.debuggerd.wait_for_debugger false; "
+           "setprop debug.debuggerd.wait_for_gdb false; "
+           "setprop debug.debuggerd.disable 1 &");
+
+    system("dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
+           "dumpsys binder_calls_stats --disable >/dev/null 2>&1; "
+           "dumpsys binder_calls_stats --disable-detailed-tracking >/dev/null 2>&1; "
+           "dumpsys procstats --clear >/dev/null 2>&1; "
+           "dumpsys procstats --stop-testing >/dev/null 2>&1 &");
+
+    system("cmd display ab-logging-disable >/dev/null 2>&1; "
+           "cmd display dwb-logging-disable >/dev/null 2>&1; "
+           "cmd display dmd-logging-disable >/dev/null 2>&1; "
+           "logcat -G 64K >/dev/null 2>&1; logcat -c >/dev/null 2>&1 &");
 
     change_cpu_gov("performance");
     cpufreq_awaken();
@@ -148,6 +190,31 @@ void mode_balanced() {
     rakakikomi("120", "/proc/sys/vm/vfs_cache_pressure");
     carlotta_cpu(55);
 
+    corin_storage("deadline", "1");
+    system("settings put secure high_priority 1; settings put secure low_priority 0; "
+           "cmd power set-adaptive-power-saver-enabled false; "
+           "cmd power set-fixed-performance-mode-enabled false; "
+           "cmd looper_stats enable; "
+           "cmd power set-mode 0; cmd power thermalservice override-status 0 &");
+
+    system("atrace --async_stop >/dev/null 2>&1; "
+           "cmd looper_stats reset >/dev/null 2>&1; "
+           "cmd looper_stats disable >/dev/null 2>&1 &");
+
+    system("for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 &");
+
+    system("dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
+           "dumpsys binder_calls_stats --disable >/dev/null 2>&1; "
+           "dumpsys binder_calls_stats --disable-detailed-tracking >/dev/null 2>&1; "
+           "dumpsys procstats --clear >/dev/null 2>&1; "
+           "dumpsys procstats --stop-testing >/dev/null 2>&1 &");
+
+    system("cmd display ab-logging-disable >/dev/null 2>&1; "
+           "cmd display dwb-logging-disable >/dev/null 2>&1; "
+           "cmd display dmd-logging-disable >/dev/null 2>&1 &");
+
+    system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
+
     change_cpu_gov(config.default_gov);
     cpufreq_balanced();
     route_soc(3);
@@ -168,6 +235,31 @@ void mode_powersave() {
     rakakikomi("100", "/proc/sys/vm/vfs_cache_pressure");
     carlotta_cpu(40);
 
+    corin_storage("deadline", "2");
+    system("settings put secure high_priority 0; settings put secure low_priority 1; "
+           "cmd power set-adaptive-power-saver-enabled true; "
+           "cmd power set-fixed-performance-mode-enabled false; "
+           "cmd looper_stats enable; "
+           "cmd power set-mode 1; cmd power thermalservice override-status 3 &");
+
+    system("atrace --async_stop >/dev/null 2>&1; "
+           "cmd looper_stats reset >/dev/null 2>&1; "
+           "cmd looper_stats disable >/dev/null 2>&1 &");
+
+    system("for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 &");
+
+    system("dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
+           "dumpsys binder_calls_stats --disable >/dev/null 2>&1; "
+           "dumpsys binder_calls_stats --disable-detailed-tracking >/dev/null 2>&1; "
+           "dumpsys procstats --clear >/dev/null 2>&1; "
+           "dumpsys procstats --stop-testing >/dev/null 2>&1 &");
+
+    system("cmd display ab-logging-disable >/dev/null 2>&1; "
+           "cmd display dwb-logging-disable >/dev/null 2>&1; "
+           "cmd display dmd-logging-disable >/dev/null 2>&1 &");
+
+    system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
+    
     change_cpu_gov("powersave");
     cpufreq_powersave();
     route_soc(2);
@@ -187,6 +279,31 @@ void mode_normal() {
     rakakikomi("3", "/proc/sys/vm/page-cluster");
     rakakikomi("120", "/proc/sys/vm/vfs_cache_pressure");
     carlotta_cpu(55);
+
+    corin_storage("deadline", "1");
+    system("settings put secure high_priority 1; settings put secure low_priority 0; "
+           "cmd power set-adaptive-power-saver-enabled false; "
+           "cmd power set-fixed-performance-mode-enabled false; "
+           "cmd looper_stats enable; "
+           "cmd power set-mode 0; cmd power thermalservice override-status 0 &");
+
+    system("atrace --async_stop >/dev/null 2>&1; "
+           "cmd looper_stats reset >/dev/null 2>&1; "
+           "cmd looper_stats disable >/dev/null 2>&1 &");
+
+    system("for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 &");
+
+    system("dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
+           "dumpsys binder_calls_stats --disable >/dev/null 2>&1; "
+           "dumpsys binder_calls_stats --disable-detailed-tracking >/dev/null 2>&1; "
+           "dumpsys procstats --clear >/dev/null 2>&1; "
+           "dumpsys procstats --stop-testing >/dev/null 2>&1 &");
+
+    system("cmd display ab-logging-disable >/dev/null 2>&1; "
+           "cmd display dwb-logging-disable >/dev/null 2>&1; "
+           "cmd display dmd-logging-disable >/dev/null 2>&1 &");
+
+    system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
 
     change_cpu_gov(config.default_gov);
     cpufreq_normal();

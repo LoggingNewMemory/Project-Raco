@@ -24,13 +24,11 @@ star_kill() {
 star_battery_restore() {
     cmd power set-mode 0
     cmd power thermalservice override-status 0
-    settings delete global battery_saver_constants
 }
 
 star_battery_saver() {
     cmd power set-mode 1
     cmd power thermalservice override-status 3
-    settings put global battery_saver_constants advertise_is_enabled=true,animation_disabled=true,launch_boost_disabled=true,vibration_disabled=true
 }
 
 star_db_perf() {
@@ -60,7 +58,6 @@ star_db_perf() {
     # Ensure powersave is off (Logic from CPU_DBPerformance)
     cmd power set-mode 0 
     cmd power thermalservice override-status 0 
-    settings delete global battery_saver_constants
     sync
 }
 
