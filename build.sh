@@ -360,9 +360,8 @@ build_modules() {
         -o "$MODULES_DIR/Compiled/raco" \
         "$SRC_DIR/raco_main.c" \
         "$SRC_DIR/raco_devices.c" \
-        "$SRC_DIR/raco_modules.c" \
-        "$SRC_DIR/raco_utils.c" \
-        "$SRC_DIR/raco_write.s"; then
+        "$SRC_DIR/raco_tools.c" \
+        "$SRC_DIR/raco_tool.s"; then
         echo "❌ ERROR: Compilation of Raco Core failed!"
         exit 1
     fi
@@ -370,9 +369,9 @@ build_modules() {
     echo "[2/6] Building Anya Thermal..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/anya_thermal" \
-        "$SRC_DIR/anya_thermal.c" \
-        "$SRC_DIR/raco_utils.c" \
-        "$SRC_DIR/raco_write.s"; then
+        "$SRC_DIR/anya.c" \
+        "$SRC_DIR/raco_tools.c" \
+        "$SRC_DIR/raco_tool.s"; then
         echo "❌ ERROR: Compilation of Anya Thermal failed!"
         exit 1
     fi
@@ -381,28 +380,28 @@ build_modules() {
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/zetamin" \
         "$SRC_DIR/zetamin.c" \
-        "$SRC_DIR/raco_utils.c" \
-        "$SRC_DIR/raco_write.s"; then
+        "$SRC_DIR/raco_tools.c" \
+        "$SRC_DIR/raco_tool.s"; then
         echo "❌ ERROR: Compilation of Zetamin failed!"
         exit 1
     fi
 
-    echo "[4/6] Building Ayunda Rusdi..."
-    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
-        -o "$MODULES_DIR/Compiled/ayunda_rusdi" \
-        "$SRC_DIR/ayunda_rusdi.c" \
-        "$SRC_DIR/raco_utils.c" \
-        "$SRC_DIR/raco_write.s"; then
-        echo "❌ ERROR: Compilation of Ayunda Rusdi failed!"
-        exit 1
-    fi
+    echo "[4/6] Building Ayunda Rusdi (Skipped)..."
+    # if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
+    #     -o "$MODULES_DIR/Compiled/ayunda_rusdi" \
+    #     "$SRC_DIR/ayunda_rusdi.c" \
+    #     "$SRC_DIR/raco_tools.c" \
+    #     "$SRC_DIR/raco_tool.s"; then
+    #     echo "❌ ERROR: Compilation of Ayunda Rusdi failed!"
+    #     exit 1
+    # fi
     
     echo "[5/6] Building Kobo Kanaeru..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/kobo_kanaeru" \
-        "$SRC_DIR/kobo_kanaeru.c" \
-        "$SRC_DIR/raco_utils.c" \
-        "$SRC_DIR/raco_write.s"; then
+        "$SRC_DIR/kobo.c" \
+        "$SRC_DIR/raco_tools.c" \
+        "$SRC_DIR/raco_tool.s"; then
         echo "❌ ERROR: Compilation of Kobo Kanaeru failed!"
         exit 1
     fi
@@ -410,9 +409,9 @@ build_modules() {
     echo "[6/6] Building Raco Core Service..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/CoreSys/raco_service" \
-        "$SRC_DIR/raco_service.c" \
-        "$SRC_DIR/raco_utils.c" \
-        "$SRC_DIR/raco_write.s"; then
+        "$SRC_DIR/raco_services.c" \
+        "$SRC_DIR/raco_tools.c" \
+        "$SRC_DIR/raco_tool.s"; then
         echo "❌ ERROR: Compilation of Raco Service failed!"
         exit 1
     fi
@@ -421,7 +420,7 @@ build_modules() {
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/raco"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/anya_thermal"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/zetamin"
-    $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/ayunda_rusdi"
+    # $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/ayunda_rusdi"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/kobo_kanaeru"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/CoreSys/raco_service"
 

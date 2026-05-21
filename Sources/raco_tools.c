@@ -33,6 +33,29 @@ int raread(const char *path, char *out_buffer, int max_size) {
     return bytes_read;
 }
 
+void raco_bulk(const char *base, const char **files, int count, const char *val, int is_kakikomi) {
+    if (!base || !files || count <= 0 || !val) return;
+
+    size_t base_len = strlen(base);
+    int needs_slash = (base_len > 0 && base[base_len - 1] != '/');
+
+    char path[512];
+    for (int i = 0; i < count; i++) {
+        if (!files[i]) continue;
+        if (needs_slash) {
+            snprintf(path, sizeof(path), "%s/%s", base, files[i]);
+        } else {
+            snprintf(path, sizeof(path), "%s%s", base, files[i]);
+        }
+
+        if (is_kakikomi) {
+            rakakikomi(val, path);
+        } else {
+            rawrite(val, path);
+        }
+    }
+}
+
 // FREQ Parser & Quick Sort
 
 int compare_freq_desc (const void *a, const void *b) {

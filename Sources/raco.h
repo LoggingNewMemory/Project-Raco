@@ -38,10 +38,15 @@ typedef struct {
     long freq;
 } FreqData;
 
+// External Modules
+void kobo_fast_charge();
+void zetamin_optimize();
+
 // Tool of raco_tool.c Declaration
 void rawrite(const char *val, const char *path);
 void rakakikomi(const char *val, const char *path);
 int raread(const char *path, char *out_buffer, int max_size);
+void raco_bulk(const char *base, const char **files, int count, const char *val, int is_kakikomi);
 
 void load_config(const char *config_path);
 void notification(const char *message);
