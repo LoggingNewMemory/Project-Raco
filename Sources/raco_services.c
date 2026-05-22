@@ -21,7 +21,7 @@ Copyright (C) 2026 Kanagawa Yamada
 int inc_kobo = 0;
 int inc_zeta = 0;
 int inc_sandev = 0;
-int sandev_dur = 300;
+int sandev_dur = 600;
 char default_gov[64] = {0};
 
 // Case-insensitive substring finder helper
@@ -210,6 +210,7 @@ void apply_kamigo_tweaks() {
     rawrite("1", "/sys/pnpmgr/fpsgo_boost/boost_mode");
 }
 
+
 // Consolidated and Scoped System Optimizations (Facur, GHenna, Yanz Merged)
 void apply_system_optimizations() {
     // 1. Filesystem & I/O queue scheduler (Facur, GHenna, Yanz block queues)
@@ -258,41 +259,17 @@ void apply_system_optimizations() {
         rawrite("1024", "/proc/sys/kernel/random/write_wakeup_threshold");
     }
 
-    // 3. GHenna Universal Deep Sleep & GMS Doze
-    {
-        system("rm -f /storage/emulated/0/*.log /data/log/*.log /cache/*.log 2>/dev/null");
-        system("dumpsys deviceidle reset 2>/dev/null");
-        system("dumpsys deviceidle enable light 2>/dev/null");
-        system("dumpsys deviceidle enable deep 2>/dev/null");
-        system("settings put global device_idle_constants light_after_inactive_to=15000,light_pre_idle_to=30000,light_idle_to=300000,light_max_idle_to=900000,inactive_to=1800000,idle_after_inactive_to=0,idle_pending_to=300000,max_idle_pending_to=600000,idle_to=3600000,max_idle_to=21600000 2>/dev/null");
-        system("pm trim-caches 999999999 2>/dev/null");
-
-        system("pm set-inactive com.google.android.gms true 2>/dev/null");
-        system("dumpsys deviceidle whitelist -com.google.android.gms 2>/dev/null");
-        system("dumpsys deviceidle tempwhitelist -c com.google.android.gms 2>/dev/null");
-    }
+    // 3. GHenna Universal Deep Sleep & GMS Doze (deferred to background fork)
 
     // 4. GHenna disable tracing & logcat optimizations
     {
-        system("cmd accessibility stop-trace 2>/dev/null");
-        system("cmd input_method tracing stop 2>/dev/null");
-        system("cmd window tracing size 0 2>/dev/null");
-        system("cmd window tracing stop 2>/dev/null");
-        system("cmd statusbar tracing stop 2>/dev/null");
-        system("cmd memory_trace disable 2>/dev/null");
-        system("cmd animation tracing stop 2>/dev/null");
-        system("cmd package tracing stop 2>/dev/null");
-        system("cmd wm tracing stop 2>/dev/null");
-        system("cmd activity tracing stop 2>/dev/null");
-        system("cmd broadcast tracing disable 2>/dev/null");
-        system("atrace --async_stop >/dev/null 2>&1");
+        // cmd/atrace/logcat calls deferred to background fork
         
         const char *trace_on_files[] = { "/sys/kernel/tracing/tracing_on", "/sys/kernel/debug/tracing/tracing_on" };
         int trace_on_count = sizeof(trace_on_files) / sizeof(trace_on_files[0]);
         raco_bulk("", trace_on_files, trace_on_count, "0", 0);
 
-        system("logcat -c 2>/dev/null");
-        system("logcat -G 16K 2>/dev/null");
+
         system("setprop persist.sys.usb.config adb 2>/dev/null");
         system("setprop ro.logd.size.stats 0 2>/dev/null");
         system("setprop ro.logdumpd.enabled false 2>/dev/null");
@@ -313,7 +290,7 @@ void apply_system_optimizations() {
         system("setprop debug.atrace.tags.enableflags 0 2>/dev/null");
         system("setprop debug.force_rtl false 2>/dev/null");
 
-        rawrite("0", "/proc/sys/kernel/printk_devkmsg");
+        rawrite("off", "/proc/sys/kernel/printk_devkmsg");
         rawrite("0", "/sys/module/binder/parameters/debug_mask");
 
         const char *printk_base = "/sys/module/printk/parameters/";
@@ -325,7 +302,7 @@ void apply_system_optimizations() {
         int printk_count_1 = sizeof(printk_files_1) / sizeof(printk_files_1[0]);
         raco_bulk(printk_base, printk_files_1, printk_count_1, "1", 0);
 
-        rawrite("N", "/sys/module/sync/parameters/fsync_enabled");
+
     }
 
     // 5. GHenna Memory management task affinity & nice values (kswapd, oom_reaper, etc.)
@@ -472,21 +449,7 @@ void apply_system_optimizations() {
 
 // Main execution routine
 int main(int argc, char *argv[]) {
-    // Safety check boot completed in case it runs super early
-    while (1) {
-        char boot_prop[92] = {0};
-        FILE *fp = popen("getprop sys.boot_completed", "r");
-        if (fp) {
-            if (fgets(boot_prop, sizeof(boot_prop), fp)) {
-                if (strstr(boot_prop, "1") != NULL) {
-                    pclose(fp);
-                    break;
-                }
-            }
-            pclose(fp);
-        }
-        sleep(5);
-    }
+
 
     // Reset STATE to empty
     system("sed -i 's/^STATE.*/STATE /' /data/ProjectRaco/raco.txt");
@@ -525,6 +488,7 @@ int main(int argc, char *argv[]) {
 
     // Apply System Optimizations (Consolidated Facur, GHenna, Yanz)
     apply_system_optimizations();
+
 
     // Final Startup Notification
     send_notif("Project Raco", "Project Raco - オンライン", "TagRaco", "/data/local/tmp/logo.png");
