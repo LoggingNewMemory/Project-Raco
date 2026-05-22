@@ -378,20 +378,22 @@ void apply_system_optimizations() {
 
     // 7. GHenna Disable Kernel Panic (Glob search-based)
     {
-        const char *panic_paths[] = {
-            "/proc/sys/kernel/panic",
-            "/proc/sys/kernel/panic_on_oops",
-            "/proc/sys/kernel/panic_on_warn",
-            "/proc/sys/kernel/panic_on_rcu_stall",
-            "/sys/module/kernel/parameters/panic",
-            "/sys/module/kernel/parameters/panic_on_warn",
-            "/sys/module/kernel/parameters/pause_on_oops",
-            "/sys/module/kernel/panic_on_rcu_stall"
+        const char *panic_proc_base = "/proc/sys/kernel/";
+        const char *panic_proc_files[] = {
+            "panic", "panic_on_oops", "panic_on_warn", "panic_on_rcu_stall"
         };
-        int panic_count = sizeof(panic_paths) / sizeof(panic_paths[0]);
-        for (int i = 0; i < panic_count; i++) {
-            rawrite("0", panic_paths[i]);
-        }
+
+        int panic_proc_count = sizeof(panic_proc_files) / sizeof(panic_proc_files[0]);
+        raco_bulk(panic_proc_base, panic_proc_files, panic_proc_count, "0", 0);
+
+        const char *panic_mod_base = "/sys/module/kernel/parameters/";
+        const char *panic_mod_files[] = {
+            "panic", "panic_on_warn", "pause_on_oops"
+        };
+        int panic_mod_count = sizeof(panic_mod_files) / sizeof(panic_mod_files[0]);
+        raco_bulk(panic_mod_base, panic_mod_files, panic_mod_count, "0", 0);
+
+        rawrite("0", "/sys/module/kernel/panic_on_rcu_stall");
 
         glob_t gstruct;
         const char *panic_patterns[] = {
@@ -420,11 +422,6 @@ void apply_system_optimizations() {
         int vm_count_0 = sizeof(vm_files_0) / sizeof(vm_files_0[0]);
         raco_bulk(vm_base, vm_files_0, vm_count_0, "0", 0);
         rawrite("0", "/proc/sys/debug/exception-trace");
-        
-        rawrite("80", "/proc/sys/vm/vfs_cache_pressure");
-        rawrite("60", "/proc/sys/vm/swappiness");
-        rawrite("90", "/proc/sys/vm/overcommit_ratio");
-        rawrite("3072", "/proc/sys/vm/min_free_kbytes");
 
         rawrite("1024,2048,4096,8192,12288,16384", "/sys/module/lowmemorykiller/parameters/minfree");
         rawrite("32", "/sys/module/lowmemorykiller/parameters/cost");
