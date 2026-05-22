@@ -41,6 +41,8 @@ typedef struct {
 // External Modules
 void kobo_fast_charge();
 void zetamin_optimize();
+void exec_anya_melfissa();
+void exec_anya_kawaii();
 
 // Tool of raco_tool.c Declaration
 void rawrite(const char *val, const char *path);
@@ -62,6 +64,7 @@ FreqData get_target_freq(const char *path, int mode); // 0=Max 1=Min 2=Mid
 void set_devfreq(const char *path, const char *mode);
 void devfreq_max(const char *path);
 void devfreq_balanced(const char *path);
+void devfreq_mid_perf(const char *path);
 void devfreq_min_perf(const char *path);
 void devfreq_release(const char *path);
 void change_cpu_gov(const char *gov);
@@ -82,7 +85,7 @@ void snapdragon_powersave();
 void snapdragon_balanced();
 
 // Minor SOC
-void scan_minor_devfreq_and_apply();
+void scan_minor_devfreq_and_apply(const char *target, int mode);
 
 void exynos_awaken();
 void exynos_normal();

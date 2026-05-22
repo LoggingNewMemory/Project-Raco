@@ -33,6 +33,11 @@ int raread(const char *path, char *out_buffer, int max_size) {
     return bytes_read;
 }
 
+
+/*
+Bulk Writer, Why? Either I'm smart to not write one by one path and value
+Or I'm lazy because I don't want to write one by one path and value
+*/
 void raco_bulk(const char *base, const char **files, int count, const char *val, int is_kakikomi) {
     if (!base || !files || count <= 0 || !val) return;
 
@@ -175,13 +180,13 @@ void clear_slingshot() {
 
 void anyamelfissa() {
     if (config.include_anya == 1 && config.anya == 1) {
-    system("su -c /data/adb/modules/ProjectRaco/CoreSys/anya 1");
+        exec_anya_melfissa();
     }
 }
 
 void anyakawaii() {
     if (config.include_anya == 1 && config.anya == 1) {
-    system("su -c /data/adb/modules/ProjectRaco/CoreSys/anya 0");
+        exec_anya_kawaii();
     }
 }
 
@@ -227,6 +232,7 @@ void set_devfreq(const char *path, const char *mode) {
 
 void devfreq_max(const char *path) { set_devfreq(path, "max"); }
 void devfreq_balanced(const char *path) { set_devfreq(path, "mid"); }
+void devfreq_mid_perf(const char *path) { set_devfreq(path, "mid"); }
 void devfreq_release(const char *path) { set_devfreq(path, "release"); }
 void devfreq_min_perf(const char *path) { set_devfreq(path, "min"); }
 

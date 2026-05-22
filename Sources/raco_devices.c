@@ -5,23 +5,6 @@ Copyright (C) 2026 Kanagawa Yamada
 
 #include "raco.h"
 
-/*
-Bulk Writer, Why? Either I'm smart to not write one by one path and value
-Or I'm lazy because I don't want to write one by one path and value
-*/
-
-void raco_bulk(const char *base, const char *files[], int count, const char *val, int lock) {
-    char path[256];
-    for (int i = 0; i < count; i++) {
-        snprintf(path, sizeof(path), "%s/%s", base, files[i]);
-        if (lock == 1) {
-            rawrite(val, path);
-        } else {
-            rakakikomi(val, path);
-        }
-    }
-}
-
 // ==============================
 // MEDIATEK DEVICES
 // ==============================

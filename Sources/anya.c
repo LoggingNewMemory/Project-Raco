@@ -180,23 +180,3 @@ void exec_anya_melfissa() {
     // Apply Spoof when done
     spoof_run();
 }
-
-int main(int argc, char *argv[]) {
-    // Check argument
-    if (argc != 2) {
-        printf("1 = Off Thermal, 0 = On Thermal\n");
-        return 1;
-    }
-
-    int mode = atoi(argv[1]);
-
-    if (mode == 1) {
-    exec_anya_melfissa();
-    } else if (mode == 0) {
-    exec_anya_kawaii();
-    } else {
-        printf("INVALID! 1 = Off Thermal, 0 = On Thermal\n");
-        return 1;
-    }
-    return 0;
-}
