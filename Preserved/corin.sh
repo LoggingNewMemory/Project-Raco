@@ -23,12 +23,10 @@ star_kill() {
 
 star_battery_restore() {
     cmd power set-mode 0
-    cmd power thermalservice override-status 0
 }
 
 star_battery_saver() {
     cmd power set-mode 1
-    cmd power thermalservice override-status 3
 }
 
 star_db_perf() {
@@ -57,7 +55,6 @@ star_db_perf() {
     
     # Ensure powersave is off (Logic from CPU_DBPerformance)
     cmd power set-mode 0 
-    cmd power thermalservice override-status 0 
     sync
 }
 

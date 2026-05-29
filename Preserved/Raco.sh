@@ -15,7 +15,6 @@ SOC=$(read_config SOC)
 LITE_MODE=$(read_config LITE_MODE)
 BETTER_POWERAVE=$(read_config BETTER_POWERAVE)
 ANYA=$(read_config ANYA)
-INCLUDE_ANYA=$(read_config INCLUDE_ANYA)
 KCPU_MITIGATE=$(read_config KCPU_MITIGATE)
 LEGACY_NOTIF=$(read_config LEGACY_NOTIF)
 SILENT_NOTIF=$(read_config SILENT_NOTIF)
@@ -62,13 +61,13 @@ set_state() {
 }
 
 anyamelfissa() {
-    if [ "$INCLUDE_ANYA" = "1" ] && [ "$ANYA" = "1" ] && [ -f "$SCRIPT_PATH/AnyaMelfissa.sh" ]; then
+    if [ "$ANYA" = "1" ] && [ -f "$SCRIPT_PATH/AnyaMelfissa.sh" ]; then
         sh "$SCRIPT_PATH/AnyaMelfissa.sh" &
     fi
 }
 
 anyakawaii() {
-    if [ "$INCLUDE_ANYA" = "1" ] && [ "$ANYA" = "1" ] && [ -f "$SCRIPT_PATH/AnyaKawaii.sh" ]; then
+    if [ "$ANYA" = "1" ] && [ -f "$SCRIPT_PATH/AnyaKawaii.sh" ]; then
         sh "$SCRIPT_PATH/AnyaKawaii.sh" &
     fi
 }

@@ -49,10 +49,6 @@ main() {
     (restore_hardware) &
     wait
 
-    # 2. Restore Android Thermal Service Internal Status
-    cmd thermalservice override-status 1 2>/dev/null
-    cmd thermalservice reset 2>/dev/null
-
     # 3. Start Services
     # We attempt to start them genuinely first (Excluded 'hal')
     getprop | grep -E 'init.svc(\.vendor)?\.thermal' | grep -v "hal" | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | while read -r svc; do

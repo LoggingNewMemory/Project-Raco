@@ -151,7 +151,7 @@ void mode_awaken() {
            "cmd power set-adaptive-power-saver-enabled false; "
            "cmd power set-fixed-performance-mode-enabled true; "
            "cmd looper_stats disable; "
-           "cmd power set-mode 0; cmd power thermalservice override-status 0 &");
+           "cmd power set-mode 0 &");
     
     system("atrace --async_stop >/dev/null 2>&1; "
            "cmd looper_stats reset >/dev/null 2>&1; "
@@ -195,7 +195,7 @@ void mode_balanced() {
            "cmd power set-adaptive-power-saver-enabled false; "
            "cmd power set-fixed-performance-mode-enabled false; "
            "cmd looper_stats enable; "
-           "cmd power set-mode 0; cmd power thermalservice override-status 0 &");
+           "cmd power set-mode 0 &");
 
     system("atrace --async_stop >/dev/null 2>&1; "
            "cmd looper_stats reset >/dev/null 2>&1; "
@@ -240,7 +240,7 @@ void mode_powersave() {
            "cmd power set-adaptive-power-saver-enabled true; "
            "cmd power set-fixed-performance-mode-enabled false; "
            "cmd looper_stats enable; "
-           "cmd power set-mode 1; cmd power thermalservice override-status 3 &");
+           "cmd power set-mode 1 &");
 
     system("atrace --async_stop >/dev/null 2>&1; "
            "cmd looper_stats reset >/dev/null 2>&1; "
@@ -285,7 +285,7 @@ void mode_normal() {
            "cmd power set-adaptive-power-saver-enabled false; "
            "cmd power set-fixed-performance-mode-enabled false; "
            "cmd looper_stats enable; "
-           "cmd power set-mode 0; cmd power thermalservice override-status 0 &");
+           "cmd power set-mode 0 &");
 
     system("atrace --async_stop >/dev/null 2>&1; "
            "cmd looper_stats reset >/dev/null 2>&1; "

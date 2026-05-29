@@ -113,7 +113,6 @@ spoof_running_status() {
 main() {
     # 1. Kill services immediately (Synchronous to free resources)
     kill_thermal_services
-    cmd thermalservice override-status 0 2>/dev/null
 
     # 2. Execute Heavy Tasks in Parallel
     (disable_fs_protections) &

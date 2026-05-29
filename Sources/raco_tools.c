@@ -115,7 +115,6 @@ void load_config(const char *config_path) {
     // Set DEFAULTS
     config.soc = 0;
     config.anya = 0;
-    config.include_anya = 0;
     config.legacy_notif = 0;
     config.silent_notif = 0;
     config.device_mitigation = 0;
@@ -140,7 +139,6 @@ void load_config(const char *config_path) {
         if (parsed >= 1) {
             if (strcmp(key, "SOC") == 0 && parsed == 2) config.soc = atol(value);
             else if (strcmp(key, "ANYA") == 0 && parsed == 2) config.anya = atol(value);
-            else if (strcmp(key, "INCLUDE_ANYA") == 0 && parsed == 2) config.include_anya = atol(value);
             else if (strcmp(key, "LEGACY_NOTIF") == 0 && parsed == 2) config.legacy_notif = atol(value);
             else if (strcmp(key, "SILENT_NOTIF") == 0 && parsed == 2) config.silent_notif = atol(value);
             else if (strcmp(key, "DEVICE_MITIGATION") == 0 && parsed == 2) config.device_mitigation = atol(value);
@@ -179,13 +177,13 @@ void clear_slingshot() {
 }
 
 void anyamelfissa() {
-    if (config.include_anya == 1 && config.anya == 1) {
+    if (config.anya == 1) {
         exec_anya_melfissa();
     }
 }
 
 void anyakawaii() {
-    if (config.include_anya == 1 && config.anya == 1) {
+    if (config.anya == 1) {
         exec_anya_kawaii();
     }
 }

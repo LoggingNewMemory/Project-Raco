@@ -60,9 +60,6 @@ void exec_anya_kawaii() {
     waitpid(pid1, NULL, 0);
     waitpid(pid2, NULL, 0);
 
-    system("cmd thermalservice override-status 1 2>/dev/null");
-    system("cmd thermalservice reset 2>/dev/null");
-
     system("getprop | grep -E 'init.svc(\\.vendor)?\\.thermal' | grep -v \"hal\" | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | while read -r svc; do resetprop -n \"init.svc.$svc\" \"stopped\"; start \"$svc\"; setprop ctl.start \"$svc\"; done");
     system("getprop | grep 'thermal' | grep -v \"hal\" | cut -d '[' -f2 | cut -d ']' -f1 | while read -r prop; do if [ -n \"$prop\" ]; then resetprop -n \"$prop\" \"running\"; fi; done");
 }
@@ -160,7 +157,6 @@ void exec_anya_melfissa() {
     system("killall -9 thermald android.hardware.thermal@2.0-service 2>/dev/null");
     system("pgrep -f \"thermal\" | grep -v \"hal\" | xargs -r kill -9 2>/dev/null");
     system("getprop | grep -E 'init.svc.*thermal' | grep -v \"hal\" | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | while read -r svc; do stop \"$svc\"; setprop ctl.stop \"$svc\"; done");
-    system("cmd thermalservice override-status 0 2>/dev/null");
 
     // Exec Parallel
     pid_t pid1 = fork();

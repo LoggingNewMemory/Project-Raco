@@ -471,7 +471,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Anya Melfissa
-    if (config.include_anya == 1 && config.anya == 1) {
+    if (config.anya == 1) {
         anyamelfissa(); // executes thermal block via anya binary
         send_notif("Anya Melfissa", "Good Day! Thermal Is Dead BTW", "TagAnya", "/data/local/tmp/Anya.png");
     }

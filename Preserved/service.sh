@@ -83,11 +83,10 @@ if [ "$INCLUDE_SOC" = "1" ]; then
     tweak "/sys/kernel/fpsgo/fbt/boost_ta" "1"
 fi
 
-# Run AnyaMelfissa.sh only if both INCLUDE_ANYA and ANYA are set to 1
-INCLUDE_ANYA=$(grep '^INCLUDE_ANYA=' "$CONFIG_FILE" | cut -d'=' -f2)
+# Run AnyaMelfissa.sh only if ANYA is set to 1
 ANYA_VAL=$(grep '^ANYA=' "$CONFIG_FILE" | cut -d'=' -f2)
 
-if [ "$INCLUDE_ANYA" = "1" ] && [ "$ANYA_VAL" = "1" ]; then
+if [ "$ANYA_VAL" = "1" ]; then
     sh /data/adb/modules/ProjectRaco/Scripts/AnyaMelfissa.sh
     send_notif "Anya Melfissa" "Good Day! Thermal Is Dead BTW" "TagAnya" "/data/local/tmp/Anya.png"
 fi

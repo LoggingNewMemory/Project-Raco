@@ -22,7 +22,6 @@ extern int raco_read (const char *path, char *out_buffer, unsigned int max_size)
 typedef struct {
     int soc;
     int anya;
-    int include_anya;
     int legacy_notif;
     int silent_notif;
     int device_mitigation;
