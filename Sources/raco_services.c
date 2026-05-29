@@ -470,12 +470,6 @@ int main(int argc, char *argv[]) {
         apply_kamigo_tweaks();
     }
 
-    // Anya Melfissa
-    if (config.anya == 1) {
-        anyamelfissa(); // executes thermal block via anya binary
-        send_notif("Anya Melfissa", "Good Day! Thermal Is Dead BTW", "TagAnya", "/data/local/tmp/Anya.png");
-    }
-
     // Kobo Fast Charge
     if (inc_kobo == 1) {
         kobo_fast_charge();
