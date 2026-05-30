@@ -332,6 +332,14 @@ int main(int argc, char *argv[]) {
     snprintf(state_cmd, sizeof(state_cmd), "sed -i 's/^STATE.*/STATE %d/' /data/ProjectRaco/raco.txt", mode);
     system(state_cmd);
 
+    // Yamada: PLEASE REMEMBER THIS.
+    /*
+    4 = Awaken
+    3 = Balanced -> Keep in mind "Balanced" here is term of balanced performance, so half them minfreq
+    2 = Powersave
+    1 = Normal -> This is the one who restores all to default
+    */
+
     switch (mode) {
         case 4:
             mode_awaken();
