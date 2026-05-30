@@ -8,6 +8,7 @@ Copyright (C) 2026 Kanagawa Yamada
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <sys/wait.h>
 
 // Helper function
@@ -22,26 +23,49 @@ void raco_val(const char *path, const char *val, int lock) {
     }
 }
 
+// Shared helper: iterate /sys/devices/system/cpu/cpu*/core_ctl/enable
+static void set_core_ctl(const char *val, int lock) {
+    DIR *dir;
+    struct dirent *ent;
+
+    if ((dir = opendir("/sys/devices/system/cpu")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strncmp(ent->d_name, "cpu", 3) == 0 && isdigit(ent->d_name[3])) {
+                char path[256];
+                snprintf(path, sizeof(path), "/sys/devices/system/cpu/%s/core_ctl/enable", ent->d_name);
+                raco_val(path, val, lock);
+            }
+        }
+        closedir(dir);
+    }
+}
+
+// Shared helper: MSM Thermal toggle
+static void set_msm_thermal(const char *val) {
+    char cmd[256];
+    snprintf(cmd, sizeof(cmd),
+        "find /sys/ -name enabled 2>/dev/null | grep 'msm_thermal' | while read -r msm; do "
+        "echo '%s' > \"$msm\" 2>/dev/null; done", val);
+    system(cmd);
+}
+
+// Shared helper: Spoof thermal props to a target state
+static void spoof_thermal_state(const char *state) {
+    char cmd[512];
+    snprintf(cmd, sizeof(cmd),
+        "getprop | grep 'thermal' | grep -v \"hal\" | cut -d '[' -f2 | cut -d ']' -f1 | "
+        "while read -r prop; do [ -n \"$prop\" ] && resetprop -n \"$prop\" \"%s\"; done", state);
+    system(cmd);
+}
+
 // Anya Kawaii
 void restore_fs() {
     system("umount /vendor/bin/thermald 2>/dev/null");
 }
 
 void restore_hardware() {
-    DIR *dir;
-    struct dirent *ent;
-
-    if ((dir = opendir("/sys/devices/system/cpu")) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
-            if (strncmp(ent->d_name, "cpu", 3) == 0) {
-                char path[256];
-                snprintf(path, sizeof(path), "/sys/devices/system/cpu/%s/core_ctl/enable", ent->d_name);
-                raco_val(path, "1", 0);
-            }
-        } 
-        closedir(dir);
-    }
-    system("find /sys/ -name enabled | grep 'msm_thermal' | while read -r msm; do echo 'Y' > \"$msm\" 2>/dev/null; echo '1' > \"$msm\" 2>/dev/null; done");
+    set_core_ctl("1", 0);
+    set_msm_thermal("Y");
 
     raco_val("/sys/class/kgsl/kgsl-3d0/throttling", "1", 0);
     raco_val("/sys/class/kgsl/kgsl-3d0/thermal_pwrlevel", "1", 0);
@@ -60,8 +84,8 @@ void exec_anya_kawaii() {
     waitpid(pid1, NULL, 0);
     waitpid(pid2, NULL, 0);
 
-    system("getprop | grep -E 'init.svc(\\.vendor)?\\.thermal' | grep -v \"hal\" | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | while read -r svc; do resetprop -n \"init.svc.$svc\" \"stopped\"; start \"$svc\"; setprop ctl.start \"$svc\"; done");
-    system("getprop | grep 'thermal' | grep -v \"hal\" | cut -d '[' -f2 | cut -d ']' -f1 | while read -r prop; do if [ -n \"$prop\" ]; then resetprop -n \"$prop\" \"running\"; fi; done");
+    system("getprop | grep -E 'init.svc(\\.vendor)?\\.thermal' | grep -v \"hal\" | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | while read -r svc; do resetprop -n \"init.svc.$svc\" \"stopped\"; start \"$svc\"; done");
+    spoof_thermal_state("running");
 }
 
 // Anya Melfissa
@@ -72,22 +96,8 @@ void disable_fs_protections() {
 }
 
 void disable_cpu_limits() {
-    DIR *dir;
-    struct dirent *ent;
-
-    if ((dir = opendir("/sys/devices/system/cpu")) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
-            if (strncmp(ent->d_name, "cpu", 3) == 0) {
-                char path[256];
-                snprintf(path, sizeof(path), "/sys/devices/system/cpu/%s/core_ctl/enable", ent->d_name);
-                raco_val(path, "0", 1);
-            }
-        } 
-        closedir(dir);
-    }
-
-    // MSM Thermal
-    system("find /sys/ -name enabled | grep 'msm_thermal' | while read -r msm; do echo 'N' > \"$msm\" 2>/dev/null; echo '0' > \"$msm\" 2>/dev/null; done");
+    set_core_ctl("0", 1);
+    set_msm_thermal("N");
 
     // PPM Policy
     raco_val("/proc/ppm/enabled", "1", 0);
@@ -100,25 +110,12 @@ void disable_cpu_limits() {
     }
 
     // Disable Kernel Panic
-    const char *kernel_base = "/proc/sys/kernel";
     const char *kernel_files[] = {"sched_boost", "panic", "panic_on_oops"};
-    int kernel_count = sizeof(kernel_files) / sizeof(kernel_files[0]);
+    raco_bulk("/proc/sys/kernel", kernel_files, 3, "0", 0);
 
-    for (int i = 0; i < kernel_count; i++) {
-        char full_path[256];
-        snprintf(full_path, sizeof(full_path), "%s/%s", kernel_base, kernel_files[i]);
-        raco_val(full_path, "0", 0);
-    }
     // Workqueue Modules
-    const char *wq_base = "/sys/module/workqueue/parameters";
     const char *wq_files[] = {"power_efficient", "disable_numa"};
-    int wq_count = sizeof(wq_files) / sizeof(wq_files[0]);
-
-    for (int i = 0; i < wq_count; i++) {
-        char full_path[256];
-        snprintf(full_path, sizeof(full_path), "%s/%s", wq_base, wq_files[i]);
-        raco_val(full_path, "N", 0);
-    }
+    raco_bulk("/sys/module/workqueue/parameters", wq_files, 2, "N", 0);
 
     // Some Tweaks
     raco_val("/sys/kernel/fpsgo/fbt/thrm_enable", "0", 0);
@@ -126,15 +123,8 @@ void disable_cpu_limits() {
 }
 
 void disable_gpu_limits() {
-    const char *gpu_base = "/sys/class/kgsl/kgsl-3d0";
     const char *gpu_files[] = {"throttling", "max_gpuclk", "thermal_pwrlevel"};
-    int gpu_count = sizeof(gpu_files) / sizeof(gpu_files[0]);
-
-    for (int i = 0; i < gpu_count; i++) {
-        char full_path[256];
-        snprintf(full_path, sizeof(full_path), "%s/%s", gpu_base, gpu_files[i]);
-        raco_val(full_path, "0", 0);
-    }
+    raco_bulk("/sys/class/kgsl/kgsl-3d0", gpu_files, 3, "0", 0);
     raco_val("/sys/class/kgsl/kgsl-3d0/force_clk_on", "1", 0);
 
     raco_val("/proc/gpufreq/gpufreq_power_limited", "0", 0);
@@ -143,12 +133,12 @@ void disable_gpu_limits() {
 
 void spoof_run() {
     system("for prop in $(getprop | grep -E 'sys\\..*thermal|thermal_config' | grep -v \"hal\" | cut -d: -f1 | tr -d '[]'); do resetprop -n \"$prop\" \"0\"; done");
-    
+
     // Transsion/Infinix check
     system("if resetprop debug.thermal.throttle.support | grep -q 'yes'; then resetprop -n -v debug.thermal.throttle.support no; fi");
 
     // The Running Spoof
-    system("getprop | grep 'thermal' | grep -v \"hal\" | cut -d '[' -f2 | cut -d ']' -f1 | while read -r prop; do if [ -n \"$prop\" ]; then resetprop -n \"$prop\" \"running\"; fi; done");
+    spoof_thermal_state("running");
 }
 
 void exec_anya_melfissa() {
@@ -156,7 +146,7 @@ void exec_anya_melfissa() {
 
     system("killall -9 thermald android.hardware.thermal@2.0-service 2>/dev/null");
     system("pgrep -f \"thermal\" | grep -v \"hal\" | xargs -r kill -9 2>/dev/null");
-    system("getprop | grep -E 'init.svc.*thermal' | grep -v \"hal\" | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | while read -r svc; do stop \"$svc\"; setprop ctl.stop \"$svc\"; done");
+    system("getprop | grep -E 'init.svc.*thermal' | grep -v \"hal\" | cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | while read -r svc; do stop \"$svc\"; done");
 
     // Exec Parallel
     pid_t pid1 = fork();
