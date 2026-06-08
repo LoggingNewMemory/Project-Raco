@@ -13,7 +13,7 @@ Copyright (C) 2026 Kanagawa Yamada
 static void spoof_thermal_props(const char *state) {
     char cmd[512];
     snprintf(cmd, sizeof(cmd),
-        "getprop | grep 'thermal' | grep -v 'hal' | cut -d'[' -f2 | cut -d']' -f1 | "
+        "getprop | grep -E '^\\[init\\.svc\\..*thermal' | grep -v -iE 'hal|hardware\\.thermal' | cut -d'[' -f2 | cut -d']' -f1 | "
         "while read -r prop; do [ -n \"$prop\" ] && resetprop -n \"$prop\" \"%s\"; done", state);
     system(cmd);
 }
@@ -28,8 +28,8 @@ void exec_anya_kawaii() {
     system("umount /vendor/bin/thermald 2>/dev/null");
 
     // Restart thermal services
-    system("getprop | grep -E 'init\\.svc(\\.vendor)?\\.thermal' | grep -v 'hal' | "
-           "cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | "
+    system("getprop | grep -E '^\\[init\\.svc\\..*thermal' | grep -v -iE 'hal|hardware\\.thermal' | "
+           "cut -d: -f1 | tr -d '[]' | sed 's/init\\.svc\\.//g' | "
            "while read -r svc; do resetprop -n \"init.svc.$svc\" \"stopped\"; start \"$svc\"; done");
 
     spoof_thermal_props("running");
@@ -42,18 +42,18 @@ void exec_anya_melfissa() {
     printf("Anya Melfissa Start...\n");
 
     // Kill & stop all thermal processes and services
-    system("killall -9 thermald android.hardware.thermal@2.0-service 2>/dev/null; "
-           "pgrep -f 'thermal' | grep -v 'hal' | xargs -r kill -9 2>/dev/null; "
-           "getprop | grep -E 'init\\.svc.*thermal' | grep -v 'hal' | "
-           "cut -d: -f1 | sed 's/init.svc.//g' | tr -d '[]' | "
-           "while read -r svc; do stop \"$svc\"; done");
+    system("getprop | grep -E '^\\[init\\.svc\\..*thermal' | grep -v -iE 'hal|hardware\\.thermal' | "
+           "cut -d: -f1 | tr -d '[]' | sed 's/init\\.svc\\.//g' | "
+           "while read -r svc; do stop \"$svc\"; done; "
+           "killall -9 thermald 2>/dev/null; "
+           "pgrep -l 'thermal' | grep -v -iE 'hal|hardware\\.thermal' | cut -d' ' -f1 | xargs -r kill -9 2>/dev/null");
 
     // Block thermald & clean configs
     system("mount -o bind /dev/null /vendor/bin/thermald 2>/dev/null; "
            "rm -f /data/vendor/thermal/config /data/vendor/thermal/*.dump 2>/dev/null");
 
     // Spoof thermal props + OEM check
-    system("for prop in $(getprop | grep -E 'sys\\..*thermal|thermal_config' | grep -v 'hal' | "
+    system("for prop in $(getprop | grep -E 'sys\\..*thermal|thermal_config' | grep -v -iE 'hal|hardware\\.thermal' | "
            "cut -d: -f1 | tr -d '[]'); do resetprop -n \"$prop\" \"0\"; done; "
            "resetprop debug.thermal.throttle.support 2>/dev/null | grep -q 'yes' && "
            "resetprop -n debug.thermal.throttle.support no");
