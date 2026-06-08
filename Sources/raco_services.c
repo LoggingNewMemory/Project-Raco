@@ -270,7 +270,6 @@ void apply_system_optimizations() {
         raco_bulk("", trace_on_files, trace_on_count, "0", 0);
 
 
-        system("setprop persist.sys.usb.config adb 2>/dev/null");
         system("setprop ro.logd.size.stats 0 2>/dev/null");
         system("setprop ro.logdumpd.enabled false 2>/dev/null");
 
@@ -391,9 +390,6 @@ void apply_system_optimizations() {
 
     // 8. GHenna & Yanz VM memory cache & Zram tuning
     {
-        rawrite("3", "/proc/sys/vm/drop_caches");
-        rawrite("1", "/proc/sys/vm/compact_memory");
-        
         const char *vm_base = "/proc/sys/vm/";
         const char *vm_files_0[] = { "extra_free_kbytes", "oom_kill_allocating_task" };
         int vm_count_0 = sizeof(vm_files_0) / sizeof(vm_files_0[0]);
@@ -403,6 +399,10 @@ void apply_system_optimizations() {
         rawrite("1024,2048,4096,8192,12288,16384", "/sys/module/lowmemorykiller/parameters/minfree");
         rawrite("32", "/sys/module/lowmemorykiller/parameters/cost");
         rawrite("0", "/sys/module/lowmemorykiller/parameters/enable_adaptive_lmk");
+
+        // Deferred: flush caches after all optimizations are stable
+        rawrite("3", "/proc/sys/vm/drop_caches");
+        rawrite("1", "/proc/sys/vm/compact_memory");
     }
 
     // 9. GHenna GPU Debug disablement & HWUI tweaks & LMK & Vsync
@@ -447,9 +447,31 @@ void apply_system_optimizations() {
     }
 }
 
+// Disable kernel panic FIRST before any other sysfs operations
+static void disable_kernel_panic_early() {
+    const char *panic_proc_base = "/proc/sys/kernel/";
+    const char *panic_proc_files[] = {
+        "panic", "panic_on_oops", "panic_on_warn", "panic_on_rcu_stall"
+    };
+    int panic_proc_count = sizeof(panic_proc_files) / sizeof(panic_proc_files[0]);
+    raco_bulk(panic_proc_base, panic_proc_files, panic_proc_count, "0", 0);
+
+    const char *panic_mod_base = "/sys/module/kernel/parameters/";
+    const char *panic_mod_files[] = {
+        "panic", "panic_on_warn", "pause_on_oops"
+    };
+    int panic_mod_count = sizeof(panic_mod_files) / sizeof(panic_mod_files[0]);
+    raco_bulk(panic_mod_base, panic_mod_files, panic_mod_count, "0", 0);
+
+    rawrite("0", "/sys/module/kernel/panic_on_rcu_stall");
+}
+
 // Main execution routine
 int main(int argc, char *argv[]) {
 
+    // CRITICAL: Disable kernel panic before anything else
+    // Prevents sysfs write oops from triggering a reboot
+    disable_kernel_panic_early();
 
     // Reset STATE to empty
     system("sed -i 's/^STATE.*/STATE /' /data/ProjectRaco/raco.txt");
