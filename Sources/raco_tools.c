@@ -176,6 +176,7 @@ void clear_slingshot() {
     system("setprop debug.hwui.renderer none");
 }
 
+#ifndef STANDALONE
 void anyamelfissa() {
     if (config.anya == 1) {
         exec_anya_melfissa();
@@ -187,6 +188,7 @@ void anyakawaii() {
         exec_anya_kawaii();
     }
 }
+#endif
 
 void kill_all() {
     system("sync");

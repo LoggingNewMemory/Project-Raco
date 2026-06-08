@@ -184,7 +184,7 @@ build_modules() {
         exit 1
     fi
 
-    echo "[2/2] Building Raco Core Service (Boot Daemon)..."
+    echo "[2/5] Building Raco Core Service (Boot Daemon)..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/CoreSys/raco_service" \
         "$SRC_DIR/raco_services.c" \
@@ -197,10 +197,43 @@ build_modules() {
         exit 1
     fi
 
+    echo "[3/5] Building Anya Standalone..."
+    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" -DSTANDALONE \
+        -o "$MODULES_DIR/Compiled/anya" \
+        "$SRC_DIR/anya.c" \
+        "$SRC_DIR/raco_tools.c" \
+        "$SRC_DIR/raco_tool.s"; then
+        echo "❌ ERROR: Compilation of Anya failed!"
+        exit 1
+    fi
+
+    echo "[4/5] Building Zetamin Standalone..."
+    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" -DSTANDALONE \
+        -o "$MODULES_DIR/Compiled/zetamin" \
+        "$SRC_DIR/zetamin.c" \
+        "$SRC_DIR/raco_tools.c" \
+        "$SRC_DIR/raco_tool.s"; then
+        echo "❌ ERROR: Compilation of Zetamin failed!"
+        exit 1
+    fi
+
+    echo "[5/5] Building Kobo Standalone..."
+    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" -DSTANDALONE \
+        -o "$MODULES_DIR/Compiled/kobo" \
+        "$SRC_DIR/kobo.c" \
+        "$SRC_DIR/raco_tools.c" \
+        "$SRC_DIR/raco_tool.s"; then
+        echo "❌ ERROR: Compilation of Kobo failed!"
+        exit 1
+    fi
+
     # Strip the binaries to reduce file size and optimize
     echo "🗜️ Stripping Binaries..."
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/raco"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/CoreSys/raco_service"
+    $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/anya"
+    $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/zetamin"
+    $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/kobo"
 
     # ------------------------------------------
     # B. PACKAGING MODULE

@@ -161,3 +161,10 @@ void zetamin_optimize() {
     zetamin_facur();
     zetamin_flux();
 }
+
+#ifdef STANDALONE
+int main(int argc, char *argv[]) {
+    zetamin_optimize();
+    return 0;
+}
+#endif

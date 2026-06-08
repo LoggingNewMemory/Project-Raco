@@ -166,3 +166,20 @@ void exec_anya_melfissa() {
     // Apply Spoof when done
     spoof_run();
 }
+
+#ifdef STANDALONE
+int main(int argc, char *argv[]) {
+    if (argc > 1) {
+        if (strcmp(argv[1], "kawaii") == 0) {
+            exec_anya_kawaii();
+        } else if (strcmp(argv[1], "melfissa") == 0) {
+            exec_anya_melfissa();
+        } else {
+            printf("Usage: anya [kawaii|melfissa]\n");
+        }
+    } else {
+        printf("Usage: anya [kawaii|melfissa]\n");
+    }
+    return 0;
+}
+#endif

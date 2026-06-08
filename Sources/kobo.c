@@ -172,3 +172,10 @@ void kobo_fast_charge() {
     rawrite("100", "/sys/class/power_supply/battery/siop_level");
     rawrite("0", "/sys/class/power_supply/battery/charge_control_limit_max");   
 }
+
+#ifdef STANDALONE
+int main(int argc, char *argv[]) {
+    kobo_fast_charge();
+    return 0;
+}
+#endif
