@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
@@ -43,8 +46,8 @@ class InGameMenuService : Service() {
     private var rightTriggerView: ComposeView? = null
     private var lifecycleOwner: MyLifecycleOwner? = null
 
-    private var isLeftOpen = false
-    private var isRightOpen = false
+    private var isLeftOpen by mutableStateOf(false)
+    private var isRightOpen by mutableStateOf(false)
     
     // We pass a callback to RacoOverlay so it can update its own internal state to trigger the animation.
     private var openLeftMenu: (() -> Unit)? = null
@@ -133,8 +136,10 @@ class InGameMenuService : Service() {
                         }
                     }
                 }) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterStart) {
-                        Box(modifier = Modifier.width(4.dp).fillMaxHeight(0.8f).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                    if (!isLeftOpen && !isRightOpen) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterStart) {
+                            Box(modifier = Modifier.width(4.dp).fillMaxHeight(0.8f).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                        }
                     }
                 }
             }
@@ -168,8 +173,10 @@ class InGameMenuService : Service() {
                         }
                     }
                 }) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
-                        Box(modifier = Modifier.width(4.dp).fillMaxHeight(0.8f).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                    if (!isLeftOpen && !isRightOpen) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
+                            Box(modifier = Modifier.width(4.dp).fillMaxHeight(0.8f).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                        }
                     }
                 }
             }
