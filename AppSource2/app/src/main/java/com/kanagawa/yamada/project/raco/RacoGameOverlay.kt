@@ -184,10 +184,8 @@ fun NubiaRightPanel() {
             .padding(start = 48.dp, top = 24.dp, bottom = 24.dp, end = 24.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.End) {
-            Row {
-                Text("PROJECT", color = NubiaRed, fontSize = 20.sp, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
-                Text(" RACO", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
-            }
+            AutoSizeText("PROJECT", color = NubiaRed, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
+            AutoSizeText("RACO", color = Color.White, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
             Spacer(modifier = Modifier.height(24.dp))
             
             // Battery Monitor
@@ -207,4 +205,27 @@ fun NubiaRightPanel() {
     }
 }
 
-
+@Composable
+fun AutoSizeText(
+    text: String,
+    color: Color,
+    baseFontSize: Float,
+    fontWeight: FontWeight,
+    letterSpacing: androidx.compose.ui.unit.TextUnit
+) {
+    var multiplier by remember { mutableStateOf(1f) }
+    Text(
+        text = text,
+        color = color,
+        fontSize = (baseFontSize * multiplier).sp,
+        fontWeight = fontWeight,
+        letterSpacing = letterSpacing,
+        maxLines = 1,
+        softWrap = false,
+        onTextLayout = { textLayoutResult ->
+            if (textLayoutResult.hasVisualOverflow) {
+                multiplier *= 0.95f
+            }
+        }
+    )
+}
