@@ -329,19 +329,7 @@ fun HomeScreen() {
                         clipPath(path) { this@drawWithContent.drawContent() }
                     }
             ) {
-                if (!showPerfMenu) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Settings",
-                        tint = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .displayCutoutPadding()
-                            .padding(end = 24.dp, top = 24.dp)
-                            .size(28.dp)
-                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { showPerfMenu = true }
-                    )
-                }
+
 
                 Crossfade(targetState = showPerfMenu, modifier = Modifier.fillMaxSize(), label = "SettingsCrossfade") { isSettings ->
                     if (isSettings) {
@@ -457,6 +445,19 @@ fun HomeScreen() {
                             }
                         }
                     }
+                }
+                if (!showPerfMenu) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .displayCutoutPadding()
+                            .padding(end = 24.dp, top = 24.dp)
+                            .size(28.dp)
+                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { showPerfMenu = true }
+                    )
                 }
             }
         }
