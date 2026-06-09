@@ -435,7 +435,9 @@ fun HomeScreen() {
                                                             context.startService(serviceIntent)
                                                             
                                                             // Start the persistent in-game menu service
-                                                            val inGameIntent = Intent(context, InGameMenuService::class.java)
+                                                            val inGameIntent = Intent(context, InGameMenuService::class.java).apply {
+                                                                putExtra("package_name", game.packageName)
+                                                            }
                                                             context.startService(inGameIntent)
                                                         }
                                                     },

@@ -17,12 +17,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import android.app.usage.UsageStatsManager
+import android.app.usage.UsageEvents
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class InGameMenuService : Service() {
     private var windowManager: WindowManager? = null
@@ -38,7 +50,20 @@ class InGameMenuService : Service() {
     private var openLeftMenu: (() -> Unit)? = null
     private var openRightMenu: (() -> Unit)? = null
 
+    private var targetPackageName: String? = null
+    private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
+    private var isCheckerRunning = false
+
     override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val newTarget = intent?.getStringExtra("package_name")
+        if (newTarget != null) {
+            targetPackageName = newTarget
+            startForegroundAppChecker()
+        }
+        return START_NOT_STICKY
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -59,7 +84,7 @@ class InGameMenuService : Service() {
     private fun setupMainOverlay() {
         mainComposeView = ComposeView(this).apply {
             setContent {
-                NubiaOverlay(
+                RacoGameOverlay(
                     onStateBind = { openLeft, openRight ->
                         openLeftMenu = openLeft
                         openRightMenu = openRight
@@ -99,14 +124,18 @@ class InGameMenuService : Service() {
             setContent {
                 Box(modifier = Modifier.fillMaxSize().background(Color.Transparent).pointerInput(Unit) {
                     detectHorizontalDragGestures { _, dragAmount ->
-                        if (dragAmount > 10 && !isLeftOpen) {
+                        if (dragAmount > 10 && !isLeftOpen && !isRightOpen) {
                             isLeftOpen = true
+                            isRightOpen = true
                             updateMainOverlayTouchable()
                             openLeftMenu?.invoke()
+                            openRightMenu?.invoke()
                         }
                     }
                 }) {
-                    Box(modifier = Modifier.fillMaxSize().background(Color.White.copy(alpha=0.1f), RoundedCornerShape(2.dp)))
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterStart) {
+                        Box(modifier = Modifier.width(4.dp).fillMaxHeight(0.8f).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                    }
                 }
             }
         }
@@ -114,11 +143,14 @@ class InGameMenuService : Service() {
         
         val leftParams = WindowManager.LayoutParams(
             32, // width in pixels (will be small)
-            400, // height in pixels
+            WindowManager.LayoutParams.MATCH_PARENT, // height up to 80% visually
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
         )
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            leftParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
         leftParams.gravity = Gravity.START or Gravity.CENTER_VERTICAL
         windowManager?.addView(leftTriggerView, leftParams)
 
@@ -127,14 +159,18 @@ class InGameMenuService : Service() {
             setContent {
                 Box(modifier = Modifier.fillMaxSize().background(Color.Transparent).pointerInput(Unit) {
                     detectHorizontalDragGestures { _, dragAmount ->
-                        if (dragAmount < -10 && !isRightOpen) {
+                        if (dragAmount < -10 && !isLeftOpen && !isRightOpen) {
+                            isLeftOpen = true
                             isRightOpen = true
                             updateMainOverlayTouchable()
+                            openLeftMenu?.invoke()
                             openRightMenu?.invoke()
                         }
                     }
                 }) {
-                    Box(modifier = Modifier.fillMaxSize().background(Color.White.copy(alpha=0.1f), RoundedCornerShape(2.dp)))
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
+                        Box(modifier = Modifier.width(4.dp).fillMaxHeight(0.8f).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                    }
                 }
             }
         }
@@ -142,11 +178,14 @@ class InGameMenuService : Service() {
         
         val rightParams = WindowManager.LayoutParams(
             32, // width
-            400, // height
+            WindowManager.LayoutParams.MATCH_PARENT, // height
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
         )
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            rightParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
         rightParams.gravity = Gravity.END or Gravity.CENTER_VERTICAL
         windowManager?.addView(rightTriggerView, rightParams)
     }
@@ -170,6 +209,34 @@ class InGameMenuService : Service() {
         view.setViewTreeViewModelStoreOwner(object : ViewModelStoreOwner {
             override val viewModelStore: ViewModelStore get() = viewModelStore
         })
+    }
+
+    private fun startForegroundAppChecker() {
+        if (isCheckerRunning || targetPackageName == null) return
+        isCheckerRunning = true
+        serviceScope.launch {
+            val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+            var lastKnownApp: String? = targetPackageName
+            while (isActive) {
+                delay(1000)
+                val time = System.currentTimeMillis()
+                val events = usageStatsManager.queryEvents(time - 2000, time)
+                val event = UsageEvents.Event()
+                while (events.hasNextEvent()) {
+                    events.getNextEvent(event)
+                    if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
+                        lastKnownApp = event.packageName
+                    }
+                }
+                
+                if (lastKnownApp != targetPackageName && lastKnownApp != "com.android.systemui" && lastKnownApp != "android" && lastKnownApp != "com.kanagawa.yamada.project.raco") {
+                    withContext(Dispatchers.Main) {
+                        stopSelf()
+                    }
+                    break
+                }
+            }
+        }
     }
 
     override fun onDestroy() {

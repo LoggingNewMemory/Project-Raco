@@ -35,7 +35,7 @@ import kotlin.math.roundToInt
 val NubiaRed = Color(0xFFFF2A2A)
 
 @Composable
-fun NubiaOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -> Unit, onClose: () -> Unit) {
+fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -> Unit, onClose: () -> Unit) {
     var isLeftOpen by remember { mutableStateOf(false) }
     var isRightOpen by remember { mutableStateOf(false) }
 
@@ -46,39 +46,28 @@ fun NubiaOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -> U
         )
     }
 
-    val leftOffset by animateFloatAsState(
-        targetValue = if (isLeftOpen) 0f else -500f,
+    val leftOffset by animateDpAsState(
+        targetValue = if (isLeftOpen) 0.dp else (-300).dp,
         animationSpec = tween(400, easing = FastOutSlowInEasing),
         label = "leftOffset"
     )
 
-    val rightOffset by animateFloatAsState(
-        targetValue = if (isRightOpen) 0f else 500f,
+    val rightOffset by animateDpAsState(
+        targetValue = if (isRightOpen) 0.dp else 300.dp,
         animationSpec = tween(400, easing = FastOutSlowInEasing),
         label = "rightOffset"
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
         // The invisible touch areas for edge swipe to OPEN are now handled by InGameMenuService directly!
-        // We only need the swipe to CLOSE areas.
-        if (isLeftOpen) {
+        if (isLeftOpen || isRightOpen) {
             Box(
                 modifier = Modifier.fillMaxSize().pointerInput(Unit) {
                     detectHorizontalDragGestures { _, dragAmount ->
-                        if (dragAmount < -20) {
+                        // Swipe left (< -20) closes left panel, swipe right (> 20) closes right panel.
+                        // Since they are synced, either swipe closes both.
+                        if (dragAmount < -20 || dragAmount > 20) {
                             isLeftOpen = false
-                            onClose()
-                        }
-                    }
-                }
-            )
-        }
-
-        if (isRightOpen) {
-            Box(
-                modifier = Modifier.fillMaxSize().pointerInput(Unit) {
-                    detectHorizontalDragGestures { _, dragAmount ->
-                        if (dragAmount > 20) {
                             isRightOpen = false
                             onClose()
                         }
@@ -91,7 +80,7 @@ fun NubiaOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -> U
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .offset { IntOffset(leftOffset.roundToInt(), 0) }
+                .offset(x = leftOffset)
                 .fillMaxHeight()
                 .width(260.dp)
         ) {
@@ -102,7 +91,7 @@ fun NubiaOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -> U
         Box(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .offset { IntOffset(rightOffset.roundToInt(), 0) }
+                .offset(x = rightOffset)
                 .fillMaxHeight()
                 .width(260.dp)
         ) {
