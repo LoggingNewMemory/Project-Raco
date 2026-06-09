@@ -34,6 +34,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.text.style.TextAlign
 import kotlin.math.roundToInt
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -50,6 +53,14 @@ val RacoRed = Color(0xFFFF2A2A)
 fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -> Unit, onClose: () -> Unit) {
     var isLeftOpen by remember { mutableStateOf(false) }
     var isRightOpen by remember { mutableStateOf(false) }
+
+    val lineSlideProgress = remember { Animatable(0f) }
+
+    LaunchedEffect(isLeftOpen, isRightOpen) {
+        if ((isLeftOpen || isRightOpen) && lineSlideProgress.value == 0f) {
+            lineSlideProgress.animateTo(1f, tween(durationMillis = 1800, easing = FastOutSlowInEasing, delayMillis = 200))
+        }
+    }
 
     LaunchedEffect(Unit) {
         onStateBind(
@@ -96,7 +107,7 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
                 .fillMaxHeight()
                 .width(260.dp)
         ) {
-            RacoLeftPanel()
+            RacoLeftPanel(lineSlideProgress.value)
         }
 
         // RIGHT PANEL
@@ -107,13 +118,13 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
                 .fillMaxHeight()
                 .width(260.dp)
         ) {
-            RacoRightPanel()
+            RacoRightPanel(lineSlideProgress.value)
         }
     }
 }
 
 @Composable
-fun RacoLeftPanel() {
+fun RacoLeftPanel(progress: Float = 1f) {
     var cpuFreq by remember { mutableStateOf("0.00") }
 
     LaunchedEffect(Unit) {
@@ -174,9 +185,19 @@ fun RacoLeftPanel() {
                     lineTo(size.width, size.height * 0.3f)
                     lineTo(size.width * 0.48f, size.height * 1.2f)
                 }
-                drawPath(path = borderPath, color = RacoRed, style = Stroke(width = 6.dp.toPx()))
-                // Outer glow
-                drawPath(path = borderPath, color = RacoRed.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
+                
+                // Base white line
+                drawPath(path = borderPath, color = Color.White, style = Stroke(width = 6.dp.toPx()))
+                drawPath(path = borderPath, color = Color.White.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
+
+                // Uprise Red glowing border
+                if (progress > 0f) {
+                    val currentTop = size.height * 1.2f - (size.height * 1.4f * progress)
+                    clipRect(top = currentTop, bottom = size.height * 1.2f, left = -size.width, right = size.width * 2f) {
+                        drawPath(path = borderPath, color = RacoRed, style = Stroke(width = 6.dp.toPx()))
+                        drawPath(path = borderPath, color = RacoRed.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
+                    }
+                }
             }
             .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 48.dp)
     ) {
@@ -214,7 +235,7 @@ fun RacoLeftPanel() {
 }
 
 @Composable
-fun RacoRightPanel() {
+fun RacoRightPanel(progress: Float = 1f) {
     val context = LocalContext.current
     var batteryLevel by remember { mutableStateOf("--") }
 
@@ -257,9 +278,19 @@ fun RacoRightPanel() {
                     lineTo(0f, size.height * 0.3f)
                     lineTo(size.width * 0.52f, size.height * 1.2f)
                 }
-                drawPath(path = borderPath, color = RacoRed, style = Stroke(width = 6.dp.toPx()))
-                // Outer glow
-                drawPath(path = borderPath, color = RacoRed.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
+                
+                // Base white line
+                drawPath(path = borderPath, color = Color.White, style = Stroke(width = 6.dp.toPx()))
+                drawPath(path = borderPath, color = Color.White.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
+
+                // Uprise Red glowing border
+                if (progress > 0f) {
+                    val currentTop = size.height * 1.2f - (size.height * 1.4f * progress)
+                    clipRect(top = currentTop, bottom = size.height * 1.2f, left = -size.width, right = size.width * 2f) {
+                        drawPath(path = borderPath, color = RacoRed, style = Stroke(width = 6.dp.toPx()))
+                        drawPath(path = borderPath, color = RacoRed.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
+                    }
+                }
             }
             .padding(start = 48.dp, top = 24.dp, bottom = 24.dp, end = 24.dp)
     ) {
@@ -268,8 +299,91 @@ fun RacoRightPanel() {
             AutoSizeText("RACO", color = Color.White, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Battery Monitor
-            Column(horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxWidth()) {
+            // Performance & Battery Row
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                var expanded by remember { mutableStateOf(false) }
+                var currentPerfMode by remember { mutableStateOf(PerfMode.AWAKEN) }
+                val density = LocalDensity.current
+
+                val getModeTitle = { mode: PerfMode ->
+                    when (mode) {
+                        PerfMode.AWAKEN -> "AWAKEN"
+                        PerfMode.BALANCED -> "MID"
+                        PerfMode.POWERSAVE -> "ECO"
+                    }
+                }
+                
+                val trapezoidShape = remember(density) {
+                    androidx.compose.foundation.shape.GenericShape { size, _ ->
+                        moveTo(0f, 0f)
+                        lineTo(size.width, 0f)
+                        lineTo(size.width, size.height)
+                        lineTo(size.height * 0.5f, size.height)
+                        close()
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .offset(x = (-16).dp)
+                        .weight(1f)
+                        .height(32.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.Top, unbounded = true)
+                            .clip(trapezoidShape)
+                            .border(1.dp, currentPerfMode.color.copy(alpha = 0.5f), trapezoidShape)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(32.dp)
+                                .background(currentPerfMode.color.copy(alpha = 0.2f))
+                                .clickable { expanded = !expanded }
+                                .padding(end = 8.dp),
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            Text(
+                                text = getModeTitle(currentPerfMode),
+                                color = currentPerfMode.color,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+                        }
+
+                        if (expanded) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color(0xFF1A1A1A))
+                            ) {
+                                PerfMode.entries.forEach { mode ->
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { 
+                                                currentPerfMode = mode
+                                                expanded = false
+                                            }
+                                            .padding(vertical = 12.dp, horizontal = 12.dp),
+                                        contentAlignment = Alignment.CenterEnd
+                                    ) {
+                                        Text(
+                                            text = getModeTitle(mode), 
+                                            color = mode.color, 
+                                            fontSize = 12.sp, 
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Text(
                     text = buildAnnotatedString {
                         append(batteryLevel)
@@ -281,9 +395,8 @@ fun RacoRightPanel() {
                     fontSize = 36.sp,
                     fontWeight = FontWeight.Black
                 )
-                
-                Spacer(modifier = Modifier.height(8.dp))
             }
+            Spacer(modifier = Modifier.height(8.dp))
             
         }
     }
