@@ -46,7 +46,7 @@ class InGameMenuService : Service() {
     private var isLeftOpen = false
     private var isRightOpen = false
     
-    // We pass a callback to NubiaOverlay so it can update its own internal state to trigger the animation.
+    // We pass a callback to RacoOverlay so it can update its own internal state to trigger the animation.
     private var openLeftMenu: (() -> Unit)? = null
     private var openRightMenu: (() -> Unit)? = null
 

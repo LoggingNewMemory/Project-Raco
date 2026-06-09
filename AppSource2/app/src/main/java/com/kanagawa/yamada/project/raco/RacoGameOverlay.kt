@@ -29,10 +29,22 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.BaselineShift
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
+import androidx.compose.ui.platform.LocalContext
+import java.io.RandomAccessFile
+import kotlinx.coroutines.delay
 
-val NubiaRed = Color(0xFFFF2A2A)
+val RacoRed = Color(0xFFFF2A2A)
 
 @Composable
 fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -> Unit, onClose: () -> Unit) {
@@ -84,7 +96,7 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
                 .fillMaxHeight()
                 .width(260.dp)
         ) {
-            NubiaLeftPanel()
+            RacoLeftPanel()
         }
 
         // RIGHT PANEL
@@ -95,13 +107,50 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
                 .fillMaxHeight()
                 .width(260.dp)
         ) {
-            NubiaRightPanel()
+            RacoRightPanel()
         }
     }
 }
 
 @Composable
-fun NubiaLeftPanel() {
+fun RacoLeftPanel() {
+    var cpuFreq by remember { mutableStateOf("0.00") }
+
+    LaunchedEffect(Unit) {
+        var targetFile = "/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq"
+        try {
+            val cpufreqDir = java.io.File("/sys/devices/system/cpu/cpufreq/")
+            val maxPolicyNum = cpufreqDir.listFiles()
+                ?.mapNotNull { 
+                    if (it.name.startsWith("policy")) it.name.removePrefix("policy").toIntOrNull() else null 
+                }
+                ?.maxOrNull()
+            
+            if (maxPolicyNum != null) {
+                val file = java.io.File("/sys/devices/system/cpu/cpufreq/policy$maxPolicyNum/scaling_cur_freq")
+                if (file.exists()) {
+                    targetFile = file.absolutePath
+                }
+            }
+        } catch (e: Exception) {
+            // Fallback to policy0
+        }
+
+        while(true) {
+            try {
+                val reader = RandomAccessFile(targetFile, "r")
+                val freqString = reader.readLine()
+                reader.close()
+                val freqHz = freqString.toLong()
+                val freqGHz = freqHz / 1000000.0
+                cpuFreq = String.format(java.util.Locale.US, "%.2f", freqGHz)
+            } catch (e: Exception) {
+                // Ignore or keep last known
+            }
+            delay(1000)
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -125,9 +174,9 @@ fun NubiaLeftPanel() {
                     lineTo(size.width, size.height * 0.4f)
                     lineTo(size.width * 0.6f, size.height)
                 }
-                drawPath(path = borderPath, color = NubiaRed, style = Stroke(width = 6.dp.toPx()))
+                drawPath(path = borderPath, color = RacoRed, style = Stroke(width = 6.dp.toPx()))
                 // Outer glow
-                drawPath(path = borderPath, color = NubiaRed.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
+                drawPath(path = borderPath, color = RacoRed.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
             }
             .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 48.dp)
     ) {
@@ -135,16 +184,28 @@ fun NubiaLeftPanel() {
             Spacer(modifier = Modifier.height(24.dp))
             
             // CPU Monitor
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text("2.70", color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.Black)
-                Text("GHz", color = Color.White.copy(alpha=0.6f), fontSize = 12.sp)
+            Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "CPU",
+                    color = RacoRed,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = buildAnnotatedString {
+                        append(cpuFreq)
+                        withStyle(SpanStyle(fontSize = 14.sp, color = Color.White.copy(alpha=0.6f), baselineShift = BaselineShift.Superscript)) {
+                            append(" GHz")
+                        }
+                    },
+                    color = Color.White,
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Black
+                )
                 
                 Spacer(modifier = Modifier.height(8.dp))
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                Box(modifier = Modifier.border(1.dp, NubiaRed, RoundedCornerShape(16.dp)).padding(horizontal = 32.dp, vertical = 8.dp)) {
-                    Text("Rise", color = Color.White, fontWeight = FontWeight.Bold)
-                }
             }
             
 
@@ -153,7 +214,26 @@ fun NubiaLeftPanel() {
 }
 
 @Composable
-fun NubiaRightPanel() {
+fun RacoRightPanel() {
+    val context = LocalContext.current
+    var batteryLevel by remember { mutableStateOf("--") }
+
+    DisposableEffect(context) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(c: Context, intent: Intent) {
+                val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+                if (level != -1 && scale != -1) {
+                    batteryLevel = (level * 100 / scale.toFloat()).toInt().toString()
+                }
+            }
+        }
+        context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        onDispose {
+            context.unregisterReceiver(receiver)
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -177,28 +257,32 @@ fun NubiaRightPanel() {
                     lineTo(0f, size.height * 0.4f)
                     lineTo(size.width * 0.4f, size.height)
                 }
-                drawPath(path = borderPath, color = NubiaRed, style = Stroke(width = 6.dp.toPx()))
+                drawPath(path = borderPath, color = RacoRed, style = Stroke(width = 6.dp.toPx()))
                 // Outer glow
-                drawPath(path = borderPath, color = NubiaRed.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
+                drawPath(path = borderPath, color = RacoRed.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
             }
             .padding(start = 48.dp, top = 24.dp, bottom = 24.dp, end = 24.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.End) {
-            AutoSizeText("PROJECT", color = NubiaRed, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
+            AutoSizeText("PROJECT", color = RacoRed, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
             AutoSizeText("RACO", color = Color.White, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
             Spacer(modifier = Modifier.height(24.dp))
             
             // Battery Monitor
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text("96", color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.Black)
-                Text("%", color = Color.White.copy(alpha=0.6f), fontSize = 12.sp)
+            Column(horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = buildAnnotatedString {
+                        append(batteryLevel)
+                        withStyle(SpanStyle(fontSize = 14.sp, color = Color.White.copy(alpha=0.6f), baselineShift = BaselineShift.Superscript)) {
+                            append("%")
+                        }
+                    },
+                    color = Color.White,
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Black
+                )
                 
                 Spacer(modifier = Modifier.height(8.dp))
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                Box(modifier = Modifier.border(1.dp, NubiaRed, RoundedCornerShape(16.dp)).padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    Text("Power Saving", color = Color.White, fontWeight = FontWeight.Bold)
-                }
             }
             
         }
