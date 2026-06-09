@@ -53,12 +53,33 @@ val RacoRed = Color(0xFFFF2A2A)
 fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -> Unit, onClose: () -> Unit) {
     var isLeftOpen by remember { mutableStateOf(false) }
     var isRightOpen by remember { mutableStateOf(false) }
+    var currentPerfMode by remember { mutableStateOf(PerfMode.AWAKEN) }
+
+    val themeColor by androidx.compose.animation.animateColorAsState(
+        targetValue = currentPerfMode.color,
+        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+        label = "themeColor"
+    )
 
     val lineSlideProgress = remember { Animatable(0f) }
 
+    // Premium fluid motion curve: perfectly smooth transition from high speed to a long, gentle glide
+    val dramaticEasing = androidx.compose.animation.core.CubicBezierEasing(0.16f, 1.0f, 0.3f, 1.0f)
+
     LaunchedEffect(isLeftOpen, isRightOpen) {
         if ((isLeftOpen || isRightOpen) && lineSlideProgress.value == 0f) {
-            lineSlideProgress.animateTo(1f, tween(durationMillis = 1800, easing = FastOutSlowInEasing, delayMillis = 200))
+            lineSlideProgress.animateTo(1f, tween(durationMillis = 1800, easing = dramaticEasing, delayMillis = 200))
+        }
+    }
+
+    var lastMode by remember { mutableStateOf(currentPerfMode) }
+    LaunchedEffect(currentPerfMode) {
+        if (lastMode != currentPerfMode) {
+            lastMode = currentPerfMode
+            if (isLeftOpen || isRightOpen) {
+                lineSlideProgress.snapTo(0f)
+                lineSlideProgress.animateTo(1f, tween(durationMillis = 1800, easing = dramaticEasing))
+            }
         }
     }
 
@@ -103,28 +124,33 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .offset(x = leftOffset)
+                .offset { androidx.compose.ui.unit.IntOffset(leftOffset.roundToPx(), 0) }
                 .fillMaxHeight()
                 .width(260.dp)
         ) {
-            RacoLeftPanel(lineSlideProgress.value)
+            RacoLeftPanel(progressProvider = { lineSlideProgress.value }, themeColor = themeColor)
         }
 
         // RIGHT PANEL
         Box(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .offset(x = rightOffset)
+                .offset { androidx.compose.ui.unit.IntOffset(rightOffset.roundToPx(), 0) }
                 .fillMaxHeight()
                 .width(260.dp)
         ) {
-            RacoRightPanel(lineSlideProgress.value)
+            RacoRightPanel(
+                progressProvider = { lineSlideProgress.value },
+                currentPerfMode = currentPerfMode,
+                themeColor = themeColor,
+                onModeChange = { currentPerfMode = it }
+            )
         }
     }
 }
 
 @Composable
-fun RacoLeftPanel(progress: Float = 1f) {
+fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = RacoRed) {
     var cpuFreq by remember { mutableStateOf("0.00") }
 
     LaunchedEffect(Unit) {
@@ -191,11 +217,12 @@ fun RacoLeftPanel(progress: Float = 1f) {
                 drawPath(path = borderPath, color = Color.White.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
 
                 // Uprise Red glowing border
+                val progress = progressProvider()
                 if (progress > 0f) {
                     val currentTop = size.height * 1.2f - (size.height * 1.4f * progress)
                     clipRect(top = currentTop, bottom = size.height * 1.2f, left = -size.width, right = size.width * 2f) {
-                        drawPath(path = borderPath, color = RacoRed, style = Stroke(width = 6.dp.toPx()))
-                        drawPath(path = borderPath, color = RacoRed.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
+                        drawPath(path = borderPath, color = themeColor, style = Stroke(width = 6.dp.toPx()))
+                        drawPath(path = borderPath, color = themeColor.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
                     }
                 }
             }
@@ -208,7 +235,7 @@ fun RacoLeftPanel(progress: Float = 1f) {
             Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "CPU",
-                    color = RacoRed,
+                    color = themeColor,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 2.sp
@@ -235,7 +262,12 @@ fun RacoLeftPanel(progress: Float = 1f) {
 }
 
 @Composable
-fun RacoRightPanel(progress: Float = 1f) {
+fun RacoRightPanel(
+    progressProvider: () -> Float = { 1f },
+    currentPerfMode: PerfMode = PerfMode.AWAKEN,
+    themeColor: Color = RacoRed,
+    onModeChange: (PerfMode) -> Unit = {}
+) {
     val context = LocalContext.current
     var batteryLevel by remember { mutableStateOf("--") }
 
@@ -284,25 +316,25 @@ fun RacoRightPanel(progress: Float = 1f) {
                 drawPath(path = borderPath, color = Color.White.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
 
                 // Uprise Red glowing border
+                val progress = progressProvider()
                 if (progress > 0f) {
                     val currentTop = size.height * 1.2f - (size.height * 1.4f * progress)
                     clipRect(top = currentTop, bottom = size.height * 1.2f, left = -size.width, right = size.width * 2f) {
-                        drawPath(path = borderPath, color = RacoRed, style = Stroke(width = 6.dp.toPx()))
-                        drawPath(path = borderPath, color = RacoRed.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
+                        drawPath(path = borderPath, color = themeColor, style = Stroke(width = 6.dp.toPx()))
+                        drawPath(path = borderPath, color = themeColor.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
                     }
                 }
             }
             .padding(start = 48.dp, top = 24.dp, bottom = 24.dp, end = 24.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.End) {
-            AutoSizeText("PROJECT", color = RacoRed, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
+            AutoSizeText("PROJECT", color = themeColor, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
             AutoSizeText("RACO", color = Color.White, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
             Spacer(modifier = Modifier.height(24.dp))
             
             // Performance & Battery Row
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                 var expanded by remember { mutableStateOf(false) }
-                var currentPerfMode by remember { mutableStateOf(PerfMode.AWAKEN) }
                 val density = LocalDensity.current
 
                 val getModeTitle = { mode: PerfMode ->
@@ -334,20 +366,20 @@ fun RacoRightPanel(progress: Float = 1f) {
                             .fillMaxWidth()
                             .wrapContentHeight(align = Alignment.Top, unbounded = true)
                             .clip(trapezoidShape)
-                            .border(1.dp, currentPerfMode.color.copy(alpha = 0.5f), trapezoidShape)
+                            .border(1.dp, themeColor.copy(alpha = 0.5f), trapezoidShape)
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(32.dp)
-                                .background(currentPerfMode.color.copy(alpha = 0.2f))
+                                .background(themeColor.copy(alpha = 0.2f))
                                 .clickable { expanded = !expanded }
                                 .padding(end = 8.dp),
                             contentAlignment = Alignment.CenterEnd
                         ) {
                             Text(
                                 text = getModeTitle(currentPerfMode),
-                                color = currentPerfMode.color,
+                                color = themeColor,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.sp
@@ -365,7 +397,7 @@ fun RacoRightPanel(progress: Float = 1f) {
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clickable { 
-                                                currentPerfMode = mode
+                                                onModeChange(mode)
                                                 expanded = false
                                             }
                                             .padding(vertical = 12.dp, horizontal = 12.dp),
