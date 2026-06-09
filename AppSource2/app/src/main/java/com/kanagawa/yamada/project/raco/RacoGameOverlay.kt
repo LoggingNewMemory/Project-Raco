@@ -157,9 +157,9 @@ fun RacoLeftPanel() {
             .drawBehind {
                 val path = Path().apply {
                     moveTo(0f, -size.height * 0.2f)
-                    lineTo(size.width * 0.55f, -size.height * 0.2f)
-                    lineTo(size.width, size.height * 0.4f)
-                    lineTo(size.width * 0.45f, size.height * 1.2f)
+                    lineTo(size.width * 0.5f, -size.height * 0.2f)
+                    lineTo(size.width, size.height * 0.3f)
+                    lineTo(size.width * 0.48f, size.height * 1.2f)
                     lineTo(0f, size.height * 1.2f)
                     close()
                 }
@@ -170,9 +170,9 @@ fun RacoLeftPanel() {
                 
                 // Red glowing border
                 val borderPath = Path().apply {
-                    moveTo(size.width * 0.55f, -size.height * 0.2f)
-                    lineTo(size.width, size.height * 0.4f)
-                    lineTo(size.width * 0.45f, size.height * 1.2f)
+                    moveTo(size.width * 0.5f, -size.height * 0.2f)
+                    lineTo(size.width, size.height * 0.3f)
+                    lineTo(size.width * 0.48f, size.height * 1.2f)
                 }
                 drawPath(path = borderPath, color = RacoRed, style = Stroke(width = 6.dp.toPx()))
                 // Outer glow
@@ -240,9 +240,9 @@ fun RacoRightPanel() {
             .drawBehind {
                 val path = Path().apply {
                     moveTo(size.width, -size.height * 0.2f)
-                    lineTo(size.width * 0.45f, -size.height * 0.2f)
-                    lineTo(0f, size.height * 0.4f)
-                    lineTo(size.width * 0.55f, size.height * 1.2f)
+                    lineTo(size.width * 0.5f, -size.height * 0.2f)
+                    lineTo(0f, size.height * 0.3f)
+                    lineTo(size.width * 0.52f, size.height * 1.2f)
                     lineTo(size.width, size.height * 1.2f)
                     close()
                 }
@@ -253,9 +253,9 @@ fun RacoRightPanel() {
                 
                 // Red glowing border
                 val borderPath = Path().apply {
-                    moveTo(size.width * 0.45f, -size.height * 0.2f)
-                    lineTo(0f, size.height * 0.4f)
-                    lineTo(size.width * 0.55f, size.height * 1.2f)
+                    moveTo(size.width * 0.5f, -size.height * 0.2f)
+                    lineTo(0f, size.height * 0.3f)
+                    lineTo(size.width * 0.52f, size.height * 1.2f)
                 }
                 drawPath(path = borderPath, color = RacoRed, style = Stroke(width = 6.dp.toPx()))
                 // Outer glow
