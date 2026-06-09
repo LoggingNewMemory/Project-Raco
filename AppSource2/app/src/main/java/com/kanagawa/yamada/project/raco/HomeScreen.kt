@@ -496,7 +496,7 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
             .padding(vertical = 4.dp)
     ) {
         Box(
-            modifier = Modifier.size(64.dp).then(if (isSelected) Modifier.neonGlow(accentColor, 16.dp) else Modifier).background(Color.DarkGray, RoundedCornerShape(8.dp))
+            modifier = Modifier.size(64.dp)
         ) {
             if (game.icon != null) {
                 Image(
@@ -603,21 +603,7 @@ fun formatDuration(millis: Long): String {
 
 fun drawableToImageBitmap(drawable: Drawable): ImageBitmap? {
     try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && drawable is android.graphics.drawable.AdaptiveIconDrawable) {
-            val size = 1024
-            val bitmap = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
-            val canvas = android.graphics.Canvas(bitmap)
 
-            drawable.background?.apply {
-                setBounds(0, 0, size, size)
-                draw(canvas)
-            }
-            drawable.foreground?.apply {
-                setBounds(0, 0, size, size)
-                draw(canvas)
-            }
-            return bitmap.asImageBitmap()
-        }
 
         if (drawable is BitmapDrawable && drawable.bitmap != null) return drawable.bitmap.asImageBitmap()
 
@@ -630,6 +616,7 @@ fun drawableToImageBitmap(drawable: Drawable): ImageBitmap? {
         return bitmap.asImageBitmap()
     } catch (e: Exception) { return null }
 }
+
 
 @Composable
 fun rememberCurrentTime(): State<String> {
