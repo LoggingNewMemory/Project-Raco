@@ -378,110 +378,11 @@ fun HomeScreen() {
                             if (installedGames.isNotEmpty()) {
                                 val activeGame = installedGames[selectedGameIndex]
 
-                                // ── 1. ULTRA-PREMIUM 3D FLOATING ICON ──
-
-                                // Hoisted infinite transition state to ensure continuity across game changes
-                                val infiniteTransition = rememberInfiniteTransition(label = "floatingIcon")
-                                val floatY by infiniteTransition.animateFloat(
-                                    initialValue = -25f,
-                                    targetValue = 25f,
-                                    animationSpec = infiniteRepeatable(tween(3500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-                                    label = "yOffset"
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.Black)
                                 )
-                                val rotationTiltX by infiniteTransition.animateFloat(
-                                    initialValue = -4f,
-                                    targetValue = 4f,
-                                    animationSpec = infiniteRepeatable(tween(4500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-                                    label = "tiltX"
-                                )
-                                val rotationTiltY by infiniteTransition.animateFloat(
-                                    initialValue = -6f,
-                                    targetValue = 6f,
-                                    animationSpec = infiniteRepeatable(tween(5500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-                                    label = "tiltY"
-                                )
-
-                                Crossfade(
-                                    targetState = activeGame,
-                                    animationSpec = tween(700, easing = FastOutSlowInEasing),
-                                    modifier = Modifier.fillMaxSize(),
-                                    label = "BgCrossfade"
-                                ) { game ->
-                                    Box(modifier = Modifier.fillMaxSize()) {
-                                        if (game.icon != null) {
-
-                                            // ── BLURRED & DARKENED BACKGROUND LAYER ──
-                                            Image(
-                                                bitmap = game.icon,
-                                                contentDescription = "Blurred Game Background",
-                                                contentScale = ContentScale.Crop,
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .blur(64.dp) // High blur radius
-                                            )
-                                            // Darkening Overlay
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .background(Color.Black.copy(alpha = 0.65f)) // Adjust alpha for darkness
-                                            )
-
-                                            // ── FOREGROUND 3D ICON ──
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxHeight()
-                                                    .fillMaxWidth(0.45f)
-                                                    .align(Alignment.CenterEnd),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .graphicsLayer {
-                                                            rotationX = rotationTiltX
-                                                            rotationY = rotationTiltY
-                                                            translationY = floatY
-                                                            cameraDistance = 12f * density
-
-                                                            shadowElevation = (30f + (floatY * 0.5f)).coerceAtLeast(10f)
-                                                            shape = RoundedCornerShape(32.dp)
-                                                            clip = true
-                                                        }
-                                                        .size(220.dp) // Reduced size
-                                                        .border(
-                                                            width = 1.5.dp,
-                                                            color = Color.White.copy(alpha = 0.2f),
-                                                            shape = RoundedCornerShape(32.dp)
-                                                        )
-                                                ) {
-                                                    // Game Icon Layer
-                                                    Image(
-                                                        bitmap = game.icon,
-                                                        contentDescription = "Floating Background Icon",
-                                                        contentScale = ContentScale.Crop,
-                                                        modifier = Modifier.fillMaxSize()
-                                                    )
-
-                                                    // Glassmorphism Gloss Overlay
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxSize()
-                                                            .background(
-                                                                Brush.linearGradient(
-                                                                    colors = listOf(
-                                                                        Color.White.copy(alpha = 0.3f),
-                                                                        Color.Transparent,
-                                                                        Color.Black.copy(alpha = 0.4f)
-                                                                    ),
-                                                                    start = Offset(0f, 0f),
-                                                                    end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                                                                )
-                                                            )
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
 
                                 // ── 2. Foreground Content ──
                                 AnimatedContent(
