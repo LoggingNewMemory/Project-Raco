@@ -33,6 +33,8 @@
 
         <service android:name=".GameOverlayService"
             android:exported="false" />
+        <service android:name=".InGameMenuService"
+            android:exported="false" />
     </application>
 
 </manifest>

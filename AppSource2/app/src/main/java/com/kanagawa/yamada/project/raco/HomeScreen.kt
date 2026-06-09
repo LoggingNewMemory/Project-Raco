@@ -433,6 +433,10 @@ fun HomeScreen() {
                                                             // Start the overlay service
                                                             val serviceIntent = Intent(context, GameOverlayService::class.java)
                                                             context.startService(serviceIntent)
+                                                            
+                                                            // Start the persistent in-game menu service
+                                                            val inGameIntent = Intent(context, InGameMenuService::class.java)
+                                                            context.startService(inGameIntent)
                                                         }
                                                     },
                                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black), shape = RoundedCornerShape(8.dp),

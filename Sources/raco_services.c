@@ -213,38 +213,20 @@ void apply_kamigo_tweaks() {
 
 // Consolidated and Scoped System Optimizations (Facur, GHenna, Yanz Merged)
 void apply_system_optimizations() {
-    // 1. Filesystem & I/O queue scheduler (Facur, GHenna, Yanz block queues)
+    // 1. Filesystem & I/O optimizations (iostats only — scheduler left at kernel default)
     {
-        DIR *dir = opendir("/sys/block");
-        if (dir != NULL) {
-            struct dirent *ent;
-            while ((ent = readdir(dir)) != NULL) {
-                if (ent->d_name[0] != '.' && strcmp(ent->d_name, "..") != 0) {
-                    char path[512];
-                    snprintf(path, sizeof(path), "/sys/block/%s/queue/scheduler", ent->d_name);
-                    rawrite("none", path);
-                }
-            }
-            closedir(dir);
-        }
-        
         rawrite("1", "/sys/module/workqueue/parameters/power_efficient");
 
-        // Specific block devices optimization
+        // Only disable iostats (safe), do NOT touch scheduler
         const char *devices[] = {
             "sda", "loop0", "loop1", "loop2", "loop3", "loop4", "loop5",
             "loop6", "loop7", "dm-0", "mmcblk0", "mmcblk1", "mmcblk0rpmb"
         };
         int dev_count = sizeof(devices) / sizeof(devices[0]);
         for (int i = 0; i < dev_count; i++) {
-            const char *base = "/sys/block/";
             char path[512];
-            
-            snprintf(path, sizeof(path), "%s%s/queue/iostats", base, devices[i]);
+            snprintf(path, sizeof(path), "/sys/block/%s/queue/iostats", devices[i]);
             rawrite("0", path);
-
-            snprintf(path, sizeof(path), "%s%s/queue/scheduler", base, devices[i]);
-            rawrite("none", path);
         }
     }
 
@@ -309,47 +291,24 @@ void apply_system_optimizations() {
         optimize_memory_tasks();
     }
 
-    // 6. RCU, Scheduler & Module parameters (GHenna & Yanz)
+    // 6. RCU & safe module parameters
     {
         rawrite("1", "/sys/kernel/rcu_normal");
-        
-        const char *rcu_isolated[] = { "/sys/kernel/rcu_expedited", "/sys/devices/system/cpu/isolated" };
-        int rcu_isolated_count = sizeof(rcu_isolated) / sizeof(rcu_isolated[0]);
-        raco_bulk("", rcu_isolated, rcu_isolated_count, "0", 0);
+        rawrite("0", "/sys/kernel/rcu_expedited");
 
+        // Schedtune (safe, no-op on non-EAS kernels)
         rawrite("0", "/dev/stune/top-app/schedtune.boost");
         rawrite("1", "/dev/stune/top-app/schedtune.prefer_idle");
 
-        const char *features[] = { "NEXT_BUDDY", "TTWU_QUEUE", "ENERGY_AWARE" };
-        int feat_count = sizeof(features) / sizeof(features[0]);
-        for (int i = 0; i < feat_count; i++) {
-            rawrite(features[i], "/sys/kernel/debug/sched_features");
-        }
-
-        const char *kernel_base = "/proc/sys/kernel/";
-        const char *k_files_1[] = { "timer_migration", "sched_energy_aware", "sched_child_runs_first" };
-        int k_count_1 = sizeof(k_files_1) / sizeof(k_files_1[0]);
-        raco_bulk(kernel_base, k_files_1, k_count_1, "1", 0);
-        
+        // Safe kernel params only
+        rawrite("1", "/proc/sys/kernel/sched_energy_aware");
+        rawrite("1", "/proc/sys/kernel/sched_child_runs_first");
         rawrite("0", "/proc/sys/kernel/sched_autogroup_enabled");
-        rawrite("120", "/proc/sys/kernel/hung_task_timeout_secs");
-        rawrite("32", "/proc/sys/kernel/sched_nr_migrate");
-        rawrite("4000000", "/proc/sys/kernel/sched_latency_ns");
-        rawrite("50000", "/proc/sys/kernel/sched_migration_cost_ns");
-        rawrite("1000000", "/proc/sys/kernel/sched_min_granularity_ns");
-        rawrite("1500000", "/proc/sys/kernel/sched_wakeup_granularity_ns");
 
-        // Module params
-        const char *mod_files_0[] = {
-            "/sys/module/mmc_core/parameters/use_spi_crc",
-            "/sys/module/cpufreq_bouncing/parameters/enable"
-        };
-        int mod_count_0 = sizeof(mod_files_0) / sizeof(mod_files_0[0]);
-        raco_bulk("", mod_files_0, mod_count_0, "0", 0);
-        rawrite("1000000", "/sys/module/timer/parameters/sample_period");
+        // Safe module params
+        rawrite("0", "/sys/module/mmc_core/parameters/use_spi_crc");
+        rawrite("0", "/sys/module/cpufreq_bouncing/parameters/enable");
 
-        rawrite("819", "/sys/module/tcp_cubic/parameters/beta");
-        rawrite("1", "/sys/module/tcp_cubic/parameters/fast_convergence");
     }
 
     // 7. GHenna Disable Kernel Panic (Glob search-based)
@@ -388,21 +347,12 @@ void apply_system_optimizations() {
         }
     }
 
-    // 8. GHenna & Yanz VM memory cache & Zram tuning
+    // 8. VM tuning
     {
-        const char *vm_base = "/proc/sys/vm/";
-        const char *vm_files_0[] = { "extra_free_kbytes", "oom_kill_allocating_task" };
-        int vm_count_0 = sizeof(vm_files_0) / sizeof(vm_files_0[0]);
-        raco_bulk(vm_base, vm_files_0, vm_count_0, "0", 0);
+        rawrite("0", "/proc/sys/vm/extra_free_kbytes");
+        rawrite("0", "/proc/sys/vm/oom_kill_allocating_task");
         rawrite("0", "/proc/sys/debug/exception-trace");
 
-        rawrite("1024,2048,4096,8192,12288,16384", "/sys/module/lowmemorykiller/parameters/minfree");
-        rawrite("32", "/sys/module/lowmemorykiller/parameters/cost");
-        rawrite("0", "/sys/module/lowmemorykiller/parameters/enable_adaptive_lmk");
-
-        // Deferred: flush caches after all optimizations are stable
-        rawrite("3", "/proc/sys/vm/drop_caches");
-        rawrite("1", "/proc/sys/vm/compact_memory");
     }
 
     // 9. GHenna GPU Debug disablement & HWUI tweaks & LMK & Vsync
