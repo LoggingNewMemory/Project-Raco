@@ -132,12 +132,6 @@ fun NubiaLeftPanel() {
             .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 48.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                CircleButton(Icons.Default.Home)
-                CircleButton(Icons.Default.Edit)
-                CircleButton(Icons.Default.Gamepad)
-                CircleButton(Icons.Default.Settings)
-            }
             Spacer(modifier = Modifier.height(24.dp))
             
             // CPU Monitor
@@ -146,15 +140,6 @@ fun NubiaLeftPanel() {
                 Text("GHz", color = Color.White.copy(alpha=0.6f), fontSize = 12.sp)
                 
                 Spacer(modifier = Modifier.height(8.dp))
-                // Rings
-                Box(modifier = Modifier.size(80.dp), contentAlignment = Alignment.Center) {
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        drawCircle(NubiaRed.copy(alpha=0.2f), radius = size.width/2, style = Stroke(4f))
-                        drawCircle(NubiaRed, radius = size.width/2.5f, style = Stroke(2f))
-                        drawCircle(NubiaRed.copy(alpha=0.5f), radius = size.width/3, style = Stroke(8f))
-                    }
-                    Text("CPU", color = NubiaRed, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.BottomCenter).offset(y = 12.dp))
-                }
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 Box(modifier = Modifier.border(1.dp, NubiaRed, RoundedCornerShape(16.dp)).padding(horizontal = 32.dp, vertical = 8.dp)) {
@@ -162,12 +147,7 @@ fun NubiaLeftPanel() {
                 }
             }
             
-            Spacer(modifier = Modifier.height(24.dp))
-            // Cards
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OverlayCard("Scout Mode", Icons.Default.Search)
-                OverlayCard("Key Remapping", Icons.Default.Build)
-            }
+
         }
     }
 }
@@ -204,7 +184,10 @@ fun NubiaRightPanel() {
             .padding(start = 48.dp, top = 24.dp, bottom = 24.dp, end = 24.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.End) {
-            Text("GAMESPACE", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+            Row {
+                Text("PROJECT", color = NubiaRed, fontSize = 20.sp, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
+                Text(" RACO", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
+            }
             Spacer(modifier = Modifier.height(24.dp))
             
             // Battery Monitor
@@ -213,15 +196,6 @@ fun NubiaRightPanel() {
                 Text("%", color = Color.White.copy(alpha=0.6f), fontSize = 12.sp)
                 
                 Spacer(modifier = Modifier.height(8.dp))
-                // Rings
-                Box(modifier = Modifier.size(80.dp), contentAlignment = Alignment.Center) {
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        drawCircle(NubiaRed.copy(alpha=0.2f), radius = size.width/2, style = Stroke(4f))
-                        drawCircle(NubiaRed, radius = size.width/2.5f, style = Stroke(2f))
-                        drawCircle(NubiaRed.copy(alpha=0.5f), radius = size.width/3, style = Stroke(8f))
-                    }
-                    Text("BATTERY", color = NubiaRed, fontWeight = FontWeight.Bold, fontSize = 12.sp, modifier = Modifier.align(Alignment.BottomCenter).offset(y = 12.dp))
-                }
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 Box(modifier = Modifier.border(1.dp, NubiaRed, RoundedCornerShape(16.dp)).padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -229,70 +203,8 @@ fun NubiaRightPanel() {
                 }
             }
             
-            Spacer(modifier = Modifier.height(24.dp))
-            // Quick Actions Grid
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                GridButton("WiFi", Icons.Default.Wifi, NubiaRed)
-                GridButton("Default", Icons.Default.Settings, NubiaRed.copy(alpha=0.6f))
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                GridButton("Info", Icons.Default.Info, Color.White.copy(alpha=0.2f))
-                GridButton("Recording", Icons.Default.PlayArrow, Color.White.copy(alpha=0.2f))
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                GridButton("Rotation", Icons.Default.Refresh, Color.White.copy(alpha=0.2f))
-                GridButton("Screen", Icons.Default.Phone, Color.White.copy(alpha=0.2f))
-            }
         }
     }
 }
 
-@Composable
-fun CircleButton(icon: ImageVector) {
-    Box(
-        modifier = Modifier
-            .size(36.dp)
-            .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(18.dp))
-            .clickable { },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
-    }
-}
 
-@Composable
-fun OverlayCard(title: String, icon: ImageVector) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(icon, contentDescription = null, tint = Color.White)
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(title, color = Color.White, fontWeight = FontWeight.Bold)
-            Text("Lvl ••• Diffic •••", color = Color.White.copy(alpha=0.5f), fontSize = 12.sp)
-        }
-    }
-}
-
-@Composable
-fun GridButton(title: String, icon: ImageVector, bgColor: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .background(bgColor, RoundedCornerShape(12.dp))
-                .clickable { },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(title, color = Color.White, fontSize = 10.sp)
-    }
-}
