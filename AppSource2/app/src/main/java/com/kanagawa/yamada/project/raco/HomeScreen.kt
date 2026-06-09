@@ -537,11 +537,13 @@ fun HomeScreen() {
                                                     onClick = {
                                                         val intent = context.packageManager.getLaunchIntentForPackage(game.packageName)
                                                         if (intent != null) {
-                                                            // <-- FIX: Instantly save the launch time locally
                                                             GameManager.setGameLastPlayed(context, game.packageName, System.currentTimeMillis())
-
                                                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                                             context.startActivity(intent)
+
+                                                            // Start the overlay service
+                                                            val serviceIntent = Intent(context, GameOverlayService::class.java)
+                                                            context.startService(serviceIntent)
                                                         }
                                                     },
                                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black), shape = RoundedCornerShape(8.dp),

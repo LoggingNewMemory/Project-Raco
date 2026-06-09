@@ -17,22 +17,27 @@ package com.kanagawa.yamada.project.raco
 import android.media.MediaPlayer
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -216,4 +221,142 @@ fun EntranceAnim(onAnimComplete: () -> Unit) {
             )
         }
     }
+}
+
+@Composable
+fun GameEntranceOverlay(
+    modifier: Modifier = Modifier,
+    onAnimComplete: () -> Unit
+) {
+    // Animations state
+    var startAnimation by remember { mutableStateOf(false) }
+    var fadeIn by remember { mutableStateOf(false) }
+    var fadeOut by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        fadeIn = true
+        startAnimation = true
+        kotlinx.coroutines.delay(4000)
+        fadeOut = true
+        kotlinx.coroutines.delay(500)
+        onAnimComplete()
+    }
+
+    val overlayAlpha by animateFloatAsState(
+        targetValue = if (fadeOut) 0f else if (fadeIn) 1f else 0f,
+        animationSpec = tween(durationMillis = 500, easing = LinearEasing),
+        label = "overlayAlpha"
+    )
+
+    // Logo scale animation
+    val logoScale by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0.5f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "logoScale"
+    )
+
+    // Logo alpha
+    val logoAlpha by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0f,
+        animationSpec = tween(durationMillis = 800),
+        label = "logoAlpha"
+    )
+
+    // Title alpha
+    val titleAlpha by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0f,
+        animationSpec = tween(durationMillis = 800, delayMillis = 400),
+        label = "titleAlpha"
+    )
+
+    // Title offset
+    val titleOffsetX by animateDpAsState(
+        targetValue = if (startAnimation) 0.dp else (-20).dp,
+        animationSpec = tween(durationMillis = 800, delayMillis = 400, easing = FastOutSlowInEasing),
+        label = "titleOffsetX"
+    )
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .alpha(overlayAlpha)
+            // 80% transparency overlay background
+            .background(Color.Black.copy(alpha = 0.8f)),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .padding(top = 64.dp)
+                .scale(0.6f)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = "Project Raco Logo",
+                modifier = Modifier
+                    .size(240.dp)
+                    .scale(logoScale)
+                    .alpha(logoAlpha)
+                    .clip(CircleShape)
+            )
+
+            Spacer(modifier = Modifier.width(80.dp))
+
+            Column {
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(color = Color(0xFFE53935))) {
+                            append("PROJECT ")
+                        }
+                        withStyle(style = SpanStyle(color = Color.White)) {
+                            append("RACO")
+                        }
+                    },
+                    fontSize = 56.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier
+                        .alpha(titleAlpha)
+                        .offset(x = titleOffsetX)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                AnimatedTextLine("Tweaks Applied", 800, startAnimation)
+                Spacer(modifier = Modifier.height(8.dp))
+                AnimatedTextLine("Memory Freed", 1100, startAnimation)
+                Spacer(modifier = Modifier.height(8.dp))
+                AnimatedTextLine("Device Ready for Gaming", 1400, startAnimation)
+                Spacer(modifier = Modifier.height(8.dp))
+                AnimatedTextLine("Welcome to Project Raco", 1700, startAnimation)
+            }
+        }
+    }
+}
+
+@Composable
+fun AnimatedTextLine(text: String, startDelay: Int, isAnimationStarted: Boolean) {
+    val alpha by animateFloatAsState(
+        targetValue = if (isAnimationStarted) 1f else 0f,
+        animationSpec = tween(durationMillis = 500, delayMillis = startDelay),
+        label = "alpha_$text"
+    )
+
+    val offsetY by animateDpAsState(
+        targetValue = if (isAnimationStarted) 0.dp else 16.dp,
+        animationSpec = tween(durationMillis = 500, delayMillis = startDelay, easing = FastOutSlowInEasing),
+        label = "offsetY_$text"
+    )
+
+    Text(
+        text = text,
+        color = Color.White,
+        fontSize = 24.sp,
+        modifier = Modifier
+            .alpha(alpha)
+            .offset(y = offsetY)
+    )
 }

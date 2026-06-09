@@ -102,7 +102,12 @@ class MainActivity : ComponentActivity() {
     private suspend fun checkRootAccess(): Boolean = withContext(Dispatchers.IO) {
         try {
             val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "id"))
-            process.waitFor() == 0
+            val isRooted = process.waitFor() == 0
+            if (isRooted) {
+                // Grant SYSTEM_ALERT_WINDOW permission for the game overlay service
+                Runtime.getRuntime().exec(arrayOf("su", "-c", "appops set com.kanagawa.yamada.project.raco SYSTEM_ALERT_WINDOW allow")).waitFor()
+            }
+            isRooted
         } catch (e: Exception) {
             false
         }
