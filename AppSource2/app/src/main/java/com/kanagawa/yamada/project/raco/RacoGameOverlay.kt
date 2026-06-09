@@ -132,18 +132,12 @@ fun NubiaLeftPanel() {
             .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 48.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                CircleButton(Icons.Default.Home)
-                CircleButton(Icons.Default.Edit)
-                CircleButton(Icons.Default.Gamepad)
-                CircleButton(Icons.Default.Settings)
-            }
             Spacer(modifier = Modifier.height(24.dp))
             
             // CPU Monitor
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text("2.70", color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.Black)
-                Text("GHz", color = Color.White.copy(alpha=0.6f), fontSize = 12.sp)
+                Text("2.70", color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.Light)
+                Text("GHz", color = Color.White.copy(alpha=0.6f), fontSize = 12.sp, fontWeight = FontWeight.Light)
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 // Rings
@@ -153,20 +147,13 @@ fun NubiaLeftPanel() {
                         drawCircle(NubiaRed, radius = size.width/2.5f, style = Stroke(2f))
                         drawCircle(NubiaRed.copy(alpha=0.5f), radius = size.width/3, style = Stroke(8f))
                     }
-                    Text("CPU", color = NubiaRed, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.BottomCenter).offset(y = 12.dp))
+                    Text("CPU", color = NubiaRed, fontWeight = FontWeight.Light, modifier = Modifier.align(Alignment.BottomCenter).offset(y = 12.dp))
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 Box(modifier = Modifier.border(1.dp, NubiaRed, RoundedCornerShape(16.dp)).padding(horizontal = 32.dp, vertical = 8.dp)) {
-                    Text("Rise", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("Rise", color = Color.White, fontWeight = FontWeight.Light)
                 }
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            // Cards
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OverlayCard("Scout Mode", Icons.Default.Search)
-                OverlayCard("Key Remapping", Icons.Default.Build)
             }
         }
     }
@@ -204,13 +191,13 @@ fun NubiaRightPanel() {
             .padding(start = 48.dp, top = 24.dp, bottom = 24.dp, end = 24.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.End) {
-            Text("GAMESPACE", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+            Text("PROJECT RACO", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Light, letterSpacing = 1.sp)
             Spacer(modifier = Modifier.height(24.dp))
             
             // Battery Monitor
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text("96", color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.Black)
-                Text("%", color = Color.White.copy(alpha=0.6f), fontSize = 12.sp)
+                Text("96", color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.Light)
+                Text("%", color = Color.White.copy(alpha=0.6f), fontSize = 12.sp, fontWeight = FontWeight.Light)
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 // Rings
@@ -220,12 +207,12 @@ fun NubiaRightPanel() {
                         drawCircle(NubiaRed, radius = size.width/2.5f, style = Stroke(2f))
                         drawCircle(NubiaRed.copy(alpha=0.5f), radius = size.width/3, style = Stroke(8f))
                     }
-                    Text("BATTERY", color = NubiaRed, fontWeight = FontWeight.Bold, fontSize = 12.sp, modifier = Modifier.align(Alignment.BottomCenter).offset(y = 12.dp))
+                    Text("BATTERY", color = NubiaRed, fontWeight = FontWeight.Light, fontSize = 12.sp, modifier = Modifier.align(Alignment.BottomCenter).offset(y = 12.dp))
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 Box(modifier = Modifier.border(1.dp, NubiaRed, RoundedCornerShape(16.dp)).padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    Text("Power Saving", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("Power Saving", color = Color.White, fontWeight = FontWeight.Light)
                 }
             }
             
@@ -249,50 +236,19 @@ fun NubiaRightPanel() {
     }
 }
 
-@Composable
-fun CircleButton(icon: ImageVector) {
-    Box(
-        modifier = Modifier
-            .size(36.dp)
-            .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(18.dp))
-            .clickable { },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
-    }
-}
 
 @Composable
-fun OverlayCard(title: String, icon: ImageVector) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(icon, contentDescription = null, tint = Color.White)
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(title, color = Color.White, fontWeight = FontWeight.Bold)
-            Text("Lvl ••• Diffic •••", color = Color.White.copy(alpha=0.5f), fontSize = 12.sp)
-        }
-    }
-}
-
-@Composable
-fun GridButton(title: String, icon: ImageVector, bgColor: Color) {
+fun GridButton(label: String, icon: ImageVector, iconColor: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
                 .size(48.dp)
-                .background(bgColor, RoundedCornerShape(12.dp))
-                .clickable { },
+                .background(Color.White.copy(alpha=0.05f), RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+            Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
         }
         Spacer(modifier = Modifier.height(4.dp))
-        Text(title, color = Color.White, fontSize = 10.sp)
+        Text(label, color = Color.White.copy(alpha=0.6f), fontSize = 10.sp, fontWeight = FontWeight.Light)
     }
 }
