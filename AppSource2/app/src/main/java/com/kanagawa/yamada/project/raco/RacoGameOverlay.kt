@@ -336,6 +336,7 @@ fun RacoRightPanel(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                 var expanded by remember { mutableStateOf(false) }
                 val density = LocalDensity.current
+                val configuration = LocalConfiguration.current
 
                 val getModeTitle = { mode: PerfMode ->
                     when (mode) {
@@ -345,12 +346,16 @@ fun RacoRightPanel(
                     }
                 }
                 
-                val trapezoidShape = remember(density) {
+                val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+                val panelWidthPx = with(density) { 260.dp.toPx() }
+                val slope = if (screenHeightPx > 0) (0.52f * panelWidthPx) / (0.9f * screenHeightPx) else 0.5f
+
+                val trapezoidShape = remember(density, slope) {
                     androidx.compose.foundation.shape.GenericShape { size, _ ->
                         moveTo(0f, 0f)
                         lineTo(size.width, 0f)
                         lineTo(size.width, size.height)
-                        lineTo(size.height * 0.5f, size.height)
+                        lineTo(size.height * slope, size.height)
                         close()
                     }
                 }
