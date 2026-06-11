@@ -36,7 +36,11 @@ import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.style.TextAlign
 import kotlin.math.roundToInt
@@ -350,19 +354,34 @@ fun RacoRightPanel(
         label = "batteryProgress"
     )
 
+    val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+    val maxVolume = audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
+    var currentVolume by remember { mutableStateOf(audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC)) }
+
     DisposableEffect(context) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(c: Context, intent: Intent) {
-                val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-                val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-                if (level != -1 && scale != -1) {
-                    val rawPercentage = level.toFloat() / scale.toFloat()
-                    batteryLevel = (rawPercentage * 100).toInt().toString()
-                    batteryPercentage = rawPercentage
+                if (intent.action == Intent.ACTION_BATTERY_CHANGED) {
+                    val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                    val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+                    if (level != -1 && scale != -1) {
+                        val rawPercentage = level.toFloat() / scale.toFloat()
+                        batteryLevel = (rawPercentage * 100).toInt().toString()
+                        batteryPercentage = rawPercentage
+                    }
+                } else if (intent.action == "android.media.VOLUME_CHANGED_ACTION") {
+                    val streamType = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1)
+                    if (streamType == android.media.AudioManager.STREAM_MUSIC) {
+                        currentVolume = audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC)
+                    }
                 }
             }
         }
-        context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_BATTERY_CHANGED)
+            addAction("android.media.VOLUME_CHANGED_ACTION")
+        }
+        context.registerReceiver(receiver, filter)
         onDispose {
             context.unregisterReceiver(receiver)
         }
@@ -415,33 +434,33 @@ fun RacoRightPanel(
             Spacer(modifier = Modifier.height(24.dp))
             
             // Performance & Battery Row
+            var expanded by remember { mutableStateOf(false) }
+            val density = LocalDensity.current
+            val configuration = LocalConfiguration.current
+
+            val getModeTitle = { mode: PerfMode ->
+                when (mode) {
+                    PerfMode.AWAKEN -> "AWAKEN"
+                    PerfMode.BALANCED -> "MID"
+                    PerfMode.POWERSAVE -> "ECO"
+                }
+            }
+            
+            val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+            val panelWidthPx = with(density) { 260.dp.toPx() }
+            val slope = if (screenHeightPx > 0) (0.52f * panelWidthPx) / (0.9f * screenHeightPx) else 0.5f
+
+            val trapezoidShape = remember(density, slope) {
+                androidx.compose.foundation.shape.GenericShape { size, _ ->
+                    moveTo(0f, 0f)
+                    lineTo(size.width, 0f)
+                    lineTo(size.width, size.height)
+                    lineTo(size.height * slope, size.height)
+                    close()
+                }
+            }
+
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                var expanded by remember { mutableStateOf(false) }
-                val density = LocalDensity.current
-                val configuration = LocalConfiguration.current
-
-                val getModeTitle = { mode: PerfMode ->
-                    when (mode) {
-                        PerfMode.AWAKEN -> "AWAKEN"
-                        PerfMode.BALANCED -> "MID"
-                        PerfMode.POWERSAVE -> "ECO"
-                    }
-                }
-                
-                val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
-                val panelWidthPx = with(density) { 260.dp.toPx() }
-                val slope = if (screenHeightPx > 0) (0.52f * panelWidthPx) / (0.9f * screenHeightPx) else 0.5f
-
-                val trapezoidShape = remember(density, slope) {
-                    androidx.compose.foundation.shape.GenericShape { size, _ ->
-                        moveTo(0f, 0f)
-                        lineTo(size.width, 0f)
-                        lineTo(size.width, size.height)
-                        lineTo(size.height * slope, size.height)
-                        close()
-                    }
-                }
-
                 Box(
                     modifier = Modifier
                         .offset(x = (-16).dp)
@@ -472,7 +491,7 @@ fun RacoRightPanel(
                                 letterSpacing = 1.sp
                             )
                         }
-
+    
                         if (expanded) {
                             Column(
                                 modifier = Modifier
@@ -515,6 +534,53 @@ fun RacoRightPanel(
                     fontWeight = FontWeight.Black
                 )
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Volume Slider
+            val volumeRatio = if (maxVolume > 0) currentVolume.toFloat() / maxVolume.toFloat() else 0f
+            val verticalDistance = 13 * (2.5f + 3.5f) // 13 gaps for 14 steps
+            val deltaX = verticalDistance * slope
+            val dynamicMinWidth = (48f - deltaX).coerceAtLeast(2f).dp
+
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    modifier = Modifier.wrapContentWidth()
+                ) {
+                    TriangleSlider(
+                        value = volumeRatio,
+                        onValueChange = { newValue ->
+                            val newVol = (newValue * maxVolume).roundToInt()
+                            if (newVol != currentVolume) {
+                                audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, newVol, 0)
+                                currentVolume = newVol
+                            }
+                        },
+                        activeColor = themeColor,
+                        inactiveColor = Color.White.copy(alpha = 0.2f),
+                        maxWidth = 48.dp,
+                        minWidth = dynamicMinWidth,
+                        barHeight = 2.5.dp,
+                        spacing = 3.5.dp,
+                        steps = 14,
+                        alignRight = true
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    androidx.compose.material3.Icon(
+                        imageVector = Icons.Filled.VolumeUp,
+                        contentDescription = "Volume",
+                        tint = themeColor,
+                        modifier = Modifier
+                            .offset(x = 4.dp)
+                            .size(20.dp)
+                    )
+                }
+            }
+
+
             Spacer(modifier = Modifier.height(8.dp))
             
         }
@@ -544,4 +610,61 @@ fun AutoSizeText(
             }
         }
     )
+}
+
+@Composable
+fun TriangleSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+    steps: Int = 18,
+    minWidth: androidx.compose.ui.unit.Dp = 10.dp,
+    maxWidth: androidx.compose.ui.unit.Dp = 70.dp,
+    barHeight: androidx.compose.ui.unit.Dp = 3.dp,
+    spacing: androidx.compose.ui.unit.Dp = 3.dp,
+    activeColor: Color = Color.White,
+    inactiveColor: Color = Color.White.copy(alpha = 0.3f),
+    alignRight: Boolean = true
+) {
+    var isDragging by remember { mutableStateOf(false) }
+    
+    Box(
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = { isDragging = true },
+                    onDragEnd = { isDragging = false },
+                    onDragCancel = { isDragging = false }
+                ) { change, _ ->
+                    val y = change.position.y
+                    val newValue = 1f - (y / size.height).coerceIn(0f, 1f)
+                    onValueChange(newValue)
+                }
+            }
+            .pointerInput(Unit) {
+                detectTapGestures { offset ->
+                    val y = offset.y
+                    val newValue = 1f - (y / size.height).coerceIn(0f, 1f)
+                    onValueChange(newValue)
+                }
+            }
+    ) {
+        Column(
+            modifier = Modifier.wrapContentSize(),
+            horizontalAlignment = if (alignRight) Alignment.End else Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(spacing)
+        ) {
+            for (i in (steps - 1) downTo 0) {
+                val fraction = i.toFloat() / (steps - 1)
+                val width = minWidth + (maxWidth - minWidth) * fraction
+                val isActive = (value * (steps - 1)) >= i
+                Box(
+                    modifier = Modifier
+                        .width(width)
+                        .height(barHeight)
+                        .background(if (isActive) activeColor else inactiveColor)
+                )
+            }
+        }
+    }
 }
