@@ -66,9 +66,12 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
     // Premium fluid motion curve: perfectly smooth transition from high speed to a long, gentle glide
     val dramaticEasing = androidx.compose.animation.core.CubicBezierEasing(0.16f, 1.0f, 0.3f, 1.0f)
 
-    LaunchedEffect(isLeftOpen, isRightOpen) {
-        if ((isLeftOpen || isRightOpen) && lineSlideProgress.value == 0f) {
+    LaunchedEffect(isLeftOpen || isRightOpen) {
+        if (isLeftOpen || isRightOpen) {
+            lineSlideProgress.snapTo(0f)
             lineSlideProgress.animateTo(1f, tween(durationMillis = 1800, easing = dramaticEasing, delayMillis = 200))
+        } else {
+            lineSlideProgress.animateTo(0f, tween(durationMillis = 400, easing = FastOutSlowInEasing))
         }
     }
 
