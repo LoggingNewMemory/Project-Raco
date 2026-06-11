@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.style.TextAlign
 import kotlin.math.roundToInt
@@ -251,15 +252,16 @@ fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = Ra
                 
                 // Base white line
                 drawPath(path = borderPath, color = Color.White, style = Stroke(width = 6.dp.toPx()))
-                drawPath(path = borderPath, color = Color.White.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
 
                 // Uprise Red glowing border
                 val progress = progressProvider() * animatedCpuPercentage
                 if (progress > 0f) {
                     val currentTop = size.height * 1.2f - (size.height * 1.4f * progress)
                     clipRect(top = currentTop, bottom = size.height * 1.2f, left = -size.width, right = size.width * 2f) {
+                        translate(left = 1.5.dp.toPx(), top = 0f) {
+                            drawPath(path = borderPath, color = themeColor.copy(alpha=0.4f), style = Stroke(width = 9.dp.toPx()))
+                        }
                         drawPath(path = borderPath, color = themeColor, style = Stroke(width = 6.dp.toPx()))
-                        drawPath(path = borderPath, color = themeColor.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
                     }
                 }
             }
@@ -392,15 +394,16 @@ fun RacoRightPanel(
                 
                 // Base white line
                 drawPath(path = borderPath, color = Color.White, style = Stroke(width = 6.dp.toPx()))
-                drawPath(path = borderPath, color = Color.White.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
 
                 // Uprise Red glowing border
                 val progress = progressProvider() * animatedBatteryPercentage
                 if (progress > 0f) {
                     val currentTop = size.height * 1.2f - (size.height * 1.4f * progress)
                     clipRect(top = currentTop, bottom = size.height * 1.2f, left = -size.width, right = size.width * 2f) {
+                        translate(left = -1.5.dp.toPx(), top = 0f) {
+                            drawPath(path = borderPath, color = themeColor.copy(alpha=0.4f), style = Stroke(width = 9.dp.toPx()))
+                        }
                         drawPath(path = borderPath, color = themeColor, style = Stroke(width = 6.dp.toPx()))
-                        drawPath(path = borderPath, color = themeColor.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
                     }
                 }
             }
