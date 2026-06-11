@@ -100,10 +100,22 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
         )
     }
 
+    var pendingScreenshot by remember { mutableStateOf(false) }
+
     val leftOffset by animateDpAsState(
         targetValue = if (isLeftOpen) 0.dp else (-300).dp,
         animationSpec = tween(400, easing = FastOutSlowInEasing),
-        label = "leftOffset"
+        label = "leftOffset",
+        finishedListener = {
+            if (!isLeftOpen && pendingScreenshot) {
+                pendingScreenshot = false
+                Thread {
+                    try {
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "input keyevent 120")).waitFor()
+                    } catch (e: Exception) {}
+                }.start()
+            }
+        }
     )
 
     val rightOffset by animateDpAsState(
@@ -138,7 +150,21 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
                 .fillMaxHeight()
                 .width(260.dp)
         ) {
-            RacoLeftPanel(progressProvider = { lineSlideProgress.value }, themeColor = themeColor)
+            RacoLeftPanel(
+                progressProvider = { lineSlideProgress.value },
+                themeColor = themeColor,
+                onClose = {
+                    isLeftOpen = false
+                    isRightOpen = false
+                    onClose()
+                },
+                onTakeScreenshot = {
+                    pendingScreenshot = true
+                    isLeftOpen = false
+                    isRightOpen = false
+                    onClose()
+                }
+            )
         }
 
         // RIGHT PANEL
@@ -160,7 +186,12 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
 }
 
 @Composable
-fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = RacoRed) {
+fun RacoLeftPanel(
+    progressProvider: () -> Float = { 1f },
+    themeColor: Color = RacoRed,
+    onClose: () -> Unit = {},
+    onTakeScreenshot: () -> Unit = {}
+) {
     var cpuFreq by remember { mutableStateOf("0.00") }
     var cpuPercentage by remember { mutableStateOf(0f) }
     val context = LocalContext.current
@@ -311,7 +342,7 @@ fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = Ra
             Spacer(modifier = Modifier.height(16.dp))
             
             // DND Toggle
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "DND",
                     color = themeColor,
@@ -341,6 +372,27 @@ fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = Ra
                         uncheckedBorderColor = Color.Transparent
                     )
                 )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Box(
+                    modifier = Modifier
+                        .offset(x = 12.dp)
+                        .width(81.dp)
+                        .height(32.dp)
+                        .border(1.dp, themeColor, RoundedCornerShape(16.dp))
+                        .clickable {
+                            onTakeScreenshot()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.material3.Icon(
+                        imageVector = Icons.Filled.CameraAlt,
+                        contentDescription = "Screenshot",
+                        tint = themeColor,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
