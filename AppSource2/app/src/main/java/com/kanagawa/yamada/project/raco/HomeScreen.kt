@@ -145,6 +145,7 @@ fun HomeScreen() {
     var selectedGameIndex by remember { mutableIntStateOf(0) }
     var showAppPicker by remember { mutableStateOf(false) }
     var listRefreshTrigger by remember { mutableIntStateOf(0) }
+    var slingshotGame by remember { mutableStateOf<Game?>(null) }
 
     // Listen for app resume to refresh the game list
     DisposableEffect(lifecycleOwner) {
@@ -424,22 +425,7 @@ fun HomeScreen() {
                                                 ) { Text("III", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp) }
                                                 Button(
                                                     onClick = {
-                                                        val intent = context.packageManager.getLaunchIntentForPackage(game.packageName)
-                                                        if (intent != null) {
-                                                            GameManager.setGameLastPlayed(context, game.packageName, System.currentTimeMillis())
-                                                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                            context.startActivity(intent)
-
-                                                            // Start the overlay service
-                                                            val serviceIntent = Intent(context, GameOverlayService::class.java)
-                                                            context.startService(serviceIntent)
-                                                            
-                                                            // Start the persistent in-game menu service
-                                                            val inGameIntent = Intent(context, InGameMenuService::class.java).apply {
-                                                                putExtra("package_name", game.packageName)
-                                                            }
-                                                            context.startService(inGameIntent)
-                                                        }
+                                                        slingshotGame = game
                                                     },
                                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black), shape = RoundedCornerShape(8.dp),
                                                     modifier = Modifier.height(56.dp).width(160.dp).border(2.dp, animatedAccentColor, RoundedCornerShape(8.dp))
@@ -480,6 +466,21 @@ fun HomeScreen() {
                     listRefreshTrigger++
                 }
             )
+        }
+
+        AnimatedVisibility(
+            visible = slingshotGame != null,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            slingshotGame?.let { game ->
+                SlingshotScreen(
+                    game = game,
+                    accentColor = animatedAccentColor,
+                    onBack = { slingshotGame = null }
+                )
+            }
         }
     }
 }
