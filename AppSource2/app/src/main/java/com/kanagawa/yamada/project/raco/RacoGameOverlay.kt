@@ -156,6 +156,8 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
 fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = RacoRed) {
     var cpuFreq by remember { mutableStateOf("0.00") }
     var cpuPercentage by remember { mutableStateOf(0f) }
+    val context = LocalContext.current
+    var isDndOn by remember { mutableStateOf(false) }
 
     val animatedCpuPercentage by animateFloatAsState(
         targetValue = cpuPercentage,
@@ -164,6 +166,11 @@ fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = Ra
     )
 
     LaunchedEffect(Unit) {
+        try {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            isDndOn = notificationManager.currentInterruptionFilter != android.app.NotificationManager.INTERRUPTION_FILTER_ALL
+        } catch (e: Exception) {}
+
         var targetFile = "/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq"
         var maxFile = "/sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq"
         try {
@@ -281,6 +288,34 @@ fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = Ra
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // DND Toggle
+            Column(horizontalAlignment = Alignment.Start, modifier = Modifier.clickable {
+                isDndOn = !isDndOn
+                val cmd = if (isDndOn) "cmd notification set_dnd priority" else "cmd notification set_dnd off"
+                Thread {
+                    try {
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
+                    } catch (e: Exception) {}
+                }.start()
+            }) {
+                Text(
+                    text = "DND",
+                    color = themeColor,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = if (isDndOn) "ON" else "OFF",
+                    color = if (isDndOn) Color.White else Color.White.copy(alpha=0.6f),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Black
+                )
             }
             
 
