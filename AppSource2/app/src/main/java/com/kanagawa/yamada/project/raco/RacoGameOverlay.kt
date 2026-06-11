@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -293,15 +294,7 @@ fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = Ra
             Spacer(modifier = Modifier.height(16.dp))
             
             // DND Toggle
-            Column(horizontalAlignment = Alignment.Start, modifier = Modifier.clickable {
-                isDndOn = !isDndOn
-                val cmd = if (isDndOn) "cmd notification set_dnd priority" else "cmd notification set_dnd off"
-                Thread {
-                    try {
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
-                    } catch (e: Exception) {}
-                }.start()
-            }) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "DND",
                     color = themeColor,
@@ -309,12 +302,27 @@ fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = Ra
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 2.sp
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = if (isDndOn) "ON" else "OFF",
-                    color = if (isDndOn) Color.White else Color.White.copy(alpha=0.6f),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Black
+                Spacer(modifier = Modifier.width(12.dp))
+                androidx.compose.material3.Switch(
+                    checked = isDndOn,
+                    onCheckedChange = { checked ->
+                        isDndOn = checked
+                        val cmd = if (checked) "cmd notification set_dnd priority" else "cmd notification set_dnd off"
+                        Thread {
+                            try {
+                                Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
+                            } catch (e: Exception) {}
+                        }.start()
+                    },
+                    modifier = Modifier.scale(0.75f),
+                    colors = androidx.compose.material3.SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = themeColor,
+                        checkedBorderColor = Color.Transparent,
+                        uncheckedThumbColor = Color.LightGray,
+                        uncheckedTrackColor = Color.DarkGray,
+                        uncheckedBorderColor = Color.Transparent
+                    )
                 )
             }
             
