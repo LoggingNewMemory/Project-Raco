@@ -194,6 +194,9 @@ fun RacoLeftPanel(
 ) {
     var cpuFreq by remember { mutableStateOf("0.00") }
     var cpuPercentage by remember { mutableStateOf(0f) }
+    var currentTimeString by remember { 
+        mutableStateOf(java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())) 
+    }
     val context = LocalContext.current
     var isDndOn by remember { mutableStateOf(false) }
 
@@ -252,6 +255,7 @@ fun RacoLeftPanel(
             // Ignore
         }
 
+        val sdf = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
         while(true) {
             try {
                 val reader = RandomAccessFile(targetFile, "r")
@@ -268,6 +272,7 @@ fun RacoLeftPanel(
             } catch (e: Exception) {
                 // Ignore or keep last known
             }
+            currentTimeString = sdf.format(java.util.Date())
             delay(1000)
         }
     }
@@ -317,7 +322,7 @@ fun RacoLeftPanel(
             // CPU Monitor
             Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "CPU",
+                    text = "CPU • $currentTimeString",
                     color = themeColor,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
