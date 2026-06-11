@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.material.icons.filled.BrightnessHigh
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.style.TextAlign
@@ -164,6 +165,16 @@ fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = Ra
     var cpuPercentage by remember { mutableStateOf(0f) }
     val context = LocalContext.current
     var isDndOn by remember { mutableStateOf(false) }
+
+    var currentBrightness by remember { 
+        mutableStateOf(
+            try {
+                android.provider.Settings.System.getInt(context.contentResolver, android.provider.Settings.System.SCREEN_BRIGHTNESS)
+            } catch (e: Exception) {
+                128
+            }
+        )
+    }
 
     val animatedCpuPercentage by animateFloatAsState(
         targetValue = cpuPercentage,
@@ -332,7 +343,71 @@ fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = Ra
                 )
             }
             
+            Spacer(modifier = Modifier.height(16.dp))
 
+            // Brightness Slider
+            val density = LocalDensity.current
+            val configuration = LocalConfiguration.current
+            val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+            val panelWidthPx = with(density) { 260.dp.toPx() }
+            val slope = if (screenHeightPx > 0) (0.52f * panelWidthPx) / (0.9f * screenHeightPx) else 0.5f
+
+            val brightnessRatio = currentBrightness.toFloat() / 255f
+            val verticalDistance = 13 * (2.5f + 3.5f) // 13 gaps for 14 steps
+            val deltaX = verticalDistance * slope
+            val dynamicMinWidth = (48f - deltaX).coerceAtLeast(2f).dp
+
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    modifier = Modifier.wrapContentWidth()
+                ) {
+                    TriangleSlider(
+                        value = brightnessRatio,
+                        onValueChange = { newValue ->
+                            val newBrightness = (newValue * 255).roundToInt().coerceIn(0, 255)
+                            if (newBrightness != currentBrightness) {
+                                currentBrightness = newBrightness
+                                try {
+                                    android.provider.Settings.System.putInt(
+                                        context.contentResolver,
+                                        android.provider.Settings.System.SCREEN_BRIGHTNESS,
+                                        newBrightness
+                                    )
+                                } catch (e: Exception) {
+                                    Thread {
+                                        try {
+                                            Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system screen_brightness $newBrightness")).waitFor()
+                                        } catch (ex: Exception) {}
+                                    }.start()
+                                }
+                            }
+                        },
+                        activeColor = themeColor,
+                        inactiveColor = Color.White.copy(alpha = 0.2f),
+                        maxWidth = 48.dp,
+                        minWidth = dynamicMinWidth,
+                        barHeight = 2.5.dp,
+                        spacing = 3.5.dp,
+                        steps = 14,
+                        alignRight = false
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    androidx.compose.material3.Icon(
+                        imageVector = Icons.Filled.BrightnessHigh,
+                        contentDescription = "Brightness",
+                        tint = themeColor,
+                        modifier = Modifier
+                            .offset(x = (-4).dp)
+                            .size(18.dp)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
