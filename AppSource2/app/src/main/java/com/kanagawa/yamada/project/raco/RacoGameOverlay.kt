@@ -155,9 +155,17 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
 @Composable
 fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = RacoRed) {
     var cpuFreq by remember { mutableStateOf("0.00") }
+    var cpuPercentage by remember { mutableStateOf(0f) }
+
+    val animatedCpuPercentage by animateFloatAsState(
+        targetValue = cpuPercentage,
+        animationSpec = tween(1000, easing = FastOutSlowInEasing),
+        label = "cpuProgress"
+    )
 
     LaunchedEffect(Unit) {
         var targetFile = "/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq"
+        var maxFile = "/sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq"
         try {
             val cpufreqDir = java.io.File("/sys/devices/system/cpu/cpufreq/")
             val maxPolicyNum = cpufreqDir.listFiles()
@@ -170,10 +178,23 @@ fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = Ra
                 val file = java.io.File("/sys/devices/system/cpu/cpufreq/policy$maxPolicyNum/scaling_cur_freq")
                 if (file.exists()) {
                     targetFile = file.absolutePath
+                    maxFile = "/sys/devices/system/cpu/cpufreq/policy$maxPolicyNum/cpuinfo_max_freq"
                 }
             }
         } catch (e: Exception) {
             // Fallback to policy0
+        }
+
+        var maxFreqHz = 3000000L
+        try {
+            val maxReader = RandomAccessFile(maxFile, "r")
+            val maxFreqStr = maxReader.readLine()
+            maxReader.close()
+            if (maxFreqStr != null) {
+                maxFreqHz = maxFreqStr.toLong()
+            }
+        } catch (e: Exception) {
+            // Ignore
         }
 
         while(true) {
@@ -184,6 +205,11 @@ fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = Ra
                 val freqHz = freqString.toLong()
                 val freqGHz = freqHz / 1000000.0
                 cpuFreq = String.format(java.util.Locale.US, "%.2f", freqGHz)
+                
+                var percentage = freqHz.toFloat() / maxFreqHz.toFloat()
+                if (percentage > 1f) percentage = 1f
+                if (percentage < 0.05f) percentage = 0.05f
+                cpuPercentage = percentage
             } catch (e: Exception) {
                 // Ignore or keep last known
             }
@@ -220,7 +246,7 @@ fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = Ra
                 drawPath(path = borderPath, color = Color.White.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
 
                 // Uprise Red glowing border
-                val progress = progressProvider()
+                val progress = progressProvider() * animatedCpuPercentage
                 if (progress > 0f) {
                     val currentTop = size.height * 1.2f - (size.height * 1.4f * progress)
                     clipRect(top = currentTop, bottom = size.height * 1.2f, left = -size.width, right = size.width * 2f) {
@@ -273,6 +299,13 @@ fun RacoRightPanel(
 ) {
     val context = LocalContext.current
     var batteryLevel by remember { mutableStateOf("--") }
+    var batteryPercentage by remember { mutableStateOf(0f) }
+
+    val animatedBatteryPercentage by animateFloatAsState(
+        targetValue = batteryPercentage,
+        animationSpec = tween(1000, easing = FastOutSlowInEasing),
+        label = "batteryProgress"
+    )
 
     DisposableEffect(context) {
         val receiver = object : BroadcastReceiver() {
@@ -280,7 +313,9 @@ fun RacoRightPanel(
                 val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
                 val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
                 if (level != -1 && scale != -1) {
-                    batteryLevel = (level * 100 / scale.toFloat()).toInt().toString()
+                    val rawPercentage = level.toFloat() / scale.toFloat()
+                    batteryLevel = (rawPercentage * 100).toInt().toString()
+                    batteryPercentage = rawPercentage
                 }
             }
         }
@@ -319,7 +354,7 @@ fun RacoRightPanel(
                 drawPath(path = borderPath, color = Color.White.copy(alpha=0.3f), style = Stroke(width = 16.dp.toPx()))
 
                 // Uprise Red glowing border
-                val progress = progressProvider()
+                val progress = progressProvider() * animatedBatteryPercentage
                 if (progress > 0f) {
                     val currentTop = size.height * 1.2f - (size.height * 1.4f * progress)
                     clipRect(top = currentTop, bottom = size.height * 1.2f, left = -size.width, right = size.width * 2f) {
