@@ -508,9 +508,10 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
             }
         }
         Column(modifier = Modifier.padding(start = 16.dp).weight(1f)) {
+            val titleColor by animateColorAsState(if (isSelected) accentColor else Color.White)
             Text(
                 text = game.name,
-                color = Color.White,
+                color = titleColor,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
