@@ -258,8 +258,6 @@ fun RacoLeftPanel(progressProvider: () -> Float = { 1f }, themeColor: Color = Ra
             .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 48.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Spacer(modifier = Modifier.height(24.dp))
-            
             // CPU Monitor
             Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
                 Text(
