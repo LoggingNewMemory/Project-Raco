@@ -448,7 +448,7 @@ fun RacoRightPanel(
                                     ) {
                                         Text(
                                             text = getModeTitle(mode), 
-                                            color = mode.color, 
+                                            color = Color.White, 
                                             fontSize = 12.sp, 
                                             fontWeight = FontWeight.Bold
                                         )
