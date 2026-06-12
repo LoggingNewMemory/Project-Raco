@@ -10,6 +10,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,23 +47,22 @@ fun SettingsScreen(
     val configState = remember { mutableStateMapOf<String, String>() }
     var isLoading by remember { mutableStateOf(true) }
     
-    var selectedCategory by remember { mutableStateOf("Modules Configuration") }
+    var selectedCategory by remember { mutableStateOf("Modules") }
 
     val categories = remember {
         mapOf(
-            "Modules Configuration" to listOf(
-                "INCLUDE_KOBO" to "Include Kobo Kanaeru module",
-                "INCLUDE_SANDEV" to "Include Sandevistan module",
-                "INCLUDE_ZETAMIN" to "Include Zetamin module"
+            "Modules" to listOf(
+                Triple("ANYA", "Anya Thermal", "Enable Anya Thermal Flowstate"),
+                Triple("INCLUDE_KOBO", "Kobo Fast Charge", "Fast Charge Module"),
+                Triple("INCLUDE_SANDEV", "Sandevistan Boot", "Make init boot faster"),
+                Triple("INCLUDE_ZETAMIN", "Zetamin", "All in one Screen Tweaks")
             ),
-            "Assistant & System" to listOf(
-                "ANYA" to "Enable ANYA assistant",
-                "DND" to "Enable Do Not Disturb",
-                "DEVICE_MITIGATION" to "Enable Device Mitigation"
+            "System" to listOf(
+                Triple("DEVICE_MITIGATION", "Device Mitigation", "Enable Device Mitigation")
             ),
             "Notifications" to listOf(
-                "LEGACY_NOTIF" to "Use Legacy Notifications",
-                "SILENT_NOTIF" to "Use Silent Notifications"
+                Triple("LEGACY_NOTIF", "Legacy Notifications", "Use Legacy Notifications"),
+                Triple("SILENT_NOTIF", "Silent Notifications", "Use Silent Notifications")
             )
         )
     }
@@ -154,12 +155,6 @@ fun SettingsScreen(
                             fontSize = 24.sp,
                             letterSpacing = 2.sp
                         )
-                        Text(
-                            "Configure /data/ProjectRaco/raco.txt",
-                            color = Color.LightGray,
-                            fontFamily = gilmerRegular,
-                            fontSize = 14.sp
-                        )
                     }
                 }
 
@@ -172,7 +167,7 @@ fun SettingsScreen(
                     // LEFT COLUMN: Categories
                     Column(
                         modifier = Modifier
-                            .weight(0.4f)
+                            .weight(0.25f)
                             .fillMaxHeight()
                     ) {
                         categories.keys.forEach { cat ->
@@ -195,7 +190,7 @@ fun SettingsScreen(
                     // RIGHT COLUMN: Content
                     Box(
                         modifier = Modifier
-                            .weight(0.6f)
+                            .weight(0.75f)
                             .fillMaxHeight()
                             .border(1.dp, Color.DarkGray, RoundedCornerShape(16.dp))
                             .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
@@ -207,25 +202,45 @@ fun SettingsScreen(
                                 .verticalScroll(rememberScrollState())
                         ) {
                             val items = categories[selectedCategory] ?: emptyList()
-                            items.forEach { (key, desc) ->
+                            items.forEach { (key, title, desc) ->
                                 val isChecked = configState[key] == "1"
-                                OptionToggle(
-                                    title = key,
-                                    enabled = true,
-                                    checked = isChecked,
-                                    onCheckedChange = { checked ->
-                                        updateConfig(key, if (checked) "1" else "0")
-                                    },
-                                    accentColor = accentColor,
-                                    fontFamilyBold = gilmerBold
-                                )
-                                Text(
-                                    desc,
-                                    color = Color.Gray,
-                                    fontFamily = gilmerRegular,
-                                    fontSize = 12.sp,
-                                    modifier = Modifier.padding(bottom = 12.dp)
-                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = title,
+                                            color = Color.White,
+                                            fontFamily = gilmerBold,
+                                            fontSize = 16.sp
+                                        )
+                                        Text(
+                                            text = desc,
+                                            color = Color.Gray,
+                                            fontFamily = gilmerRegular,
+                                            fontSize = 12.sp,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Switch(
+                                        checked = isChecked,
+                                        onCheckedChange = { checked ->
+                                            updateConfig(key, if (checked) "1" else "0")
+                                        },
+                                        colors = SwitchDefaults.colors(
+                                            checkedThumbColor = Color.White,
+                                            checkedTrackColor = accentColor,
+                                            uncheckedThumbColor = Color.Gray,
+                                            uncheckedTrackColor = Color.DarkGray
+                                        )
+                                    )
+                                }
                             }
                         }
                     }

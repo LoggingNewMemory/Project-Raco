@@ -118,7 +118,6 @@ void load_config(const char *config_path) {
     config.legacy_notif = 0;
     config.silent_notif = 0;
     config.device_mitigation = 0;
-    config.dnd = 0;
     strcpy(config.default_gov, "schedutil");
 
     char file_content[4096];
@@ -142,7 +141,6 @@ void load_config(const char *config_path) {
             else if (strcmp(key, "LEGACY_NOTIF") == 0 && parsed == 2) config.legacy_notif = atol(value);
             else if (strcmp(key, "SILENT_NOTIF") == 0 && parsed == 2) config.silent_notif = atol(value);
             else if (strcmp(key, "DEVICE_MITIGATION") == 0 && parsed == 2) config.device_mitigation = atol(value);
-            else if (strcmp(key, "DND") == 0 && parsed == 2) config.dnd = atol(value);
             else if (strcmp(key, "GOV") == 0 && parsed == 2) strcpy(config.default_gov, value);
         }
         line = strtok_r(NULL, "\n", &saveptr_line);
@@ -166,9 +164,6 @@ void notification(const char *message) {
         system(cmd);
     }
 }
-
-void dnd_on() { if (config.dnd == 1) system("cmd notification set_dnd priority &"); }
-void dnd_off() { if (config.dnd == 1) system("cmd notification set_dnd off &"); }
 
 void clear_slingshot() {
     system("settings delete global angle_debug_package");

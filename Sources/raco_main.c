@@ -174,7 +174,6 @@ void mode_awaken() {
     cpufreq_awaken();
     route_soc(4);
 
-    dnd_on();
     clear_slingshot();
     anyamelfissa();
 }
@@ -218,7 +217,6 @@ void mode_balanced() {
     cpufreq_balanced();
     route_soc(3);
 
-    dnd_off();
     clear_slingshot();
     anyakawaii();
 }
@@ -262,7 +260,6 @@ void mode_powersave() {
     cpufreq_powersave();
     route_soc(2);
 
-    dnd_off();
     clear_slingshot();
     anyakawaii();
 }
@@ -306,7 +303,6 @@ void mode_normal() {
     cpufreq_normal();
     route_soc(1);
 
-    dnd_off();
     clear_slingshot();
     anyakawaii();
 }

@@ -25,7 +25,6 @@ typedef struct {
     int legacy_notif;
     int silent_notif;
     int device_mitigation;
-    int dnd;
     char default_gov[32]; // This is due handler of custom GOV. Fk, why not stick to schedutil
 } RacoConfig;
 
@@ -51,8 +50,6 @@ void raco_bulk(const char *base, const char **files, int count, const char *val,
 
 void load_config(const char *config_path);
 void notification(const char *message);
-void dnd_on();
-void dnd_off();
 void clear_slingshot();
 void kill_all();
 void anyamelfissa();
