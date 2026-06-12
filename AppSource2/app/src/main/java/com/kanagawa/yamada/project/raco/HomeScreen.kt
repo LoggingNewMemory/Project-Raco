@@ -46,6 +46,10 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -150,6 +154,7 @@ fun HomeScreen() {
     var showCredits by remember { mutableStateOf(false) }
     var projectClickCount by remember { mutableIntStateOf(0) }
     var lastProjectClickTime by remember { mutableLongStateOf(0L) }
+    var showTerminal by remember { mutableStateOf(false) }
 
     // Listen for app resume to refresh the game list
     DisposableEffect(lifecycleOwner) {
@@ -260,29 +265,43 @@ fun HomeScreen() {
                     .displayCutoutPadding()
                     .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 8.dp)
             ) {
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = animatedAccentColor)) { append("PROJECT ") }
-                        withStyle(style = SpanStyle(color = Color.White)) { append("RACO") }
-                    },
-                    fontFamily = gilmerBold, fontSize = 32.sp, letterSpacing = 1.sp,
-                    modifier = Modifier.clickable(
-                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        val now = System.currentTimeMillis()
-                        if (now - lastProjectClickTime > 500) {
-                            projectClickCount = 1
-                        } else {
-                            projectClickCount++
+                Row(verticalAlignment = androidx.compose.ui.Alignment.Bottom) {
+                    Text(
+                        "PROJECT ",
+                        color = animatedAccentColor,
+                        fontFamily = gilmerBold, fontSize = 32.sp, letterSpacing = 1.sp,
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null
+                        ) {
+                            val now = System.currentTimeMillis()
+                            if (now - lastProjectClickTime > 500) projectClickCount = 1 else projectClickCount++
+                            lastProjectClickTime = now
+                            if (projectClickCount >= 3) { showCredits = true; projectClickCount = 0 }
                         }
-                        lastProjectClickTime = now
-                        if (projectClickCount >= 3) {
-                            showCredits = true
-                            projectClickCount = 0
+                    )
+                    
+                    var isPressed by remember { mutableStateOf(false) }
+                    LaunchedEffect(isPressed) {
+                        if (isPressed) {
+                            kotlinx.coroutines.delay(2000)
+                            showTerminal = true
                         }
                     }
-                )
+
+                    Text(
+                        "RACO",
+                        color = Color.White,
+                        fontFamily = gilmerBold, fontSize = 32.sp, letterSpacing = 1.sp,
+                        modifier = Modifier.pointerInput(Unit) {
+                            awaitEachGesture {
+                                awaitFirstDown()
+                                isPressed = true
+                                waitForUpOrCancellation()
+                                isPressed = false
+                            }
+                        }
+                    )
+                }
 
                 Text("$currentTime • $batteryLevel%", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp, top = 4.dp))
 
@@ -552,6 +571,18 @@ fun HomeScreen() {
                 gilmerBold = gilmerBold,
                 gilmerRegular = gilmerRegular,
                 onClose = { showCredits = false }
+            )
+        }
+
+        androidx.compose.animation.AnimatedVisibility(
+            visible = showTerminal,
+            enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(400)) + androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(400)) { 40 },
+            exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(400)) + androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(400)) { 40 },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Terminal(
+                accentColor = animatedAccentColor,
+                onClose = { showTerminal = false }
             )
         }
     }
