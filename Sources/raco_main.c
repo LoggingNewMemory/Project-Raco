@@ -138,13 +138,12 @@ void corin_storage(const char *sched, const char *rq) {
 // Toast Helper
 void app_toast(const char *msg) {
     char cmd[512];
-    snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"sleep 0.5; am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"%s\\\"\" >/dev/null 2>&1 &", msg);
+    snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"%s\\\"\" >/dev/null 2>&1 &", msg);
     system(cmd);
 }
 
 // Master Profiles
 void mode_awaken() {
-    app_toast("Switching to Awaken Mode...");
     system("sync");
 
     apply_io_tweaks("0", "0", "32", "32", 1);
@@ -188,11 +187,9 @@ void mode_awaken() {
 
     clear_slingshot();
     anyamelfissa();
-    app_toast("Switched to Awaken Mode");
 }
 
 void mode_balanced() {
-    app_toast("Switching to Mid Mode...");
     system("sync");
 
     apply_io_tweaks("1", "1", "128", "128", 0);
@@ -233,11 +230,9 @@ void mode_balanced() {
 
     clear_slingshot();
     anyakawaii();
-    app_toast("Switched to Mid Mode");
 }
 
 void mode_powersave() {
-    app_toast("Switching to Eco Mode...");
     system("sync");
 
     apply_io_tweaks("1", "1", "128", "128", 0);
@@ -278,7 +273,6 @@ void mode_powersave() {
 
     clear_slingshot();
     anyakawaii();
-    app_toast("Switched to Eco Mode");
 }
 
 void mode_normal() {
@@ -334,12 +328,6 @@ int main(int argc, char *argv[]) {
     int mode = atoi(argv[1]);
 
     load_config("/data/ProjectRaco/raco.txt");
-
-    // Yamada: This has to be done, since my rakakikomi can't handle partially edit file
-    // Therefore I supposed it can be done with normal fopen and write then fclose
-    char state_cmd[256];
-    snprintf(state_cmd, sizeof(state_cmd), "sed -i 's/^STATE.*/STATE %d/' /data/ProjectRaco/raco.txt", mode);
-    system(state_cmd);
 
     // Yamada: PLEASE REMEMBER THIS.
     /*

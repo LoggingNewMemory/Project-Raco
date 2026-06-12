@@ -349,9 +349,6 @@ int main(int argc, char *argv[]) {
     // Prevents sysfs write oops from triggering a reboot
     disable_kernel_panic_early();
 
-    // Reset STATE to empty
-    system("sed -i 's/^STATE.*/STATE /' /data/ProjectRaco/raco.txt");
-
     // Parse Service Configuration
     parse_service_config();
 
