@@ -527,11 +527,6 @@ fun RacoRightPanel(
                     if (streamType == android.media.AudioManager.STREAM_MUSIC) {
                         currentVolume = audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC)
                     }
-                } else if (intent.action == "com.kanagawa.yamada.project.raco.SHOW_TOAST") {
-                    val msg = intent.getStringExtra("msg")
-                    if (msg != null) {
-                        android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
-                    }
                 }
             }
         }

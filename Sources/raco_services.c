@@ -381,10 +381,6 @@ int main(int argc, char *argv[]) {
     // Apply System Optimizations (Consolidated Facur, GHenna, Yanz)
     apply_system_optimizations();
 
-
-    // Final Startup Notification
-    send_notif("Project Raco", "Project Raco - オンライン", "TagRaco", "/data/local/tmp/logo.png");
-
     // Sandevistan Durational CPU governor lock & background restore fork
     if (inc_sandev == 1) {
         pid_t pid = fork();

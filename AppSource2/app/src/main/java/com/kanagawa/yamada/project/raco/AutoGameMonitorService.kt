@@ -19,10 +19,30 @@ class AutoGameMonitorService : Service() {
     private var lastForegroundApp: String = ""
 
     override fun onBind(intent: Intent?): IBinder? = null
+    private val toastReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == "com.kanagawa.yamada.project.raco.SHOW_TOAST") {
+                val msg = intent.getStringExtra("msg")
+                if (msg != null) {
+                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                        android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
         startForegroundService()
+        
+        val filter = android.content.IntentFilter("com.kanagawa.yamada.project.raco.SHOW_TOAST")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(toastReceiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(toastReceiver, filter)
+        }
+        
         startMonitoring()
     }
 
