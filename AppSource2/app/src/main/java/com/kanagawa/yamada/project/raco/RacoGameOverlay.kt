@@ -58,7 +58,7 @@ import kotlinx.coroutines.launch
 val RacoRed = Color(0xFFFF2A2A)
 
 @Composable
-fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -> Unit, onClose: () -> Unit) {
+fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -> Unit, onClose: () -> Unit) {
     val context = LocalContext.current
     var isLeftOpen by remember { mutableStateOf(false) }
     var isRightOpen by remember { mutableStateOf(false) }
@@ -180,6 +180,7 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
             RacoRightPanel(
                 progressProvider = { lineSlideProgress.value },
                 currentPerfMode = currentPerfMode,
+                targetPackageName = targetPackageName,
                 themeColor = themeColor,
                 onModeChange = { 
                     currentPerfMode = it 
@@ -189,7 +190,8 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
                             val socket = android.net.LocalSocket()
                             val address = android.net.LocalSocketAddress("raco_gameservice", android.net.LocalSocketAddress.Namespace.ABSTRACT)
                             socket.connect(address)
-                            socket.outputStream.write(it.name.toByteArray())
+                            val payload = if (targetPackageName != null) "${it.name}:$targetPackageName" else it.name
+                            socket.outputStream.write(payload.toByteArray())
                             socket.close()
                             
                             // Save globally for next launches
@@ -491,6 +493,7 @@ fun RacoLeftPanel(
 fun RacoRightPanel(
     progressProvider: () -> Float = { 1f },
     currentPerfMode: PerfMode = PerfMode.AWAKEN,
+    targetPackageName: String? = null,
     themeColor: Color = RacoRed,
     onModeChange: (PerfMode) -> Unit = {}
 ) {

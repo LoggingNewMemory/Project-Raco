@@ -38,6 +38,10 @@ void handle_client(int client_sock) {
 
         if (strncmp(buffer, "NORMAL", 6) != 0 && strlen(buffer) > 0) {
             long mem_before = get_mem_available();
+            char *colon = strchr(buffer, ':');
+            if (colon) {
+                *colon = '\0'; // split the buffer so strncmp for AWAKEN etc below works properly
+            }
             kill_all();
             usleep(800000); // Wait a bit for memory to settle
             long mem_after = get_mem_available();

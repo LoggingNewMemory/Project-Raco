@@ -188,7 +188,6 @@ void anyakawaii() {
 void kill_all() {
     system("sync");
     system("cmd activity kill-all > /dev/null 2>&1");
-    system("pm list packages -3 | cut -f 2 -d ':' | grep -v 'com.google.android.inputmethod.latin' | xargs -n1 am force-stop > /dev/null 2>&1 &");
     system("pm trim-caches 100G > /dev/null 2>&1");
     rawrite("3", "/proc/sys/vm/drop_caches");
     system("logcat -b all -c");

@@ -53,7 +53,7 @@ class InGameMenuService : Service() {
     private var openLeftMenu: (() -> Unit)? = null
     private var openRightMenu: (() -> Unit)? = null
 
-    private var targetPackageName: String? = null
+    private var targetPackageName by mutableStateOf<String?>(null)
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
     private var isCheckerRunning = false
 
@@ -88,6 +88,7 @@ class InGameMenuService : Service() {
         mainComposeView = ComposeView(this).apply {
             setContent {
                 RacoGameOverlay(
+                    targetPackageName = targetPackageName,
                     onStateBind = { openLeft, openRight ->
                         openLeftMenu = openLeft
                         openRightMenu = openRight

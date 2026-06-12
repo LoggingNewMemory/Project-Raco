@@ -95,7 +95,7 @@ class AutoGameMonitorService : Service() {
         val mode = prefs.getString("global_perf_mode", "AWAKEN") ?: "AWAKEN"
         
         // Trigger Daemon via UNIX Socket
-        triggerDaemonMode(mode)
+        triggerDaemonMode(mode, packageName)
 
         // Prevent launching duplicate overlays if the user just launched via Slingshot
         val lastPlayed = GameManager.getGameLastPlayed(this, packageName)
@@ -122,12 +122,13 @@ class AutoGameMonitorService : Service() {
         triggerDaemonMode("NORMAL")
     }
 
-    private fun triggerDaemonMode(mode: String) {
+    private fun triggerDaemonMode(mode: String, packageName: String? = null) {
         try {
             val socket = LocalSocket()
             val address = LocalSocketAddress("raco_gameservice", LocalSocketAddress.Namespace.ABSTRACT)
             socket.connect(address)
-            socket.outputStream.write(mode.toByteArray())
+            val payload = if (packageName != null) "$mode:$packageName" else mode
+            socket.outputStream.write(payload.toByteArray())
             socket.close()
         } catch (e: Exception) {
             e.printStackTrace()
