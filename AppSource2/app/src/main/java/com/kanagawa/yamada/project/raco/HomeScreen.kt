@@ -240,22 +240,20 @@ fun HomeScreen() {
 
         // Foreground UI Overlay
         Row(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.horizontalGradient(
+                        0f to Color.Black,
+                        0.7f to Color.Transparent
+                    )
+                )
         ) {
             // LEFT PANE
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(0.5f)
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Black.copy(alpha = 0.9f),
-                                Color.Black.copy(alpha = 0.6f),
-                                Color.Transparent
-                            )
-                        )
-                    )
                     .displayCutoutPadding()
                     .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 8.dp)
             ) {
@@ -332,11 +330,8 @@ fun HomeScreen() {
                                 .fillMaxSize()
                                 .background(
                                     Brush.horizontalGradient(
-                                        colors = listOf(
-                                            Color.Transparent,
-                                            Color.Black.copy(alpha = 0.6f),
-                                            Color.Black.copy(alpha = 0.9f)
-                                        )
+                                        0.7f to Color.Transparent,
+                                        1.0f to Color.Black
                                     )
                                 )
                                 .pointerInput(Unit) {
@@ -371,9 +366,16 @@ fun HomeScreen() {
                             if (installedGames.isNotEmpty()) {
                                 val activeGame = installedGames[selectedGameIndex]
 
-                                // Background is now handled at the root level, so this overlay is transparent
+                                // Linear shadow for game text and settings visibility
                                 Box(
-                                    modifier = Modifier.fillMaxSize()
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            Brush.horizontalGradient(
+                                                0.7f to Color.Transparent,
+                                                1.0f to Color.Black
+                                            )
+                                        )
                                 )
 
                                 // ── 2. Foreground Content ──
