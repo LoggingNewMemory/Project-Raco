@@ -344,8 +344,6 @@ fun RacoLeftPanel(
                 Spacer(modifier = Modifier.height(8.dp))
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
-            
             // DND Toggle
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -563,7 +561,7 @@ fun RacoRightPanel(
         Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.End) {
             AutoSizeText("PROJECT", color = themeColor, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
             AutoSizeText("RACO", color = Color.White, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             
             // Performance & Battery Row
             var expanded by remember { mutableStateOf(false) }
