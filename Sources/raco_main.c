@@ -141,7 +141,11 @@ void mode_awaken() {
 
     apply_io_tweaks("0", "0", "32", "32", 1);
     apply_net_tweaks("1", "1", "3", "0", 1);
-    rawrite("0", "/proc/sys/kernel/split_lock_mitigate");
+    if (config.device_mitigation == 1) {
+        rawrite("1", "/proc/sys/kernel/split_lock_mitigate");
+    } else {
+        rawrite("0", "/proc/sys/kernel/split_lock_mitigate");
+    }
     rawrite("0", "/proc/sys/vm/page-cluster");
     rawrite("80", "/proc/sys/vm/vfs_cache_pressure");
     carlotta_cpu(80);

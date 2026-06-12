@@ -117,19 +117,32 @@ void mediatek_awaken() {
     rawrite("1", "/proc/cpufreq/cpufreq_cci_mode");
     rawrite("3", "/proc/cpufreq/cpufreq_power_mode");
     rawrite("1", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
-    rawrite("0", "/sys/devices/system/cpu/eas/enable");
-    rawrite("stop 1", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
+    if (config.device_mitigation == 1) {
+        rawrite("2", "/sys/devices/system/cpu/eas/enable");
+        rawrite("stop 0", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
+    } else {
+        rawrite("0", "/sys/devices/system/cpu/eas/enable");
+        rawrite("stop 1", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
+    }
 
     // GPU Tweaks
     rawrite("0", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
     rawrite("0", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
     // Power Limits
-    const char *power_limits[] = {
-        "ignore_batt_oc 1", "ignore_batt_percent 1", "ignore_low_batt 1",
-        "ignore_thermal_protect 1", "ignore_pbm_limited 1"
-    };
-    for (int i = 0; i < 5; i++) rawrite(power_limits[i], "/proc/gpufreq/gpufreq_power_limited");
+    if (config.device_mitigation == 1) {
+        const char *power_limits[] = {
+            "ignore_batt_oc 0", "ignore_batt_percent 0", "ignore_low_batt 0",
+            "ignore_thermal_protect 0", "ignore_pbm_limited 0"
+        };
+        for (int i = 0; i < 5; i++) rawrite(power_limits[i], "/proc/gpufreq/gpufreq_power_limited");
+    } else {
+        const char *power_limits[] = {
+            "ignore_batt_oc 1", "ignore_batt_percent 1", "ignore_low_batt 1",
+            "ignore_thermal_protect 1", "ignore_pbm_limited 1"
+        };
+        for (int i = 0; i < 5; i++) rawrite(power_limits[i], "/proc/gpufreq/gpufreq_power_limited");
+    }
 
     // ==============================
     // GPU & FREQ TWEAKS
@@ -143,7 +156,9 @@ void mediatek_awaken() {
     }
 
     // Defreq Tweaks
-    devfreq_max("/sys/class/devfreq/mtk-dvfsrc-devfreq");
+    if (config.device_mitigation != 1) {
+        devfreq_max("/sys/class/devfreq/mtk-dvfsrc-devfreq");
+    }
 }
 
 void mediatek_balanced() {
@@ -414,8 +429,13 @@ void snapdragon_awaken() {
     raco_bulk(kgsl_base, kgsl_1, 2, "1", 1);
 
     // Bus Split & Throttling
-    const char *kgsl_0[] = {"bus_split", "throttling"};
-    raco_bulk(kgsl_base, kgsl_0, 2, "0", 1);
+    if (config.device_mitigation == 1) {
+        const char *kgsl_0[] = {"bus_split", "throttling"};
+        raco_bulk(kgsl_base, kgsl_0, 2, "1", 1);
+    } else {
+        const char *kgsl_0[] = {"bus_split", "throttling"};
+        raco_bulk(kgsl_base, kgsl_0, 2, "0", 1);
+    }
 
     // Adreno Boost
     char path_buf[256];
@@ -437,7 +457,9 @@ void snapdragon_awaken() {
     // ==============================
 
     snapdragon_devfreq_apply(0);
-    devfreq_max("/sys/class/kgsl/kgsl-3d0/devfreq");
+    if (config.device_mitigation != 1) {
+        devfreq_max("/sys/class/kgsl/kgsl-3d0/devfreq");
+    }
 }
 
 void snapdragon_balanced() {
