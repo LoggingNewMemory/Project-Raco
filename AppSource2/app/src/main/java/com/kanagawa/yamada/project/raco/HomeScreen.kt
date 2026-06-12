@@ -452,13 +452,17 @@ fun HomeScreen() {
                         }
                     }
                 }
-                if (!showPerfMenu) {
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = !showPerfMenu,
+                    enter = androidx.compose.animation.fadeIn(tween(400)),
+                    exit = androidx.compose.animation.fadeOut(tween(400)),
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "Settings",
                         tint = Color.White,
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
                             .displayCutoutPadding()
                             .padding(end = 24.dp, top = 24.dp)
                             .size(28.dp)
