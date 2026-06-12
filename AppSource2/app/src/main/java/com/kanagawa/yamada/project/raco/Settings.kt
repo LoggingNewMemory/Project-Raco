@@ -275,7 +275,7 @@ fun SettingsScreen(
                                 if (key == "BLUR_RADIUS" && configState["BLUR_BACKGROUND"] != "1") return@forEach
                                 if (key == "DIM_OPACITY" && configState["DIM_BACKGROUND"] != "1") return@forEach
                                 val isChecked = configState[key] == "1"
-                                val vPadding = if (desc.isEmpty()) 4.dp else 12.dp
+                                val vPadding = if (selectedCategory == "Customization") 8.dp else if (desc.isEmpty()) 4.dp else 12.dp
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -356,18 +356,23 @@ fun SettingsScreen(
                                             modifier = Modifier.width(300.dp)
                                         )
                                     } else {
-                                        Switch(
-                                            checked = isChecked,
-                                            onCheckedChange = { checked ->
-                                                updateConfig(key, if (checked) "1" else "0")
-                                            },
-                                            colors = SwitchDefaults.colors(
-                                                checkedThumbColor = Color.White,
-                                                checkedTrackColor = accentColor,
-                                                uncheckedThumbColor = Color.Gray,
-                                                uncheckedTrackColor = Color.DarkGray
+                                        Box(
+                                            modifier = Modifier
+                                                .width(52.dp)
+                                                .height(28.dp)
+                                                .clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null) {
+                                                    updateConfig(key, if (isChecked) "0" else "1")
+                                                }
+                                                .background(if (isChecked) accentColor else Color.DarkGray, androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
+                                                .padding(4.dp),
+                                            contentAlignment = if (isChecked) Alignment.CenterEnd else Alignment.CenterStart
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(20.dp)
+                                                    .background(if (isChecked) Color.White else Color.Gray, androidx.compose.foundation.shape.CircleShape)
                                             )
-                                        )
+                                        }
                                     }
                                 }
                             }
