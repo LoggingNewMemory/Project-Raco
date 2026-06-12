@@ -688,9 +688,9 @@ fun rememberRacoCustomization(context: Context, refreshTrigger: Int): State<Map<
         val sharedPrefs = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
         config.value = mapOf(
             "ENABLE_BACKGROUND" to sharedPrefs.getBoolean("ENABLE_BACKGROUND", true),
-            "BLUR_BACKGROUND" to sharedPrefs.getBoolean("BLUR_BACKGROUND", true),
+            "BLUR_BACKGROUND" to sharedPrefs.getBoolean("BLUR_BACKGROUND", false),
             "BLUR_RADIUS" to sharedPrefs.getFloat("BLUR_RADIUS", 24f),
-            "DIM_BACKGROUND" to sharedPrefs.getBoolean("DIM_BACKGROUND", true),
+            "DIM_BACKGROUND" to sharedPrefs.getBoolean("DIM_BACKGROUND", false),
             "DIM_OPACITY" to sharedPrefs.getFloat("DIM_OPACITY", 0.5f),
             "HAS_CUSTOM_BACKGROUND" to sharedPrefs.getBoolean("HAS_CUSTOM_BACKGROUND", false),
             "CUSTOM_BG_TS" to sharedPrefs.getLong("CUSTOM_BG_TS", 0L)

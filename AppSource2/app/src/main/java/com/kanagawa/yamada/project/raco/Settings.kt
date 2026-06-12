@@ -47,6 +47,9 @@ fun SettingsScreen(
     val configState = remember { mutableStateMapOf<String, String>() }
     var isLoading by remember { mutableStateOf(true) }
     
+    val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
+    var hasCustomBackground by remember { mutableStateOf(sharedPrefs.getBoolean("HAS_CUSTOM_BACKGROUND", false)) }
+    
     var selectedCategory by remember { mutableStateOf("Modules") }
     var pendingCropUri by remember { mutableStateOf<android.net.Uri?>(null) }
     
@@ -61,11 +64,11 @@ fun SettingsScreen(
                     inputStream?.copyTo(outputStream)
                     inputStream?.close()
                     outputStream.close()
-                    val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
                     sharedPrefs.edit()
                         .putBoolean("HAS_CUSTOM_BACKGROUND", true)
                         .putLong("CUSTOM_BG_TS", System.currentTimeMillis())
                         .apply()
+                    hasCustomBackground = true
                     android.widget.Toast.makeText(context, "Custom Background Set!", android.widget.Toast.LENGTH_SHORT).show()
                 } catch (e: Exception) { 
                     e.printStackTrace()
@@ -120,8 +123,6 @@ fun SettingsScreen(
         )
     }
 
-    val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
-
     // Read config
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -136,9 +137,9 @@ fun SettingsScreen(
                     }
                 }
                 configState["ENABLE_BACKGROUND"] = if (sharedPrefs.getBoolean("ENABLE_BACKGROUND", true)) "1" else "0"
-                configState["BLUR_BACKGROUND"] = if (sharedPrefs.getBoolean("BLUR_BACKGROUND", true)) "1" else "0"
+                configState["BLUR_BACKGROUND"] = if (sharedPrefs.getBoolean("BLUR_BACKGROUND", false)) "1" else "0"
                 configState["BLUR_RADIUS"] = sharedPrefs.getFloat("BLUR_RADIUS", 24f).toString()
-                configState["DIM_BACKGROUND"] = if (sharedPrefs.getBoolean("DIM_BACKGROUND", true)) "1" else "0"
+                configState["DIM_BACKGROUND"] = if (sharedPrefs.getBoolean("DIM_BACKGROUND", false)) "1" else "0"
                 configState["DIM_OPACITY"] = sharedPrefs.getFloat("DIM_OPACITY", 0.5f).toString()
                 process.waitFor()
             } catch (e: Exception) {
@@ -303,21 +304,23 @@ fun SettingsScreen(
                                     Spacer(modifier = Modifier.width(16.dp))
                                     if (key == "CUSTOM_BACKGROUND") {
                                         Row {
-                                            androidx.compose.material3.Button(
-                                                onClick = {
-                                                    val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
-                                                    sharedPrefs.edit()
-                                                        .putBoolean("HAS_CUSTOM_BACKGROUND", false)
-                                                        .putLong("CUSTOM_BG_TS", System.currentTimeMillis())
-                                                        .apply()
-                                                    val outFile = java.io.File(context.filesDir, "custom_background.png")
-                                                    if (outFile.exists()) outFile.delete()
-                                                    android.widget.Toast.makeText(context, "Background Reset!", android.widget.Toast.LENGTH_SHORT).show()
-                                                },
-                                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color.DarkGray),
-                                                modifier = Modifier.padding(end = 8.dp)
-                                            ) {
-                                                Text("Reset", color = Color.White)
+                                            if (hasCustomBackground) {
+                                                androidx.compose.material3.Button(
+                                                    onClick = {
+                                                        sharedPrefs.edit()
+                                                            .putBoolean("HAS_CUSTOM_BACKGROUND", false)
+                                                            .putLong("CUSTOM_BG_TS", System.currentTimeMillis())
+                                                            .apply()
+                                                        hasCustomBackground = false
+                                                        val outFile = java.io.File(context.filesDir, "custom_background.png")
+                                                        if (outFile.exists()) outFile.delete()
+                                                        android.widget.Toast.makeText(context, "Background Reset!", android.widget.Toast.LENGTH_SHORT).show()
+                                                    },
+                                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color.DarkGray),
+                                                    modifier = Modifier.padding(end = 8.dp)
+                                                ) {
+                                                    Text("Reset", color = Color.White)
+                                                }
                                             }
                                             androidx.compose.material3.Button(
                                                 onClick = {
