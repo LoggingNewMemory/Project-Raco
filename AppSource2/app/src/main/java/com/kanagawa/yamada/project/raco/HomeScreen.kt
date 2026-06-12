@@ -334,47 +334,12 @@ fun HomeScreen() {
             ) {
 
 
-                Crossfade(targetState = showPerfMenu, modifier = Modifier.fillMaxSize(), label = "SettingsCrossfade") { isSettings ->
-                    if (isSettings) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .pointerInput(Unit) {
-                                detectHorizontalDragGestures { change, dragAmount ->
-                                    if (dragAmount > 20f) { showPerfMenu = false; change.consume() }
-                                }
-                            }
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.End,
-                                modifier = Modifier
-                                    .align(Alignment.CenterEnd)
-                                    .displayCutoutPadding()
-                                    .padding(end = 24.dp)
-                            ) {
-                                Column(horizontalAlignment = Alignment.End) {
-                                    Text("Performance", color = Color.White, fontFamily = gilmerRegular, fontSize = 36.sp)
-                                    Text("Settings", color = Color.White, fontFamily = gilmerRegular, fontSize = 36.sp)
-                                }
-                                Spacer(modifier = Modifier.height(48.dp))
-                                PerfMode.entries.forEach { mode ->
-                                    val isSelected = currentMode == mode
-                                    Text(
-                                        text = mode.title, color = Color.White, fontFamily = if (isSelected) gilmerBold else gilmerRegular, fontSize = 28.sp,
-                                        modifier = Modifier.padding(vertical = 12.dp).clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { currentMode = mode }
-                                    )
-                                }
-                            }
-                        }
-                    } else {
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            if (installedGames.isNotEmpty()) {
-                                val activeGame = installedGames[selectedGameIndex]
-
-                                // Shadow is now handled by parent Right Pane Box
-                                // ── 2. Foreground Content ──
+                // ALWAYS render Game Details behind everything
+                Box(modifier = Modifier.fillMaxSize()) {
+                    if (installedGames.isNotEmpty()) {
+                        // ── 2. Foreground Content ──
                                 AnimatedContent(
-                                    targetState = activeGame,
+                                    targetState = selectedGameIndex,
                                     transitionSpec = {
                                         (fadeIn(animationSpec = tween(400)) + slideInVertically(tween(400)) { 40 }).togetherWith(
                                             fadeOut(animationSpec = tween(400)) + slideOutVertically(tween(400)) { -40 }
@@ -382,7 +347,8 @@ fun HomeScreen() {
                                     },
                                     modifier = Modifier.fillMaxSize(),
                                     label = "GameDetailsAnimation"
-                                ) { game ->
+                                ) { index ->
+                                    val game = installedGames[index]
                                     Box(modifier = Modifier.fillMaxSize()) {
                                         Column(
                                             horizontalAlignment = Alignment.End,
@@ -433,6 +399,43 @@ fun HomeScreen() {
                                         }
                                     }
                                 }
+                            }
+                        }
+
+                // Render Performance Settings on top with smooth fade
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = showPerfMenu,
+                    enter = androidx.compose.animation.fadeIn(tween(400)),
+                    exit = androidx.compose.animation.fadeOut(tween(400))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectHorizontalDragGestures { change, dragAmount ->
+                                    if (dragAmount > 20f) { showPerfMenu = false; change.consume() }
+                                }
+                            }
+                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {} // Prevent taps passing through
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .displayCutoutPadding()
+                                .padding(end = 24.dp)
+                        ) {
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text("Performance", color = Color.White, fontFamily = gilmerRegular, fontSize = 36.sp)
+                                Text("Settings", color = Color.White, fontFamily = gilmerRegular, fontSize = 36.sp)
+                            }
+                            Spacer(modifier = Modifier.height(48.dp))
+                            PerfMode.entries.forEach { mode ->
+                                val isSelected = currentMode == mode
+                                Text(
+                                    text = mode.title, color = Color.White, fontFamily = if (isSelected) gilmerBold else gilmerRegular, fontSize = 28.sp,
+                                    modifier = Modifier.padding(vertical = 12.dp).clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { currentMode = mode }
+                                )
                             }
                         }
                     }
