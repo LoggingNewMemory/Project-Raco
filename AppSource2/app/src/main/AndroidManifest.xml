@@ -23,6 +23,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="userLandscape"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:label="@string/app_name"
             android:theme="@style/Theme.ProjectRaco">
             <intent-filter>

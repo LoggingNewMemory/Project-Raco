@@ -147,6 +147,9 @@ fun HomeScreen() {
     var showAppPicker by remember { mutableStateOf(false) }
     var listRefreshTrigger by remember { mutableIntStateOf(0) }
     var slingshotGame by remember { mutableStateOf<Game?>(null) }
+    var showCredits by remember { mutableStateOf(false) }
+    var projectClickCount by remember { mutableIntStateOf(0) }
+    var lastProjectClickTime by remember { mutableLongStateOf(0L) }
 
     // Listen for app resume to refresh the game list
     DisposableEffect(lifecycleOwner) {
@@ -262,7 +265,23 @@ fun HomeScreen() {
                         withStyle(style = SpanStyle(color = animatedAccentColor)) { append("PROJECT ") }
                         withStyle(style = SpanStyle(color = Color.White)) { append("RACO") }
                     },
-                    fontFamily = gilmerBold, fontSize = 32.sp, letterSpacing = 1.sp
+                    fontFamily = gilmerBold, fontSize = 32.sp, letterSpacing = 1.sp,
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        val now = System.currentTimeMillis()
+                        if (now - lastProjectClickTime > 500) {
+                            projectClickCount = 1
+                        } else {
+                            projectClickCount++
+                        }
+                        lastProjectClickTime = now
+                        if (projectClickCount >= 3) {
+                            showCredits = true
+                            projectClickCount = 0
+                        }
+                    }
                 )
 
                 Text("$currentTime • $batteryLevel%", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp, top = 4.dp))
@@ -520,6 +539,20 @@ fun HomeScreen() {
                     onBack = { slingshotGame = null }
                 )
             }
+        }
+
+        androidx.compose.animation.AnimatedVisibility(
+            visible = showCredits,
+            enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(400)) + androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(400)) { 40 },
+            exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(400)) + androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(400)) { 40 },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Credits(
+                accentColor = animatedAccentColor,
+                gilmerBold = gilmerBold,
+                gilmerRegular = gilmerRegular,
+                onClose = { showCredits = false }
+            )
         }
     }
 }
