@@ -180,86 +180,80 @@ fun HomeScreen() {
         label = "AccentColorAnim"
     )
 
-    val rightPaneColor by animateColorAsState(if (showPerfMenu) Color(0xFF0A0A0A) else Color.Transparent, label = "RightPaneColor")
-    val lineAlpha by animateFloatAsState(if (showPerfMenu) 0f else 1f, label = "LineAlpha")
-    var activeGradientMode by remember { mutableStateOf(currentMode) }
-    val lineSlideProgress = remember { Animatable(1f) }
-
-    LaunchedEffect(showPerfMenu) {
-        if (!showPerfMenu) {
-            activeGradientMode = currentMode
-            lineSlideProgress.snapTo(0f)
-            lineSlideProgress.animateTo(1f, tween(durationMillis = 600, easing = FastOutSlowInEasing))
-        }
-    }
-
     Box(
-        modifier = Modifier.fillMaxSize().background(Color(0xFF0A0A0A))
+        modifier = Modifier.fillMaxSize().background(Color.Black)
     ) {
-        // Background Diagonal Line
-        Canvas(modifier = Modifier.fillMaxSize().clipToBounds()) {
-            val splitStart = size.width * 0.70f
-            val splitEnd = size.width * 0.45f
+        // Full screen background image
+        val enableBg = customizations["ENABLE_BACKGROUND"] as? Boolean ?: true
+        val blurBg = customizations["BLUR_BACKGROUND"] as? Boolean ?: true
+        val blurRadius = customizations["BLUR_RADIUS"] as? Float ?: 24f
+        val dimBg = customizations["DIM_BACKGROUND"] as? Boolean ?: true
+        val dimOpacity = customizations["DIM_OPACITY"] as? Float ?: 0.5f
+        val hasCustomBg = customizations["HAS_CUSTOM_BACKGROUND"] as? Boolean ?: false
+        val customBgTs = customizations["CUSTOM_BG_TS"] as? Long ?: 0L
 
-            val path = Path().apply {
-                moveTo(splitStart, 0f)
-                lineTo(size.width, 0f)
-                lineTo(size.width, size.height)
-                lineTo(splitEnd, size.height)
-                close()
-            }
-
-            drawPath(path, rightPaneColor)
-
-            if (lineAlpha > 0f) {
-                drawLine(Color.White.copy(alpha = lineAlpha), Offset(splitStart, 0f), Offset(splitEnd, size.height), 12.dp.toPx())
-
-                if (lineSlideProgress.value > 0f) {
-                    clipRect(top = size.height * (1f - lineSlideProgress.value), bottom = size.height, left = 0f, right = size.width) {
-                        drawLine(
-                            brush = Brush.linearGradient(
-                                listOf(activeGradientMode.color.copy(alpha = lineAlpha), Color.White.copy(alpha = lineAlpha)),
-                                start = Offset(splitStart, 0f), end = Offset(splitEnd, size.height)
-                            ),
-                            start = Offset(splitStart, 0f), end = Offset(splitEnd, size.height), strokeWidth = 12.dp.toPx()
-                        )
-                    }
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (enableBg) {
+                if (hasCustomBg) {
+                    val req = coil.request.ImageRequest.Builder(context)
+                        .data(java.io.File(context.filesDir, "custom_background.png"))
+                        .setParameter("ts", customBgTs, null)
+                        .build()
+                    coil.compose.AsyncImage(
+                        model = req,
+                        contentDescription = "Background",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .then(if (blurBg && blurRadius > 0f) Modifier.blur(blurRadius.dp) else Modifier)
+                    )
+                } else {
+                    androidx.compose.foundation.Image(
+                        painter = androidx.compose.ui.res.painterResource(id = R.drawable.raco_upscale),
+                        contentDescription = "Background",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .then(if (blurBg && blurRadius > 0f) Modifier.blur(blurRadius.dp) else Modifier)
+                    )
                 }
+            }
+            if (dimBg && dimOpacity > 0f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = dimOpacity))
+                )
             }
         }
 
         // Foreground UI Overlay
-        Box(
+        Row(
             modifier = Modifier.fillMaxSize()
         ) {
             // LEFT PANE
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .drawWithContent {
-                        val margin = 24.dp.toPx()
-                        val splitStart = size.width * 0.70f - margin
-                        val splitEnd = size.width * 0.45f - margin
-
-                        val path = Path().apply {
-                            moveTo(0f, 0f)
-                            lineTo(splitStart, 0f)
-                            lineTo(splitEnd, size.height)
-                            lineTo(0f, size.height)
-                            close()
-                        }
-
-                        clipPath(path) { this@drawWithContent.drawContent() }
-                    }
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.5f)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.9f),
+                                Color.Black.copy(alpha = 0.6f),
+                                Color.Transparent
+                            )
+                        )
+                    )
                     .displayCutoutPadding()
-                    .padding(start = 24.dp, top = 24.dp, bottom = 24.dp)
+                    .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 8.dp)
             ) {
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(color = animatedAccentColor)) { append("PROJECT ") }
                         withStyle(style = SpanStyle(color = Color.White)) { append("RACO") }
                     },
-                    fontFamily = gilmerBold, fontSize = 34.sp, letterSpacing = 2.sp
+                    fontFamily = gilmerBold, fontSize = 32.sp, letterSpacing = 1.sp
                 )
 
                 Text("$currentTime • $batteryLevel%", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp, top = 4.dp))
@@ -295,7 +289,7 @@ fun HomeScreen() {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .fillMaxWidth(0.55f)
+                                    .fillMaxWidth()
                                     .clickable { showAppPicker = true }
                                     .padding(vertical = 4.dp)
                             ) {
@@ -315,28 +309,26 @@ fun HomeScreen() {
             // RIGHT PANE
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .drawWithContent {
-                        val splitStart = size.width * 0.70f
-                        val splitEnd = size.width * 0.45f
-
-                        val path = Path().apply {
-                            moveTo(splitStart, 0f)
-                            lineTo(size.width, 0f)
-                            lineTo(size.width, size.height)
-                            lineTo(splitEnd, size.height)
-                            close()
-                        }
-
-                        clipPath(path) { this@drawWithContent.drawContent() }
-                    }
+                    .fillMaxHeight()
+                    .weight(1f)
             ) {
 
 
                 Crossfade(targetState = showPerfMenu, modifier = Modifier.fillMaxSize(), label = "SettingsCrossfade") { isSettings ->
                     if (isSettings) {
                         Box(
-                            modifier = Modifier.fillMaxSize().pointerInput(Unit) {
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.horizontalGradient(
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            Color.Black.copy(alpha = 0.6f),
+                                            Color.Black.copy(alpha = 0.9f)
+                                        )
+                                    )
+                                )
+                                .pointerInput(Unit) {
                                 detectHorizontalDragGestures { change, dragAmount ->
                                     if (dragAmount > 20f) { showPerfMenu = false; change.consume() }
                                 }
@@ -368,51 +360,10 @@ fun HomeScreen() {
                             if (installedGames.isNotEmpty()) {
                                 val activeGame = installedGames[selectedGameIndex]
 
-                                val enableBg = customizations["ENABLE_BACKGROUND"] as? Boolean ?: true
-                                val blurBg = customizations["BLUR_BACKGROUND"] as? Boolean ?: true
-                                val blurRadius = customizations["BLUR_RADIUS"] as? Float ?: 24f
-                                val dimBg = customizations["DIM_BACKGROUND"] as? Boolean ?: true
-                                val dimOpacity = customizations["DIM_OPACITY"] as? Float ?: 0.5f
-                                val hasCustomBg = customizations["HAS_CUSTOM_BACKGROUND"] as? Boolean ?: false
-                                val customBgTs = customizations["CUSTOM_BG_TS"] as? Long ?: 0L
-
+                                // Background is now handled at the root level, so this overlay is transparent
                                 Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                ) {
-                                    if (enableBg) {
-                                        if (hasCustomBg) {
-                                            val req = coil.request.ImageRequest.Builder(context)
-                                                .data(java.io.File(context.filesDir, "custom_background.png"))
-                                                .setParameter("ts", customBgTs, null)
-                                                .build()
-                                            coil.compose.AsyncImage(
-                                                model = req,
-                                                contentDescription = "Background",
-                                                contentScale = ContentScale.Crop,
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .then(if (blurBg && blurRadius > 0f) Modifier.blur(blurRadius.dp) else Modifier)
-                                            )
-                                        } else {
-                                            androidx.compose.foundation.Image(
-                                                painter = androidx.compose.ui.res.painterResource(id = R.drawable.raco_upscale),
-                                                contentDescription = "Background",
-                                                contentScale = ContentScale.Crop,
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .then(if (blurBg && blurRadius > 0f) Modifier.blur(blurRadius.dp) else Modifier)
-                                            )
-                                        }
-                                    }
-                                    if (dimBg && dimOpacity > 0f) {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .background(Color.Black.copy(alpha = dimOpacity))
-                                        )
-                                    }
-                                }
+                                    modifier = Modifier.fillMaxSize()
+                                )
 
                                 // ── 2. Foreground Content ──
                                 AnimatedContent(
@@ -429,21 +380,18 @@ fun HomeScreen() {
                                         Column(
                                             horizontalAlignment = Alignment.End,
                                             modifier = Modifier
-                                                .fillMaxWidth(0.7f)
+                                                .fillMaxWidth()
                                                 .align(Alignment.BottomEnd)
                                                 .displayCutoutPadding()
                                                 .padding(end = 24.dp, bottom = 24.dp)
                                         ) {
-                                            val tickerText = remember(game.name) {
-                                                Array(10) { game.name }.joinToString("      •      ")
-                                            }
-
                                             Text(
-                                                text = tickerText,
-                                                color = Color.White,
-                                                fontSize = 34.sp,
+                                                text = game.name,
+                                                color = animatedAccentColor,
+                                                fontSize = 32.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                maxLines = 1,
+                                                maxLines = 2,
+                                                overflow = TextOverflow.Ellipsis,
                                                 style = TextStyle(
                                                     shadow = Shadow(
                                                         color = Color.Black.copy(alpha = 0.8f),
@@ -451,13 +399,7 @@ fun HomeScreen() {
                                                         blurRadius = 12f
                                                     )
                                                 ),
-                                                modifier = Modifier
-                                                    .padding(bottom = 24.dp)
-                                                    .basicMarquee(
-                                                        iterations = Int.MAX_VALUE,
-                                                        velocity = 40.dp,
-                                                        initialDelayMillis = 0
-                                                    )
+                                                modifier = Modifier.padding(bottom = 24.dp)
                                             )
                                             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                                 Box(
@@ -554,7 +496,7 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .fillMaxWidth(0.55f)
+            .fillMaxWidth()
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
             .padding(vertical = 4.dp)
     ) {
