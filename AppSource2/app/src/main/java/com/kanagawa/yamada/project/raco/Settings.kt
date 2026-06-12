@@ -58,6 +58,10 @@ fun SettingsScreen(
                 "ANYA" to "Enable ANYA assistant",
                 "DND" to "Enable Do Not Disturb",
                 "DEVICE_MITIGATION" to "Enable Device Mitigation"
+            ),
+            "Notifications" to listOf(
+                "LEGACY_NOTIF" to "Use Legacy Notifications",
+                "SILENT_NOTIF" to "Use Silent Notifications"
             )
         )
     }

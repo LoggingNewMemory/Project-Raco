@@ -177,7 +177,6 @@ void mode_awaken() {
     dnd_on();
     clear_slingshot();
     anyamelfissa();
-    notification("Awaken Mode Activated");
 }
 
 void mode_balanced() {
@@ -222,7 +221,6 @@ void mode_balanced() {
     dnd_off();
     clear_slingshot();
     anyakawaii();
-    notification("Balanced Mode Activated");
 }
 
 void mode_powersave() {
@@ -267,7 +265,6 @@ void mode_powersave() {
     dnd_off();
     clear_slingshot();
     anyakawaii();
-    notification("Powersave Mode Activated");
 }
 
 void mode_normal() {
@@ -312,7 +309,6 @@ void mode_normal() {
     dnd_off();
     clear_slingshot();
     anyakawaii();
-    notification("Normal State Activated");
 }
 
 // Main Execution
