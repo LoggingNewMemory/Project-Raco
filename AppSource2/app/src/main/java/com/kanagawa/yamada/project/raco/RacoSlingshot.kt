@@ -12,12 +12,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -98,6 +100,7 @@ fun SlingshotScreen(
                 modifier = Modifier
                     .weight(0.45f)
                     .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
             ) {
                 // Header
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -131,40 +134,94 @@ fun SlingshotScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Kasane Mode
-                Text("Kasane Mode", color = Color.White, fontFamily = gilmerBold, fontSize = 16.sp)
+                // Kasane Preload
+                Text("Kasane Preload", color = Color.White, fontFamily = gilmerBold, fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    val modes = listOf(
-                        "n" to "Normal",
-                        "d" to "Deep",
-                        "x" to "Extreme",
-                        "r" to "Recursive"
-                    )
-                    modes.forEach { (mode, title) ->
-                        val isSelected = selectedMode == mode
-                        Row(
+                var expanded by remember { mutableStateOf(false) }
+                val modes = listOf(
+                    "none" to "None",
+                    "n" to "Normal",
+                    "d" to "Deep",
+                    "x" to "Extreme",
+                    "r" to "Recursive"
+                )
+                val selectedTitle = modes.find { it.first == selectedMode }?.second ?: "Normal"
+
+                Column(modifier = Modifier.fillMaxWidth(0.8f)) {
+                    // Header / Dropdown Button
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .border(
+                                1.dp, 
+                                if (expanded) accentColor else Color.DarkGray, 
+                                RoundedCornerShape(12.dp)
+                            )
+                            .background(
+                                if (expanded) accentColor.copy(alpha=0.1f) else Color.Black.copy(alpha=0.3f),
+                                RoundedCornerShape(12.dp)
+                            )
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { expanded = !expanded }
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(selectedTitle, color = Color.White, fontFamily = gilmerBold, fontSize = 16.sp)
+                        Icon(
+                            Icons.Filled.ArrowDropDown, 
+                            contentDescription = "Dropdown", 
+                            tint = if (expanded) accentColor else Color.LightGray
+                        )
+                    }
+                    
+                    // Dropdown Content
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = expanded,
+                        enter = androidx.compose.animation.expandVertically(),
+                        exit = androidx.compose.animation.shrinkVertically()
+                    ) {
+                        Column(
                             modifier = Modifier
-                                .fillMaxWidth(0.8f)
-                                .height(48.dp) // Slightly smaller since there's no description
-                                .border(
-                                    if (isSelected) 2.dp else 1.dp,
-                                    if (isSelected) accentColor else Color.DarkGray,
-                                    RoundedCornerShape(12.dp)
-                                )
-                                .background(
-                                    if (isSelected) accentColor.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.3f),
-                                    RoundedCornerShape(12.dp)
-                                )
-                                .clickable { 
-                                    selectedMode = mode
-                                    sharedPrefs.edit().putString("selectedMode", mode).apply()
-                                }
-                                .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .fillMaxWidth()
+                                .padding(top = 8.dp)
+                                .border(1.dp, Color.DarkGray.copy(alpha=0.5f), RoundedCornerShape(12.dp))
+                                .background(Color(0xFF111111), RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(12.dp))
                         ) {
-                            Text(title, color = if (isSelected) Color.White else Color.LightGray, fontFamily = gilmerBold, fontSize = 16.sp)
+                            modes.forEach { (mode, title) ->
+                                val isSelected = selectedMode == mode
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(44.dp)
+                                        .background(if (isSelected) accentColor.copy(alpha=0.15f) else Color.Transparent)
+                                        .clickable { 
+                                            selectedMode = mode
+                                            sharedPrefs.edit().putString("selectedMode", mode).apply()
+                                            expanded = false
+                                        }
+                                        .padding(horizontal = 16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        title, 
+                                        color = if (isSelected) Color.White else Color.LightGray, 
+                                        fontFamily = gilmerBold, 
+                                        fontSize = 15.sp
+                                    )
+                                    if (isSelected) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(8.dp)
+                                                .background(accentColor, androidx.compose.foundation.shape.CircleShape)
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -192,7 +249,6 @@ fun SlingshotScreen(
                         
                         OptionToggle(
                             title = "Use ANGLE Driver",
-                            subtitle = if (isAngleSupported) "Force ANGLE renderer for OpenGL" else "Not supported on this device",
                             enabled = isAngleSupported,
                             checked = useAngle,
                             onCheckedChange = { 
@@ -200,15 +256,11 @@ fun SlingshotScreen(
                                 sharedPrefs.edit().putBoolean("useAngle", it).apply()
                             },
                             accentColor = accentColor,
-                            fontFamilyBold = gilmerBold,
-                            fontFamilyReg = gilmerRegular
+                            fontFamilyBold = gilmerBold
                         )
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
                         
                         OptionToggle(
                             title = "Use SkiaVK",
-                            subtitle = "Force Skia Vulkan renderer",
                             enabled = true,
                             checked = useSkia,
                             onCheckedChange = { 
@@ -216,15 +268,11 @@ fun SlingshotScreen(
                                 sharedPrefs.edit().putBoolean("useSkia", it).apply()
                             },
                             accentColor = accentColor,
-                            fontFamilyBold = gilmerBold,
-                            fontFamilyReg = gilmerRegular
+                            fontFamilyBold = gilmerBold
                         )
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
                         
                         OptionToggle(
                             title = "PlayBoost",
-                            subtitle = "Optimize thread affinity",
                             enabled = true,
                             checked = enablePlayboost,
                             onCheckedChange = { 
@@ -232,8 +280,7 @@ fun SlingshotScreen(
                                 sharedPrefs.edit().putBoolean("enablePlayboost", it).apply()
                             },
                             accentColor = accentColor,
-                            fontFamilyBold = gilmerBold,
-                            fontFamilyReg = gilmerRegular
+                            fontFamilyBold = gilmerBold
                         )
                     }
                 }
@@ -247,6 +294,11 @@ fun SlingshotScreen(
                         isLaunching = true
                         coroutineScope.launch {
                             withContext(Dispatchers.IO) {
+                                // Free RAM
+                                try {
+                                    Runtime.getRuntime().exec(arrayOf("su", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches")).waitFor()
+                                } catch (e: Exception) {}
+
                                 // Cleanup first
                                 try {
                                     Runtime.getRuntime().exec(arrayOf("su", "-c", "settings delete global angle_debug_package; settings delete global angle_gl_driver_all_angle; settings delete global angle_gl_driver_selection_pkgs; settings delete global angle_gl_driver_selection_values; setprop debug.hwui.renderer none")).waitFor()
@@ -260,7 +312,9 @@ fun SlingshotScreen(
                                 }
 
                                 // Run Kasane
-                                Runtime.getRuntime().exec(arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/Binaries/kasane -a ${game.packageName} -m $selectedMode -l")).waitFor()
+                                if (selectedMode != "none") {
+                                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/Binaries/kasane -a ${game.packageName} -m $selectedMode -l")).waitFor()
+                                }
 
                                 if (enablePlayboost) {
                                     launch {
@@ -293,7 +347,8 @@ fun SlingshotScreen(
                         }
                     },
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(0.6f)
+                        .align(Alignment.End)
                         .height(56.dp)
                         .border(2.dp, accentColor, RoundedCornerShape(12.dp)),
                     colors = ButtonDefaults.buttonColors(containerColor = accentColor.copy(alpha = 0.15f)),
@@ -302,9 +357,9 @@ fun SlingshotScreen(
                     if (isLaunching) {
                         CircularProgressIndicator(color = accentColor, modifier = Modifier.size(24.dp))
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("PRELOADING...", color = Color.White, fontFamily = gilmerBold, fontSize = 18.sp, letterSpacing = 2.sp)
+                        Text("LAUNCHING...", color = Color.White, fontFamily = gilmerBold, fontSize = 18.sp, letterSpacing = 2.sp)
                     } else {
-                        Text("PRELOAD & LAUNCH", color = Color.White, fontFamily = gilmerBold, fontSize = 18.sp, letterSpacing = 2.sp)
+                        Text("LAUNCH", color = Color.White, fontFamily = gilmerBold, fontSize = 18.sp, letterSpacing = 2.sp)
                     }
                 }
             }
@@ -315,35 +370,28 @@ fun SlingshotScreen(
 @Composable
 fun OptionToggle(
     title: String,
-    subtitle: String,
     enabled: Boolean,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     accentColor: Color,
-    fontFamilyBold: FontFamily,
-    fontFamilyReg: FontFamily
+    fontFamilyBold: FontFamily
 ) {
     val alpha by animateFloatAsState(if (enabled) 1f else 0.5f)
     
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White.copy(alpha = 0.05f))
+            .height(40.dp)
             .clickable(enabled = enabled) { onCheckedChange(!checked) }
-            .padding(12.dp)
             .alpha(alpha),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, color = Color.White, fontFamily = fontFamilyBold, fontSize = 15.sp)
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(subtitle, color = Color.Gray, fontFamily = fontFamilyReg, fontSize = 12.sp)
-        }
+        Text(title, color = Color.White, fontFamily = fontFamilyBold, fontSize = 14.sp, modifier = Modifier.weight(1f))
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
             enabled = enabled,
+            modifier = Modifier.scale(0.8f),
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
                 checkedTrackColor = accentColor,
