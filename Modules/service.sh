@@ -5,9 +5,6 @@ while [ -z "$(getprop sys.boot_completed)" ]; do
     sleep 10
 done
 
-# Let system fully stabilize before applying tweaks
-sleep 30
-
 MODDIR=${0%/*}
 
 # Execute the Raco core service in the background

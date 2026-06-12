@@ -222,10 +222,6 @@ void apply_system_optimizations() {
 
     }
 
-    // 5. GHenna Memory management task affinity & nice values (kswapd, oom_reaper, etc.)
-    // (Removed because modifying critical kernel thread affinity causes panics/freezes)
-
-
     // 6. RCU & safe module parameters
     {
         rawrite("1", "/sys/kernel/rcu_normal");
@@ -313,8 +309,6 @@ void apply_system_optimizations() {
         system("setprop debug.hwui.texture_cache_flushrate 0.4");
         system("setprop ro.hwui.render_ahead_lines 2");
         system("setprop ro.hwui.texture_cache_size 72");
-
-
     }
 
     // 10. GED Tweaks
