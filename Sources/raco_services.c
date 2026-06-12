@@ -38,70 +38,6 @@ char *my_strcasestr(const char *haystack, const char *needle) {
     return NULL;
 }
 
-// Custom Process Tasks nice and affinity management
-void optimize_memory_tasks(void) {
-    DIR *proc_dir = opendir("/proc");
-    if (proc_dir == NULL) return;
-
-    struct dirent *proc_ent;
-    while ((proc_ent = readdir(proc_dir)) != NULL) {
-        if (proc_ent->d_name[0] >= '0' && proc_ent->d_name[0] <= '9') {
-            char comm_path[512];
-            snprintf(comm_path, sizeof(comm_path), "/proc/%s/comm", proc_ent->d_name);
-            char comm_name[256] = {0};
-            if (raread(comm_path, comm_name, sizeof(comm_name) - 1) > 0) {
-                comm_name[strcspn(comm_name, "\n")] = 0;
-                
-                int is_kswapd = (my_strcasestr(comm_name, "kswapd") != NULL);
-                int is_oom = (my_strcasestr(comm_name, "oom_reaper") != NULL);
-                int is_kcompactd = (my_strcasestr(comm_name, "kcompactd") != NULL);
-                int is_kthreadd = (my_strcasestr(comm_name, "kthreadd") != NULL);
-                int is_writeback = (my_strcasestr(comm_name, "writeback") != NULL);
-                
-                if (is_kswapd || is_oom || is_kcompactd || is_kthreadd || is_writeback) {
-                    char task_dir_path[512];
-                    snprintf(task_dir_path, sizeof(task_dir_path), "/proc/%s/task", proc_ent->d_name);
-                    DIR *task_dir = opendir(task_dir_path);
-                    if (task_dir != NULL) {
-                        struct dirent *task_ent;
-                        while ((task_ent = readdir(task_dir)) != NULL) {
-                            if (task_ent->d_name[0] >= '0' && task_ent->d_name[0] <= '9') {
-                                int tid = atoi(task_ent->d_name);
-                                
-                                // Set Nice Value
-                                int nice_val = 0;
-                                if (is_kswapd || is_oom) nice_val = -2;
-                                else if (is_kcompactd || is_kthreadd || is_writeback) nice_val = -5;
-                                
-                                setpriority(PRIO_PROCESS, tid, nice_val);
-                                
-                                // Set Affinity if kswapd or oom
-                                if (is_kswapd || is_oom) {
-                                    cpu_set_t cpuset;
-                                    CPU_ZERO(&cpuset);
-                                    unsigned long mask_val = 0x7f; // "7f" in hex
-                                    for (size_t i = 0; i < 8 * sizeof(unsigned long); i++) {
-                                        if ((mask_val >> i) & 1) {
-                                            CPU_SET(i, &cpuset);
-                                        }
-                                    }
-                                    if (sched_setaffinity(tid, sizeof(cpu_set_t), &cpuset) != 0) {
-                                        // Fallback: write to /dev/cpuset/top-app/tasks
-                                        char tid_str[32];
-                                        snprintf(tid_str, sizeof(tid_str), "%d", tid);
-                                        rawrite(tid_str, "/dev/cpuset/top-app/tasks");
-                                    }
-                                }
-                            }
-                        }
-                        closedir(task_dir);
-                    }
-                }
-            }
-        }
-    }
-    closedir(proc_dir);
-}
 
 // Notification Helper
 void send_notif(const char *title, const char *message, const char *tag, const char *icon_path) {
@@ -287,9 +223,8 @@ void apply_system_optimizations() {
     }
 
     // 5. GHenna Memory management task affinity & nice values (kswapd, oom_reaper, etc.)
-    {
-        optimize_memory_tasks();
-    }
+    // (Removed because modifying critical kernel thread affinity causes panics/freezes)
+
 
     // 6. RCU & safe module parameters
     {
@@ -379,10 +314,7 @@ void apply_system_optimizations() {
         system("setprop ro.hwui.render_ahead_lines 2");
         system("setprop ro.hwui.texture_cache_size 72");
 
-        const char *mipi_base = "/sys/kernel/debug/mdss_panel_fb0/intf0/mipi/";
-        const char *mipi_files[] = { "hw_vsync_mode", "vsync_enable" };
-        int mipi_count = sizeof(mipi_files) / sizeof(mipi_files[0]);
-        raco_bulk(mipi_base, mipi_files, mipi_count, "0", 0);
+
     }
 
     // 10. GED Tweaks
