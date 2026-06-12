@@ -22,6 +22,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.togetherWith
+import androidx.compose.runtime.getValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -241,13 +243,24 @@ fun SettingsScreen(
                     ) {
                         categories.keys.forEach { cat ->
                             val isSelected = selectedCategory == cat
+                            val animatedColor by androidx.compose.animation.animateColorAsState(
+                                targetValue = if (isSelected) accentColor else Color.White,
+                                animationSpec = androidx.compose.animation.core.tween(300),
+                                label = "CatColor"
+                            )
+                            val animatedOffsetX by androidx.compose.animation.core.animateDpAsState(
+                                targetValue = if (isSelected) 12.dp else 0.dp,
+                                animationSpec = androidx.compose.animation.core.tween(300),
+                                label = "CatOffset"
+                            )
                             Text(
                                 cat,
-                                color = if (isSelected) accentColor else Color.White,
+                                color = animatedColor,
                                 fontFamily = if (isSelected) gilmerBold else gilmerRegular,
                                 fontSize = 20.sp,
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .offset(x = animatedOffsetX)
                                     .clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null) {
                                         selectedCategory = cat
                                     }
@@ -265,17 +278,26 @@ fun SettingsScreen(
                             .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                             .padding(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .verticalScroll(rememberScrollState())
-                        ) {
-                            val items = categories[selectedCategory] ?: emptyList()
-                            items.forEach { (key, title, desc) ->
-                                if (key == "BLUR_RADIUS" && configState["BLUR_BACKGROUND"] != "1") return@forEach
-                                if (key == "DIM_OPACITY" && configState["DIM_BACKGROUND"] != "1") return@forEach
-                                val isChecked = configState[key] == "1"
-                                val vPadding = if (selectedCategory == "Customization") 8.dp else if (desc.isEmpty()) 4.dp else 12.dp
+                        androidx.compose.animation.AnimatedContent(
+                            targetState = selectedCategory,
+                            transitionSpec = {
+                                (androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(300)) + androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(300)) { 40 }).togetherWith(
+                                    androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(300)) + androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(300)) { -40 }
+                                ).using(androidx.compose.animation.SizeTransform(clip = false))
+                            },
+                            label = "CategoryTransition"
+                        ) { cat ->
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .verticalScroll(rememberScrollState())
+                            ) {
+                                val items = categories[cat] ?: emptyList()
+                                items.forEach { (key, title, desc) ->
+                                    if (key == "BLUR_RADIUS" && configState["BLUR_BACKGROUND"] != "1") return@forEach
+                                    if (key == "DIM_OPACITY" && configState["DIM_BACKGROUND"] != "1") return@forEach
+                                    val isChecked = configState[key] == "1"
+                                    val vPadding = if (cat == "Customization") 8.dp else if (desc.isEmpty()) 4.dp else 12.dp
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -382,4 +404,5 @@ fun SettingsScreen(
             }
         }
     }
+}
 }
