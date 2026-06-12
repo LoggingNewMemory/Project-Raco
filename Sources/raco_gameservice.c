@@ -49,7 +49,7 @@ void handle_client(int client_sock) {
             if (cleared < 0) cleared = 0;
 
             char toast_cmd[512];
-            snprintf(toast_cmd, sizeof(toast_cmd), "am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \"Ready to game! [%ld Mb Cleared]\" >/dev/null 2>&1 &", cleared);
+            snprintf(toast_cmd, sizeof(toast_cmd), "su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"Ready to game! [%ld Mb Cleared]\\\"\" >/dev/null 2>&1 &", cleared);
             system(toast_cmd);
             usleep(200000); // Ensure toast intent is sent before raco mode blocks
         }
