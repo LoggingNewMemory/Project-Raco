@@ -316,10 +316,21 @@ fun HomeScreen() {
             }
 
             // RIGHT PANE
+            val rightShadowStart by androidx.compose.animation.core.animateFloatAsState(
+                targetValue = if (showPerfMenu) -0.1f else 0.7f,
+                animationSpec = tween(durationMillis = 400),
+                label = "RightShadowAnim"
+            )
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
+                    .background(
+                        Brush.horizontalGradient(
+                            rightShadowStart to Color.Transparent,
+                            1.0f to Color.Black
+                        )
+                    )
             ) {
 
 
@@ -328,12 +339,6 @@ fun HomeScreen() {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(
-                                    Brush.horizontalGradient(
-                                        0.7f to Color.Transparent,
-                                        1.0f to Color.Black
-                                    )
-                                )
                                 .pointerInput(Unit) {
                                 detectHorizontalDragGestures { change, dragAmount ->
                                     if (dragAmount > 20f) { showPerfMenu = false; change.consume() }
@@ -366,18 +371,7 @@ fun HomeScreen() {
                             if (installedGames.isNotEmpty()) {
                                 val activeGame = installedGames[selectedGameIndex]
 
-                                // Linear shadow for game text and settings visibility
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(
-                                            Brush.horizontalGradient(
-                                                0.7f to Color.Transparent,
-                                                1.0f to Color.Black
-                                            )
-                                        )
-                                )
-
+                                // Shadow is now handled by parent Right Pane Box
                                 // ── 2. Foreground Content ──
                                 AnimatedContent(
                                     targetState = activeGame,
