@@ -167,6 +167,7 @@ fun HomeScreen() {
     val currentTime by rememberCurrentTime()
     val batteryLevel by rememberBatteryLevel(context)
     val installedGames by rememberInstalledGames(context, listRefreshTrigger)
+    val customizations by rememberRacoCustomization(context, listRefreshTrigger)
 
     if (installedGames.isNotEmpty() && selectedGameIndex >= installedGames.size) {
         selectedGameIndex = 0
@@ -211,7 +212,7 @@ fun HomeScreen() {
             drawPath(path, rightPaneColor)
 
             if (lineAlpha > 0f) {
-                drawLine(Color.White.copy(alpha = lineAlpha), Offset(splitStart, 0f), Offset(splitEnd, size.height), 6.dp.toPx())
+                drawLine(Color.White.copy(alpha = lineAlpha), Offset(splitStart, 0f), Offset(splitEnd, size.height), 12.dp.toPx())
 
                 if (lineSlideProgress.value > 0f) {
                     clipRect(top = size.height * (1f - lineSlideProgress.value), bottom = size.height, left = 0f, right = size.width) {
@@ -220,7 +221,7 @@ fun HomeScreen() {
                                 listOf(activeGradientMode.color.copy(alpha = lineAlpha), Color.White.copy(alpha = lineAlpha)),
                                 start = Offset(splitStart, 0f), end = Offset(splitEnd, size.height)
                             ),
-                            start = Offset(splitStart, 0f), end = Offset(splitEnd, size.height), strokeWidth = 6.dp.toPx()
+                            start = Offset(splitStart, 0f), end = Offset(splitEnd, size.height), strokeWidth = 12.dp.toPx()
                         )
                     }
                 }
@@ -316,9 +317,8 @@ fun HomeScreen() {
                 modifier = Modifier
                     .fillMaxSize()
                     .drawWithContent {
-                        val margin = 24.dp.toPx()
-                        val splitStart = size.width * 0.70f + margin
-                        val splitEnd = size.width * 0.45f + margin
+                        val splitStart = size.width * 0.70f
+                        val splitEnd = size.width * 0.45f
 
                         val path = Path().apply {
                             moveTo(splitStart, 0f)
@@ -368,11 +368,32 @@ fun HomeScreen() {
                             if (installedGames.isNotEmpty()) {
                                 val activeGame = installedGames[selectedGameIndex]
 
+                                val enableBg = customizations["ENABLE_BACKGROUND"] ?: true
+                                val blurBg = customizations["BLUR_BACKGROUND"] ?: true
+                                val dimBg = customizations["DIM_BACKGROUND"] ?: true
+
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .background(Color.Black)
-                                )
+                                ) {
+                                    if (enableBg) {
+                                        androidx.compose.foundation.Image(
+                                            painter = androidx.compose.ui.res.painterResource(id = R.drawable.raco_upscale),
+                                            contentDescription = "Background",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .then(if (blurBg) Modifier.blur(24.dp) else Modifier)
+                                        )
+                                    }
+                                    if (dimBg) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(Color.Black.copy(alpha = 0.5f))
+                                        )
+                                    }
+                                }
 
                                 // ── 2. Foreground Content ──
                                 AnimatedContent(
@@ -477,7 +498,10 @@ fun HomeScreen() {
         ) {
             SettingsScreen(
                 accentColor = animatedAccentColor,
-                onBack = { showSettings = false }
+                onBack = { 
+                    showSettings = false
+                    listRefreshTrigger++
+                }
             )
         }
 
@@ -664,4 +688,22 @@ fun rememberBatteryLevel(context: Context): State<Int> {
         onDispose { context.unregisterReceiver(receiver) }
     }
     return batteryLevel
+}
+
+@Composable
+fun rememberRacoCustomization(context: Context, refreshTrigger: Int): State<Map<String, Boolean>> {
+    val config = remember { mutableStateOf(mapOf(
+        "ENABLE_BACKGROUND" to true,
+        "BLUR_BACKGROUND" to true,
+        "DIM_BACKGROUND" to true
+    )) }
+    LaunchedEffect(refreshTrigger) {
+        val sharedPrefs = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+        config.value = mapOf(
+            "ENABLE_BACKGROUND" to sharedPrefs.getBoolean("ENABLE_BACKGROUND", true),
+            "BLUR_BACKGROUND" to sharedPrefs.getBoolean("BLUR_BACKGROUND", true),
+            "DIM_BACKGROUND" to sharedPrefs.getBoolean("DIM_BACKGROUND", true)
+        )
+    }
+    return config
 }

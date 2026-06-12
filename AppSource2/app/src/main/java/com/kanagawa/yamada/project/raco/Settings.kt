@@ -63,9 +63,16 @@ fun SettingsScreen(
             "Notifications" to listOf(
                 Triple("LEGACY_NOTIF", "Legacy Notifications", "Use Legacy Notifications"),
                 Triple("SILENT_NOTIF", "Silent Notifications", "Use Silent Notifications")
+            ),
+            "Customization" to listOf(
+                Triple("ENABLE_BACKGROUND", "Enable Background", "Show Raco Upscale background"),
+                Triple("BLUR_BACKGROUND", "Blur Background", "Apply blur to the background"),
+                Triple("DIM_BACKGROUND", "Dim Background", "Apply dim overlay to background")
             )
         )
     }
+
+    val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
 
     // Read config
     LaunchedEffect(Unit) {
@@ -80,6 +87,9 @@ fun SettingsScreen(
                         configState[parts[0]] = parts[1]
                     }
                 }
+                configState["ENABLE_BACKGROUND"] = if (sharedPrefs.getBoolean("ENABLE_BACKGROUND", true)) "1" else "0"
+                configState["BLUR_BACKGROUND"] = if (sharedPrefs.getBoolean("BLUR_BACKGROUND", true)) "1" else "0"
+                configState["DIM_BACKGROUND"] = if (sharedPrefs.getBoolean("DIM_BACKGROUND", true)) "1" else "0"
                 process.waitFor()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -90,6 +100,10 @@ fun SettingsScreen(
 
     fun updateConfig(key: String, value: String) {
         configState[key] = value
+        if (key in listOf("ENABLE_BACKGROUND", "BLUR_BACKGROUND", "DIM_BACKGROUND")) {
+            sharedPrefs.edit().putBoolean(key, value == "1").apply()
+            return
+        }
         coroutineScope.launch(Dispatchers.IO) {
             try {
                 val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /data/ProjectRaco/raco.txt"))
@@ -223,7 +237,7 @@ fun SettingsScreen(
                                             text = desc,
                                             color = Color.Gray,
                                             fontFamily = gilmerRegular,
-                                            fontSize = 12.sp,
+                                            fontSize = 9.sp,
                                             modifier = Modifier.padding(top = 4.dp)
                                         )
                                     }
