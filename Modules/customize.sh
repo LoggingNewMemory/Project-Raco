@@ -52,6 +52,12 @@ ui_print "DO NOT COMBINE WITH ANY PERF MODULE!"
 ui_print "------------------------------------"
 ui_print " "
 
+# Architecture Check
+if [ "$IS64BIT" != "true" ]; then
+  ui_print "! ERROR: Unsupported Architecture."
+  abort "! Project Raco is only supported on 64-bit (arm64/x64) devices."
+fi
+
 # Ensure the persistent data directory exists
 mkdir -p /data/ProjectRaco
 
