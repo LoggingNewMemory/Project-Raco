@@ -334,10 +334,15 @@ fun HomeScreen() {
             ) {
 
 
-                // ALWAYS render Game Details behind everything
-                Box(modifier = Modifier.fillMaxSize()) {
-                    if (installedGames.isNotEmpty()) {
-                        // ── 2. Foreground Content ──
+                // Render Game Details with smooth fade-in and fade-out
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = !showPerfMenu,
+                    enter = androidx.compose.animation.fadeIn(tween(400)),
+                    exit = androidx.compose.animation.fadeOut(tween(400))
+                ) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        if (installedGames.isNotEmpty()) {
+                            // ── 2. Foreground Content ──
                                 AnimatedContent(
                                     targetState = selectedGameIndex,
                                     transitionSpec = {
@@ -401,6 +406,7 @@ fun HomeScreen() {
                                 }
                             }
                         }
+                    }
 
                 // Render Performance Settings on top with smooth fade
                 androidx.compose.animation.AnimatedVisibility(
