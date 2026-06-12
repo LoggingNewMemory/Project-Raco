@@ -180,6 +180,17 @@ fun HomeScreen() {
         label = "AccentColorAnim"
     )
 
+    var activeGradientMode by remember { mutableStateOf(currentMode) }
+    val lineSlideProgress = remember { Animatable(1f) }
+
+    LaunchedEffect(showPerfMenu, selectedGameIndex) {
+        if (!showPerfMenu) {
+            activeGradientMode = currentMode
+            lineSlideProgress.snapTo(0f)
+            lineSlideProgress.animateTo(1f, tween(durationMillis = 600, easing = FastOutSlowInEasing))
+        }
+    }
+
     Box(
         modifier = Modifier.fillMaxSize().background(Color.Black)
     ) {
@@ -385,22 +396,31 @@ fun HomeScreen() {
                                                 .displayCutoutPadding()
                                                 .padding(end = 24.dp, bottom = 24.dp)
                                         ) {
-                                            Text(
-                                                text = game.name,
-                                                color = animatedAccentColor,
-                                                fontSize = 32.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                maxLines = 2,
-                                                overflow = TextOverflow.Ellipsis,
-                                                style = TextStyle(
-                                                    shadow = Shadow(
-                                                        color = Color.Black.copy(alpha = 0.8f),
-                                                        offset = Offset(0f, 4f),
-                                                        blurRadius = 12f
-                                                    )
-                                                ),
-                                                modifier = Modifier.padding(bottom = 24.dp)
-                                            )
+                                            Box(modifier = Modifier.padding(bottom = 24.dp)) {
+                                                // Base text
+                                                Text(
+                                                    text = game.name,
+                                                    color = Color.White,
+                                                    fontSize = 32.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    maxLines = 2,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                                // Wiping text
+                                                Text(
+                                                    text = game.name,
+                                                    color = activeGradientMode.color,
+                                                    fontSize = 32.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    maxLines = 2,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    modifier = Modifier.drawWithContent {
+                                                        clipRect(right = size.width * lineSlideProgress.value) {
+                                                            this@drawWithContent.drawContent()
+                                                        }
+                                                    }
+                                                )
+                                            }
                                             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                                 Box(
                                                     modifier = Modifier.size(56.dp).border(2.dp, animatedAccentColor, RoundedCornerShape(8.dp)).background(Color.Black, RoundedCornerShape(8.dp)).clickable { showPerfMenu = true },
