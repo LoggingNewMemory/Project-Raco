@@ -138,7 +138,7 @@ void corin_storage(const char *sched, const char *rq) {
 // Toast Helper
 void app_toast(const char *msg) {
     char cmd[512];
-    snprintf(cmd, sizeof(cmd), "am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -e msg \"%s\" >/dev/null 2>&1 &", msg);
+    snprintf(cmd, sizeof(cmd), "am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \"%s\" >/dev/null 2>&1 &", msg);
     system(cmd);
 }
 

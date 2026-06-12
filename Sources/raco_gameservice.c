@@ -49,16 +49,16 @@ void handle_client(int client_sock) {
             if (cleared < 0) cleared = 0;
 
             char toast_cmd[512];
-            snprintf(toast_cmd, sizeof(toast_cmd), "am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -e msg \"Ready to game! [%ld Mb Cleared]\" >/dev/null 2>&1 &", cleared);
+            snprintf(toast_cmd, sizeof(toast_cmd), "am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \"Ready to game! [%ld Mb Cleared]\" >/dev/null 2>&1 &", cleared);
             system(toast_cmd);
             usleep(200000); // Ensure toast intent is sent before raco mode blocks
         }
 
         if (strncmp(buffer, "AWAKEN", 6) == 0) {
             system("/data/adb/modules/ProjectRaco/Compiled/raco 4");
-        } else if (strncmp(buffer, "BALANCED", 8) == 0) {
+        } else if (strncmp(buffer, "MID", 3) == 0) {
             system("/data/adb/modules/ProjectRaco/Compiled/raco 3");
-        } else if (strncmp(buffer, "POWERSAVE", 9) == 0) {
+        } else if (strncmp(buffer, "ECO", 3) == 0) {
             system("/data/adb/modules/ProjectRaco/Compiled/raco 2");
         } else if (strncmp(buffer, "NORMAL", 6) == 0) {
             system("/data/adb/modules/ProjectRaco/Compiled/raco 1");
