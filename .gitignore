@@ -4,4 +4,6 @@ Modules/ProjectRaco.apk
 *.bkp
 *.dtmp
 *.jks
+*.apk
+*.dm
 Designs/Exported
