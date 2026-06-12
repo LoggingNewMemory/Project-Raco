@@ -53,11 +53,13 @@ import android.os.BatteryManager
 import androidx.compose.ui.platform.LocalContext
 import java.io.RandomAccessFile
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 val RacoRed = Color(0xFFFF2A2A)
 
 @Composable
 fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -> Unit, onClose: () -> Unit) {
+    val context = LocalContext.current
     var isLeftOpen by remember { mutableStateOf(false) }
     var isRightOpen by remember { mutableStateOf(false) }
     var currentPerfMode by remember { mutableStateOf(PerfMode.AWAKEN) }
@@ -179,7 +181,25 @@ fun RacoGameOverlay(onStateBind: (openLeft: () -> Unit, openRight: () -> Unit) -
                 progressProvider = { lineSlideProgress.value },
                 currentPerfMode = currentPerfMode,
                 themeColor = themeColor,
-                onModeChange = { currentPerfMode = it }
+                onModeChange = { 
+                    currentPerfMode = it 
+                    // Send command to UNIX socket
+                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                        try {
+                            val socket = android.net.LocalSocket()
+                            val address = android.net.LocalSocketAddress("raco_gameservice", android.net.LocalSocketAddress.Namespace.ABSTRACT)
+                            socket.connect(address)
+                            socket.outputStream.write(it.name.toByteArray())
+                            socket.close()
+                            
+                            // Save globally for next launches
+                            val prefs = context.getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+                            prefs.edit().putString("global_perf_mode", it.name).apply()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
             )
         }
     }
@@ -504,14 +524,24 @@ fun RacoRightPanel(
                     if (streamType == android.media.AudioManager.STREAM_MUSIC) {
                         currentVolume = audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC)
                     }
+                } else if (intent.action == "com.kanagawa.yamada.project.raco.SHOW_TOAST") {
+                    val msg = intent.getStringExtra("msg")
+                    if (msg != null) {
+                        android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_BATTERY_CHANGED)
             addAction("android.media.VOLUME_CHANGED_ACTION")
+            addAction("com.kanagawa.yamada.project.raco.SHOW_TOAST")
         }
-        context.registerReceiver(receiver, filter)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            context.registerReceiver(receiver, filter)
+        }
         onDispose {
             context.unregisterReceiver(receiver)
         }

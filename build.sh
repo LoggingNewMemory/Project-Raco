@@ -172,7 +172,7 @@ build_modules() {
     echo "      Compiling Source Code      "
     echo "---------------------------------"
 
-    echo "[1/2] Building Project Raco Core (Mode Switcher)..."
+    echo "[1/6] Building Project Raco Core (Mode Switcher)..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/raco" \
         "$SRC_DIR/raco_main.c" \
@@ -184,7 +184,7 @@ build_modules() {
         exit 1
     fi
 
-    echo "[2/5] Building Raco Core Service (Boot Daemon)..."
+    echo "[2/6] Building Raco Core Service (Boot Daemon)..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/CoreSys/raco_service" \
         "$SRC_DIR/raco_services.c" \
@@ -197,7 +197,18 @@ build_modules() {
         exit 1
     fi
 
-    echo "[3/5] Building Anya Standalone..."
+    echo "[3/6] Building Raco Game Service (Monitor Daemon)..."
+    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
+        -o "$MODULES_DIR/CoreSys/raco_gameservice" \
+        "$SRC_DIR/raco_gameservice.c" \
+        "$SRC_DIR/anya.c" \
+        "$SRC_DIR/raco_tools.c" \
+        "$SRC_DIR/raco_tool.s"; then
+        echo "❌ ERROR: Compilation of Raco Game Service failed!"
+        exit 1
+    fi
+
+    echo "[4/6] Building Anya Standalone..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" -DSTANDALONE \
         -o "$MODULES_DIR/Compiled/anya" \
         "$SRC_DIR/anya.c" \
@@ -207,7 +218,7 @@ build_modules() {
         exit 1
     fi
 
-    echo "[4/5] Building Zetamin Standalone..."
+    echo "[5/6] Building Zetamin Standalone..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" -DSTANDALONE \
         -o "$MODULES_DIR/Compiled/zetamin" \
         "$SRC_DIR/zetamin.c" \
@@ -217,7 +228,7 @@ build_modules() {
         exit 1
     fi
 
-    echo "[5/5] Building Kobo Standalone..."
+    echo "[6/6] Building Kobo Standalone..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" -DSTANDALONE \
         -o "$MODULES_DIR/Compiled/kobo" \
         "$SRC_DIR/kobo.c" \
@@ -231,12 +242,69 @@ build_modules() {
     echo "🗜️ Stripping Binaries..."
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/raco"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/CoreSys/raco_service"
+    $TOOLCHAIN/llvm-strip "$MODULES_DIR/CoreSys/raco_gameservice"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/anya"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/zetamin"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/kobo"
 
     # ------------------------------------------
-    # B. PACKAGING MODULE
+    # B. BUILD ANDROID APP
+    # ------------------------------------------
+    echo ""
+    echo "---------------------------------"
+    echo "       Building Android App      "
+    echo "---------------------------------"
+    echo "Building release APK..."
+    cd "AppSource2" || exit 1
+    ./gradlew assembleRelease
+    cd ..
+    
+    APK_UNSIGNED="AppSource2/app/build/outputs/apk/release/app-release-unsigned.apk"
+    APK_SIGNED="AppSource2/app/build/outputs/apk/release/app-release.apk"
+    APK_ALIGNED="AppSource2/app/build/outputs/apk/release/app-release-aligned.apk"
+    
+    # If gradle didn't produce a signed APK but did produce an unsigned one, sign it
+    if [ ! -f "$APK_SIGNED" ] && [ -f "$APK_UNSIGNED" ]; then
+        echo "📦 Unsigned APK detected. Signing with RacoKey.jks..."
+        
+        # Find latest build-tools
+        BUILD_TOOLS_DIR=$(ls -1d /home/yamada/Android/Sdk/build-tools/* 2>/dev/null | sort -V | tail -n 1)
+        APKSIGNER="$BUILD_TOOLS_DIR/apksigner"
+        ZIPALIGN="$BUILD_TOOLS_DIR/zipalign"
+        
+        if [ -f "$APKSIGNER" ] && [ -f "$ZIPALIGN" ]; then
+            KEY_ALIAS="key0"
+            KS_PASS="aw240706"
+            
+            echo "🔧 Aligning APK..."
+            "$ZIPALIGN" -v -p 4 "$APK_UNSIGNED" "$APK_ALIGNED" > /dev/null
+            
+            echo "🔐 Signing APK..."
+            "$APKSIGNER" sign --ks "RacoKey.jks" --ks-key-alias "$KEY_ALIAS" --ks-pass "pass:$KS_PASS" --key-pass "pass:$KS_PASS" --out "$APK_SIGNED" "$APK_ALIGNED"
+            
+            if [ $? -eq 0 ]; then
+                echo "✅ Signing successful!"
+                rm -f "$APK_ALIGNED"
+            else
+                echo "❌ ERROR: Signing failed!"
+            fi
+        else
+            echo "⚠️  WARNING: apksigner or zipalign not found in /home/yamada/Android/Sdk/build-tools/. Skipping signing."
+        fi
+    fi
+
+    if [ -f "$APK_SIGNED" ]; then
+        cp "$APK_SIGNED" "$MODULES_DIR/ProjectRaco.apk"
+        echo "✅ Copied app-release.apk to Modules/ProjectRaco.apk"
+    elif [ -f "$APK_UNSIGNED" ]; then
+        cp "$APK_UNSIGNED" "$MODULES_DIR/ProjectRaco.apk"
+        echo "⚠️  Copied app-release-unsigned.apk to Modules/ProjectRaco.apk (Unsigned)"
+    else
+        echo "❌ ERROR: No release APK found!"
+    fi
+
+    # ------------------------------------------
+    # C. PACKAGING MODULE
     # ------------------------------------------
     echo ""
     echo "---------------------------------"

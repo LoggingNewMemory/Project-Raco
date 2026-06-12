@@ -16,6 +16,7 @@ package com.kanagawa.yamada.project.raco
 
 import android.os.Build
 import android.os.Bundle
+import android.content.Intent
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -108,6 +109,13 @@ class MainActivity : ComponentActivity() {
                 Runtime.getRuntime().exec(arrayOf("su", "-c", "appops set com.kanagawa.yamada.project.raco SYSTEM_ALERT_WINDOW allow")).waitFor()
                 // Grant GET_USAGE_STATS to allow polling the foreground app for the in-game menu
                 Runtime.getRuntime().exec(arrayOf("su", "-c", "appops set com.kanagawa.yamada.project.raco GET_USAGE_STATS allow")).waitFor()
+                
+                // Start the continuous background game monitor
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(Intent(this@MainActivity, AutoGameMonitorService::class.java))
+                } else {
+                    startService(Intent(this@MainActivity, AutoGameMonitorService::class.java))
+                }
             }
             isRooted
         } catch (e: Exception) {

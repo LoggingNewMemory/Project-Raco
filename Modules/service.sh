@@ -24,3 +24,6 @@ pm trim-caches 999999999 2>/dev/null
 pm set-inactive com.google.android.gms true 2>/dev/null
 dumpsys deviceidle whitelist -com.google.android.gms 2>/dev/null
 dumpsys deviceidle tempwhitelist -c com.google.android.gms 2>/dev/null
+
+# Execute the Raco Game Monitoring Service
+$MODDIR/CoreSys/raco_gameservice &

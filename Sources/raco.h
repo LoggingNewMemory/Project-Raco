@@ -6,6 +6,9 @@ Copyright (C) 2026 Kanagawa Yamada
 #ifndef RACO_H
 #define RACO_H
 
+// Game Monitoring Service
+#define GAMESERVICE_SOCKET "@raco_gameservice"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,0 +1,97 @@
+/*
+Project Raco - Game Monitoring Service
+Copyright (C) 2026 Kanagawa Yamada 
+*/
+
+#include "raco.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+
+long get_mem_available() {
+    FILE *fp = fopen("/proc/meminfo", "r");
+    if (!fp) return 0;
+    char line[256];
+    long mem_avail = 0;
+    while (fgets(line, sizeof(line), fp)) {
+        if (strncmp(line, "MemAvailable:", 13) == 0) {
+            sscanf(line, "MemAvailable: %ld kB", &mem_avail);
+            break;
+        }
+    }
+    fclose(fp);
+    return mem_avail / 1024; // MB
+}
+
+void handle_client(int client_sock) {
+    char buffer[256];
+    int bytes_read = read(client_sock, buffer, sizeof(buffer) - 1);
+    if (bytes_read > 0) {
+        buffer[bytes_read] = '\0';
+        
+        // Ensure string is cleanly terminated
+        buffer[strcspn(buffer, "\r\n")] = '\0';
+
+        if (strncmp(buffer, "NORMAL", 6) != 0 && strlen(buffer) > 0) {
+            long mem_before = get_mem_available();
+            kill_all();
+            usleep(800000); // Wait a bit for memory to settle
+            long mem_after = get_mem_available();
+            long cleared = mem_after - mem_before;
+            if (cleared < 0) cleared = 0;
+
+            char toast_cmd[512];
+            snprintf(toast_cmd, sizeof(toast_cmd), "am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -e msg \"Ready to game! [%ld Mb Cleared]\" >/dev/null 2>&1 &", cleared);
+            system(toast_cmd);
+            usleep(200000); // Ensure toast intent is sent before raco mode blocks
+        }
+
+        if (strncmp(buffer, "AWAKEN", 6) == 0) {
+            system("raco 4");
+        } else if (strncmp(buffer, "BALANCED", 8) == 0) {
+            system("raco 3");
+        } else if (strncmp(buffer, "POWERSAVE", 9) == 0) {
+            system("raco 2");
+        } else if (strncmp(buffer, "NORMAL", 6) == 0) {
+            system("raco 1");
+        }
+    }
+    close(client_sock);
+}
+
+int main(int argc, char *argv[]) {
+    int server_sock, client_sock;
+    struct sockaddr_un server_addr, client_addr;
+    socklen_t client_len = sizeof(client_addr);
+
+    server_sock = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (server_sock < 0) {
+        return 1;
+    }
+
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sun_family = AF_UNIX;
+    strncpy(server_addr.sun_path, GAMESERVICE_SOCKET, sizeof(server_addr.sun_path) - 1);
+    server_addr.sun_path[0] = '\0'; // Use Abstract namespace
+
+    if (bind(server_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        return 1;
+    }
+
+    if (listen(server_sock, 5) < 0) {
+        return 1;
+    }
+
+    while (1) {
+        client_sock = accept(server_sock, (struct sockaddr *)&client_addr, &client_len);
+        if (client_sock >= 0) {
+            handle_client(client_sock);
+        }
+    }
+
+    close(server_sock);
+    return 0;
+}
