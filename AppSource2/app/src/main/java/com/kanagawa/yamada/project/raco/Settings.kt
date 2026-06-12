@@ -65,9 +65,9 @@ fun SettingsScreen(
                 Triple("SILENT_NOTIF", "Silent Notifications", "Use Silent Notifications")
             ),
             "Customization" to listOf(
-                Triple("ENABLE_BACKGROUND", "Enable Background", "Show Raco Upscale background"),
-                Triple("BLUR_BACKGROUND", "Blur Background", "Apply blur to the background"),
-                Triple("DIM_BACKGROUND", "Dim Background", "Apply dim overlay to background")
+                Triple("ENABLE_BACKGROUND", "Enable Background", ""),
+                Triple("BLUR_BACKGROUND", "Blur Background", ""),
+                Triple("DIM_BACKGROUND", "Dim Background", "")
             )
         )
     }
@@ -218,10 +218,11 @@ fun SettingsScreen(
                             val items = categories[selectedCategory] ?: emptyList()
                             items.forEach { (key, title, desc) ->
                                 val isChecked = configState[key] == "1"
+                                val vPadding = if (desc.isEmpty()) 4.dp else 12.dp
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 12.dp),
+                                        .padding(vertical = vPadding),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(
@@ -233,13 +234,15 @@ fun SettingsScreen(
                                             fontFamily = gilmerBold,
                                             fontSize = 16.sp
                                         )
-                                        Text(
-                                            text = desc,
-                                            color = Color.Gray,
-                                            fontFamily = gilmerRegular,
-                                            fontSize = 9.sp,
-                                            modifier = Modifier.padding(top = 4.dp)
-                                        )
+                                        if (desc.isNotEmpty()) {
+                                            Text(
+                                                text = desc,
+                                                color = Color.Gray,
+                                                fontFamily = gilmerRegular,
+                                                fontSize = 9.sp,
+                                                modifier = Modifier.padding(top = 4.dp)
+                                            )
+                                        }
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Switch(
