@@ -48,6 +48,7 @@ fun SettingsScreen(
 
     val configState = remember { mutableStateMapOf<String, String>() }
     var isLoading by remember { mutableStateOf(true) }
+    var availableGovernors by remember { mutableStateOf(listOf("schedutil", "performance", "powersave")) }
     
     val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
     var hasCustomBackground by remember { mutableStateOf(sharedPrefs.getBoolean("HAS_CUSTOM_BACKGROUND", false)) }
@@ -108,7 +109,8 @@ fun SettingsScreen(
                 Triple("INCLUDE_ZETAMIN", "Zetamin", "All in one Screen Tweaks")
             ),
             "System" to listOf(
-                Triple("DEVICE_MITIGATION", "Device Mitigation", "Enable Device Mitigation")
+                Triple("DEVICE_MITIGATION", "Device Mitigation", "Enable Device Mitigation"),
+                Triple("GOV", "Custom GOV", "Your Default GOV, Will Applied After You Close The Game")
             ),
             "Notifications" to listOf(
                 Triple("LEGACY_NOTIF", "Legacy Notifications", "Use Legacy Notifications"),
@@ -144,6 +146,19 @@ fun SettingsScreen(
                 configState["DIM_BACKGROUND"] = if (sharedPrefs.getBoolean("DIM_BACKGROUND", false)) "1" else "0"
                 configState["DIM_OPACITY"] = sharedPrefs.getFloat("DIM_OPACITY", 0.5f).toString()
                 process.waitFor()
+                
+                try {
+                    val govProcess = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors"))
+                    val govReader = BufferedReader(InputStreamReader(govProcess.inputStream))
+                    val govs = govReader.readLine()?.split(Regex("\\s+"))?.filter { it.isNotBlank() }
+                    if (!govs.isNullOrEmpty()) {
+                        availableGovernors = govs
+                    }
+                    govProcess.waitFor()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -377,6 +392,39 @@ fun SettingsScreen(
                                             ),
                                             modifier = Modifier.width(300.dp)
                                         )
+                                    } else if (key == "GOV") {
+                                        var expanded by remember { mutableStateOf(false) }
+                                        Box {
+                                            Row(
+                                                modifier = Modifier
+                                                    .background(Color.DarkGray, RoundedCornerShape(8.dp))
+                                                    .clickable { expanded = true }
+                                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = configState[key]?.takeIf { it.isNotBlank() } ?: "Select",
+                                                    color = Color.White,
+                                                    fontFamily = gilmerRegular,
+                                                    fontSize = 14.sp
+                                                )
+                                            }
+                                            androidx.compose.material3.DropdownMenu(
+                                                expanded = expanded,
+                                                onDismissRequest = { expanded = false },
+                                                modifier = Modifier.background(Color.DarkGray)
+                                            ) {
+                                                availableGovernors.forEach { gov ->
+                                                    androidx.compose.material3.DropdownMenuItem(
+                                                        text = { Text(gov, color = Color.White, fontFamily = gilmerRegular) },
+                                                        onClick = {
+                                                            updateConfig(key, gov)
+                                                            expanded = false
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        }
                                     } else {
                                         Box(
                                             modifier = Modifier
