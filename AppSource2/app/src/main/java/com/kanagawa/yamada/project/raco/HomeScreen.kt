@@ -142,6 +142,7 @@ fun HomeScreen() {
     // State
     var currentMode by remember { mutableStateOf(PerfMode.AWAKEN) }
     var showPerfMenu by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(false) }
     var selectedGameIndex by remember { mutableIntStateOf(0) }
     var showAppPicker by remember { mutableStateOf(false) }
     var listRefreshTrigger by remember { mutableIntStateOf(0) }
@@ -448,7 +449,7 @@ fun HomeScreen() {
                             .displayCutoutPadding()
                             .padding(end = 24.dp, top = 24.dp)
                             .size(28.dp)
-                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { showPerfMenu = true }
+                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { showSettings = true }
                     )
                 }
             }
@@ -465,6 +466,18 @@ fun HomeScreen() {
                     showAppPicker = false
                     listRefreshTrigger++
                 }
+            )
+        }
+
+        AnimatedVisibility(
+            visible = showSettings,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            SettingsScreen(
+                accentColor = animatedAccentColor,
+                onBack = { showSettings = false }
             )
         }
 
