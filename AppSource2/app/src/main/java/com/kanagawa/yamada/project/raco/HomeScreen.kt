@@ -331,6 +331,17 @@ fun HomeScreen() {
                             1.0f to Color.Black
                         )
                     )
+                    .pointerInput(showPerfMenu) {
+                        detectHorizontalDragGestures { change, dragAmount ->
+                            if (!showPerfMenu && dragAmount < -20f) {
+                                showPerfMenu = true
+                                change.consume()
+                            } else if (showPerfMenu && dragAmount > 20f) {
+                                showPerfMenu = false
+                                change.consume()
+                            }
+                        }
+                    }
             ) {
 
 
@@ -417,11 +428,6 @@ fun HomeScreen() {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .pointerInput(Unit) {
-                                detectHorizontalDragGestures { change, dragAmount ->
-                                    if (dragAmount > 20f) { showPerfMenu = false; change.consume() }
-                                }
-                            }
                             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {} // Prevent taps passing through
                     ) {
                         Column(
