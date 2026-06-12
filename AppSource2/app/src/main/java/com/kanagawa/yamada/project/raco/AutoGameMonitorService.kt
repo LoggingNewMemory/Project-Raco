@@ -37,7 +37,11 @@ class AutoGameMonitorService : Service() {
             .setContentText("Game Monitoring is Active")
             .setSmallIcon(android.R.drawable.ic_media_play) // Use built-in generic icon
             .build()
-        startForeground(1001, notification)
+        if (Build.VERSION.SDK_INT >= 34) {
+            startForeground(1001, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(1001, notification)
+        }
     }
 
     private fun startMonitoring() {
