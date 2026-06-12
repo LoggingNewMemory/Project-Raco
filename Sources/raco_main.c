@@ -138,7 +138,7 @@ void corin_storage(const char *sched, const char *rq) {
 // Toast Helper
 void app_toast(const char *msg) {
     char cmd[512];
-    snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"%s\\\"\" >/dev/null 2>&1 &", msg);
+    snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"sleep 0.5; am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"%s\\\"\" >/dev/null 2>&1 &", msg);
     system(cmd);
 }
 
@@ -188,11 +188,11 @@ void mode_awaken() {
 
     clear_slingshot();
     anyamelfissa();
-    app_toast("Has Switched to Awaken Mode, Performance Will Rise");
+    app_toast("Switched to Awaken Mode");
 }
 
 void mode_balanced() {
-    app_toast("Switching to Balanced Mode...");
+    app_toast("Switching to Mid Mode...");
     system("sync");
 
     apply_io_tweaks("1", "1", "128", "128", 0);
@@ -233,7 +233,7 @@ void mode_balanced() {
 
     clear_slingshot();
     anyakawaii();
-    app_toast("Has Switched to Balanced Mode, Balancing Battery and Performance");
+    app_toast("Switched to Mid Mode");
 }
 
 void mode_powersave() {
@@ -278,7 +278,7 @@ void mode_powersave() {
 
     clear_slingshot();
     anyakawaii();
-    app_toast("Has Switched to Eco Mode, Power Consumption Minimized");
+    app_toast("Switched to Eco Mode");
 }
 
 void mode_normal() {

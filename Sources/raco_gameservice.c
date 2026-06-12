@@ -49,19 +49,19 @@ void handle_client(int client_sock) {
             if (cleared < 0) cleared = 0;
 
             char toast_cmd[512];
-            snprintf(toast_cmd, sizeof(toast_cmd), "su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"Ready to game! [%ld Mb Cleared]\\\"\" >/dev/null 2>&1 &", cleared);
+            snprintf(toast_cmd, sizeof(toast_cmd), "su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"Ready for Game\\\"\" >/dev/null 2>&1 &");
             system(toast_cmd);
             usleep(200000); // Ensure toast intent is sent before raco mode blocks
         }
 
         if (strncmp(buffer, "AWAKEN", 6) == 0) {
-            system("/data/adb/modules/ProjectRaco/Compiled/raco 4");
+            system("su -c '/data/adb/modules/ProjectRaco/Compiled/raco 4' >/dev/null 2>&1 &");
         } else if (strncmp(buffer, "MID", 3) == 0) {
-            system("/data/adb/modules/ProjectRaco/Compiled/raco 3");
+            system("su -c '/data/adb/modules/ProjectRaco/Compiled/raco 3' >/dev/null 2>&1 &");
         } else if (strncmp(buffer, "ECO", 3) == 0) {
-            system("/data/adb/modules/ProjectRaco/Compiled/raco 2");
+            system("su -c '/data/adb/modules/ProjectRaco/Compiled/raco 2' >/dev/null 2>&1 &");
         } else if (strncmp(buffer, "NORMAL", 6) == 0) {
-            system("/data/adb/modules/ProjectRaco/Compiled/raco 1");
+            system("su -c '/data/adb/modules/ProjectRaco/Compiled/raco 1' >/dev/null 2>&1 &");
         }
     }
     close(client_sock);
