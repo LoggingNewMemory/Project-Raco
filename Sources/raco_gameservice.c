@@ -10,6 +10,7 @@ Copyright (C) 2026 Kanagawa Yamada
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <stddef.h>
 
 long get_mem_available() {
     FILE *fp = fopen("/proc/meminfo", "r");
@@ -77,7 +78,8 @@ int main(int argc, char *argv[]) {
     strncpy(server_addr.sun_path, GAMESERVICE_SOCKET, sizeof(server_addr.sun_path) - 1);
     server_addr.sun_path[0] = '\0'; // Use Abstract namespace
 
-    if (bind(server_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+    socklen_t addr_len = offsetof(struct sockaddr_un, sun_path) + strlen(GAMESERVICE_SOCKET);
+    if (bind(server_sock, (struct sockaddr *)&server_addr, addr_len) < 0) {
         return 1;
     }
 
