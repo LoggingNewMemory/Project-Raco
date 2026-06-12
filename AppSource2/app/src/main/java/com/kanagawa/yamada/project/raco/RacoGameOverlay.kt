@@ -398,7 +398,7 @@ fun RacoLeftPanel(
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Brightness Slider
             val density = LocalDensity.current
@@ -408,7 +408,7 @@ fun RacoLeftPanel(
             val slope = if (screenHeightPx > 0) (0.52f * panelWidthPx) / (0.9f * screenHeightPx) else 0.5f
 
             val brightnessRatio = currentBrightness.toFloat() / 255f
-            val verticalDistance = 13 * (2.5f + 3.5f) // 13 gaps for 14 steps
+            val verticalDistance = 13 * (4.2f + 2.1f) // 13 gaps for 14 steps
             val deltaX = verticalDistance * slope
             val dynamicMinWidth = (48f - deltaX).coerceAtLeast(2f).dp
 
@@ -445,8 +445,8 @@ fun RacoLeftPanel(
                         inactiveColor = Color.White.copy(alpha = 0.2f),
                         maxWidth = 48.dp,
                         minWidth = dynamicMinWidth,
-                        barHeight = 2.5.dp,
-                        spacing = 3.5.dp,
+                        barHeight = 4.2.dp,
+                        spacing = 2.1.dp,
                         steps = 14,
                         alignRight = false
                     )
@@ -664,11 +664,11 @@ fun RacoRightPanel(
                     fontWeight = FontWeight.Black
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             
             // Volume Slider
             val volumeRatio = if (maxVolume > 0) currentVolume.toFloat() / maxVolume.toFloat() else 0f
-            val verticalDistance = 13 * (2.5f + 3.5f) // 13 gaps for 14 steps
+            val verticalDistance = 13 * (4.2f + 2.1f) // 13 gaps for 14 steps
             val deltaX = verticalDistance * slope
             val dynamicMinWidth = (48f - deltaX).coerceAtLeast(2f).dp
 
@@ -693,8 +693,8 @@ fun RacoRightPanel(
                         inactiveColor = Color.White.copy(alpha = 0.2f),
                         maxWidth = 48.dp,
                         minWidth = dynamicMinWidth,
-                        barHeight = 2.5.dp,
-                        spacing = 3.5.dp,
+                        barHeight = 4.2.dp,
+                        spacing = 2.1.dp,
                         steps = 14,
                         alignRight = true
                     )
