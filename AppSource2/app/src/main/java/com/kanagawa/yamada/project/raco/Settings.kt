@@ -48,6 +48,51 @@ fun SettingsScreen(
     var isLoading by remember { mutableStateOf(true) }
     
     var selectedCategory by remember { mutableStateOf("Modules") }
+    var pendingCropUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    
+    val cropImage = androidx.activity.compose.rememberLauncherForActivityResult(com.canhub.cropper.CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            val uriContent = result.uriContent
+            if (uriContent != null) {
+                try {
+                    val inputStream = context.contentResolver.openInputStream(uriContent)
+                    val outFile = java.io.File(context.filesDir, "custom_background.png")
+                    val outputStream = java.io.FileOutputStream(outFile)
+                    inputStream?.copyTo(outputStream)
+                    inputStream?.close()
+                    outputStream.close()
+                    val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
+                    sharedPrefs.edit()
+                        .putBoolean("HAS_CUSTOM_BACKGROUND", true)
+                        .putLong("CUSTOM_BG_TS", System.currentTimeMillis())
+                        .apply()
+                    android.widget.Toast.makeText(context, "Custom Background Set!", android.widget.Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) { 
+                    e.printStackTrace()
+                    android.widget.Toast.makeText(context, "Failed to save: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    val pickMedia = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            cropImage.launch(
+                com.canhub.cropper.CropImageContractOptions(
+                    uri = uri,
+                    cropImageOptions = com.canhub.cropper.CropImageOptions(
+                        aspectRatioX = 16,
+                        aspectRatioY = 9,
+                        fixAspectRatio = true,
+                        activityBackgroundColor = android.graphics.Color.BLACK,
+                        toolbarColor = android.graphics.Color.parseColor("#111111"),
+                        activityMenuIconColor = android.graphics.Color.WHITE,
+                        toolbarTitleColor = android.graphics.Color.WHITE
+                    )
+                )
+            )
+        }
+    }
 
     val categories = remember {
         mapOf(
@@ -65,9 +110,12 @@ fun SettingsScreen(
                 Triple("SILENT_NOTIF", "Silent Notifications", "Use Silent Notifications")
             ),
             "Customization" to listOf(
+                Triple("CUSTOM_BACKGROUND", "Set Custom Background", ""),
                 Triple("ENABLE_BACKGROUND", "Enable Background", ""),
                 Triple("BLUR_BACKGROUND", "Blur Background", ""),
-                Triple("DIM_BACKGROUND", "Dim Background", "")
+                Triple("BLUR_RADIUS", "Blur Radius", ""),
+                Triple("DIM_BACKGROUND", "Dim Background", ""),
+                Triple("DIM_OPACITY", "Dim Opacity", "")
             )
         )
     }
@@ -89,7 +137,9 @@ fun SettingsScreen(
                 }
                 configState["ENABLE_BACKGROUND"] = if (sharedPrefs.getBoolean("ENABLE_BACKGROUND", true)) "1" else "0"
                 configState["BLUR_BACKGROUND"] = if (sharedPrefs.getBoolean("BLUR_BACKGROUND", true)) "1" else "0"
+                configState["BLUR_RADIUS"] = sharedPrefs.getFloat("BLUR_RADIUS", 24f).toString()
                 configState["DIM_BACKGROUND"] = if (sharedPrefs.getBoolean("DIM_BACKGROUND", true)) "1" else "0"
+                configState["DIM_OPACITY"] = sharedPrefs.getFloat("DIM_OPACITY", 0.5f).toString()
                 process.waitFor()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -102,6 +152,10 @@ fun SettingsScreen(
         configState[key] = value
         if (key in listOf("ENABLE_BACKGROUND", "BLUR_BACKGROUND", "DIM_BACKGROUND")) {
             sharedPrefs.edit().putBoolean(key, value == "1").apply()
+            return
+        }
+        if (key in listOf("BLUR_RADIUS", "DIM_OPACITY")) {
+            sharedPrefs.edit().putFloat(key, value.toFloatOrNull() ?: 0f).apply()
             return
         }
         coroutineScope.launch(Dispatchers.IO) {
@@ -217,6 +271,8 @@ fun SettingsScreen(
                         ) {
                             val items = categories[selectedCategory] ?: emptyList()
                             items.forEach { (key, title, desc) ->
+                                if (key == "BLUR_RADIUS" && configState["BLUR_BACKGROUND"] != "1") return@forEach
+                                if (key == "DIM_OPACITY" && configState["DIM_BACKGROUND"] != "1") return@forEach
                                 val isChecked = configState[key] == "1"
                                 val vPadding = if (desc.isEmpty()) 4.dp else 12.dp
                                 Row(
@@ -245,18 +301,71 @@ fun SettingsScreen(
                                         }
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
-                                    Switch(
-                                        checked = isChecked,
-                                        onCheckedChange = { checked ->
-                                            updateConfig(key, if (checked) "1" else "0")
-                                        },
-                                        colors = SwitchDefaults.colors(
-                                            checkedThumbColor = Color.White,
-                                            checkedTrackColor = accentColor,
-                                            uncheckedThumbColor = Color.Gray,
-                                            uncheckedTrackColor = Color.DarkGray
+                                    if (key == "CUSTOM_BACKGROUND") {
+                                        Row {
+                                            androidx.compose.material3.Button(
+                                                onClick = {
+                                                    val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
+                                                    sharedPrefs.edit()
+                                                        .putBoolean("HAS_CUSTOM_BACKGROUND", false)
+                                                        .putLong("CUSTOM_BG_TS", System.currentTimeMillis())
+                                                        .apply()
+                                                    val outFile = java.io.File(context.filesDir, "custom_background.png")
+                                                    if (outFile.exists()) outFile.delete()
+                                                    android.widget.Toast.makeText(context, "Background Reset!", android.widget.Toast.LENGTH_SHORT).show()
+                                                },
+                                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color.DarkGray),
+                                                modifier = Modifier.padding(end = 8.dp)
+                                            ) {
+                                                Text("Reset", color = Color.White)
+                                            }
+                                            androidx.compose.material3.Button(
+                                                onClick = {
+                                                    pickMedia.launch(androidx.activity.result.PickVisualMediaRequest(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                                },
+                                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = accentColor)
+                                            ) {
+                                                Text("Set", color = Color.White)
+                                            }
+                                        }
+                                    } else if (key == "BLUR_RADIUS") {
+                                        androidx.compose.material3.Slider(
+                                            value = configState[key]?.toFloatOrNull() ?: 24f,
+                                            onValueChange = { updateConfig(key, it.toString()) },
+                                            valueRange = 0f..100f,
+                                            colors = androidx.compose.material3.SliderDefaults.colors(
+                                                thumbColor = Color.White,
+                                                activeTrackColor = accentColor,
+                                                inactiveTrackColor = Color.DarkGray
+                                            ),
+                                            modifier = Modifier.width(300.dp)
                                         )
-                                    )
+                                    } else if (key == "DIM_OPACITY") {
+                                        androidx.compose.material3.Slider(
+                                            value = configState[key]?.toFloatOrNull() ?: 0.5f,
+                                            onValueChange = { updateConfig(key, it.toString()) },
+                                            valueRange = 0f..1f,
+                                            colors = androidx.compose.material3.SliderDefaults.colors(
+                                                thumbColor = Color.White,
+                                                activeTrackColor = accentColor,
+                                                inactiveTrackColor = Color.DarkGray
+                                            ),
+                                            modifier = Modifier.width(300.dp)
+                                        )
+                                    } else {
+                                        Switch(
+                                            checked = isChecked,
+                                            onCheckedChange = { checked ->
+                                                updateConfig(key, if (checked) "1" else "0")
+                                            },
+                                            colors = SwitchDefaults.colors(
+                                                checkedThumbColor = Color.White,
+                                                checkedTrackColor = accentColor,
+                                                uncheckedThumbColor = Color.Gray,
+                                                uncheckedTrackColor = Color.DarkGray
+                                            )
+                                        )
+                                    }
                                 }
                             }
                         }

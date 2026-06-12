@@ -31,6 +31,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="com.canhub.cropper.CropImageActivity"
+            android:theme="@style/Theme.AppCompat" />
+
         <service android:name=".GameOverlayService"
             android:exported="false" />
         <service android:name=".InGameMenuService"

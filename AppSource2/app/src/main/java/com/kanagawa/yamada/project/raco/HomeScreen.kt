@@ -368,29 +368,48 @@ fun HomeScreen() {
                             if (installedGames.isNotEmpty()) {
                                 val activeGame = installedGames[selectedGameIndex]
 
-                                val enableBg = customizations["ENABLE_BACKGROUND"] ?: true
-                                val blurBg = customizations["BLUR_BACKGROUND"] ?: true
-                                val dimBg = customizations["DIM_BACKGROUND"] ?: true
+                                val enableBg = customizations["ENABLE_BACKGROUND"] as? Boolean ?: true
+                                val blurBg = customizations["BLUR_BACKGROUND"] as? Boolean ?: true
+                                val blurRadius = customizations["BLUR_RADIUS"] as? Float ?: 24f
+                                val dimBg = customizations["DIM_BACKGROUND"] as? Boolean ?: true
+                                val dimOpacity = customizations["DIM_OPACITY"] as? Float ?: 0.5f
+                                val hasCustomBg = customizations["HAS_CUSTOM_BACKGROUND"] as? Boolean ?: false
+                                val customBgTs = customizations["CUSTOM_BG_TS"] as? Long ?: 0L
 
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
                                 ) {
                                     if (enableBg) {
-                                        androidx.compose.foundation.Image(
-                                            painter = androidx.compose.ui.res.painterResource(id = R.drawable.raco_upscale),
-                                            contentDescription = "Background",
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .then(if (blurBg) Modifier.blur(24.dp) else Modifier)
-                                        )
+                                        if (hasCustomBg) {
+                                            val req = coil.request.ImageRequest.Builder(context)
+                                                .data(java.io.File(context.filesDir, "custom_background.png"))
+                                                .setParameter("ts", customBgTs, null)
+                                                .build()
+                                            coil.compose.AsyncImage(
+                                                model = req,
+                                                contentDescription = "Background",
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .then(if (blurBg && blurRadius > 0f) Modifier.blur(blurRadius.dp) else Modifier)
+                                            )
+                                        } else {
+                                            androidx.compose.foundation.Image(
+                                                painter = androidx.compose.ui.res.painterResource(id = R.drawable.raco_upscale),
+                                                contentDescription = "Background",
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .then(if (blurBg && blurRadius > 0f) Modifier.blur(blurRadius.dp) else Modifier)
+                                            )
+                                        }
                                     }
-                                    if (dimBg) {
+                                    if (dimBg && dimOpacity > 0f) {
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .background(Color.Black.copy(alpha = 0.5f))
+                                                .background(Color.Black.copy(alpha = dimOpacity))
                                         )
                                     }
                                 }
@@ -691,18 +710,26 @@ fun rememberBatteryLevel(context: Context): State<Int> {
 }
 
 @Composable
-fun rememberRacoCustomization(context: Context, refreshTrigger: Int): State<Map<String, Boolean>> {
-    val config = remember { mutableStateOf(mapOf(
+fun rememberRacoCustomization(context: Context, refreshTrigger: Int): State<Map<String, Any>> {
+    val config = remember { mutableStateOf<Map<String, Any>>(mapOf(
         "ENABLE_BACKGROUND" to true,
         "BLUR_BACKGROUND" to true,
-        "DIM_BACKGROUND" to true
+        "BLUR_RADIUS" to 24f,
+        "DIM_BACKGROUND" to true,
+        "DIM_OPACITY" to 0.5f,
+        "HAS_CUSTOM_BACKGROUND" to false,
+        "CUSTOM_BG_TS" to 0L
     )) }
     LaunchedEffect(refreshTrigger) {
         val sharedPrefs = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
         config.value = mapOf(
             "ENABLE_BACKGROUND" to sharedPrefs.getBoolean("ENABLE_BACKGROUND", true),
             "BLUR_BACKGROUND" to sharedPrefs.getBoolean("BLUR_BACKGROUND", true),
-            "DIM_BACKGROUND" to sharedPrefs.getBoolean("DIM_BACKGROUND", true)
+            "BLUR_RADIUS" to sharedPrefs.getFloat("BLUR_RADIUS", 24f),
+            "DIM_BACKGROUND" to sharedPrefs.getBoolean("DIM_BACKGROUND", true),
+            "DIM_OPACITY" to sharedPrefs.getFloat("DIM_OPACITY", 0.5f),
+            "HAS_CUSTOM_BACKGROUND" to sharedPrefs.getBoolean("HAS_CUSTOM_BACKGROUND", false),
+            "CUSTOM_BG_TS" to sharedPrefs.getLong("CUSTOM_BG_TS", 0L)
         )
     }
     return config
