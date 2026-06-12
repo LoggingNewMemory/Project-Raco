@@ -50,13 +50,13 @@ void handle_client(int client_sock) {
         }
 
         if (strncmp(buffer, "AWAKEN", 6) == 0) {
-            system("raco 4");
+            system("/data/adb/modules/ProjectRaco/Compiled/raco 4");
         } else if (strncmp(buffer, "BALANCED", 8) == 0) {
-            system("raco 3");
+            system("/data/adb/modules/ProjectRaco/Compiled/raco 3");
         } else if (strncmp(buffer, "POWERSAVE", 9) == 0) {
-            system("raco 2");
+            system("/data/adb/modules/ProjectRaco/Compiled/raco 2");
         } else if (strncmp(buffer, "NORMAL", 6) == 0) {
-            system("raco 1");
+            system("/data/adb/modules/ProjectRaco/Compiled/raco 1");
         }
     }
     close(client_sock);
