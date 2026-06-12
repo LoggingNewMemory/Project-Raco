@@ -37,6 +37,8 @@ import java.io.InputStreamReader
 fun SlingshotScreen(
     game: Game,
     accentColor: Color,
+    perfModeTitle: String,
+    perfModeCommand: String,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -54,6 +56,7 @@ fun SlingshotScreen(
     var useAngle by remember { mutableStateOf(sharedPrefs.getBoolean("useAngle", false)) }
     var useSkia by remember { mutableStateOf(sharedPrefs.getBoolean("useSkia", false)) }
     var enablePlayboost by remember { mutableStateOf(sharedPrefs.getBoolean("enablePlayboost", false)) }
+    var downscaleRes by remember { mutableStateOf(sharedPrefs.getString("downscaleRes_str", "1.0") ?: "1.0") }
     
     var isAngleSupported by remember { mutableStateOf(false) }
     var isLaunching by remember { mutableStateOf(false) }
@@ -135,95 +138,58 @@ fun SlingshotScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Kasane Preload
-                Text("Kasane Preload", color = Color.White, fontFamily = gilmerBold, fontSize = 16.sp)
-                Spacer(modifier = Modifier.height(8.dp))
+                Box(modifier = Modifier.fillMaxWidth(0.8f)) {
+                    CustomDropdown(
+                        title = "Kasane Preload",
+                        options = listOf(
+                            "none" to "None",
+                            "n" to "Normal",
+                            "d" to "Deep",
+                            "x" to "Extreme",
+                            "r" to "Recursive"
+                        ),
+                        selectedKey = selectedMode,
+                        onOptionSelected = { 
+                            selectedMode = it
+                            sharedPrefs.edit().putString("selectedMode", it).apply()
+                        },
+                        accentColor = accentColor,
+                        gilmerBold = gilmerBold
+                    )
+                }
                 
-                var expanded by remember { mutableStateOf(false) }
-                val modes = listOf(
-                    "none" to "None",
-                    "n" to "Normal",
-                    "d" to "Deep",
-                    "x" to "Extreme",
-                    "r" to "Recursive"
-                )
-                val selectedTitle = modes.find { it.first == selectedMode }?.second ?: "Normal"
+                Spacer(modifier = Modifier.height(24.dp))
 
-                Column(modifier = Modifier.fillMaxWidth(0.8f)) {
-                    // Header / Dropdown Button
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                            .border(
-                                1.dp, 
-                                if (expanded) accentColor else Color.DarkGray, 
-                                RoundedCornerShape(12.dp)
-                            )
-                            .background(
-                                if (expanded) accentColor.copy(alpha=0.1f) else Color.Black.copy(alpha=0.3f),
-                                RoundedCornerShape(12.dp)
-                            )
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { expanded = !expanded }
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(selectedTitle, color = Color.White, fontFamily = gilmerBold, fontSize = 16.sp)
-                        Icon(
-                            Icons.Filled.ArrowDropDown, 
-                            contentDescription = "Dropdown", 
-                            tint = if (expanded) accentColor else Color.LightGray
-                        )
-                    }
-                    
-                    // Dropdown Content
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = expanded,
-                        enter = androidx.compose.animation.expandVertically(),
-                        exit = androidx.compose.animation.shrinkVertically()
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp)
-                                .border(1.dp, Color.DarkGray.copy(alpha=0.5f), RoundedCornerShape(12.dp))
-                                .background(Color(0xFF111111), RoundedCornerShape(12.dp))
-                                .clip(RoundedCornerShape(12.dp))
-                        ) {
-                            modes.forEach { (mode, title) ->
-                                val isSelected = selectedMode == mode
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(44.dp)
-                                        .background(if (isSelected) accentColor.copy(alpha=0.15f) else Color.Transparent)
-                                        .clickable { 
-                                            selectedMode = mode
-                                            sharedPrefs.edit().putString("selectedMode", mode).apply()
-                                            expanded = false
-                                        }
-                                        .padding(horizontal = 16.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        title, 
-                                        color = if (isSelected) Color.White else Color.LightGray, 
-                                        fontFamily = gilmerBold, 
-                                        fontSize = 15.sp
-                                    )
-                                    if (isSelected) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(8.dp)
-                                                .background(accentColor, androidx.compose.foundation.shape.CircleShape)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
+                Text(
+                    "Game Mode: $perfModeTitle", 
+                    color = Color.White, 
+                    fontFamily = gilmerBold, 
+                    fontSize = 16.sp
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Box(modifier = Modifier.fillMaxWidth(0.8f)) {
+                    CustomDropdown(
+                        title = "Downscale Resolution",
+                        options = listOf(
+                            "1.0" to "Off (100%)",
+                            "0.9" to "90%",
+                            "0.8" to "80%",
+                            "0.7" to "70%",
+                            "0.6" to "60%",
+                            "0.5" to "50%",
+                            "0.4" to "40%",
+                            "0.3" to "30%"
+                        ),
+                        selectedKey = downscaleRes,
+                        onOptionSelected = { 
+                            downscaleRes = it
+                            sharedPrefs.edit().putString("downscaleRes_str", it).apply()
+                        },
+                        accentColor = accentColor,
+                        gilmerBold = gilmerBold
+                    )
                 }
             }
 
@@ -323,6 +289,23 @@ fun SlingshotScreen(
                                         Runtime.getRuntime().exec(arrayOf("su", "-c", cmd))
                                     }
                                 }
+
+                                // Android 13+ Game Mode & Downscaling
+                                try {
+                                    val sysMode = when (perfModeCommand) {
+                                        "performance" -> 2
+                                        "battery" -> 3
+                                        else -> 1
+                                    }
+                                    
+                                    if (downscaleRes != "1.0") {
+                                        Runtime.getRuntime().exec(arrayOf("su", "-c", "device_config put game_overlay ${game.packageName} mode=$sysMode,downscaleFactor=$downscaleRes")).waitFor()
+                                    } else {
+                                        Runtime.getRuntime().exec(arrayOf("su", "-c", "device_config delete game_overlay ${game.packageName}")).waitFor()
+                                    }
+                                    // Ensure mode is set to the current perfMode so intervention takes effect
+                                    Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd game mode $perfModeCommand ${game.packageName}")).waitFor()
+                                } catch (e: Exception) {}
                             }
 
                             // Launch Game
@@ -399,5 +382,71 @@ fun OptionToggle(
                 uncheckedTrackColor = Color.DarkGray
             )
         )
+    }
+}
+
+@Composable
+fun CustomDropdown(
+    title: String,
+    options: List<Pair<String, String>>,
+    selectedKey: String,
+    onOptionSelected: (String) -> Unit,
+    accentColor: Color,
+    gilmerBold: FontFamily
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedTitle = options.find { it.first == selectedKey }?.second ?: "Select"
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(title, color = Color.White, fontFamily = gilmerBold, fontSize = 16.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .border(1.dp, if (expanded) accentColor else Color.DarkGray, RoundedCornerShape(12.dp))
+                .background(if (expanded) accentColor.copy(alpha=0.1f) else Color.Black.copy(alpha=0.3f), RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(12.dp))
+                .clickable { expanded = !expanded }
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(selectedTitle, color = Color.White, fontFamily = gilmerBold, fontSize = 16.sp)
+            Icon(Icons.Filled.ArrowDropDown, contentDescription = "Dropdown", tint = if (expanded) accentColor else Color.LightGray)
+        }
+        
+        androidx.compose.animation.AnimatedVisibility(
+            visible = expanded,
+            enter = androidx.compose.animation.expandVertically(),
+            exit = androidx.compose.animation.shrinkVertically()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .border(1.dp, Color.DarkGray.copy(alpha=0.5f), RoundedCornerShape(12.dp))
+                    .background(Color(0xFF111111), RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp))
+            ) {
+                options.forEach { (key, optionTitle) ->
+                    val isSelected = selectedKey == key
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(44.dp)
+                            .background(if (isSelected) accentColor.copy(alpha=0.15f) else Color.Transparent)
+                            .clickable { onOptionSelected(key); expanded = false }
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(optionTitle, color = if (isSelected) Color.White else Color.LightGray, fontFamily = gilmerBold, fontSize = 15.sp)
+                        if (isSelected) Box(modifier = Modifier.size(8.dp).background(accentColor, androidx.compose.foundation.shape.CircleShape))
+                    }
+                }
+            }
+        }
     }
 }

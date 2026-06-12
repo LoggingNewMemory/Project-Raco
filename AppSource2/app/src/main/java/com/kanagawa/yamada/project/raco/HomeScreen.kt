@@ -478,6 +478,12 @@ fun HomeScreen() {
                 SlingshotScreen(
                     game = game,
                     accentColor = animatedAccentColor,
+                    perfModeTitle = currentMode.title,
+                    perfModeCommand = when (currentMode) {
+                        PerfMode.AWAKEN -> "performance"
+                        PerfMode.BALANCED -> "standard"
+                        PerfMode.POWERSAVE -> "battery"
+                    },
                     onBack = { slingshotGame = null }
                 )
             }
