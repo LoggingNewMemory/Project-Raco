@@ -66,55 +66,61 @@ void route_soc(int mode) {
 
 // Carlotta CPU
 void carlotta_cpu(int hardlock) {
-    system("setprop debug.hwui.use_hint_manager true");
-    system("setprop debug.sf.enable_adpf_cpu_hint true");
+    pid_t pid_fork = fork();
+    if (pid_fork == 0) {
+        system("setprop debug.hwui.use_hint_manager true");
+        system("setprop debug.sf.enable_adpf_cpu_hint true");
 
-    long long u1 = 0, n1 = 0, s1 = 0, i1 = 0, io1 = 0, irq1 = 0, sirq1 = 0, st1 = 0;
-    long long u2 = 0, n2 = 0, s2 = 0, i2 = 0, io2 = 0, irq2 = 0, sirq2 = 0, st2 = 0;
-    int current_load = 0;
-    char buffer[4096];
-
-    if (raread("/proc/stat", buffer, sizeof(buffer)) > 0) {
-        sscanf(buffer, "cpu %lld %lld %lld %lld %lld %lld %lld %lld", &u1, &n1, &s1, &i1, &io1, &irq1, &sirq1, &st1);
-
-        usleep(100000); // Measure Delta
+        long long u1 = 0, n1 = 0, s1 = 0, i1 = 0, io1 = 0, irq1 = 0, sirq1 = 0, st1 = 0;
+        long long u2 = 0, n2 = 0, s2 = 0, i2 = 0, io2 = 0, irq2 = 0, sirq2 = 0, st2 = 0;
+        int current_load = 0;
+        char buffer[4096];
 
         if (raread("/proc/stat", buffer, sizeof(buffer)) > 0) {
-            sscanf(buffer, "cpu %lld %lld %lld %lld %lld %lld %lld %lld", &u2, &n2, &s2, &i2, &io2, &irq2, &sirq2, &st2);
+            sscanf(buffer, "cpu %lld %lld %lld %lld %lld %lld %lld %lld", &u1, &n1, &s1, &i1, &io1, &irq1, &sirq1, &st1);
 
-            long long total1 = u1 + n1 + s1 + i1 + io1 + irq1 + sirq1 + st1;
-            long long idle1 = i1 + io1;
+            usleep(100000); // Measure Delta
 
-            long long total2 = u2 + n2 + s2 + i2 + io2 + irq2 + sirq2 + st2;
-            long long idle2 = i2 + io2;
+            if (raread("/proc/stat", buffer, sizeof(buffer)) > 0) {
+                sscanf(buffer, "cpu %lld %lld %lld %lld %lld %lld %lld %lld", &u2, &n2, &s2, &i2, &io2, &irq2, &sirq2, &st2);
 
-            long long diff_total = total2 - total1;
-            long long diff_idle = idle2 - idle1;
+                long long total1 = u1 + n1 + s1 + i1 + io1 + irq1 + sirq1 + st1;
+                long long idle1 = i1 + io1;
 
-            if (diff_total > 0) {
-                long long load = (1000 * (diff_total - diff_idle)) / diff_total;
-                int adjusted_load = load / 10;
+                long long total2 = u2 + n2 + s2 + i2 + io2 + irq2 + sirq2 + st2;
+                long long idle2 = i2 + io2;
 
-                int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
-                if (num_cores < 1) num_cores = 1;
+                long long diff_total = total2 - total1;
+                long long diff_idle = idle2 - idle1;
 
-                if (num_cores > 8) {
-                    adjusted_load = (adjusted_load * 8) / num_cores;
+                if (diff_total > 0) {
+                    long long load = (1000 * (diff_total - diff_idle)) / diff_total;
+                    int adjusted_load = load / 10;
+
+                    int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+                    if (num_cores < 1) num_cores = 1;
+
+                    if (num_cores > 8) {
+                        adjusted_load = (adjusted_load * 8) / num_cores;
+                    }
+                    current_load = adjusted_load;
                 }
-                current_load = adjusted_load;
-            }
-        } 
-    }
-    int target_percent = (current_load > hardlock) ? hardlock : current_load;
+            } 
+        }
+        int target_percent = (current_load > hardlock) ? hardlock : current_load;
 
-    char cmd[256];
-    snprintf(cmd, sizeof(cmd), "setprop debug.hwui.target_cpu_time_percent %d", target_percent);
-    system(cmd);
-    
-    pid_t pid = getpid();
-    snprintf(cmd, sizeof(cmd), "iorenice %d 7 idle >/dev/null 2>&1", pid); system(cmd); 
-    snprintf(cmd, sizeof(cmd), "renice -n 19 -p %d >/dev/null 2>&1", pid); system(cmd); 
-    snprintf(cmd, sizeof(cmd), "taskset -ap 1 %d >/dev/null 2>&1", pid); system(cmd); 
+        char cmd[512];
+        pid_t pid = getpid();
+        snprintf(cmd, sizeof(cmd), 
+                 "setprop debug.hwui.target_cpu_time_percent %d; "
+                 "iorenice %d 7 idle >/dev/null 2>&1; "
+                 "renice -n 19 -p %d >/dev/null 2>&1; "
+                 "taskset -ap 1 %d >/dev/null 2>&1", 
+                 target_percent, pid, pid, pid);
+        system(cmd);
+        
+        exit(0);
+    }
 }
 
 // Corin Function
@@ -149,7 +155,7 @@ void app_toast(const char *msg) {
 // Master Profiles
 void mode_awaken() {
     app_toast("Applying Awaken Profile...");
-    system("sync");
+    sync();
     rawrite("3", "/proc/sys/vm/drop_caches");
 
     apply_io_tweaks("0", "0", "32", "32", 1);
@@ -198,7 +204,7 @@ void mode_awaken() {
 
 void mode_balanced() {
     app_toast("Applying Balanced Profile...");
-    system("sync");
+    sync();
     rawrite("3", "/proc/sys/vm/drop_caches");
 
     apply_io_tweaks("1", "1", "128", "128", 0);
@@ -244,7 +250,7 @@ void mode_balanced() {
 
 void mode_powersave() {
     app_toast("Applying Eco Profile...");
-    system("sync");
+    sync();
     rawrite("3", "/proc/sys/vm/drop_caches");
 
     apply_io_tweaks("1", "1", "128", "128", 0);
@@ -290,7 +296,7 @@ void mode_powersave() {
 
 void mode_normal() {
     app_toast("Restoring Normal State...");
-    system("sync");
+    sync();
 
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);
