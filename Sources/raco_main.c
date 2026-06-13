@@ -276,7 +276,7 @@ void mode_powersave() {
 
     system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
     
-    change_cpu_gov("powersave");
+    change_cpu_gov(config.default_gov);
     cpufreq_powersave();
     route_soc(2);
 

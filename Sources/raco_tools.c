@@ -337,28 +337,28 @@ void cpufreq_normal() {
 void cpufreq_powersave() {
     DIR *dir;
     struct dirent *ent;
-    if ((dir = opendir ("/sys/devices/system/cpu/cpufreq")) != NULL) {
+    if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
             if (strncmp(ent->d_name, "policy", 6) == 0) {
-                char hw_min_path[256], hw_max_path[256], min_path[256], max_path[256];
+                char avail_path[256], hw_min_path[256], min_path[256], max_path[256];
+                snprintf(avail_path, sizeof(avail_path), "/sys/devices/system/cpu/cpufreq/%s/scaling_available_frequencies", ent->d_name);
                 snprintf(hw_min_path, sizeof(hw_min_path), "/sys/devices/system/cpu/cpufreq/%s/cpuinfo_min_freq", ent->d_name);
-                snprintf(hw_max_path, sizeof(hw_max_path), "/sys/devices/system/cpu/cpufreq/%s/cpuinfo_max_freq", ent->d_name);
                 snprintf(min_path, sizeof(min_path), "/sys/devices/system/cpu/cpufreq/%s/scaling_min_freq", ent->d_name);
                 snprintf(max_path, sizeof(max_path), "/sys/devices/system/cpu/cpufreq/%s/scaling_max_freq", ent->d_name);
                 
-                char hw_min_val[32] = {0};
-                char hw_max_val[32] = {0};
+                FreqData mid_f = get_target_freq(avail_path, 2);
 
-                if (raread(hw_min_path, hw_min_val, sizeof(hw_min_val)) > 0 &&
-                    raread(hw_max_path, hw_max_val, sizeof(hw_max_val)) >0) {
-                    
-                    // Clear
-                    hw_min_val[strcspn(hw_min_val, "\n")] = 0;
-                    hw_max_val[strcspn(hw_max_val, "\n")] = 0; 
-                    
-                    rakakikomi(hw_min_val, min_path);
-                    rakakikomi(hw_max_val, max_path);
-                } 
+                char hw_min_val[32] = {0};
+
+                if (mid_f.freq != -1 && raread(hw_min_path, hw_min_val, sizeof(hw_min_val)) > 0) {
+                    hw_min_val[strcspn(hw_min_val, "\n")] = 0; // Clean up
+
+                    char mid_val[32];
+                    snprintf(mid_val, sizeof(mid_val), "%ld", mid_f.freq);
+
+                    rawrite(hw_min_val, min_path);
+                    rawrite(mid_val, max_path);
+                }
             }
         }
         closedir(dir);
