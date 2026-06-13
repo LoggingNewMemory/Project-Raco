@@ -55,12 +55,12 @@ void handle_client(int client_sock) {
                 system("/data/adb/modules/ProjectRaco/Compiled/raco 4 >/dev/null 2>&1");
                 exit(0);
             }
-        } else if (strncmp(buffer, "MID", 3) == 0) {
+        } else if (strncmp(buffer, "BALANCED", 8) == 0) {
             if (fork() == 0) {
                 system("/data/adb/modules/ProjectRaco/Compiled/raco 3 >/dev/null 2>&1");
                 exit(0);
             }
-        } else if (strncmp(buffer, "ECO", 3) == 0) {
+        } else if (strncmp(buffer, "POWERSAVE", 9) == 0) {
             if (fork() == 0) {
                 system("/data/adb/modules/ProjectRaco/Compiled/raco 2 >/dev/null 2>&1");
                 exit(0);
