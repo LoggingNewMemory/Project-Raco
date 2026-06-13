@@ -203,7 +203,7 @@ void mode_balanced() {
 
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);
-    rakakikomi("1", "/proc/sys/kernel/split_lock_mitigate");
+
     rakakikomi("3", "/proc/sys/vm/page-cluster");
     rakakikomi("120", "/proc/sys/vm/vfs_cache_pressure");
     carlotta_cpu(55);
@@ -249,7 +249,7 @@ void mode_powersave() {
 
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);
-    rakakikomi("1", "/proc/sys/kernel/split_lock_mitigate");
+
     rakakikomi("3", "/proc/sys/vm/page-cluster");
     rakakikomi("100", "/proc/sys/vm/vfs_cache_pressure");
     carlotta_cpu(40);
@@ -294,7 +294,7 @@ void mode_normal() {
 
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);
-    rakakikomi("1", "/proc/sys/kernel/split_lock_mitigate");
+
     rakakikomi("3", "/proc/sys/vm/page-cluster");
     rakakikomi("120", "/proc/sys/vm/vfs_cache_pressure");
     carlotta_cpu(55);
