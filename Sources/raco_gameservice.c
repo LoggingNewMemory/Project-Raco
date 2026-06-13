@@ -37,17 +37,9 @@ void handle_client(int client_sock) {
         // Ensure string is cleanly terminated
         buffer[strcspn(buffer, "\r\n")] = '\0';
 
-        if (strncmp(buffer, "NORMAL", 6) != 0 && strlen(buffer) > 0) {
-            long mem_before = get_mem_available();
-            char *colon = strchr(buffer, ':');
-            if (colon) {
-                *colon = '\0'; // split the buffer so strncmp for AWAKEN etc below works properly
-            }
-            kill_all();
-            usleep(800000); // Wait a bit for memory to settle
-            long mem_after = get_mem_available();
-            long cleared = mem_after - mem_before;
-            if (cleared < 0) cleared = 0;
+        char *colon = strchr(buffer, ':');
+        if (colon) {
+            *colon = '\0'; // split the buffer so strncmp for AWAKEN etc below works properly
         }
 
         if (strncmp(buffer, "AWAKEN", 6) == 0) {

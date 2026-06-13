@@ -150,6 +150,7 @@ void app_toast(const char *msg) {
 void mode_awaken() {
     app_toast("Applying Awaken Profile...");
     system("sync");
+    rawrite("3", "/proc/sys/vm/drop_caches");
 
     apply_io_tweaks("0", "0", "32", "32", 1);
     apply_net_tweaks("1", "1", "3", "0", 1);
@@ -198,6 +199,7 @@ void mode_awaken() {
 void mode_balanced() {
     app_toast("Applying Balanced Profile...");
     system("sync");
+    rawrite("3", "/proc/sys/vm/drop_caches");
 
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);
@@ -243,6 +245,7 @@ void mode_balanced() {
 void mode_powersave() {
     app_toast("Applying Eco Profile...");
     system("sync");
+    rawrite("3", "/proc/sys/vm/drop_caches");
 
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);

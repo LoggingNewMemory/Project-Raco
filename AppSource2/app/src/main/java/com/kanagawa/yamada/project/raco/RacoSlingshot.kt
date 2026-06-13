@@ -260,9 +260,9 @@ fun SlingshotScreen(
                         isLaunching = true
                         coroutineScope.launch {
                             withContext(Dispatchers.IO) {
-                                // Free RAM
+                                // Free RAM (Equivalent to kill_all)
                                 try {
-                                    Runtime.getRuntime().exec(arrayOf("su", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches")).waitFor()
+                                    Runtime.getRuntime().exec(arrayOf("su", "-c", "sync; cmd activity kill-all > /dev/null 2>&1; pm trim-caches 100G > /dev/null 2>&1; echo 3 > /proc/sys/vm/drop_caches; logcat -b all -c")).waitFor()
                                 } catch (e: Exception) {}
 
                                 // Cleanup first
