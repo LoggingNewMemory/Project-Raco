@@ -144,7 +144,13 @@ fun HomeScreen() {
     }
 
     // State
-    var currentMode by remember { mutableStateOf(PerfMode.AWAKEN) }
+    val prefs = context.getSharedPreferences("raco_slingshot_prefs", android.content.Context.MODE_PRIVATE)
+    var currentMode by remember { 
+        val savedMode = prefs.getString("global_perf_mode", PerfMode.AWAKEN.name) ?: PerfMode.AWAKEN.name
+        mutableStateOf(
+            try { PerfMode.valueOf(savedMode) } catch(e: Exception) { PerfMode.AWAKEN }
+        ) 
+    }
     var showPerfMenu by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var selectedGameIndex by remember { mutableIntStateOf(0) }
@@ -156,12 +162,16 @@ fun HomeScreen() {
     var lastProjectClickTime by remember { mutableLongStateOf(0L) }
     var showTerminal by remember { mutableStateOf(false) }
 
-    // Listen for app resume to refresh the game list
+    // Listen for app resume to refresh the game list and sync PerfMode
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 listRefreshTrigger++
                 selectedGameIndex = 0 // <-- FIX: Snap back to the top when returning
+                
+                // Sync the mode in case the user changed it in the Game Overlay
+                val updatedMode = prefs.getString("global_perf_mode", PerfMode.AWAKEN.name) ?: PerfMode.AWAKEN.name
+                currentMode = try { PerfMode.valueOf(updatedMode) } catch(e: Exception) { PerfMode.AWAKEN }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -484,7 +494,10 @@ fun HomeScreen() {
                                 val isSelected = currentMode == mode
                                 Text(
                                     text = mode.title, color = Color.White, fontFamily = if (isSelected) gilmerBold else gilmerRegular, fontSize = 28.sp,
-                                    modifier = Modifier.padding(vertical = 12.dp).clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { currentMode = mode }
+                                    modifier = Modifier.padding(vertical = 12.dp).clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { 
+                                        currentMode = mode 
+                                        prefs.edit().putString("global_perf_mode", mode.name).apply()
+                                    }
                                 )
                             }
                         }
