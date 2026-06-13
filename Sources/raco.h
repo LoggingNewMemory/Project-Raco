@@ -28,7 +28,7 @@ typedef struct {
     int legacy_notif;
     int silent_notif;
     int device_mitigation;
-    char default_gov[32]; // This is due handler of custom GOV. Fk, why not stick to schedutil
+    char default_gov[32];
 } RacoConfig;
 
 extern RacoConfig config;

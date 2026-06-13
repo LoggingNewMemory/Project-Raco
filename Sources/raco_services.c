@@ -177,50 +177,7 @@ void apply_system_optimizations() {
         rawrite("1024", "/proc/sys/kernel/random/write_wakeup_threshold");
     }
 
-    // 3. GHenna Universal Deep Sleep & GMS Doze (deferred to background fork)
 
-    // 4. GHenna disable tracing & logcat optimizations
-    {
-        // cmd/atrace/logcat calls deferred to background fork
-        
-        const char *trace_on_files[] = { "/sys/kernel/tracing/tracing_on", "/sys/kernel/debug/tracing/tracing_on" };
-        int trace_on_count = sizeof(trace_on_files) / sizeof(trace_on_files[0]);
-        raco_bulk("", trace_on_files, trace_on_count, "0", 0);
-
-
-        system("setprop ro.logd.size.stats 0 2>/dev/null");
-        system("setprop ro.logdumpd.enabled false 2>/dev/null");
-
-        rawrite("0 0 0 0", "/proc/sys/kernel/printk");
-
-        const char *kernel_base = "/proc/sys/kernel/";
-        const char *k_printk_files[] = { "printk_ratelimit", "sysctl_writes_strict" };
-        int k_printk_count = sizeof(k_printk_files) / sizeof(k_printk_files[0]);
-        raco_bulk(kernel_base, k_printk_files, k_printk_count, "0", 0);
-
-        const char *debug_trace_base = "/sys/kernel/debug/tracing/";
-        const char *debug_trace_0[] = { "tracing_on", "events/enable" };
-        int debug_trace_count = sizeof(debug_trace_0) / sizeof(debug_trace_0[0]);
-        raco_bulk(debug_trace_base, debug_trace_0, debug_trace_count, "0", 0);
-        rawrite("nop", "/sys/kernel/debug/tracing/current_tracer");
-
-        system("setprop debug.atrace.tags.enableflags 0 2>/dev/null");
-        system("setprop debug.force_rtl false 2>/dev/null");
-
-        rawrite("off", "/proc/sys/kernel/printk_devkmsg");
-        rawrite("0", "/sys/module/binder/parameters/debug_mask");
-
-        const char *printk_base = "/sys/module/printk/parameters/";
-        const char *printk_files_0[] = { "cpu", "pid", "time", "printk_ratelimit" };
-        int printk_count_0 = sizeof(printk_files_0) / sizeof(printk_files_0[0]);
-        raco_bulk(printk_base, printk_files_0, printk_count_0, "0", 0);
-
-        const char *printk_files_1[] = { "console_suspend", "ignore_loglevel" };
-        int printk_count_1 = sizeof(printk_files_1) / sizeof(printk_files_1[0]);
-        raco_bulk(printk_base, printk_files_1, printk_count_1, "1", 0);
-
-
-    }
 
     // 6. RCU & safe module parameters
     {
@@ -303,12 +260,7 @@ void apply_system_optimizations() {
         int gpu_count_1 = sizeof(gpu_files_1) / sizeof(gpu_files_1[0]);
         raco_bulk("", gpu_files_1, gpu_count_1, "1", 0);
 
-        system("setprop debug.sf.hw 1");
-        system("setprop debug.sf.latch_unsignaled 1");
-        system("setprop debug.hwui.drop_shadow_cache_size 6");
-        system("setprop debug.hwui.texture_cache_flushrate 0.4");
-        system("setprop ro.hwui.render_ahead_lines 2");
-        system("setprop ro.hwui.texture_cache_size 72");
+
     }
 
     // 10. GED Tweaks
