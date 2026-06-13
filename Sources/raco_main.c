@@ -137,8 +137,12 @@ void corin_storage(const char *sched, const char *rq) {
 
 // Toast Helper
 void app_toast(const char *msg) {
-    char cmd[512];
-    snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"%s\\\"\" >/dev/null 2>&1 &", msg);
+    char cmd[1024];
+    if (config.legacy_notif == 1) {
+        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' 'TagRaco' '%s'\" >/dev/null 2>&1 &", msg);
+    } else {
+        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' -i file:///data/local/tmp/logo.png -I file:///data/local/tmp/logo.png 'TagRaco' '%s'\" >/dev/null 2>&1 &", msg);
+    }
     system(cmd);
 }
 
@@ -187,6 +191,7 @@ void mode_awaken() {
 
     clear_slingshot();
     anyamelfissa();
+    app_toast("Switched to Awaken Mode");
 }
 
 void mode_balanced() {
@@ -230,6 +235,7 @@ void mode_balanced() {
 
     clear_slingshot();
     anyakawaii();
+    app_toast("Switched to Balanced Mode");
 }
 
 void mode_powersave() {
@@ -273,6 +279,7 @@ void mode_powersave() {
 
     clear_slingshot();
     anyakawaii();
+    app_toast("Switched to Eco Mode");
 }
 
 void mode_normal() {
@@ -316,6 +323,7 @@ void mode_normal() {
 
     clear_slingshot();
     anyakawaii();
+    app_toast("Restored Normal State");
 }
 
 // Main Execution

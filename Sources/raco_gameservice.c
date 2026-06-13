@@ -27,6 +27,7 @@ long get_mem_available() {
     return mem_avail / 1024; // MB
 }
 
+
 void handle_client(int client_sock) {
     char buffer[256];
     int bytes_read = read(client_sock, buffer, sizeof(buffer) - 1);
@@ -47,39 +48,26 @@ void handle_client(int client_sock) {
             long mem_after = get_mem_available();
             long cleared = mem_after - mem_before;
             if (cleared < 0) cleared = 0;
-
-            char toast_cmd[512];
-            snprintf(toast_cmd, sizeof(toast_cmd), "su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"Ready for Game\\\"\" >/dev/null 2>&1 &");
-            system(toast_cmd);
-            usleep(200000); // Ensure toast intent is sent before raco mode blocks
         }
 
         if (strncmp(buffer, "AWAKEN", 6) == 0) {
             if (fork() == 0) {
-                system("su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"Switching to Awaken Mode...\\\"\" >/dev/null 2>&1");
                 system("/data/adb/modules/ProjectRaco/Compiled/raco 4 >/dev/null 2>&1");
-                system("su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"Switched to Awaken Mode\\\"\" >/dev/null 2>&1");
                 exit(0);
             }
         } else if (strncmp(buffer, "MID", 3) == 0) {
             if (fork() == 0) {
-                system("su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"Switching to Mid Mode...\\\"\" >/dev/null 2>&1");
                 system("/data/adb/modules/ProjectRaco/Compiled/raco 3 >/dev/null 2>&1");
-                system("su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"Switched to Mid Mode\\\"\" >/dev/null 2>&1");
                 exit(0);
             }
         } else if (strncmp(buffer, "ECO", 3) == 0) {
             if (fork() == 0) {
-                system("su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"Switching to Eco Mode...\\\"\" >/dev/null 2>&1");
                 system("/data/adb/modules/ProjectRaco/Compiled/raco 2 >/dev/null 2>&1");
-                system("su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"Switched to Eco Mode\\\"\" >/dev/null 2>&1");
                 exit(0);
             }
         } else if (strncmp(buffer, "NORMAL", 6) == 0) {
             if (fork() == 0) {
-                system("su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"Restoring Normal State...\\\"\" >/dev/null 2>&1");
                 system("/data/adb/modules/ProjectRaco/Compiled/raco 1 >/dev/null 2>&1");
-                system("su -lp 2000 -c \"am broadcast -a com.kanagawa.yamada.project.raco.SHOW_TOAST -p com.kanagawa.yamada.project.raco -e msg \\\"Restored Normal State\\\"\" >/dev/null 2>&1");
                 exit(0);
             }
         }
