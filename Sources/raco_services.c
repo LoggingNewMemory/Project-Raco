@@ -337,22 +337,7 @@ int main(int argc, char *argv[]) {
             // Child process runs in background
             sleep(sandev_dur);
 
-            char revert_gov[64] = {0};
-            if (default_gov[0] != '\0') {
-                strncpy(revert_gov, default_gov, sizeof(revert_gov) - 1);
-            } else {
-                char av_govs[1024] = {0};
-                if (raread("/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors", av_govs, sizeof(av_govs) - 1) > 0) {
-                    if (strstr(av_govs, "schedhorizon") != NULL) {
-                        strcpy(revert_gov, "schedhorizon");
-                    } else {
-                        strcpy(revert_gov, "schedutil");
-                    }
-                } else {
-                    strcpy(revert_gov, "schedutil");
-                }
-            }
-            change_cpu_gov(revert_gov);
+            change_cpu_gov(config.default_gov);
             exit(0);
         }
     }
