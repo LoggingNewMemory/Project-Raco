@@ -62,8 +62,13 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
     val context = LocalContext.current
     var isLeftOpen by remember { mutableStateOf(false) }
     var isRightOpen by remember { mutableStateOf(false) }
-    var currentPerfMode by remember { mutableStateOf(PerfMode.AWAKEN) }
-
+    val prefs = context.getSharedPreferences("raco_slingshot_prefs", android.content.Context.MODE_PRIVATE)
+    var currentPerfMode by remember { 
+        val savedMode = prefs.getString("global_perf_mode", PerfMode.AWAKEN.name) ?: PerfMode.AWAKEN.name
+        mutableStateOf(
+            try { PerfMode.valueOf(savedMode) } catch(e: Exception) { PerfMode.AWAKEN }
+        ) 
+    }
     val themeColor by androidx.compose.animation.animateColorAsState(
         targetValue = currentPerfMode.color,
         animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
