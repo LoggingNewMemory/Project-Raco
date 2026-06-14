@@ -129,6 +129,12 @@ void mediatek_awaken() {
     rawrite("0", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
     rawrite("0", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
+    // FPSGo Sysfs Force Off
+    rawrite("0", "/sys/kernel/fpsgo/common/fpsgo_enable");
+    rawrite("0", "/sys/kernel/fpsgo/fbt/fbt_enable");
+    rawrite("0", "/sys/kernel/fpsgo/fstb/fstb_self_ctrl_fps_enable");
+    rawrite("0", "/sys/module/mtk_fpsgo/parameters/fstb_self_ctrl_fps_enable");
+
     // Power Limits
     if (config.device_mitigation == 1) {
         const char *power_limits[] = {
@@ -203,6 +209,12 @@ void mediatek_balanced() {
     rawrite("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
     rawrite("-1", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
+    // FPSGo Sysfs Restore
+    rawrite("1", "/sys/kernel/fpsgo/common/fpsgo_enable");
+    rawrite("1", "/sys/kernel/fpsgo/fbt/fbt_enable");
+    rawrite("1", "/sys/kernel/fpsgo/fstb/fstb_self_ctrl_fps_enable");
+    rawrite("1", "/sys/module/mtk_fpsgo/parameters/fstb_self_ctrl_fps_enable");
+
     // Power Limits
     const char *power_limits[] = {
         "ignore_batt_oc 0", "ignore_batt_percent 0", "ignore_low_batt 0",
@@ -266,6 +278,12 @@ void mediatek_normal() {
     rakakikomi("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
     rakakikomi("-1", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
+    // FPSGo Sysfs Restore
+    rawrite("1", "/sys/kernel/fpsgo/common/fpsgo_enable");
+    rawrite("1", "/sys/kernel/fpsgo/fbt/fbt_enable");
+    rawrite("1", "/sys/kernel/fpsgo/fstb/fstb_self_ctrl_fps_enable");
+    rawrite("1", "/sys/module/mtk_fpsgo/parameters/fstb_self_ctrl_fps_enable");
+
     // Power Limits
     const char *power_limits[] = {
         "ignore_batt_oc 0", "ignore_batt_percent 0", "ignore_low_batt 0",
@@ -327,6 +345,12 @@ void mediatek_powersave() {
     // GPU Tweaks
     rakakikomi("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
     rakakikomi("-1", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
+
+    // FPSGo Sysfs Restore
+    rawrite("1", "/sys/kernel/fpsgo/common/fpsgo_enable");
+    rawrite("1", "/sys/kernel/fpsgo/fbt/fbt_enable");
+    rawrite("1", "/sys/kernel/fpsgo/fstb/fstb_self_ctrl_fps_enable");
+    rawrite("1", "/sys/module/mtk_fpsgo/parameters/fstb_self_ctrl_fps_enable");
 
     // Power Limits
     const char *power_limits[] = {

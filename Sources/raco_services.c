@@ -114,35 +114,6 @@ void apply_mali_tweaks() {
     }
 }
 
-// KamiGO FPSGo Tweaks
-void apply_kamigo_tweaks() {
-    {
-        const char *fbt_base = "/sys/kernel/fpsgo/fbt/";
-        const char *fbt_files_0[] = { "enable_ceiling", "limit_cfreq", "limit_rfreq", "limit_uclamp" };
-        int fbt_count_0 = sizeof(fbt_files_0) / sizeof(fbt_files_0[0]);
-        raco_bulk(fbt_base, fbt_files_0, fbt_count_0, "0", 0);
-
-        const char *fbt_files_1[] = { "rescue_enable", "ultra_rescue", "boost_VIP", "boost_ta" };
-        int fbt_count_1 = sizeof(fbt_files_1) / sizeof(fbt_files_1[0]);
-        raco_bulk(fbt_base, fbt_files_1, fbt_count_1, "1", 0);
-    }
-    
-    {
-        const char *fpsgo_base = "/sys/module/mtk_fpsgo/parameters/";
-        const char *fpsgo_files_1[] = { "bhr", "qr_enable" };
-        int fpsgo_count_1 = sizeof(fpsgo_files_1) / sizeof(fpsgo_files_1[0]);
-        raco_bulk(fpsgo_base, fpsgo_files_1, fpsgo_count_1, "1", 0);
-        
-        rawrite("15", "/sys/module/mtk_fpsgo/parameters/bhr_opp");
-        rawrite("95", "/sys/module/mtk_fpsgo/parameters/rescue_percent");
-    }
-    
-    rawrite("0", "/sys/kernel/fpsgo/fstb/fstb_self_ctrl_fps_enable");
-    rawrite("1", "/sys/kernel/fpsgo/fstb/margin_mode");
-    rawrite("1", "/sys/pnpmgr/fpsgo_boost/boost_mode");
-}
-
-
 // Consolidated and Scoped System Optimizations (Facur, GHenna, Yanz Merged)
 void apply_system_optimizations() {
     // 1. Filesystem & I/O optimizations (iostats only — scheduler left at kernel default)
@@ -308,10 +279,6 @@ int main(int argc, char *argv[]) {
     // Mali Scheduler Tweaks
     apply_mali_tweaks();
 
-    // KamiGO Tweaks
-    if (config.soc == 1) {
-        apply_kamigo_tweaks();
-    }
 
     // Kobo Fast Charge
     if (inc_kobo == 1) {
