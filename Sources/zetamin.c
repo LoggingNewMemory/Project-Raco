@@ -141,6 +141,25 @@ void optimize_gpu_misc() {
     rawrite("0-7", "/dev/cpuset/top-app/cpus");
 }
 
+void zetamin_unlock_fps() {
+    int max_fps = 60;
+    FILE *fp = popen("cmd display dump 2>/dev/null | grep -Eo 'fps=[0-9]+' | cut -d= -f2 | sort -nr | head -n1", "r");
+    if (fp) {
+        fscanf(fp, "%d", &max_fps);
+        pclose(fp);
+    }
+    if (max_fps <= 0) max_fps = 120; // Fallback just in case
+
+    char cmd[256];
+
+    // Disable Android 15 Game Default Frame Rate (Unlock 60FPS limit)
+    system("resetprop persist.graphics.game_default_frame_rate.enabled true >/dev/null 2>&1");
+    system("resetprop debug.graphics.game_default_frame_rate.disabled true >/dev/null 2>&1");
+    
+    snprintf(cmd, sizeof(cmd), "resetprop ro.surface_flinger.game_default_frame_rate_override %d >/dev/null 2>&1", max_fps);
+    system(cmd);
+}
+
 // Executions
 void zetamin_optimize() {
     system("sync");
@@ -151,6 +170,7 @@ void zetamin_optimize() {
     
     zetamin_facur();
     zetamin_flux();
+    zetamin_unlock_fps();
 }
 
 #ifdef STANDALONE
