@@ -114,6 +114,9 @@ class AutoGameMonitorService : Service() {
         val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
         val mode = prefs.getString("global_perf_mode", "AWAKEN") ?: "AWAKEN"
         
+        // Delay any toasts until EntranceAnim finishes (~4.5s)
+        prefs.edit().putLong("entrance_anim_playing_until", System.currentTimeMillis() + 4500).apply()
+
         // Trigger Daemon via UNIX Socket
         triggerDaemonMode(mode, packageName)
 

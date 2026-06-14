@@ -37,7 +37,19 @@ class ToastOverlayService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val msg = intent?.getStringExtra("msg")
         if (msg != null) {
-            showOverlayToast(msg)
+            val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+            val until = prefs.getLong("entrance_anim_playing_until", 0L)
+            val now = System.currentTimeMillis()
+            var delayTime = 0L
+            if (now < until) {
+                delayTime = until - now
+            }
+            
+            if (delayTime > 0) {
+                handler.postDelayed({ showOverlayToast(msg) }, delayTime)
+            } else {
+                showOverlayToast(msg)
+            }
         }
         return START_NOT_STICKY
     }
