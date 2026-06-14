@@ -42,11 +42,7 @@ char *my_strcasestr(const char *haystack, const char *needle) {
 // Notification Helper
 void send_notif(const char *title, const char *message, const char *tag, const char *icon_path) {
     char cmd[1024];
-    if (config.legacy_notif == 1) {
-        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t '%s' '%s' '%s'\" &", title, tag, message);
-    } else {
-        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t '%s' -i file://%s -I file://%s '%s' '%s'\" &", title, icon_path, icon_path, tag, message);
-    }
+    snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"am startservice -n com.kanagawa.yamada.project.raco/.ToastOverlayService --es msg '%s: %s'\" >/dev/null 2>&1 &", title, message);
     system(cmd);
 }
 

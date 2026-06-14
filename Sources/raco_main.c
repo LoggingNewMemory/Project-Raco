@@ -144,11 +144,7 @@ void corin_storage(const char *sched, const char *rq) {
 // Toast Helper
 void app_toast(const char *msg) {
     char cmd[1024];
-    if (config.legacy_notif == 1) {
-        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' 'TagRaco' '%s'\" >/dev/null 2>&1 &", msg);
-    } else {
-        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' -i file:///data/local/tmp/logo.png -I file:///data/local/tmp/logo.png 'TagRaco' '%s'\" >/dev/null 2>&1 &", msg);
-    }
+    snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"am startservice -n com.kanagawa.yamada.project.raco/.ToastOverlayService --es msg '%s'\" >/dev/null 2>&1 &", msg);
     system(cmd);
 }
 

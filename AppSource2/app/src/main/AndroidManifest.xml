@@ -39,6 +39,14 @@
             android:name="com.canhub.cropper.CropImageActivity"
             android:theme="@style/Theme.AppCompat" />
 
+        <service
+            android:name=".ToastOverlayService"
+            android:exported="true" />
+
+
+
+
+
         <service android:name=".GameOverlayService"
             android:exported="false" />
         <service android:name=".InGameMenuService"

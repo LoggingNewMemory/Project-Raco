@@ -156,11 +156,7 @@ void load_config(const char *config_path) {
 void notification(const char *message) {
     if (config.silent_notif == 1) {
         char cmd[512];
-        if (config.legacy_notif == 1) {
-            snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' TagRaco '%s'\" &", message);
-        } else {
-            snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' -i file:///data/local/tmp/logo.png TagRaco '%s'\" &", message);
-        }
+        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"am startservice -n com.kanagawa.yamada.project.raco/.ToastOverlayService --es msg '%s'\" >/dev/null 2>&1 &", message);
         system(cmd);
     }
 }
