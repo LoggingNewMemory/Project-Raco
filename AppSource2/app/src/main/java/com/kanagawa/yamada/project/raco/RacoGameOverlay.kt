@@ -661,7 +661,7 @@ fun RacoRightPanel(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color(0xFF1A1A1A))
+                                    .background(Color.Black.copy(alpha = 0.8f))
                             ) {
                                 PerfMode.entries.forEach { mode ->
                                     Box(
