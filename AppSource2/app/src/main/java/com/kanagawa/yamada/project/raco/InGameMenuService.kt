@@ -83,6 +83,11 @@ class InGameMenuService : Service() {
         setupMainOverlay()
         setupTriggers()
         
+        val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+        if (prefs.getBoolean("is_info_enabled", false)) {
+            startService(Intent(this, FloatingInfoService::class.java))
+        }
+        
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_START)
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
     }

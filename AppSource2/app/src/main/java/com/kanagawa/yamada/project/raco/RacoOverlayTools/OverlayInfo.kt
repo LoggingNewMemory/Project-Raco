@@ -26,6 +26,7 @@ import com.kanagawa.yamada.project.raco.FloatingInfoService
 @Composable
 fun OverlayInfo(themeColor: Color) {
     val context = LocalContext.current
+    val prefs = context.getSharedPreferences("raco_slingshot_prefs", android.content.Context.MODE_PRIVATE)
     var isActive by remember { mutableStateOf(FloatingInfoService.isRunning) }
 
     val animatedBackgroundColor by animateColorAsState(
@@ -49,8 +50,10 @@ fun OverlayInfo(themeColor: Color) {
                     if (isActive) {
                         val intent = Intent(context, FloatingInfoService::class.java)
                         context.startService(intent)
+                        prefs.edit().putBoolean("is_info_enabled", true).apply()
                     } else {
                         context.stopService(Intent(context, FloatingInfoService::class.java))
+                        prefs.edit().putBoolean("is_info_enabled", false).apply()
                     }
                 },
             contentAlignment = Alignment.Center
