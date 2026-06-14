@@ -705,10 +705,12 @@ fun RacoRightPanel(
             val deltaX = verticalDistance * slope
             val dynamicMinWidth = (48f - deltaX).coerceAtLeast(2f).dp
 
-            Box(
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.CenterStart
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom
             ) {
+                // Volume Slider Column
                 Column(
                     horizontalAlignment = Alignment.End,
                     modifier = Modifier.wrapContentWidth()
@@ -739,6 +741,28 @@ fun RacoRightPanel(
                         modifier = Modifier
                             .offset(x = 4.dp)
                             .size(20.dp)
+                    )
+                }
+
+                // Info Button
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .border(1.dp, themeColor, RoundedCornerShape(12.dp))
+                        .clickable {
+                            if (FloatingInfoService.isRunning) {
+                                context.stopService(Intent(context, FloatingInfoService::class.java))
+                            } else {
+                                context.startService(Intent(context, FloatingInfoService::class.java))
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Info",
+                        color = themeColor,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }

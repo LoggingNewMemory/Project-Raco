@@ -254,6 +254,7 @@ class InGameMenuService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        stopService(Intent(this, FloatingInfoService::class.java))
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         mainComposeView?.let { windowManager?.removeView(it) }
         leftTriggerView?.let { windowManager?.removeView(it) }

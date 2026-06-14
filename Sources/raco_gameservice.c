@@ -62,6 +62,15 @@ void handle_client(int client_sock) {
                 system("/data/adb/modules/ProjectRaco/Compiled/raco 1 >/dev/null 2>&1");
                 exit(0);
             }
+        } else if (strncmp(buffer, "GET_FPS", 7) == 0) {
+            char *pkg = colon ? (colon + 1) : "";
+            int fps = get_universal_fps(pkg);
+            
+            char out_buf[16];
+            snprintf(out_buf, sizeof(out_buf), "%d", fps);
+            write(client_sock, out_buf, strlen(out_buf));
+            close(client_sock);
+            return;
         }
     }
     close(client_sock);

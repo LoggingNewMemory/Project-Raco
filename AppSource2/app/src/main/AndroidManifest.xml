@@ -51,6 +51,8 @@
             android:exported="false" />
         <service android:name=".InGameMenuService"
             android:exported="false" />
+        <service android:name=".FloatingInfoService"
+            android:exported="false" />
         <service android:name=".AutoGameMonitorService"
             android:foregroundServiceType="specialUse"
             android:exported="false">
