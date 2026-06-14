@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -138,8 +139,8 @@ class InGameMenuService : Service() {
                     }
                 }) {
                     if (!isLeftOpen && !isRightOpen) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterStart) {
-                            Box(modifier = Modifier.width(4.dp).fillMaxHeight(0.8f).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                        Box(modifier = Modifier.fillMaxSize().padding(top = 64.dp), contentAlignment = androidx.compose.ui.Alignment.TopStart) {
+                            Box(modifier = Modifier.width(4.dp).fillMaxHeight(0.25f).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
                         }
                     }
                 }
@@ -175,8 +176,8 @@ class InGameMenuService : Service() {
                     }
                 }) {
                     if (!isLeftOpen && !isRightOpen) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
-                            Box(modifier = Modifier.width(4.dp).fillMaxHeight(0.8f).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                        Box(modifier = Modifier.fillMaxSize().padding(top = 64.dp), contentAlignment = androidx.compose.ui.Alignment.TopEnd) {
+                            Box(modifier = Modifier.width(4.dp).fillMaxHeight(0.25f).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
                         }
                     }
                 }
