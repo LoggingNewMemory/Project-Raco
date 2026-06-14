@@ -87,6 +87,9 @@ class InGameMenuService : Service() {
         if (prefs.getBoolean("is_info_enabled", false)) {
             startService(Intent(this, FloatingInfoService::class.java))
         }
+        if (prefs.getBoolean("is_rotation_locked", false)) {
+            startService(Intent(this, RotationLockService::class.java))
+        }
         
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_START)
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
@@ -260,6 +263,7 @@ class InGameMenuService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         stopService(Intent(this, FloatingInfoService::class.java))
+        stopService(Intent(this, RotationLockService::class.java))
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         mainComposeView?.let { windowManager?.removeView(it) }
         leftTriggerView?.let { windowManager?.removeView(it) }

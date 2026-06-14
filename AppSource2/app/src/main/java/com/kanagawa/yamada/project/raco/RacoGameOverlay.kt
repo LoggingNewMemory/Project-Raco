@@ -748,7 +748,11 @@ fun RacoRightPanel(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                OverlayInfo(themeColor = themeColor)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    OverlayInfo(themeColor = themeColor)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OverlayRotationLock(themeColor = themeColor)
+                }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
