@@ -707,8 +707,8 @@ fun RacoRightPanel(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.Top
             ) {
                 // Volume Slider Column
                 Column(
@@ -744,20 +744,32 @@ fun RacoRightPanel(
                     )
                 }
 
-                // Info Button
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .border(1.dp, themeColor, RoundedCornerShape(12.dp))
-                        .clickable {
-                            if (FloatingInfoService.isRunning) {
-                                context.stopService(Intent(context, FloatingInfoService::class.java))
-                            } else {
-                                context.startService(Intent(context, FloatingInfoService::class.java))
-                            }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Info Button Column
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .border(1.dp, themeColor, RoundedCornerShape(11.4.dp))
+                            .clip(RoundedCornerShape(11.4.dp))
+                            .clickable {
+                                if (FloatingInfoService.isRunning) {
+                                    context.stopService(Intent(context, FloatingInfoService::class.java))
+                                } else {
+                                    context.startService(Intent(context, FloatingInfoService::class.java))
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        androidx.compose.material3.Icon(
+                            imageVector = Icons.Filled.Memory,
+                            contentDescription = "System Monitor",
+                            tint = themeColor,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Info",
                         color = themeColor,

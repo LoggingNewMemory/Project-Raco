@@ -79,6 +79,7 @@ class FloatingInfoService : Service() {
             handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
         }
 
+        val prefs = getSharedPreferences("RacoFloatingPrefs", Context.MODE_PRIVATE)
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -88,8 +89,8 @@ class FloatingInfoService : Service() {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            x = 100
-            y = 100
+            x = prefs.getInt("info_x", 100)
+            y = prefs.getInt("info_y", 150)
         }
 
         composeView = ComposeView(this).apply {
@@ -119,6 +120,14 @@ class FloatingInfoService : Service() {
                         if (params.y > screenHeight - view.height) params.y = screenHeight - view.height
 
                         windowManager?.updateViewLayout(composeView, params)
+                        true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        getSharedPreferences("RacoFloatingPrefs", Context.MODE_PRIVATE)
+                            .edit()
+                            .putInt("info_x", params.x)
+                            .putInt("info_y", params.y)
+                            .apply()
                         true
                     }
                     else -> false
@@ -218,7 +227,7 @@ fun InfoWidgetContent(startTimeMillis: Long, targetPackageName: String?) {
 
     Box(
         modifier = Modifier
-            .background(Color(0xFF1E1E22).copy(alpha = 0.95f), RoundedCornerShape(16.dp))
+            .background(Color(0xFF1E1E22).copy(alpha = 0.80f), RoundedCornerShape(8.dp))
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Row(
