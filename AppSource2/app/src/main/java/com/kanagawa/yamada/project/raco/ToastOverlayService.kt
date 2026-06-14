@@ -2,11 +2,13 @@ package com.kanagawa.yamada.project.raco
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.Rect
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
@@ -17,10 +19,18 @@ import android.view.View
 import android.view.WindowManager
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
+import android.view.animation.DecelerateInterpolator
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 
 class ToastOverlayService : Service() {
+
+    companion object {
+        private var currentToastLayout: LinearLayout? = null
+        private var removeRunnable: Runnable? = null
+        private val handler = Handler(Looper.getMainLooper())
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -37,6 +47,18 @@ class ToastOverlayService : Service() {
     private fun showOverlayToast(msg: String) {
         val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
+        // Remove existing toast if present
+        currentToastLayout?.let {
+            try {
+                it.animate().cancel()
+                it.visibility = View.GONE
+                windowManager.removeView(it)
+            } catch (e: Exception) {
+                // Ignore if view was already removed
+            }
+        }
+        removeRunnable?.let { handler.removeCallbacks(it) }
+
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -45,9 +67,11 @@ class ToastOverlayService : Service() {
             WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
-        )
-        params.gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
-        params.y = dpToPx(80)
+        ).apply {
+            gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+            y = dpToPx(80)
+            windowAnimations = 0 // Disable default OS window animations to prevent exit flicker
+        }
 
         // Create a premium capsule background
         val backgroundDrawable = GradientDrawable().apply {
@@ -61,7 +85,7 @@ class ToastOverlayService : Service() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             background = backgroundDrawable
-            setPadding(dpToPx(20), dpToPx(12), dpToPx(20), dpToPx(12))
+            setPadding(dpToPx(24), dpToPx(12), dpToPx(24), dpToPx(12))
             elevation = dpToPx(8).toFloat()
             
             // Initial state for animation
@@ -69,30 +93,42 @@ class ToastOverlayService : Service() {
             translationY = dpToPx(30).toFloat()
         }
 
-        // Sleek indicator dot
-        val dot = View(this).apply {
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(Color.parseColor("#00E676")) // Vibrant green accent
-            }
-            layoutParams = LinearLayout.LayoutParams(dpToPx(8), dpToPx(8)).apply {
-                marginEnd = dpToPx(12)
-            }
-        }
-        layout.addView(dot)
+        // Text container for fill animation
+        val textContainer = FrameLayout(this)
 
-        // Text view
-        val textView = TextView(this).apply {
+        val baseText = TextView(this).apply {
             text = msg
             setTextColor(Color.WHITE)
             textSize = 15f
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             letterSpacing = 0.02f
         }
-        layout.addView(textView)
+
+        // Determine dynamic color based on message content
+        val dynamicColorHex = when {
+            msg.contains("Awaken", ignoreCase = true) -> "#E53935" // Red
+            msg.contains("Balanced", ignoreCase = true) -> "#FFD600" // Yellow
+            msg.contains("Eco", ignoreCase = true) || msg.contains("Powersave", ignoreCase = true) -> "#00E676" // Green
+            else -> "#FFFFFF" // Default White
+        }
+        val dynamicColor = Color.parseColor(dynamicColorHex)
+
+        val fillText = TextView(this).apply {
+            text = msg
+            setTextColor(dynamicColor) // Dynamic color
+            textSize = 15f
+            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            letterSpacing = 0.02f
+            alpha = 0f // Hidden initially until layout is done
+        }
+
+        textContainer.addView(baseText)
+        textContainer.addView(fillText)
+        layout.addView(textContainer)
 
         try {
             windowManager.addView(layout, params)
+            currentToastLayout = layout
         } catch (e: Exception) {
             e.printStackTrace()
             return
@@ -104,25 +140,48 @@ class ToastOverlayService : Service() {
             .translationY(0f)
             .setDuration(450)
             .setInterpolator(OvershootInterpolator(1.2f))
+            .withEndAction {
+                // Start filling animation after layout is shown
+                fillText.alpha = 1f
+                ValueAnimator.ofFloat(0f, 1f).apply {
+                    duration = 600
+                    interpolator = DecelerateInterpolator()
+                    addUpdateListener { animator ->
+                        val progress = animator.animatedValue as Float
+                        val rightClip = (fillText.width * progress).toInt()
+                        fillText.clipBounds = Rect(0, 0, rightClip, fillText.height)
+                    }
+                    start()
+                }
+            }
             .start()
 
-        // Exit animation and removal
-        Handler(Looper.getMainLooper()).postDelayed({
-            layout.animate()
-                .alpha(0f)
-                .translationY(dpToPx(20).toFloat())
-                .setDuration(350)
-                .setInterpolator(AccelerateInterpolator())
-                .setListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) {
-                        try {
-                            windowManager.removeView(layout)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
+        // Setup removal
+        val removalTask = Runnable {
+            if (currentToastLayout == layout) {
+                // Exit animation: fade out and pull down (reverse of entry)
+                layout.animate().cancel()
+                layout.animate()
+                    .alpha(0f)
+                    .translationY(dpToPx(30).toFloat())
+                    .setDuration(300)
+                    .setInterpolator(AccelerateInterpolator())
+                    .withEndAction {
+                        if (currentToastLayout == layout) {
+                            try {
+                                layout.visibility = View.GONE
+                                windowManager.removeView(layout)
+                                currentToastLayout = null
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
                     }
-                })
-                .start()
-        }, 3000)
+                    .start()
+            }
+        }
+        
+        removeRunnable = removalTask
+        handler.postDelayed(removalTask, 3000)
     }
 }

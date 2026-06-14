@@ -150,7 +150,6 @@ void app_toast(const char *msg) {
 
 // Master Profiles
 void mode_awaken() {
-    app_toast("Applying Awaken Profile...");
     sync();
     rawrite("3", "/proc/sys/vm/drop_caches");
 
@@ -199,7 +198,6 @@ void mode_awaken() {
 }
 
 void mode_balanced() {
-    app_toast("Applying Balanced Profile...");
     sync();
     rawrite("3", "/proc/sys/vm/drop_caches");
 
@@ -245,7 +243,6 @@ void mode_balanced() {
 }
 
 void mode_powersave() {
-    app_toast("Applying Eco Profile...");
     sync();
     rawrite("3", "/proc/sys/vm/drop_caches");
 
@@ -291,7 +288,6 @@ void mode_powersave() {
 }
 
 void mode_normal() {
-    app_toast("Restoring Normal State...");
     sync();
 
     apply_io_tweaks("1", "1", "128", "128", 0);

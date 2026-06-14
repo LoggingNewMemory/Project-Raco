@@ -187,7 +187,7 @@ ui_print "- Copying ProjectRaco.apk..."
 # Soft check for APK copy to prevent installation failure
 if cp "$MODPATH/ProjectRaco.apk" "/data/local/tmp" >/dev/null 2>&1; then
   ui_print "- Installing APK..."
-  pm install --user 0 /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
+  pm install -r -d --user 0 /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
 
   if pm path "$PACKAGE_NAME" >/dev/null 2>&1; then
     ui_print "- Project Raco App installed/updated successfully."
