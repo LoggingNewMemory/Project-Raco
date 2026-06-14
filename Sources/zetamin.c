@@ -58,21 +58,12 @@ void zetamin_facur() {
     long long vsync_ns = 1000000000LL / max_fps;
     long long val_e = (vsync_ns * 80) / 100;
     long long val_f = (vsync_ns * 60) / 100;
-    long long val_g = -val_e;
-    long long val_h = -val_f;
-
     char cmd[256];
     const char *props_e[] = {"debug.sf.early.app.duration", "debug.sf.earlyGl.app.duration", "debug.sf.high_fps.early.app.duration", "debug.sf.high_fps.earlyGl.app.duration", "debug.sf.high_fps.late.app.duration", "debug.sf.late.app.duration"};
     for (int i=0; i<6; i++) { snprintf(cmd, sizeof(cmd), "setprop %s %lld", props_e[i], val_e); system(cmd); }
 
     const char *props_f[] = {"debug.sf.early.sf.duration", "debug.sf.earlyGl.sf.duration", "debug.sf.high_fps.early.sf.duration", "debug.sf.high_fps.earlyGl.sf.duration", "debug.sf.high_fps.late.sf.duration", "debug.sf.late.sf.duration"};
     for (int i=0; i<6; i++) { snprintf(cmd, sizeof(cmd), "setprop %s %lld", props_f[i], val_f); system(cmd); }
-
-    const char *props_g[] = {"debug.sf.earlyGl_app_phase_offset_ns", "debug.sf.early_app_phase_offset_ns", "debug.sf.high_fps_earlyGl_app_phase_offset_ns", "debug.sf.high_fps_early_app_phase_offset_ns", "debug.sf.high_fps_late_app_phase_offset_ns", "debug.sf.late_app_phase_offset_ns"};
-    for (int i=0; i<6; i++) { snprintf(cmd, sizeof(cmd), "setprop %s %lld", props_g[i], val_g); system(cmd); }
-
-    const char *props_h[] = {"debug.sf.earlyGl_phase_offset_ns", "debug.sf.early_phase_offset_ns", "debug.sf.high_fps_earlyGl_phase_offset_ns", "debug.sf.high_fps_early_phase_offset_ns", "debug.sf.high_fps_late_phase_offset_ns", "debug.sf.late_phase_offset_ns"};
-    for (int i=0; i<6; i++) { snprintf(cmd, sizeof(cmd), "setprop %s %lld", props_h[i], val_h); system(cmd); }
 }
 
 void zetamin_flux() {
