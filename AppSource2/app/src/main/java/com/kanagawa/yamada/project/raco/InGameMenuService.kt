@@ -60,6 +60,8 @@ class InGameMenuService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val newTarget = intent?.getStringExtra("package_name")
         if (newTarget != null) {
@@ -139,8 +141,8 @@ class InGameMenuService : Service() {
                     }
                 }) {
                     if (!isLeftOpen && !isRightOpen) {
-                        Box(modifier = Modifier.fillMaxSize().padding(top = 64.dp), contentAlignment = androidx.compose.ui.Alignment.TopStart) {
-                            Box(modifier = Modifier.width(4.dp).fillMaxHeight(0.25f).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterStart) {
+                            Box(modifier = Modifier.width(4.dp).height(64.dp).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
                         }
                     }
                 }
@@ -149,8 +151,8 @@ class InGameMenuService : Service() {
         setupViewTree(leftTriggerView!!)
         
         val leftParams = WindowManager.LayoutParams(
-            32, // width in pixels (will be small)
-            WindowManager.LayoutParams.MATCH_PARENT, // height up to 80% visually
+            dpToPx(16), // width
+            dpToPx(150), // height
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
@@ -158,7 +160,8 @@ class InGameMenuService : Service() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
             leftParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
-        leftParams.gravity = Gravity.START or Gravity.CENTER_VERTICAL
+        leftParams.gravity = Gravity.TOP or Gravity.START
+        leftParams.y = dpToPx(16)
         windowManager?.addView(leftTriggerView, leftParams)
 
         // Right Trigger
@@ -176,8 +179,8 @@ class InGameMenuService : Service() {
                     }
                 }) {
                     if (!isLeftOpen && !isRightOpen) {
-                        Box(modifier = Modifier.fillMaxSize().padding(top = 64.dp), contentAlignment = androidx.compose.ui.Alignment.TopEnd) {
-                            Box(modifier = Modifier.width(4.dp).fillMaxHeight(0.25f).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
+                            Box(modifier = Modifier.width(4.dp).height(64.dp).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
                         }
                     }
                 }
@@ -186,8 +189,8 @@ class InGameMenuService : Service() {
         setupViewTree(rightTriggerView!!)
         
         val rightParams = WindowManager.LayoutParams(
-            32, // width
-            WindowManager.LayoutParams.MATCH_PARENT, // height
+            dpToPx(16), // width
+            dpToPx(150), // height
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
@@ -195,7 +198,8 @@ class InGameMenuService : Service() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
             rightParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
-        rightParams.gravity = Gravity.END or Gravity.CENTER_VERTICAL
+        rightParams.gravity = Gravity.TOP or Gravity.END
+        rightParams.y = dpToPx(16)
         windowManager?.addView(rightTriggerView, rightParams)
     }
     
