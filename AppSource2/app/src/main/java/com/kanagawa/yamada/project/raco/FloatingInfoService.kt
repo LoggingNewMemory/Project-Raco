@@ -53,7 +53,6 @@ class FloatingInfoService : Service() {
     
     private val serviceScope = CoroutineScope(Dispatchers.Main + Job())
     private var startTimeMillis = 0L
-    private var targetPackageName: String? = null
 
     companion object {
         var isRunning = false
@@ -62,9 +61,6 @@ class FloatingInfoService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        intent?.getStringExtra("package_name")?.let {
-            targetPackageName = it
-        }
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -95,7 +91,7 @@ class FloatingInfoService : Service() {
 
         composeView = ComposeView(this).apply {
             setContent {
-                InfoWidgetContent(startTimeMillis, targetPackageName)
+                InfoWidgetContent(startTimeMillis)
             }
             setOnTouchListener { view, event ->
                 when (event.action) {
@@ -157,7 +153,7 @@ class FloatingInfoService : Service() {
 }
 
 @Composable
-fun InfoWidgetContent(startTimeMillis: Long, targetPackageName: String?) {
+fun InfoWidgetContent(startTimeMillis: Long) {
     val context = androidx.compose.ui.platform.LocalContext.current
     var currentTime by remember { mutableStateOf("") }
     var fps by remember { mutableStateOf(0) }
@@ -203,7 +199,7 @@ fun InfoWidgetContent(startTimeMillis: Long, targetPackageName: String?) {
                     val address = android.net.LocalSocketAddress("raco_gameservice", android.net.LocalSocketAddress.Namespace.ABSTRACT)
                     socket.connect(address)
 
-                    val payload = if (targetPackageName != null) "GET_FPS:$targetPackageName" else "GET_FPS:"
+                    val payload = "GET_FPS:"
                     socket.outputStream.write(payload.toByteArray())
 
                     val buffer = ByteArray(16)

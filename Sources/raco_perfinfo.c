@@ -10,24 +10,8 @@ Copyright (C) 2026 Kanagawa Yamada
 #include <time.h>
 
 int get_universal_fps(const char *pkg) {
-    if (pkg == NULL) {
-        pkg = "";
-    }
-
-    char dyn_pkg[256] = {0};
-    if (pkg[0] == '\0') {
-        FILE *fp = popen("dumpsys window | grep -E 'mCurrentFocus|mFocusedApp' | grep -Eo '[a-zA-Z0-9_.]+/[a-zA-Z0-9_.]+' | cut -d/ -f1 | head -n1", "r");
-        if (fp) {
-            if (fgets(dyn_pkg, sizeof(dyn_pkg), fp)) {
-                dyn_pkg[strcspn(dyn_pkg, "\r\n")] = '\0';
-            }
-            pclose(fp);
-        }
-        if (dyn_pkg[0] != '\0') {
-            pkg = dyn_pkg;
-        } else {
-            pkg = "SurfaceView";
-        }
+    if (pkg == NULL || pkg[0] == '\0') {
+        pkg = "SurfaceView";
     }
 
     char cmd_list[512];
