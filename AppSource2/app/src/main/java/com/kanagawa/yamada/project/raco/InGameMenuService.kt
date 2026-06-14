@@ -90,6 +90,12 @@ class InGameMenuService : Service() {
         if (prefs.getBoolean("is_rotation_locked", false)) {
             startService(Intent(this, RotationLockService::class.java))
         }
+        val targetRate = prefs.getFloat("override_refresh_rate", 0f)
+        if (targetRate > 0f) {
+            val refreshIntent = Intent(this, RefreshRateService::class.java)
+            refreshIntent.putExtra("refresh_rate", targetRate)
+            startService(refreshIntent)
+        }
         
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_START)
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
@@ -264,6 +270,7 @@ class InGameMenuService : Service() {
         super.onDestroy()
         stopService(Intent(this, FloatingInfoService::class.java))
         stopService(Intent(this, RotationLockService::class.java))
+        stopService(Intent(this, RefreshRateService::class.java))
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         mainComposeView?.let { windowManager?.removeView(it) }
         leftTriggerView?.let { windowManager?.removeView(it) }

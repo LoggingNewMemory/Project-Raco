@@ -57,6 +57,8 @@
             android:exported="false" />
         <service android:name=".RotationLockService"
             android:exported="false" />
+        <service android:name=".RefreshRateService"
+            android:exported="false" />
         <service android:name=".AutoGameMonitorService"
             android:foregroundServiceType="specialUse"
             android:exported="false">

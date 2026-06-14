@@ -1,4 +1,5 @@
 package com.kanagawa.yamada.project.raco
+import androidx.compose.animation.togetherWith
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
@@ -594,12 +595,31 @@ fun RacoRightPanel(
             .padding(start = 48.dp, top = 24.dp, bottom = 24.dp, end = 24.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.End) {
-            AutoSizeText("PROJECT", color = themeColor, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
-            AutoSizeText("RACO", color = Color.White, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // Performance & Battery Row
-            var expanded by remember { mutableStateOf(false) }
+            val prefs = context.getSharedPreferences("raco_slingshot_prefs", android.content.Context.MODE_PRIVATE)
+            var isRefreshRateMenuOpen by remember { mutableStateOf(false) }
+            var currentRefreshRate by remember { mutableStateOf(prefs.getFloat("override_refresh_rate", 0f)) }
+
+            androidx.compose.animation.AnimatedContent(
+                targetState = isRefreshRateMenuOpen,
+                transitionSpec = {
+                    androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(300)).togetherWith(androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(300)))
+                },
+                label = "RefreshRateMenuAnimation"
+            ) { isMenuOpen ->
+                if (isMenuOpen) {
+                    RefreshRateMenu(
+                        themeColor = themeColor,
+                        onClose = { isRefreshRateMenuOpen = false },
+                        onRateSelected = { currentRefreshRate = it }
+                    )
+                } else {
+                    Column(horizontalAlignment = Alignment.End) {
+                        AutoSizeText("PROJECT", color = themeColor, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
+                        AutoSizeText("RACO", color = Color.White, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        // Performance & Battery Row
+                        var expanded by remember { mutableStateOf(false) }
             val density = LocalDensity.current
             val configuration = LocalConfiguration.current
 
@@ -756,15 +776,26 @@ fun RacoRightPanel(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                OverlayClean(themeColor = themeColor)
-            }
-
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    OverlayClean(themeColor = themeColor)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    com.kanagawa.yamada.project.raco.RacoOverlayTools.OverlayRefreshRate(
+                        themeColor = themeColor,
+                        currentRate = currentRefreshRate
+                    ) {
+                        isRefreshRateMenuOpen = true
+                    }
+                }
+            } // END OF ROW
 
             Spacer(modifier = Modifier.height(8.dp))
             
-        }
-    }
-}
+                } // END of Column inside else branch
+            } // END of else branch
+            } // END of AnimatedContent
+        } // END of RightPanel main Column
+    } // END of Box
+} // END of RacoRightPanel
 
 @Composable
 fun AutoSizeText(
