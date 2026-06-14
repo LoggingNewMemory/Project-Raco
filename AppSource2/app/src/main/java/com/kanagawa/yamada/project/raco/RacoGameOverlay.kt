@@ -54,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import java.io.RandomAccessFile
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.kanagawa.yamada.project.raco.RacoOverlayTools.*
 
 val RacoRed = Color(0xFFFF2A2A)
 
@@ -746,37 +747,11 @@ fun RacoRightPanel(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Info Button Column
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .border(1.dp, themeColor, RoundedCornerShape(11.4.dp))
-                            .clip(RoundedCornerShape(11.4.dp))
-                            .clickable {
-                                if (FloatingInfoService.isRunning) {
-                                    context.stopService(Intent(context, FloatingInfoService::class.java))
-                                } else {
-                                    context.startService(Intent(context, FloatingInfoService::class.java))
-                                }
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        androidx.compose.material3.Icon(
-                            imageVector = Icons.Filled.Memory,
-                            contentDescription = "System Monitor",
-                            tint = themeColor,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Info",
-                        color = themeColor,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                OverlayInfo(themeColor = themeColor)
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                OverlayClean(themeColor = themeColor)
             }
 
 
