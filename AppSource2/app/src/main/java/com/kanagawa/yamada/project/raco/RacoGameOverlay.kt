@@ -8,6 +8,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -315,7 +317,7 @@ fun RacoLeftPanel(
                     moveTo(0f, -size.height * 0.2f)
                     lineTo(size.width * 0.5f, -size.height * 0.2f)
                     lineTo(size.width, size.height * 0.3f)
-                    lineTo(size.width * 0.48f, size.height * 1.2f)
+                    lineTo(size.width * 0.58f, size.height * 1.2f)
                     lineTo(0f, size.height * 1.2f)
                     close()
                 }
@@ -328,7 +330,7 @@ fun RacoLeftPanel(
                 val borderPath = Path().apply {
                     moveTo(size.width * 0.5f, -size.height * 0.2f)
                     lineTo(size.width, size.height * 0.3f)
-                    lineTo(size.width * 0.48f, size.height * 1.2f)
+                    lineTo(size.width * 0.58f, size.height * 1.2f)
                 }
                 
                 // Base white line
@@ -346,7 +348,7 @@ fun RacoLeftPanel(
                     }
                 }
             }
-            .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 48.dp)
+            .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 35.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // CPU Monitor
@@ -435,12 +437,12 @@ fun RacoLeftPanel(
             val configuration = LocalConfiguration.current
             val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
             val panelWidthPx = with(density) { 260.dp.toPx() }
-            val slope = if (screenHeightPx > 0) (0.52f * panelWidthPx) / (0.9f * screenHeightPx) else 0.5f
+            val slope = if (screenHeightPx > 0) (0.42f * panelWidthPx) / (0.9f * screenHeightPx) else 0.4f
 
             val brightnessRatio = currentBrightness.toFloat() / 255f
             val verticalDistance = 13 * (4.2f + 2.1f) // 13 gaps for 14 steps
             val deltaX = verticalDistance * slope
-            val dynamicMinWidth = (48f - deltaX).coerceAtLeast(2f).dp
+            val dynamicMinWidth = (35f - deltaX).coerceAtLeast(2f).dp
 
             Box(
                 modifier = Modifier.fillMaxWidth(),
@@ -473,7 +475,7 @@ fun RacoLeftPanel(
                         },
                         activeColor = themeColor,
                         inactiveColor = Color.White.copy(alpha = 0.2f),
-                        maxWidth = 48.dp,
+                        maxWidth = 35.dp,
                         minWidth = dynamicMinWidth,
                         barHeight = 4.2.dp,
                         spacing = 2.1.dp,
@@ -486,7 +488,7 @@ fun RacoLeftPanel(
                         contentDescription = "Brightness",
                         tint = themeColor,
                         modifier = Modifier
-                            .offset(x = (-4).dp)
+                            .offset(x = (-8).dp)
                             .size(18.dp)
                     )
                 }
@@ -561,7 +563,7 @@ fun RacoRightPanel(
                     moveTo(size.width, -size.height * 0.2f)
                     lineTo(size.width * 0.5f, -size.height * 0.2f)
                     lineTo(0f, size.height * 0.3f)
-                    lineTo(size.width * 0.52f, size.height * 1.2f)
+                    lineTo(size.width * 0.42f, size.height * 1.2f)
                     lineTo(size.width, size.height * 1.2f)
                     close()
                 }
@@ -574,7 +576,7 @@ fun RacoRightPanel(
                 val borderPath = Path().apply {
                     moveTo(size.width * 0.5f, -size.height * 0.2f)
                     lineTo(0f, size.height * 0.3f)
-                    lineTo(size.width * 0.52f, size.height * 1.2f)
+                    lineTo(size.width * 0.42f, size.height * 1.2f)
                 }
                 
                 // Base white line
@@ -592,7 +594,7 @@ fun RacoRightPanel(
                     }
                 }
             }
-            .padding(start = 48.dp, top = 24.dp, bottom = 24.dp, end = 24.dp)
+            .padding(start = 35.dp, top = 24.dp, bottom = 24.dp, end = 24.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.End) {
             val prefs = context.getSharedPreferences("raco_slingshot_prefs", android.content.Context.MODE_PRIVATE)
@@ -633,7 +635,7 @@ fun RacoRightPanel(
             
             val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
             val panelWidthPx = with(density) { 260.dp.toPx() }
-            val slope = if (screenHeightPx > 0) (0.52f * panelWidthPx) / (0.9f * screenHeightPx) else 0.5f
+            val slope = if (screenHeightPx > 0) (0.42f * panelWidthPx) / (0.9f * screenHeightPx) else 0.4f
 
             val trapezoidShape = remember(density, slope) {
                 androidx.compose.foundation.shape.GenericShape { size, _ ->
@@ -725,7 +727,7 @@ fun RacoRightPanel(
             val volumeRatio = if (maxVolume > 0) currentVolume.toFloat() / maxVolume.toFloat() else 0f
             val verticalDistance = 13 * (4.2f + 2.1f) // 13 gaps for 14 steps
             val deltaX = verticalDistance * slope
-            val dynamicMinWidth = (48f - deltaX).coerceAtLeast(2f).dp
+            val dynamicMinWidth = (35f - deltaX).coerceAtLeast(2f).dp
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -748,7 +750,7 @@ fun RacoRightPanel(
                         },
                         activeColor = themeColor,
                         inactiveColor = Color.White.copy(alpha = 0.2f),
-                        maxWidth = 48.dp,
+                        maxWidth = 35.dp,
                         minWidth = dynamicMinWidth,
                         barHeight = 4.2.dp,
                         spacing = 2.1.dp,
@@ -761,7 +763,7 @@ fun RacoRightPanel(
                         contentDescription = "Volume",
                         tint = themeColor,
                         modifier = Modifier
-                            .offset(x = 4.dp)
+                            .offset(x = 8.dp)
                             .size(20.dp)
                     )
                 }
