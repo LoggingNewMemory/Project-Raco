@@ -12,6 +12,7 @@ import android.view.WindowManager
 class RotationLockService : Service() {
     private lateinit var windowManager: WindowManager
     private lateinit var overlayView: View
+    private lateinit var layoutParams: WindowManager.LayoutParams
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -20,7 +21,7 @@ class RotationLockService : Service() {
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         overlayView = View(this)
 
-        val params = WindowManager.LayoutParams(
+        layoutParams = WindowManager.LayoutParams(
             0, 0,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
@@ -32,7 +33,7 @@ class RotationLockService : Service() {
         }
 
         try {
-            windowManager.addView(overlayView, params)
+            windowManager.addView(overlayView, layoutParams)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -42,6 +43,10 @@ class RotationLockService : Service() {
         super.onDestroy()
         try {
             if (::overlayView.isInitialized) {
+                if (::layoutParams.isInitialized) {
+                    layoutParams.screenOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                    windowManager.updateViewLayout(overlayView, layoutParams)
+                }
                 windowManager.removeView(overlayView)
             }
         } catch (e: Exception) {
