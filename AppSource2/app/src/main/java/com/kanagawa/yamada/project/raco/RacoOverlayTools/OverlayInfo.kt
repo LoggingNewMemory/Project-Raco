@@ -27,7 +27,7 @@ import com.kanagawa.yamada.project.raco.FloatingInfoService
 fun OverlayInfo(themeColor: Color) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("raco_slingshot_prefs", android.content.Context.MODE_PRIVATE)
-    var isActive by remember { mutableStateOf(FloatingInfoService.isRunning) }
+    var isActive by remember { mutableStateOf(prefs.getBoolean("is_info_enabled", false)) }
 
     val animatedBackgroundColor by animateColorAsState(
         targetValue = if (isActive) themeColor else Color.Transparent,
