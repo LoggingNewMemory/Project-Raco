@@ -105,6 +105,10 @@ FreqData get_target_freq(const char *path, int mode) {
     if (mode == 0) return freqs[0]; // Maxfreq
     if (mode == 1) return freqs[count - 1]; // Minfreq
     if (mode == 2) return freqs[count / 2]; // Midfreq
+    if (mode == 3) {
+        if (count > 2) return freqs[2]; // 3rd highest
+        else return freqs[count - 1]; // Fallback
+    }
 
     return result;
 }
@@ -342,7 +346,7 @@ void cpufreq_powersave() {
                 snprintf(min_path, sizeof(min_path), "/sys/devices/system/cpu/cpufreq/%s/scaling_min_freq", ent->d_name);
                 snprintf(max_path, sizeof(max_path), "/sys/devices/system/cpu/cpufreq/%s/scaling_max_freq", ent->d_name);
                 
-                FreqData mid_f = get_target_freq(avail_path, 2);
+                FreqData mid_f = get_target_freq(avail_path, 3);
 
                 char hw_min_val[32] = {0};
 
