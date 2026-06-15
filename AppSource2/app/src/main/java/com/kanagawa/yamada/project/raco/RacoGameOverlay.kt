@@ -310,7 +310,7 @@ fun RacoLeftPanel(
         }
     }
 
-    var isCrosshairMenuOpen by remember { mutableStateOf(false) }
+    var leftMenuState by remember { mutableStateOf("MAIN") }
 
     Box(
         modifier = Modifier
@@ -354,19 +354,24 @@ fun RacoLeftPanel(
             .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 35.dp)
     ) {
         androidx.compose.animation.AnimatedContent(
-            targetState = isCrosshairMenuOpen,
+            targetState = leftMenuState,
             modifier = Modifier.fillMaxSize(),
             transitionSpec = {
                 (androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(300))
                     .togetherWith(androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(300))))
                     .using(androidx.compose.animation.SizeTransform(clip = false))
             },
-            label = "CrosshairMenuAnimation"
-        ) { isMenuOpen ->
-            if (isMenuOpen) {
+            label = "LeftMenuAnimation"
+        ) { menuState ->
+            if (menuState == "CROSSHAIR") {
                 com.kanagawa.yamada.project.raco.RacoGameTools.CrosshairMenu(
                     themeColor = themeColor,
-                    onClose = { isCrosshairMenuOpen = false }
+                    onClose = { leftMenuState = "MAIN" }
+                )
+            } else if (menuState == "AYUNDA") {
+                com.kanagawa.yamada.project.raco.RacoGameTools.AyundaMenu(
+                    themeColor = themeColor,
+                    onClose = { leftMenuState = "MAIN" }
                 )
             } else {
                 Column(modifier = Modifier.fillMaxSize()) {
@@ -473,121 +478,247 @@ fun RacoLeftPanel(
                 ) {
                     val prefs = context.getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
                     var isCrosshairOn by remember { mutableStateOf(prefs.getBoolean("is_crosshair_enabled", false)) }
+                    var isAyundaOn by remember { mutableStateOf(prefs.getBoolean("is_ayunda_enabled", false)) }
                     
-                    // Crosshair Button
-                    val leftInteractionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                    val isLeftPressed by leftInteractionSource.collectIsPressedAsState()
-                    val rightInteractionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                    val isRightPressed by rightInteractionSource.collectIsPressedAsState()
-
-                    val leftBgColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (isLeftPressed) Color.White.copy(alpha = 0.2f) else Color.Transparent,
-                        animationSpec = androidx.compose.animation.core.tween(150), label = ""
-                    )
-                    val rightBgColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (isRightPressed) Color.White.copy(alpha = 0.2f) else Color.Transparent,
-                        animationSpec = androidx.compose.animation.core.tween(150), label = ""
-                    )
-                    val mainBgColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (isCrosshairOn) themeColor.copy(alpha = 0.2f) else Color.Transparent,
-                        animationSpec = androidx.compose.animation.core.tween(300), label = ""
-                    )
-                    val mainBorderColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (isCrosshairOn) themeColor else Color.White.copy(alpha=0.2f),
-                        animationSpec = androidx.compose.animation.core.tween(300), label = ""
-                    )
-                    val contentAnimColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (isCrosshairOn) themeColor else Color.White,
-                        animationSpec = androidx.compose.animation.core.tween(300), label = ""
-                    )
-
-                    Box(
+                    // Crosshair & Ayunda Buttons Container
+                    Column(
                         modifier = Modifier
                             .weight(1f)
-                            .padding(end = 16.dp)
-                            .height(32.dp)
-                            .align(Alignment.Top)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(mainBgColor)
-                            .border(1.dp, mainBorderColor, RoundedCornerShape(6.dp))
+                            .padding(end = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-                            val CrosshairIcon = remember {
-                                androidx.compose.ui.graphics.vector.ImageVector.Builder(
-                                    name = "Crosshair",
-                                    defaultWidth = 24.dp,
-                                    defaultHeight = 24.dp,
-                                    viewportWidth = 24f,
-                                    viewportHeight = 24f
-                                ).apply {
-                                    addPath(
-                                        pathData = androidx.compose.ui.graphics.vector.addPathNodes("M12 2v6M12 16v6M2 12h6M16 12h6"),
-                                        stroke = androidx.compose.ui.graphics.SolidColor(Color.White),
-                                        strokeLineWidth = 2f,
-                                        strokeLineCap = androidx.compose.ui.graphics.StrokeCap.Round
-                                    )
-                                    addPath(
-                                        pathData = androidx.compose.ui.graphics.vector.addPathNodes("M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"),
-                                        fill = androidx.compose.ui.graphics.SolidColor(Color.White)
-                                    )
-                                }.build()
-                            }
-                            // Main Toggle Area
-                            Row(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight()
-                                    .background(leftBgColor)
-                                    .clickable(
-                                        interactionSource = leftInteractionSource,
-                                        indication = null
-                                    ) {
-                                        isCrosshairOn = !isCrosshairOn
-                                        prefs.edit().putBoolean("is_crosshair_enabled", isCrosshairOn).apply()
-                                        val crosshairIntent = Intent(context, com.kanagawa.yamada.project.raco.RacoGameTools.GameCrosshairService::class.java)
-                                        if (isCrosshairOn) {
-                                            context.startService(crosshairIntent)
-                                        } else {
-                                            context.stopService(crosshairIntent)
+                        // --- CROSSHAIR ---
+                        val leftInteractionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        val isLeftPressed by leftInteractionSource.collectIsPressedAsState()
+                        val rightInteractionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        val isRightPressed by rightInteractionSource.collectIsPressedAsState()
+
+                        val leftBgColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isLeftPressed) Color.White.copy(alpha = 0.2f) else Color.Transparent,
+                            animationSpec = androidx.compose.animation.core.tween(150), label = ""
+                        )
+                        val rightBgColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isRightPressed) Color.White.copy(alpha = 0.2f) else Color.Transparent,
+                            animationSpec = androidx.compose.animation.core.tween(150), label = ""
+                        )
+                        val mainBgColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isCrosshairOn) themeColor.copy(alpha = 0.2f) else Color.Transparent,
+                            animationSpec = androidx.compose.animation.core.tween(300), label = ""
+                        )
+                        val mainBorderColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isCrosshairOn) themeColor else Color.White.copy(alpha=0.2f),
+                            animationSpec = androidx.compose.animation.core.tween(300), label = ""
+                        )
+                        val contentAnimColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isCrosshairOn) themeColor else Color.White,
+                            animationSpec = androidx.compose.animation.core.tween(300), label = ""
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(32.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(mainBgColor)
+                                .border(1.dp, mainBorderColor, RoundedCornerShape(6.dp))
+                        ) {
+                            Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+                                val CrosshairIcon = remember {
+                                    androidx.compose.ui.graphics.vector.ImageVector.Builder(
+                                        name = "Crosshair",
+                                        defaultWidth = 24.dp,
+                                        defaultHeight = 24.dp,
+                                        viewportWidth = 24f,
+                                        viewportHeight = 24f
+                                    ).apply {
+                                        addPath(
+                                            pathData = androidx.compose.ui.graphics.vector.addPathNodes("M12 2v6M12 16v6M2 12h6M16 12h6"),
+                                            stroke = androidx.compose.ui.graphics.SolidColor(Color.White),
+                                            strokeLineWidth = 2f,
+                                            strokeLineCap = androidx.compose.ui.graphics.StrokeCap.Round
+                                        )
+                                        addPath(
+                                            pathData = androidx.compose.ui.graphics.vector.addPathNodes("M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"),
+                                            fill = androidx.compose.ui.graphics.SolidColor(Color.White)
+                                        )
+                                    }.build()
+                                }
+                                // Main Toggle Area
+                                Row(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .background(leftBgColor)
+                                        .clickable(
+                                            interactionSource = leftInteractionSource,
+                                            indication = null
+                                        ) {
+                                            isCrosshairOn = !isCrosshairOn
+                                            prefs.edit().putBoolean("is_crosshair_enabled", isCrosshairOn).apply()
+                                            val crosshairIntent = Intent(context, com.kanagawa.yamada.project.raco.RacoGameTools.GameCrosshairService::class.java)
+                                            if (isCrosshairOn) {
+                                                context.startService(crosshairIntent)
+                                            } else {
+                                                context.stopService(crosshairIntent)
+                                            }
                                         }
-                                    }
-                                    .padding(start = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                androidx.compose.material3.Icon(
-                                    imageVector = CrosshairIcon,
-                                    contentDescription = "Crosshair Toggle",
-                                    tint = contentAnimColor,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Crosshair",
-                                    color = contentAnimColor,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                        .padding(start = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    androidx.compose.material3.Icon(
+                                        imageVector = CrosshairIcon,
+                                        contentDescription = "Crosshair Toggle",
+                                        tint = contentAnimColor,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Crosshair",
+                                        color = contentAnimColor,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                // Menu Area
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .background(rightBgColor)
+                                        .clickable(
+                                            interactionSource = rightInteractionSource,
+                                            indication = null
+                                        ) { leftMenuState = "CROSSHAIR" }
+                                        .padding(horizontal = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    androidx.compose.material3.Icon(
+                                        imageVector = Icons.Filled.MoreVert,
+                                        contentDescription = "Menu",
+                                        tint = contentAnimColor,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             }
+                        }
 
+                        // --- AYUNDA ENGINE ---
+                        val ayundaLeftInteractionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        val isAyundaLeftPressed by ayundaLeftInteractionSource.collectIsPressedAsState()
+                        val ayundaRightInteractionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        val isAyundaRightPressed by ayundaRightInteractionSource.collectIsPressedAsState()
 
-                            // Menu Area
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .background(rightBgColor)
-                                    .clickable(
-                                        interactionSource = rightInteractionSource,
-                                        indication = null
-                                    ) { isCrosshairMenuOpen = true }
-                                    .padding(horizontal = 8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                androidx.compose.material3.Icon(
-                                    imageVector = Icons.Filled.MoreVert,
-                                    contentDescription = "Menu",
-                                    tint = contentAnimColor,
-                                    modifier = Modifier.size(18.dp)
-                                )
+                        val ayundaLeftBgColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isAyundaLeftPressed) Color.White.copy(alpha = 0.2f) else Color.Transparent,
+                            animationSpec = androidx.compose.animation.core.tween(150), label = ""
+                        )
+                        val ayundaRightBgColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isAyundaRightPressed) Color.White.copy(alpha = 0.2f) else Color.Transparent,
+                            animationSpec = androidx.compose.animation.core.tween(150), label = ""
+                        )
+                        val ayundaMainBgColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isAyundaOn) themeColor.copy(alpha = 0.2f) else Color.Transparent,
+                            animationSpec = androidx.compose.animation.core.tween(300), label = ""
+                        )
+                        val ayundaMainBorderColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isAyundaOn) themeColor else Color.White.copy(alpha=0.2f),
+                            animationSpec = androidx.compose.animation.core.tween(300), label = ""
+                        )
+                        val ayundaContentAnimColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isAyundaOn) themeColor else Color.White,
+                            animationSpec = androidx.compose.animation.core.tween(300), label = ""
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(32.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(ayundaMainBgColor)
+                                .border(1.dp, ayundaMainBorderColor, RoundedCornerShape(6.dp))
+                        ) {
+                            Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+                                // Main Toggle Area
+                                Row(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .background(ayundaLeftBgColor)
+                                        .clickable(
+                                            interactionSource = ayundaLeftInteractionSource,
+                                            indication = null
+                                        ) {
+                                            isAyundaOn = !isAyundaOn
+                                            prefs.edit().putBoolean("is_ayunda_enabled", isAyundaOn).apply()
+                                            
+                                            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                                                try {
+                                                    if (isAyundaOn) {
+                                                        // Apply current filter
+                                                        val currentFilterStr = prefs.getString("ayunda_filter", "NORMAL") ?: "NORMAL"
+                                                        when (currentFilterStr) {
+                                                            "NORMAL" -> {
+                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 0")).waitFor()
+                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.0")).waitFor()
+                                                            }
+                                                            "VIVID" -> {
+                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 0")).waitFor()
+                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.5")).waitFor()
+                                                            }
+                                                            "GRAYSCALE" -> {
+                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 0")).waitFor()
+                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 0.0")).waitFor()
+                                                            }
+                                                            "INVERT" -> {
+                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.0")).waitFor()
+                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 1")).waitFor()
+                                                            }
+                                                        }
+                                                    } else {
+                                                        // Reset filter
+                                                        Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 0")).waitFor()
+                                                        Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.0")).waitFor()
+                                                    }
+                                                } catch (e: Exception) {}
+                                            }
+                                        }
+                                        .padding(start = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    androidx.compose.material3.Icon(
+                                        imageVector = androidx.compose.material.icons.Icons.Filled.Visibility,
+                                        contentDescription = "Ayunda Toggle",
+                                        tint = ayundaContentAnimColor,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Ayunda",
+                                        color = ayundaContentAnimColor,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                // Menu Area
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .background(ayundaRightBgColor)
+                                        .clickable(
+                                            interactionSource = ayundaRightInteractionSource,
+                                            indication = null
+                                        ) { leftMenuState = "AYUNDA" }
+                                        .padding(horizontal = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    androidx.compose.material3.Icon(
+                                        imageVector = Icons.Filled.MoreVert,
+                                        contentDescription = "Menu",
+                                        tint = ayundaContentAnimColor,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             }
                         }
                     }
