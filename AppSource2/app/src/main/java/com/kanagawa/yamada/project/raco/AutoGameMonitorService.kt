@@ -77,11 +77,19 @@ class AutoGameMonitorService : Service() {
                 while (events.hasNextEvent()) {
                     events.getNextEvent(event)
                     if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
-                        currentForeground = event.packageName
+                        val pkg = event.packageName
+                        if (pkg != "com.kanagawa.yamada.project.raco" && 
+                            pkg != "com.android.systemui" && 
+                            pkg != "com.google.android.permissioncontroller" && 
+                            pkg != "com.android.permissioncontroller" && 
+                            pkg != "com.android.packageinstaller" && 
+                            pkg != "android") {
+                            currentForeground = pkg
+                        }
                     }
                 }
                 
-                if (currentForeground != lastForegroundApp && currentForeground != "com.kanagawa.yamada.project.raco" && currentForeground != "com.android.systemui") {
+                if (currentForeground != lastForegroundApp) {
                     val appList = GameManager.getAllInstalledApps(this@AutoGameMonitorService)
                     val addedGames = GameManager.getManuallyAddedGames(this@AutoGameMonitorService)
                     val hiddenGames = GameManager.getHiddenGames(this@AutoGameMonitorService)
