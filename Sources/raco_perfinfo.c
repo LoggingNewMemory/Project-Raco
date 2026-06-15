@@ -11,6 +11,8 @@ Copyright (C) 2026 Kanagawa Yamada
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <signal.h>
+#include <time.h>
 
 int str_contains_nocase(const char *haystack, const char *needle) {
     if (!haystack || !needle) return 0;
@@ -60,9 +62,6 @@ FastPipe popen_dumpsys(const char *arg1, const char *arg2, const char *arg3) {
     return p;
 }
 
-#include <signal.h>
-#include <time.h>
-
 void pclose_dumpsys(FastPipe p) {
     if (p.fp) fclose(p.fp);
     if (p.pid > 0) {
@@ -97,7 +96,11 @@ int get_universal_fps(const char *pkg) {
             }
             pclose_dumpsys(fp);
             if (ts_count > 0 && latest > 0) {
-                long long cutoff = latest - 1000000000LL;
+                struct timespec ts;
+                clock_gettime(CLOCK_MONOTONIC, &ts);
+                long long now_ns = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
+                long long cutoff = now_ns - 1000000000LL;
+                
                 int layer_fps = 0;
                 for (int i = 0; i < ts_count; i++) {
                     if (timestamps[i] > cutoff) {
@@ -196,7 +199,11 @@ int get_universal_fps(const char *pkg) {
         pclose_dumpsys(fp);
 
         if (ts_count > 0 && latest > 0) {
-            long long cutoff = latest - 1000000000LL;
+            struct timespec ts;
+            clock_gettime(CLOCK_MONOTONIC, &ts);
+            long long now_ns = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
+            long long cutoff = now_ns - 1000000000LL;
+            
             int layer_fps = 0;
             for (int i = 0; i < ts_count; i++) {
                 if (timestamps[i] > cutoff) {
