@@ -48,6 +48,10 @@ fun RefreshRateMenu(
             .sorted()
     }
 
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isTablet = configuration.smallestScreenWidthDp >= 600
+    val topSpacerHeight = if (isTablet) 48.dp else 0.dp
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -55,6 +59,7 @@ fun RefreshRateMenu(
             .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.End
     ) {
+        Spacer(modifier = Modifier.height(topSpacerHeight))
         // Header
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -62,11 +67,12 @@ fun RefreshRateMenu(
             modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
         ) {
             Text(
-                text = "REFRESH RATE",
+                text = "REFRESH\nRATE",
                 color = themeColor,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Black,
-                letterSpacing = 1.sp
+                letterSpacing = 1.sp,
+                textAlign = androidx.compose.ui.text.style.TextAlign.End
             )
             Spacer(modifier = Modifier.width(16.dp))
             Box(

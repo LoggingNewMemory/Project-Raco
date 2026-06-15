@@ -154,7 +154,12 @@ fun AuxLineMenu(themeColor: Color, onClose: () -> Unit) {
         editor.apply()
     }
 
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isTablet = configuration.smallestScreenWidthDp >= 600
+    val topSpacerHeight = if (isTablet) 48.dp else 0.dp
+
     Column(modifier = Modifier.fillMaxSize()) {
+        Spacer(modifier = Modifier.height(topSpacerHeight))
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,

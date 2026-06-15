@@ -32,7 +32,12 @@ fun CrosshairMenu(themeColor: Color, onClose: () -> Unit) {
     var selectedStyle by remember { mutableStateOf(prefs.getInt("crosshair_style", 0)) }
     var selectedColorIndex by remember { mutableStateOf(prefs.getInt("crosshair_color_index", 0)) }
 
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isTablet = configuration.smallestScreenWidthDp >= 600
+    val topSpacerHeight = if (isTablet) 48.dp else 0.dp
+
     Column(modifier = Modifier.fillMaxSize()) {
+        Spacer(modifier = Modifier.height(topSpacerHeight))
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
