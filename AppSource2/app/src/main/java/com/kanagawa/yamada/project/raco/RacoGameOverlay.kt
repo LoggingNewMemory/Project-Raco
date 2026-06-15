@@ -354,8 +354,11 @@ fun RacoLeftPanel(
     ) {
         androidx.compose.animation.AnimatedContent(
             targetState = isCrosshairMenuOpen,
+            modifier = Modifier.fillMaxSize(),
             transitionSpec = {
-                androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(300)).togetherWith(androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(300)))
+                (androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(300))
+                    .togetherWith(androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(300))))
+                    .using(androidx.compose.animation.SizeTransform(clip = false))
             },
             label = "CrosshairMenuAnimation"
         ) { isMenuOpen ->
@@ -427,7 +430,6 @@ fun RacoLeftPanel(
 
                 Box(
                     modifier = Modifier
-                        .offset(x = 12.dp)
                         .width(81.dp)
                         .height(32.dp)
                         .border(1.dp, themeColor, RoundedCornerShape(16.dp))
