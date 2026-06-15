@@ -374,6 +374,11 @@ fun RacoLeftPanel(
                     themeColor = themeColor,
                     onClose = { leftMenuState = "MAIN" }
                 )
+            } else if (menuState == "AUXLINE") {
+                com.kanagawa.yamada.project.raco.RacoGameTools.AuxLineMenu(
+                    themeColor = themeColor,
+                    onClose = { leftMenuState = "MAIN" }
+                )
             } else {
                 Column(modifier = Modifier.fillMaxSize()) {
                     // CPU Monitor
@@ -480,8 +485,9 @@ fun RacoLeftPanel(
                     val prefs = context.getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
                     var isCrosshairOn by remember { mutableStateOf(prefs.getBoolean("is_crosshair_enabled", false)) }
                     var isAyundaOn by remember { mutableStateOf(prefs.getBoolean("is_ayunda_enabled", false)) }
+                    var isAuxLineOn by remember { mutableStateOf(prefs.getBoolean("is_auxline_enabled", false)) }
                     
-                    // Crosshair & Ayunda Buttons Container
+                    // Crosshair, Ayunda & AuxLine Buttons Container
                     Column(
                         modifier = Modifier
                             .weight(1f)
@@ -727,6 +733,116 @@ fun RacoLeftPanel(
                                         imageVector = Icons.Filled.MoreVert,
                                         contentDescription = "Menu",
                                         tint = ayundaContentAnimColor,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        // --- AUX LINE ---
+                        val auxLineLeftInteractionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        val isAuxLineLeftPressed by auxLineLeftInteractionSource.collectIsPressedAsState()
+                        val auxLineRightInteractionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        val isAuxLineRightPressed by auxLineRightInteractionSource.collectIsPressedAsState()
+
+                        val auxLineLeftBgColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isAuxLineLeftPressed) Color.White.copy(alpha = 0.2f) else Color.Transparent,
+                            animationSpec = androidx.compose.animation.core.tween(150), label = ""
+                        )
+                        val auxLineRightBgColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isAuxLineRightPressed) Color.White.copy(alpha = 0.2f) else Color.Transparent,
+                            animationSpec = androidx.compose.animation.core.tween(150), label = ""
+                        )
+                        val auxLineMainBgColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isAuxLineOn) themeColor.copy(alpha = 0.2f) else Color.Transparent,
+                            animationSpec = androidx.compose.animation.core.tween(300), label = ""
+                        )
+                        val auxLineMainBorderColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isAuxLineOn) themeColor else Color.White.copy(alpha=0.2f),
+                            animationSpec = androidx.compose.animation.core.tween(300), label = ""
+                        )
+                        val auxLineContentAnimColor by androidx.compose.animation.animateColorAsState(
+                            targetValue = if (isAuxLineOn) themeColor else Color.White,
+                            animationSpec = androidx.compose.animation.core.tween(300), label = ""
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(32.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(auxLineMainBgColor)
+                                .border(1.dp, auxLineMainBorderColor, RoundedCornerShape(6.dp))
+                        ) {
+                            Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+                                val AuxLineIcon = remember {
+                                    androidx.compose.ui.graphics.vector.ImageVector.Builder(
+                                        name = "AuxLine",
+                                        defaultWidth = 24.dp,
+                                        defaultHeight = 24.dp,
+                                        viewportWidth = 24f,
+                                        viewportHeight = 24f
+                                    ).apply {
+                                        addPath(
+                                            pathData = androidx.compose.ui.graphics.vector.addPathNodes("M12 2A10 10 0 0 0 2 12A10 10 0 0 0 12 22A10 10 0 0 0 22 12A10 10 0 0 0 12 2Z"),
+                                            stroke = androidx.compose.ui.graphics.SolidColor(Color.White),
+                                            strokeLineWidth = 2f
+                                        )
+                                    }.build()
+                                }
+                                // Main Toggle Area
+                                Row(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .background(auxLineLeftBgColor)
+                                        .clickable(
+                                            interactionSource = auxLineLeftInteractionSource,
+                                            indication = null
+                                        ) {
+                                            isAuxLineOn = !isAuxLineOn
+                                            prefs.edit().putBoolean("is_auxline_enabled", isAuxLineOn).apply()
+                                            val auxLineIntent = Intent(context, com.kanagawa.yamada.project.raco.RacoGameTools.GameAuxLineService::class.java)
+                                            if (isAuxLineOn) {
+                                                context.startService(auxLineIntent)
+                                            } else {
+                                                context.stopService(auxLineIntent)
+                                            }
+                                        }
+                                        .padding(start = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    androidx.compose.material3.Icon(
+                                        imageVector = AuxLineIcon,
+                                        contentDescription = "Aux Line Toggle",
+                                        tint = auxLineContentAnimColor,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Aux Line",
+                                        color = auxLineContentAnimColor,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                // Menu Area
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .background(auxLineRightBgColor)
+                                        .clickable(
+                                            interactionSource = auxLineRightInteractionSource,
+                                            indication = null
+                                        ) { leftMenuState = "AUXLINE" }
+                                        .padding(horizontal = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    androidx.compose.material3.Icon(
+                                        imageVector = Icons.Filled.MoreVert,
+                                        contentDescription = "Menu",
+                                        tint = auxLineContentAnimColor,
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }

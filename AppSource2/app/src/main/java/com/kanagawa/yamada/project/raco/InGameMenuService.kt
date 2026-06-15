@@ -99,6 +99,9 @@ class InGameMenuService : Service() {
         if (prefs.getBoolean("is_crosshair_enabled", false)) {
             startService(Intent(this, com.kanagawa.yamada.project.raco.RacoGameTools.GameCrosshairService::class.java))
         }
+        if (prefs.getBoolean("is_auxline_enabled", false)) {
+            startService(Intent(this, com.kanagawa.yamada.project.raco.RacoGameTools.GameAuxLineService::class.java))
+        }
         
         if (prefs.getBoolean("is_ayunda_enabled", false)) {
             val filterName = prefs.getString("ayunda_filter", "NORMAL") ?: "NORMAL"
@@ -306,6 +309,7 @@ class InGameMenuService : Service() {
         stopService(Intent(this, RotationLockService::class.java))
         stopService(Intent(this, RefreshRateService::class.java))
         stopService(Intent(this, com.kanagawa.yamada.project.raco.RacoGameTools.GameCrosshairService::class.java))
+        stopService(Intent(this, com.kanagawa.yamada.project.raco.RacoGameTools.GameAuxLineService::class.java))
         
         val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
         if (prefs.getBoolean("is_ayunda_enabled", false)) {
