@@ -6,8 +6,8 @@ Copyright (C) 2026 Kanagawa Yamada
 #include "raco.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <sys/un.h>
+#include <sys/socket.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fcntl.h>
@@ -74,158 +74,23 @@ static char cached_layer_name[256] = {0};
 static time_t last_full_check = 0;
 
 int get_universal_fps(const char *pkg) {
-    time_t now = time(NULL);
-
-    if (cached_layer_name[0] != '\0') {
-        FastPipe fp = popen_dumpsys("SurfaceFlinger", "--latency", cached_layer_name);
-        if (fp.fp) {
-            char line[256];
-            long long timestamps[128];
-            int ts_count = 0;
-            long long latest = 0;
-            if (fgets(line, sizeof(line), fp.fp)) {
-                long long t1, t2, t3;
-                while (fgets(line, sizeof(line), fp.fp) && ts_count < 128) {
-                    if (sscanf(line, "%lld\t%lld\t%lld", &t1, &t2, &t3) == 3) {
-                        if (t2 != 0 && t2 != 9223372036854775807LL) {
-                            timestamps[ts_count++] = t2;
-                            if (t2 > latest) latest = t2;
-                        }
-                    }
-                }
-            }
-            pclose_dumpsys(fp);
-            if (ts_count > 0 && latest > 0) {
-                struct timespec ts;
-                clock_gettime(CLOCK_BOOTTIME, &ts);
-                long long now_ns = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
-                long long cutoff = now_ns - 1000000000LL;
-                
-                int layer_fps = 0;
-                long long last_t2 = 0;
-                for (int i = 0; i < ts_count; i++) {
-                    if (timestamps[i] > cutoff && timestamps[i] <= now_ns + 100000000LL) {
-                        if (timestamps[i] != last_t2) {
-                            layer_fps++;
-                            last_t2 = timestamps[i];
-                        }
-                    }
-                }
-                if (layer_fps > 0) {
-                    return layer_fps > 144 ? 144 : layer_fps;
-                }
-            }
-        }
-        cached_layer_name[0] = '\0';
-    }
-
-    if (now - last_full_check < 2) {
-        return 0;
-    }
-    last_full_check = now;
-
-    char current_pkg[256] = {0};
-
-    if (pkg == NULL || pkg[0] == '\0' || strcmp(pkg, "SurfaceView") == 0) {
-        FastPipe fp_focus = popen_dumpsys("window", "displays", NULL);
-        if (fp_focus.fp) {
-            char focus_line[512];
-            while (fgets(focus_line, sizeof(focus_line), fp_focus.fp)) {
-                if (strstr(focus_line, "mCurrentFocus")) {
-                    char *slash = strchr(focus_line, '/');
-                    if (slash) {
-                        *slash = '\0';
-                        char *space = strrchr(focus_line, ' ');
-                        if (space) {
-                            strncpy(current_pkg, space + 1, sizeof(current_pkg) - 1);
-                        }
-                    }
-                    break;
-                }
-            }
-            pclose_dumpsys(fp_focus);
-        }
-        
-        if (current_pkg[0] != '\0') {
-            pkg = current_pkg;
-        } else {
-            pkg = "SurfaceView";
+    int fps = 0;
+    int sock = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sock < 0) return 0;
+    
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strncpy(&addr.sun_path[1], "raco_fps_daemon", sizeof(addr.sun_path) - 2);
+    
+    if (connect(sock, (struct sockaddr*)&addr, sizeof(sa_family_t) + strlen("raco_fps_daemon") + 1) == 0) {
+        write(sock, "GET_FPS", 7);
+        char buf[16] = {0};
+        int bytes = read(sock, buf, sizeof(buf) - 1);
+        if (bytes > 0) {
+            fps = atoi(buf);
         }
     }
-
-    FastPipe fp_list = popen_dumpsys("SurfaceFlinger", "--list", NULL);
-    if (!fp_list.fp) return 0;
-
-    int max_fps = 0;
-    char layer_name[256];
-
-    while (fgets(layer_name, sizeof(layer_name), fp_list.fp)) {
-        layer_name[strcspn(layer_name, "\r\n")] = '\0';
-        if (layer_name[0] == '\0') continue;
-        if (!str_contains_nocase(layer_name, pkg)) continue;
-
-        if (strncmp(layer_name, "RequestedLayerState{", 20) == 0) {
-            char *start = layer_name + 20;
-            char *end = strrchr(start, '}');
-            if (end) *end = '\0';
-            
-            char *suffix = strstr(start, " parentId=");
-            if (suffix) *suffix = '\0';
-            suffix = strstr(start, " relativeParentId=");
-            if (suffix) *suffix = '\0';
-            suffix = strstr(start, " z=");
-            if (suffix) *suffix = '\0';
-            suffix = strstr(start, " !handle");
-            if (suffix) *suffix = '\0';
-            
-            memmove(layer_name, start, strlen(start) + 1);
-        }
-
-        FastPipe fp = popen_dumpsys("SurfaceFlinger", "--latency", layer_name);
-        if (!fp.fp) continue;
-
-        char line[256];
-        long long timestamps[128];
-        int ts_count = 0;
-        long long latest = 0;
-
-        if (fgets(line, sizeof(line), fp.fp)) { // skip refresh period
-            long long t1, t2, t3;
-            while (fgets(line, sizeof(line), fp.fp) && ts_count < 128) {
-                if (sscanf(line, "%lld\t%lld\t%lld", &t1, &t2, &t3) == 3) {
-                    if (t2 != 0 && t2 != 9223372036854775807LL) {
-                        timestamps[ts_count++] = t2;
-                        if (t2 > latest) latest = t2;
-                    }
-                }
-            }
-        }
-        pclose_dumpsys(fp);
-
-        if (ts_count > 0 && latest > 0) {
-            struct timespec ts;
-            clock_gettime(CLOCK_BOOTTIME, &ts);
-            long long now_ns = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
-            long long cutoff = now_ns - 1000000000LL;
-            
-            int layer_fps = 0;
-            long long last_t2 = 0;
-            for (int i = 0; i < ts_count; i++) {
-                if (timestamps[i] > cutoff && timestamps[i] <= now_ns + 100000000LL) {
-                    if (timestamps[i] != last_t2) {
-                        layer_fps++;
-                        last_t2 = timestamps[i];
-                    }
-                }
-            }
-            if (layer_fps > max_fps) {
-                max_fps = layer_fps;
-                strncpy(cached_layer_name, layer_name, sizeof(cached_layer_name) - 1);
-            }
-        }
-    }
-    pclose_dumpsys(fp_list);
-
-    if (max_fps > 144) max_fps = 144;
-    return max_fps;
+    close(sock);
+    return fps;
 }

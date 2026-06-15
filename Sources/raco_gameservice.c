@@ -98,6 +98,15 @@ int main(int argc, char *argv[]) {
     struct sockaddr_un server_addr, client_addr;
     socklen_t client_len = sizeof(client_addr);
 
+    // Launch Java FPS Daemon
+    pid_t pid = fork();
+    if (pid == 0) {
+        // Child process
+        execl("/system/bin/app_process", "app_process", "-Djava.class.path=/data/adb/modules/ProjectRaco/CoreSys/raco_fps.dex", "/system/bin", "com.raco.RacoFpsDaemon", NULL);
+        exit(1);
+    }
+
+
     server_sock = socket(AF_UNIX, SOCK_STREAM, 0);
     if (server_sock < 0) {
         return 1;
