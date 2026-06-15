@@ -451,6 +451,9 @@ void snapdragon_awaken() {
     const char *kgsl_base = "/sys/class/kgsl/kgsl-3d0";
     const char *kgsl_1[] = {"force_clk_on", "default_pwrlevel"};
     raco_bulk(kgsl_base, kgsl_1, 2, "1", 1);
+    
+    rawrite("0", "/sys/class/kgsl/kgsl-3d0/min_pwrlevel");
+    rawrite("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
 
     // Bus Split & Throttling
     if (config.device_mitigation == 1) {
@@ -495,6 +498,9 @@ void snapdragon_balanced() {
     const char *kgsl_base = "/sys/class/kgsl/kgsl-3d0";
     const char *kgsl_1[] = {"force_clk_on", "default_pwrlevel"};
     raco_bulk(kgsl_base, kgsl_1, 2, "0", 0);
+    
+    rawrite("99", "/sys/class/kgsl/kgsl-3d0/min_pwrlevel");
+    rawrite("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
 
     // Bus Split & Throttling
     const char *kgsl_0[] = {"bus_split", "throttling"};
@@ -532,6 +538,9 @@ void snapdragon_normal() {
     const char *kgsl_base = "/sys/class/kgsl/kgsl-3d0";
     const char *kgsl_1[] = {"force_clk_on", "default_pwrlevel"};
     raco_bulk(kgsl_base, kgsl_1, 2, "0", 0);
+    
+    rawrite("99", "/sys/class/kgsl/kgsl-3d0/min_pwrlevel");
+    rawrite("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
 
     // Bus Split & Throttling
     const char *kgsl_0[] = {"bus_split", "throttling"};
@@ -569,6 +578,9 @@ void snapdragon_powersave() {
     const char *kgsl_base = "/sys/class/kgsl/kgsl-3d0";
     const char *kgsl_1[] = {"force_clk_on", "default_pwrlevel"};
     raco_bulk(kgsl_base, kgsl_1, 2, "0", 0);
+    
+    rawrite("99", "/sys/class/kgsl/kgsl-3d0/min_pwrlevel");
+    rawrite("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
 
     // Bus Split & Throttling
     const char *kgsl_0[] = {"bus_split", "throttling"};
