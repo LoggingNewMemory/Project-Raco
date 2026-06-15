@@ -102,9 +102,13 @@ int get_universal_fps(const char *pkg) {
                 long long cutoff = now_ns - 1000000000LL;
                 
                 int layer_fps = 0;
+                long long last_t2 = 0;
                 for (int i = 0; i < ts_count; i++) {
-                    if (timestamps[i] > cutoff) {
-                        layer_fps++;
+                    if (timestamps[i] > cutoff && timestamps[i] <= now_ns + 100000000LL) {
+                        if (timestamps[i] != last_t2) {
+                            layer_fps++;
+                            last_t2 = timestamps[i];
+                        }
                     }
                 }
                 if (layer_fps > 0) {
@@ -205,9 +209,13 @@ int get_universal_fps(const char *pkg) {
             long long cutoff = now_ns - 1000000000LL;
             
             int layer_fps = 0;
+            long long last_t2 = 0;
             for (int i = 0; i < ts_count; i++) {
-                if (timestamps[i] > cutoff) {
-                    layer_fps++;
+                if (timestamps[i] > cutoff && timestamps[i] <= now_ns + 100000000LL) {
+                    if (timestamps[i] != last_t2) {
+                        layer_fps++;
+                        last_t2 = timestamps[i];
+                    }
                 }
             }
             if (layer_fps > max_fps) {
