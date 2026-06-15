@@ -35,6 +35,7 @@ class GameOverlayService : Service() {
         composeView = ComposeView(this).apply {
             setContent {
                 GameEntranceOverlay(onAnimComplete = {
+                    com.kanagawa.yamada.project.raco.RacoGameTools.RacoToolHandler.restoreSavedTools(this@GameOverlayService)
                     stopSelf()
                 })
             }

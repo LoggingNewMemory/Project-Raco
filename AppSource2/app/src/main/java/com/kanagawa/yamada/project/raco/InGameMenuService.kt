@@ -96,43 +96,8 @@ class InGameMenuService : Service() {
             refreshIntent.putExtra("refresh_rate", targetRate)
             startService(refreshIntent)
         }
-        if (prefs.getBoolean("is_crosshair_enabled", false)) {
-            startService(Intent(this, com.kanagawa.yamada.project.raco.RacoGameTools.GameCrosshairService::class.java))
-        }
-        if (prefs.getBoolean("is_auxline_enabled", false)) {
-            startService(Intent(this, com.kanagawa.yamada.project.raco.RacoGameTools.GameAuxLineService::class.java))
-        }
-        
-        if (prefs.getBoolean("is_ayunda_enabled", false)) {
-            val filterName = prefs.getString("ayunda_filter", "NORMAL") ?: "NORMAL"
-            Thread {
-                try {
-                    val cmd = java.lang.StringBuilder()
-                    cmd.append("settings put secure accessibility_display_inversion_enabled ${if (filterName == "INVERT") 1 else 0}; ")
-                    cmd.append("settings put secure accessibility_display_daltonizer_enabled 0; ")
-                    val saturation = when(filterName) {
-                        "VIVID" -> 1.5f
-                        "VIVID_MAX" -> 2.0f
-                        "GRAYSCALE" -> 0.0f
-                        else -> 1.0f
-                    }
-                    cmd.append("service call SurfaceFlinger 1022 f $saturation; ")
-                    val matrix = when(filterName) {
-                        "EAGLE_EYE" -> "f 1.2 f 0.0 f 0.0 f 0.0 f 0.0 f 1.2 f 0.0 f 0.0 f 0.0 f 0.0 f 0.8 f 0.0 f 0.0 f 0.0 f 0.0 f 1.0"
-                        "NIGHT_VISION" -> "f 0.3 f 0.0 f 0.0 f 0.0 f 0.0 f 1.5 f 0.0 f 0.0 f 0.0 f 0.0 f 0.3 f 0.0 f 0.0 f 0.0 f 0.0 f 1.0"
-                        "WARM" -> "f 1.0 f 0.0 f 0.0 f 0.0 f 0.0 f 0.9 f 0.0 f 0.0 f 0.0 f 0.0 f 0.6 f 0.0 f 0.0 f 0.0 f 0.0 f 1.0"
-                        "CINEMATIC" -> "f 0.9 f 0.0 f 0.0 f 0.0 f 0.0 f 0.9 f 0.0 f 0.0 f 0.0 f 0.0 f 1.2 f 0.0 f 0.0 f 0.0 f 0.0 f 1.0"
-                        else -> null
-                    }
-                    if (matrix != null) {
-                        cmd.append("service call SurfaceFlinger 1015 i32 1 $matrix")
-                    } else if (filterName != "INVERT") {
-                        cmd.append("service call SurfaceFlinger 1015 i32 0")
-                    }
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", cmd.toString())).waitFor()
-                } catch (e: Exception) {}
-            }.start()
-        }
+        // Tool restoration (Crosshair, AuxLine, Ayunda) has been moved to RacoToolHandler 
+        // to be triggered after the entrance animation finishes, avoiding overlaps.
         
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_START)
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
