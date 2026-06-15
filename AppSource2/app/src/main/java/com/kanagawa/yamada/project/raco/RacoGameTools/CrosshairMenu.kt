@@ -45,7 +45,7 @@ fun CrosshairMenu(themeColor: Color, onClose: () -> Unit) {
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text("SIZE", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text("SIZE", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Light)
         Slider(
             value = size,
             onValueChange = { 
@@ -57,7 +57,7 @@ fun CrosshairMenu(themeColor: Color, onClose: () -> Unit) {
             modifier = Modifier.height(32.dp)
         )
 
-        Text("OPACITY", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text("OPACITY", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Light)
         Slider(
             value = opacity,
             onValueChange = { 
@@ -70,7 +70,7 @@ fun CrosshairMenu(themeColor: Color, onClose: () -> Unit) {
         )
         
         Spacer(modifier = Modifier.height(4.dp))
-        Text("STYLE", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text("STYLE", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Light)
         Spacer(modifier = Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             for (i in 0..3) {
@@ -97,7 +97,7 @@ fun CrosshairMenu(themeColor: Color, onClose: () -> Unit) {
         }
         
         Spacer(modifier = Modifier.height(12.dp))
-        Text("COLOR", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text("COLOR", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Light)
         Spacer(modifier = Modifier.height(4.dp))
         val colorOptions = listOf(Color.White, Color.Red, Color.Green, Color.Blue, Color.Yellow)
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
