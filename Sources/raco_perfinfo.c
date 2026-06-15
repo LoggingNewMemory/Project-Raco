@@ -60,9 +60,14 @@ FastPipe popen_dumpsys(const char *arg1, const char *arg2, const char *arg3) {
     return p;
 }
 
+#include <signal.h>
+
 void pclose_dumpsys(FastPipe p) {
     if (p.fp) fclose(p.fp);
-    if (p.pid > 0) waitpid(p.pid, NULL, 0);
+    if (p.pid > 0) {
+        kill(p.pid, SIGKILL);
+        waitpid(p.pid, NULL, 0);
+    }
 }
 
 int get_universal_fps(const char *pkg) {
