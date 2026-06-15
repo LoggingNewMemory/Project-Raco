@@ -96,6 +96,9 @@ class InGameMenuService : Service() {
             refreshIntent.putExtra("refresh_rate", targetRate)
             startService(refreshIntent)
         }
+        if (prefs.getBoolean("is_crosshair_enabled", false)) {
+            startService(Intent(this, com.kanagawa.yamada.project.raco.RacoGameTools.GameCrosshairService::class.java))
+        }
         
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_START)
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
@@ -271,6 +274,7 @@ class InGameMenuService : Service() {
         stopService(Intent(this, FloatingInfoService::class.java))
         stopService(Intent(this, RotationLockService::class.java))
         stopService(Intent(this, RefreshRateService::class.java))
+        stopService(Intent(this, com.kanagawa.yamada.project.raco.RacoGameTools.GameCrosshairService::class.java))
         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         mainComposeView?.let { windowManager?.removeView(it) }
         leftTriggerView?.let { windowManager?.removeView(it) }

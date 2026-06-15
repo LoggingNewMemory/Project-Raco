@@ -59,6 +59,8 @@
             android:exported="false" />
         <service android:name=".RefreshRateService"
             android:exported="false" />
+        <service android:name=".RacoGameTools.GameCrosshairService"
+            android:exported="false" />
         <service android:name=".AutoGameMonitorService"
             android:foregroundServiceType="specialUse"
             android:exported="false">

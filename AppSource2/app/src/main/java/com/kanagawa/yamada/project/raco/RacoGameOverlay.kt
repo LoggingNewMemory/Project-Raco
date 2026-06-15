@@ -309,6 +309,8 @@ fun RacoLeftPanel(
         }
     }
 
+    var isCrosshairMenuOpen by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -350,8 +352,21 @@ fun RacoLeftPanel(
             }
             .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 35.dp)
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // CPU Monitor
+        androidx.compose.animation.AnimatedContent(
+            targetState = isCrosshairMenuOpen,
+            transitionSpec = {
+                androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(300)).togetherWith(androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(300)))
+            },
+            label = "CrosshairMenuAnimation"
+        ) { isMenuOpen ->
+            if (isMenuOpen) {
+                com.kanagawa.yamada.project.raco.RacoGameTools.CrosshairMenu(
+                    themeColor = themeColor,
+                    onClose = { isCrosshairMenuOpen = false }
+                )
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // CPU Monitor
             Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "CPU • $currentTimeString",
@@ -449,9 +464,68 @@ fun RacoLeftPanel(
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.End
                 ) {
+                    val prefs = context.getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+                    var isCrosshairOn by remember { mutableStateOf(prefs.getBoolean("is_crosshair_enabled", false)) }
+                    
+                    // Crosshair Button
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 16.dp)
+                            .height(32.dp)
+                            .align(Alignment.Top)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (isCrosshairOn) themeColor.copy(alpha = 0.2f) else Color.Transparent)
+                            .border(1.dp, if (isCrosshairOn) themeColor else Color.White.copy(alpha=0.2f), RoundedCornerShape(6.dp))
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onLongPress = { isCrosshairMenuOpen = true },
+                                    onTap = {
+                                        isCrosshairOn = !isCrosshairOn
+                                        prefs.edit().putBoolean("is_crosshair_enabled", isCrosshairOn).apply()
+                                        val crosshairIntent = Intent(context, com.kanagawa.yamada.project.raco.RacoGameTools.GameCrosshairService::class.java)
+                                        if (isCrosshairOn) {
+                                            context.startService(crosshairIntent)
+                                        } else {
+                                            context.stopService(crosshairIntent)
+                                        }
+                                    }
+                                )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val CrosshairIcon = remember {
+                            androidx.compose.ui.graphics.vector.ImageVector.Builder(
+                                name = "Crosshair",
+                                defaultWidth = 24.dp,
+                                defaultHeight = 24.dp,
+                                viewportWidth = 24f,
+                                viewportHeight = 24f
+                            ).apply {
+                                addPath(
+                                    pathData = androidx.compose.ui.graphics.vector.addPathNodes("M12 2v6M12 16v6M2 12h6M16 12h6"),
+                                    stroke = androidx.compose.ui.graphics.SolidColor(Color.White),
+                                    strokeLineWidth = 2f,
+                                    strokeLineCap = androidx.compose.ui.graphics.StrokeCap.Round
+                                )
+                                addPath(
+                                    pathData = androidx.compose.ui.graphics.vector.addPathNodes("M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"),
+                                    fill = androidx.compose.ui.graphics.SolidColor(Color.White)
+                                )
+                            }.build()
+                        }
+                        androidx.compose.material3.Icon(
+                            imageVector = CrosshairIcon,
+                            contentDescription = "Crosshair",
+                            tint = if (isCrosshairOn) themeColor else Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
                     // Gradient Separator Line
                     Box(
                         modifier = Modifier
@@ -513,6 +587,8 @@ fun RacoLeftPanel(
             }
             
             Spacer(modifier = Modifier.height(8.dp))
+        }
+            }
         }
     }
 }
