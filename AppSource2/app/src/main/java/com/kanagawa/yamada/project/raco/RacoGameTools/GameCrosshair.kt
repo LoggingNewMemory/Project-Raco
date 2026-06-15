@@ -110,7 +110,7 @@ class GameCrosshairService : Service() {
                 val colorOptions = listOf(Color.White, Color.Red, Color.Green, Color.Blue, Color.Yellow)
                 val activeColor = colorOptions.getOrElse(selectedColorIndex) { Color.White }
 
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = CrosshairData.getCrosshair(selectedStyle),
                         contentDescription = "Crosshair",
@@ -129,8 +129,8 @@ class GameCrosshairService : Service() {
         })
 
         val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                     WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
@@ -142,6 +142,7 @@ class GameCrosshairService : Service() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
             params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
+        params.gravity = android.view.Gravity.CENTER
 
         windowManager?.addView(crosshairView, params)
         
