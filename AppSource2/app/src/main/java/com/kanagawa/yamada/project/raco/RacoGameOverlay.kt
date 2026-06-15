@@ -657,10 +657,7 @@ fun RacoLeftPanel(
                                                     if (isAyundaOn) {
                                                         val currentFilterStr = prefs.getString("ayunda_filter", "NORMAL") ?: "NORMAL"
                                                         cmd.append("settings put secure accessibility_display_inversion_enabled ${if (currentFilterStr == "INVERT") 1 else 0}; ")
-                                                        cmd.append("settings put secure accessibility_display_daltonizer_enabled ${if (currentFilterStr in listOf("PROTAN", "DEUTAN", "TRITAN")) 1 else 0}; ")
-                                                        if (currentFilterStr == "PROTAN") cmd.append("settings put secure accessibility_display_daltonizer 1; ")
-                                                        if (currentFilterStr == "DEUTAN") cmd.append("settings put secure accessibility_display_daltonizer 2; ")
-                                                        if (currentFilterStr == "TRITAN") cmd.append("settings put secure accessibility_display_daltonizer 3; ")
+                                                        cmd.append("settings put secure accessibility_display_daltonizer_enabled 0; ")
                                                         
                                                         val saturation = when(currentFilterStr) {
                                                             "VIVID" -> 1.5f
@@ -668,11 +665,26 @@ fun RacoLeftPanel(
                                                             "GRAYSCALE" -> 0.0f
                                                             else -> 1.0f
                                                         }
-                                                        cmd.append("service call SurfaceFlinger 1022 f $saturation")
+                                                        cmd.append("service call SurfaceFlinger 1022 f $saturation; ")
+                                                        
+                                                        val matrix = when(currentFilterStr) {
+                                                            "EAGLE_EYE" -> "f 1.2 f 0.0 f 0.0 f 0.0 f 0.0 f 1.2 f 0.0 f 0.0 f 0.0 f 0.0 f 0.8 f 0.0 f 0.0 f 0.0 f 0.0 f 1.0"
+                                                            "NIGHT_VISION" -> "f 0.3 f 0.0 f 0.0 f 0.0 f 0.0 f 1.5 f 0.0 f 0.0 f 0.0 f 0.0 f 0.3 f 0.0 f 0.0 f 0.0 f 0.0 f 1.0"
+                                                            "WARM" -> "f 1.0 f 0.0 f 0.0 f 0.0 f 0.0 f 0.9 f 0.0 f 0.0 f 0.0 f 0.0 f 0.6 f 0.0 f 0.0 f 0.0 f 0.0 f 1.0"
+                                                            "CINEMATIC" -> "f 0.9 f 0.0 f 0.0 f 0.0 f 0.0 f 0.9 f 0.0 f 0.0 f 0.0 f 0.0 f 1.2 f 0.0 f 0.0 f 0.0 f 0.0 f 1.0"
+                                                            else -> null
+                                                        }
+                                                        
+                                                        if (matrix != null) {
+                                                            cmd.append("service call SurfaceFlinger 1015 i32 1 $matrix")
+                                                        } else {
+                                                            cmd.append("service call SurfaceFlinger 1015 i32 0")
+                                                        }
                                                     } else {
                                                         cmd.append("settings put secure accessibility_display_inversion_enabled 0; ")
                                                         cmd.append("settings put secure accessibility_display_daltonizer_enabled 0; ")
-                                                        cmd.append("service call SurfaceFlinger 1022 f 1.0")
+                                                        cmd.append("service call SurfaceFlinger 1022 f 1.0; ")
+                                                        cmd.append("service call SurfaceFlinger 1015 i32 0")
                                                     }
                                                     Runtime.getRuntime().exec(arrayOf("su", "-c", cmd.toString())).waitFor()
                                                 } catch (e: Exception) {}

@@ -31,9 +31,10 @@ enum class AyundaFilter(val title: String) {
     VIVID_MAX("Vivid+"),
     GRAYSCALE("B&W"),
     INVERT("Invert"),
-    PROTAN("Protan"),
-    DEUTAN("Deutan"),
-    TRITAN("Tritan")
+    EAGLE_EYE("Eagle Eye"),
+    NIGHT_VISION("Night Vis."),
+    WARM("Warm"),
+    CINEMATIC("Cinematic")
 }
 
 @Composable
@@ -57,10 +58,7 @@ fun AyundaMenu(themeColor: Color, onClose: () -> Unit) {
             try {
                 val cmd = java.lang.StringBuilder()
                 cmd.append("settings put secure accessibility_display_inversion_enabled ${if (filter == AyundaFilter.INVERT) 1 else 0}; ")
-                cmd.append("settings put secure accessibility_display_daltonizer_enabled ${if (filter == AyundaFilter.PROTAN || filter == AyundaFilter.DEUTAN || filter == AyundaFilter.TRITAN) 1 else 0}; ")
-                if (filter == AyundaFilter.PROTAN) cmd.append("settings put secure accessibility_display_daltonizer 1; ")
-                if (filter == AyundaFilter.DEUTAN) cmd.append("settings put secure accessibility_display_daltonizer 2; ")
-                if (filter == AyundaFilter.TRITAN) cmd.append("settings put secure accessibility_display_daltonizer 3; ")
+                cmd.append("settings put secure accessibility_display_daltonizer_enabled 0; ")
                 
                 val saturation = when(filter) {
                     AyundaFilter.VIVID -> 1.5f
@@ -68,7 +66,22 @@ fun AyundaMenu(themeColor: Color, onClose: () -> Unit) {
                     AyundaFilter.GRAYSCALE -> 0.0f
                     else -> 1.0f
                 }
-                cmd.append("service call SurfaceFlinger 1022 f $saturation")
+                cmd.append("service call SurfaceFlinger 1022 f $saturation; ")
+                
+                val matrix = when(filter) {
+                    AyundaFilter.EAGLE_EYE -> "f 1.2 f 0.0 f 0.0 f 0.0 f 0.0 f 1.2 f 0.0 f 0.0 f 0.0 f 0.0 f 0.8 f 0.0 f 0.0 f 0.0 f 0.0 f 1.0"
+                    AyundaFilter.NIGHT_VISION -> "f 0.3 f 0.0 f 0.0 f 0.0 f 0.0 f 1.5 f 0.0 f 0.0 f 0.0 f 0.0 f 0.3 f 0.0 f 0.0 f 0.0 f 0.0 f 1.0"
+                    AyundaFilter.WARM -> "f 1.0 f 0.0 f 0.0 f 0.0 f 0.0 f 0.9 f 0.0 f 0.0 f 0.0 f 0.0 f 0.6 f 0.0 f 0.0 f 0.0 f 0.0 f 1.0"
+                    AyundaFilter.CINEMATIC -> "f 0.9 f 0.0 f 0.0 f 0.0 f 0.0 f 0.9 f 0.0 f 0.0 f 0.0 f 0.0 f 1.2 f 0.0 f 0.0 f 0.0 f 0.0 f 1.0"
+                    else -> null
+                }
+                
+                if (matrix != null) {
+                    cmd.append("service call SurfaceFlinger 1015 i32 1 $matrix")
+                } else {
+                    cmd.append("service call SurfaceFlinger 1015 i32 0")
+                }
+                
                 Runtime.getRuntime().exec(arrayOf("su", "-c", cmd.toString())).waitFor()
             } catch (e: Exception) {}
         }
