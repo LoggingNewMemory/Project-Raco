@@ -256,12 +256,13 @@ build_modules() {
     echo "       Building Java Daemon      "
     echo "---------------------------------"
     echo "Compiling RacoFpsDaemon..."
-    # We use stubs.jar to provide Android framework classes for compilation
-    javac -source 1.8 -target 1.8 -cp "AppSource2/stubs.jar" "$SRC_DIR/RacoFpsDaemon.java"
-    d8 "$SRC_DIR/com/raco/RacoFpsDaemon.class" "$SRC_DIR/com/raco/RacoFpsDaemon\$1.class" "$SRC_DIR/com/raco/RacoFpsDaemon\$2.class" "$SRC_DIR/com/raco/RacoFpsDaemon\$3.class" "$SRC_DIR/com/raco/RacoFpsDaemon\$4.class" --output "$MODULES_DIR/CoreSys/"
+    mkdir -p "$SRC_DIR/classes"
+    SDK_PATH="${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}"
+    javac -source 1.8 -target 1.8 -cp "$SDK_PATH/platforms/android-34/android.jar:AppSource2/stubs.jar" -d "$SRC_DIR/classes" "$SRC_DIR/RacoFpsDaemon.java"
+    d8 "$SRC_DIR"/classes/com/raco/*.class --output "$MODULES_DIR/CoreSys/"
     mv "$MODULES_DIR/CoreSys/classes.dex" "$MODULES_DIR/CoreSys/raco_fps.dex"
     # Clean up class files
-    rm -f "$SRC_DIR/com/raco/"*.class
+    rm -rf "$SRC_DIR/classes"
 
     # ------------------------------------------
     # C. BUILD ANDROID APP
