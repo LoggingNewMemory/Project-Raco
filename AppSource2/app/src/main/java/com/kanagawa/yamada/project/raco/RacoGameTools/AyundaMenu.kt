@@ -119,6 +119,7 @@ fun AyundaMenu(themeColor: Color, onClose: () -> Unit) {
                         .clickable {
                             selectedFilter = filter
                             prefs.edit().putString("ayunda_filter", filter.name).apply()
+                            prefs.edit().putBoolean("is_ayunda_enabled", true).apply()
                             applyFilter(filter)
                         },
                     contentAlignment = Alignment.CenterStart
