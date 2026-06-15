@@ -1,43 +1,14 @@
-/*
-Project Raco - Real-Time FPS Counter
-Copyright (C) 2026 Kanagawa Yamada 
-*/
-
-#include "raco.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 int get_universal_fps(const char *pkg) {
-    char current_pkg[256] = {0};
-
-    if (pkg == NULL || pkg[0] == '\0' || strcmp(pkg, "SurfaceView") == 0) {
-        FILE *fp_focus = popen("dumpsys window | grep mCurrentFocus", "r");
-        if (fp_focus) {
-            char focus_line[512];
-            if (fgets(focus_line, sizeof(focus_line), fp_focus)) {
-                char *slash = strchr(focus_line, '/');
-                if (slash) {
-                    *slash = '\0';
-                    char *space = strrchr(focus_line, ' ');
-                    if (space) {
-                        strncpy(current_pkg, space + 1, sizeof(current_pkg) - 1);
-                    }
-                }
-            }
-            pclose(fp_focus);
-        }
-        
-        if (current_pkg[0] != '\0') {
-            pkg = current_pkg;
-        } else {
-            pkg = "SurfaceView";
-        }
+    if (pkg == NULL || pkg[0] == '\0') {
+        pkg = "SurfaceView";
     }
 
     char cmd_list[512];
-    snprintf(cmd_list, sizeof(cmd_list), "dumpsys SurfaceFlinger --list | grep -i '%s'", pkg);
+    snprintf(cmd_list, sizeof(cmd_list), "adb shell dumpsys SurfaceFlinger --list | grep -i '%s'", pkg);
     FILE *fp_list = popen(cmd_list, "r");
     if (!fp_list) return 0;
 
@@ -66,7 +37,8 @@ int get_universal_fps(const char *pkg) {
         }
 
         char cmd[512];
-        snprintf(cmd, sizeof(cmd), "dumpsys SurfaceFlinger --latency \"%s\"", layer_name);
+        snprintf(cmd, sizeof(cmd), "adb shell dumpsys SurfaceFlinger --latency \\\"%s\\\"", layer_name);
+        printf("Checking layer: %s\n", layer_name);
         FILE *fp = popen(cmd, "r");
         if (!fp) continue;
 
@@ -88,8 +60,6 @@ int get_universal_fps(const char *pkg) {
         }
         pclose(fp);
 
-        // Count frames within 1 second of the most recent frame
-        // This is clock-agnostic: no dependency on CLOCK_MONOTONIC vs CLOCK_BOOTTIME
         if (ts_count > 0 && latest > 0) {
             long long cutoff = latest - 1000000000LL;
             int layer_fps = 0;
@@ -98,6 +68,7 @@ int get_universal_fps(const char *pkg) {
                     layer_fps++;
                 }
             }
+            printf("Layer: %s, FPS: %d\n", layer_name, layer_fps);
             if (layer_fps > max_fps) {
                 max_fps = layer_fps;
             }
@@ -107,4 +78,9 @@ int get_universal_fps(const char *pkg) {
 
     if (max_fps > 144) max_fps = 144;
     return max_fps;
+}
+
+int main() {
+    printf("FPS for com.netease.newspike: %d\n", get_universal_fps("com.netease.newspike"));
+    return 0;
 }
