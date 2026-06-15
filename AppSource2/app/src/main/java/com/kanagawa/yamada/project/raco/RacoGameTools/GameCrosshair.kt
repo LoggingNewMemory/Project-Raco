@@ -90,33 +90,35 @@ class GameCrosshairService : Service() {
 
         crosshairView = ComposeView(this).apply {
             setContent {
-                val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
-                var size by remember { mutableStateOf(prefs.getFloat("crosshair_size", 50f)) }
-                var opacity by remember { mutableStateOf(prefs.getFloat("crosshair_opacity", 1f)) }
-                var selectedStyle by remember { mutableStateOf(prefs.getInt("crosshair_style", 0)) }
-                var selectedColorIndex by remember { mutableStateOf(prefs.getInt("crosshair_color_index", 0)) }
+                com.kanagawa.yamada.project.raco.ScaleTabletUI {
+                    val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+                    var size by remember { mutableStateOf(prefs.getFloat("crosshair_size", 50f)) }
+                    var opacity by remember { mutableStateOf(prefs.getFloat("crosshair_opacity", 1f)) }
+                    var selectedStyle by remember { mutableStateOf(prefs.getInt("crosshair_style", 0)) }
+                    var selectedColorIndex by remember { mutableStateOf(prefs.getInt("crosshair_color_index", 0)) }
 
-                DisposableEffect(Unit) {
-                    val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
-                        if (key == "crosshair_size") size = sharedPreferences.getFloat(key, 50f)
-                        if (key == "crosshair_opacity") opacity = sharedPreferences.getFloat(key, 1f)
-                        if (key == "crosshair_style") selectedStyle = sharedPreferences.getInt(key, 0)
-                        if (key == "crosshair_color_index") selectedColorIndex = sharedPreferences.getInt(key, 0)
+                    DisposableEffect(Unit) {
+                        val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+                            if (key == "crosshair_size") size = sharedPreferences.getFloat(key, 50f)
+                            if (key == "crosshair_opacity") opacity = sharedPreferences.getFloat(key, 1f)
+                            if (key == "crosshair_style") selectedStyle = sharedPreferences.getInt(key, 0)
+                            if (key == "crosshair_color_index") selectedColorIndex = sharedPreferences.getInt(key, 0)
+                        }
+                        prefs.registerOnSharedPreferenceChangeListener(listener)
+                        onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
                     }
-                    prefs.registerOnSharedPreferenceChangeListener(listener)
-                    onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
-                }
 
-                val colorOptions = listOf(Color.White, Color.Red, Color.Green, Color.Blue, Color.Yellow)
-                val activeColor = colorOptions.getOrElse(selectedColorIndex) { Color.White }
+                    val colorOptions = listOf(Color.White, Color.Red, Color.Green, Color.Blue, Color.Yellow)
+                    val activeColor = colorOptions.getOrElse(selectedColorIndex) { Color.White }
 
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = CrosshairData.getCrosshair(selectedStyle),
-                        contentDescription = "Crosshair",
-                        tint = activeColor.copy(alpha = opacity),
-                        modifier = Modifier.size(size.dp)
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = CrosshairData.getCrosshair(selectedStyle),
+                            contentDescription = "Crosshair",
+                            tint = activeColor.copy(alpha = opacity),
+                            modifier = Modifier.size(size.dp)
+                        )
+                    }
                 }
             }
         }

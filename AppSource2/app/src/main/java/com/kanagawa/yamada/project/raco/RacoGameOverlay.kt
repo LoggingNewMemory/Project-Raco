@@ -395,7 +395,13 @@ fun RacoLeftPanel(
                     onClose = { leftMenuState = "MAIN" }
                 )
             } else {
+                val configuration = LocalConfiguration.current
+                val isTablet = configuration.smallestScreenWidthDp >= 600
+                val topSpacerHeight = if (isTablet) 48.dp else 0.dp
+                val labelFontSize = if (isTablet) 8.sp else 12.sp
+
                 Column(modifier = Modifier.fillMaxSize()) {
+                    Spacer(modifier = Modifier.height(topSpacerHeight))
                     // CPU Monitor
             Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -479,7 +485,8 @@ fun RacoLeftPanel(
             // Brightness Slider
             val density = LocalDensity.current
             val configuration = LocalConfiguration.current
-            val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+            val context = LocalContext.current
+            val screenHeightPx = context.resources.displayMetrics.heightPixels.toFloat()
             val panelWidthPx = with(density) { 260.dp.toPx() }
             val slope = if (screenHeightPx > 0) (0.42f * panelWidthPx) / (0.9f * screenHeightPx) else 0.4f
 
@@ -597,7 +604,7 @@ fun RacoLeftPanel(
                                     Text(
                                         text = "Crosshair",
                                         color = contentAnimColor,
-                                        fontSize = 12.sp,
+                                        fontSize = labelFontSize,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -727,7 +734,7 @@ fun RacoLeftPanel(
                                     Text(
                                         text = "Ayunda",
                                         color = ayundaContentAnimColor,
-                                        fontSize = 12.sp,
+                                        fontSize = labelFontSize,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -837,7 +844,7 @@ fun RacoLeftPanel(
                                     Text(
                                         text = "Aux Line",
                                         color = auxLineContentAnimColor,
-                                        fontSize = 12.sp,
+                                        fontSize = labelFontSize,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -1062,7 +1069,12 @@ fun RacoRightPanel(
                         onRateSelected = { currentRefreshRate = it }
                     )
                 } else {
+                    val configuration = LocalConfiguration.current
+                    val isTablet = configuration.smallestScreenWidthDp >= 600
+                    val topSpacerHeight = if (isTablet) 48.dp else 0.dp
+
                     Column(horizontalAlignment = Alignment.End) {
+                        Spacer(modifier = Modifier.height(topSpacerHeight))
                         AutoSizeText("PROJECT", color = themeColor, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
                         AutoSizeText("RACO", color = Color.White, baseFontSize = 28f, fontWeight = FontWeight.Light, letterSpacing = 2.sp)
                         Spacer(modifier = Modifier.height(8.dp))
@@ -1080,7 +1092,8 @@ fun RacoRightPanel(
                 }
             }
             
-            val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+            val context = LocalContext.current
+            val screenHeightPx = context.resources.displayMetrics.heightPixels.toFloat()
             val panelWidthPx = with(density) { 260.dp.toPx() }
             val slope = if (screenHeightPx > 0) (0.42f * panelWidthPx) / (0.9f * screenHeightPx) else 0.4f
 

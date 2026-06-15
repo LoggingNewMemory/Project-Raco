@@ -58,37 +58,39 @@ class GameAuxLineService : Service() {
 
         auxLineView = ComposeView(this).apply {
             setContent {
-                val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
-                var preset by remember { mutableStateOf(prefs.getInt("auxline_preset", 0)) }
-                var width by remember { mutableStateOf(prefs.getFloat("auxline_${preset}_width", 200f)) }
-                var height by remember { mutableStateOf(prefs.getFloat("auxline_${preset}_height", 200f)) }
-                var opacity by remember { mutableStateOf(prefs.getFloat("auxline_${preset}_opacity", 1f)) }
-                var colorIndex by remember { mutableStateOf(prefs.getInt("auxline_${preset}_color", 0)) }
+                com.kanagawa.yamada.project.raco.ScaleTabletUI {
+                    val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+                    var preset by remember { mutableStateOf(prefs.getInt("auxline_preset", 0)) }
+                    var width by remember { mutableStateOf(prefs.getFloat("auxline_${preset}_width", 200f)) }
+                    var height by remember { mutableStateOf(prefs.getFloat("auxline_${preset}_height", 200f)) }
+                    var opacity by remember { mutableStateOf(prefs.getFloat("auxline_${preset}_opacity", 1f)) }
+                    var colorIndex by remember { mutableStateOf(prefs.getInt("auxline_${preset}_color", 0)) }
 
-                DisposableEffect(Unit) {
-                    val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
-                        if (key != null && (key == "auxline_preset" || key.startsWith("auxline_"))) {
-                            val p = sharedPreferences.getInt("auxline_preset", 0)
-                            preset = p
-                            width = sharedPreferences.getFloat("auxline_${p}_width", 200f)
-                            height = sharedPreferences.getFloat("auxline_${p}_height", 200f)
-                            opacity = sharedPreferences.getFloat("auxline_${p}_opacity", 1f)
-                            colorIndex = sharedPreferences.getInt("auxline_${p}_color", 0)
+                    DisposableEffect(Unit) {
+                        val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+                            if (key != null && (key == "auxline_preset" || key.startsWith("auxline_"))) {
+                                val p = sharedPreferences.getInt("auxline_preset", 0)
+                                preset = p
+                                width = sharedPreferences.getFloat("auxline_${p}_width", 200f)
+                                height = sharedPreferences.getFloat("auxline_${p}_height", 200f)
+                                opacity = sharedPreferences.getFloat("auxline_${p}_opacity", 1f)
+                                colorIndex = sharedPreferences.getInt("auxline_${p}_color", 0)
+                            }
                         }
+                        prefs.registerOnSharedPreferenceChangeListener(listener)
+                        onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
                     }
-                    prefs.registerOnSharedPreferenceChangeListener(listener)
-                    onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
-                }
 
-                val colorOptions = listOf(Color.White, Color.Red, Color.Green, Color.Blue)
-                val activeColor = colorOptions.getOrElse(colorIndex) { Color.White }
+                    val colorOptions = listOf(Color.White, Color.Red, Color.Green, Color.Blue)
+                    val activeColor = colorOptions.getOrElse(colorIndex) { Color.White }
 
-                Box(contentAlignment = Alignment.Center) {
-                    Canvas(modifier = Modifier.size(width.dp, height.dp)) {
-                        drawOval(
-                            color = activeColor.copy(alpha = opacity),
-                            style = Stroke(width = 3f.dp.toPx())
-                        )
+                    Box(contentAlignment = Alignment.Center) {
+                        Canvas(modifier = Modifier.size(width.dp, height.dp)) {
+                            drawOval(
+                                color = activeColor.copy(alpha = opacity),
+                                style = Stroke(width = 3f.dp.toPx())
+                            )
+                        }
                     }
                 }
             }
@@ -169,7 +171,7 @@ fun AuxLineMenu(themeColor: Color, onClose: () -> Unit) {
             // Presets
             Text("PRESET", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Light)
             Spacer(modifier = Modifier.height(4.dp))
-            Row(modifier = Modifier.fillMaxWidth(0.7f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(modifier = Modifier.widthIn(max = 280.dp).fillMaxWidth(0.7f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (i in 0..2) {
                     Box(
                         modifier = Modifier
@@ -200,7 +202,7 @@ fun AuxLineMenu(themeColor: Color, onClose: () -> Unit) {
                 },
                 valueRange = 20f..800f,
                 colors = SliderDefaults.colors(thumbColor = Color.White, activeTrackColor = themeColor),
-                modifier = Modifier.fillMaxWidth(0.95f).height(32.dp).padding(end = 16.dp)
+                modifier = Modifier.widthIn(max = 300.dp).fillMaxWidth(0.95f).height(32.dp).padding(end = 16.dp)
             )
 
             Text("HEIGHT", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Light)
@@ -212,7 +214,7 @@ fun AuxLineMenu(themeColor: Color, onClose: () -> Unit) {
                 },
                 valueRange = 20f..800f,
                 colors = SliderDefaults.colors(thumbColor = Color.White, activeTrackColor = themeColor),
-                modifier = Modifier.fillMaxWidth(0.95f).height(32.dp).padding(end = 16.dp)
+                modifier = Modifier.widthIn(max = 300.dp).fillMaxWidth(0.95f).height(32.dp).padding(end = 16.dp)
             )
 
 
@@ -226,7 +228,7 @@ fun AuxLineMenu(themeColor: Color, onClose: () -> Unit) {
                 },
                 valueRange = 0.1f..1f,
                 colors = SliderDefaults.colors(thumbColor = Color.White, activeTrackColor = themeColor),
-                modifier = Modifier.fillMaxWidth(0.95f).height(32.dp).padding(end = 16.dp)
+                modifier = Modifier.widthIn(max = 300.dp).fillMaxWidth(0.95f).height(32.dp).padding(end = 16.dp)
             )
             
             Spacer(modifier = Modifier.height(4.dp))

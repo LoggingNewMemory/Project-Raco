@@ -34,10 +34,12 @@ class GameOverlayService : Service() {
     private fun showOverlay() {
         composeView = ComposeView(this).apply {
             setContent {
-                GameEntranceOverlay(onAnimComplete = {
-                    com.kanagawa.yamada.project.raco.RacoGameTools.RacoToolHandler.restoreSavedTools(this@GameOverlayService)
-                    stopSelf()
-                })
+                ScaleTabletUI {
+                    GameEntranceOverlay(onAnimComplete = {
+                        com.kanagawa.yamada.project.raco.RacoGameTools.RacoToolHandler.restoreSavedTools(this@GameOverlayService)
+                        stopSelf()
+                    })
+                }
             }
         }
 

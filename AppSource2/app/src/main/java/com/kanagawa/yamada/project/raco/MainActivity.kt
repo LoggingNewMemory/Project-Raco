@@ -60,8 +60,9 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            ProjectRacoTheme {
-                var currentScreen by remember { mutableStateOf(ScreenState.CHECKING_ROOT) }
+            ScaleTabletUI {
+                ProjectRacoTheme {
+                    var currentScreen by remember { mutableStateOf(ScreenState.CHECKING_ROOT) }
 
                 LaunchedEffect(Unit) {
                     val isRooted = checkRootAccess()
@@ -95,6 +96,7 @@ class MainActivity : ComponentActivity() {
                             HomeScreen()
                         }
                     }
+                }
                 }
             }
         }

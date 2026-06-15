@@ -111,6 +111,7 @@ fun AyundaMenu(themeColor: Color, onClose: () -> Unit) {
                 val isSelected = selectedFilter == filter
                 Box(
                     modifier = Modifier
+                        .widthIn(max = 280.dp)
                         .fillMaxWidth(0.75f)
                         .height(36.dp)
                         .clip(RoundedCornerShape(8.dp))

@@ -91,7 +91,9 @@ class FloatingInfoService : Service() {
 
         composeView = ComposeView(this).apply {
             setContent {
-                InfoWidgetContent(startTimeMillis)
+                ScaleTabletUI {
+                    InfoWidgetContent(startTimeMillis)
+                }
             }
             setOnTouchListener { view, event ->
                 when (event.action) {

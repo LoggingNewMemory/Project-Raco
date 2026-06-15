@@ -106,18 +106,20 @@ class InGameMenuService : Service() {
     private fun setupMainOverlay() {
         mainComposeView = ComposeView(this).apply {
             setContent {
-                RacoGameOverlay(
-                    targetPackageName = targetPackageName,
-                    onStateBind = { openLeft, openRight ->
-                        openLeftMenu = openLeft
-                        openRightMenu = openRight
-                    },
-                    onClose = {
-                        isLeftOpen = false
-                        isRightOpen = false
-                        updateMainOverlayTouchable()
-                    }
-                )
+                ScaleTabletUI {
+                    RacoGameOverlay(
+                        targetPackageName = targetPackageName,
+                        onStateBind = { openLeft, openRight ->
+                            openLeftMenu = openLeft
+                            openRightMenu = openRight
+                        },
+                        onClose = {
+                            isLeftOpen = false
+                            isRightOpen = false
+                            updateMainOverlayTouchable()
+                        }
+                    )
+                }
             }
         }
 
@@ -145,20 +147,22 @@ class InGameMenuService : Service() {
         // Left Trigger
         leftTriggerView = ComposeView(this).apply {
             setContent {
-                Box(modifier = Modifier.fillMaxSize().background(Color.Transparent).pointerInput(Unit) {
-                    detectHorizontalDragGestures { _, dragAmount ->
-                        if (dragAmount > 10 && !isLeftOpen && !isRightOpen) {
-                            isLeftOpen = true
-                            isRightOpen = true
-                            updateMainOverlayTouchable()
-                            openLeftMenu?.invoke()
-                            openRightMenu?.invoke()
+                ScaleTabletUI {
+                    Box(modifier = Modifier.fillMaxSize().background(Color.Transparent).pointerInput(Unit) {
+                        detectHorizontalDragGestures { _, dragAmount ->
+                            if (dragAmount > 10 && !isLeftOpen && !isRightOpen) {
+                                isLeftOpen = true
+                                isRightOpen = true
+                                updateMainOverlayTouchable()
+                                openLeftMenu?.invoke()
+                                openRightMenu?.invoke()
+                            }
                         }
-                    }
-                }) {
-                    if (!isLeftOpen && !isRightOpen) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterStart) {
-                            Box(modifier = Modifier.width(4.dp).height(64.dp).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                    }) {
+                        if (!isLeftOpen && !isRightOpen) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterStart) {
+                                Box(modifier = Modifier.width(4.dp).height(64.dp).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                            }
                         }
                     }
                 }
@@ -183,20 +187,22 @@ class InGameMenuService : Service() {
         // Right Trigger
         rightTriggerView = ComposeView(this).apply {
             setContent {
-                Box(modifier = Modifier.fillMaxSize().background(Color.Transparent).pointerInput(Unit) {
-                    detectHorizontalDragGestures { _, dragAmount ->
-                        if (dragAmount < -10 && !isLeftOpen && !isRightOpen) {
-                            isLeftOpen = true
-                            isRightOpen = true
-                            updateMainOverlayTouchable()
-                            openLeftMenu?.invoke()
-                            openRightMenu?.invoke()
+                ScaleTabletUI {
+                    Box(modifier = Modifier.fillMaxSize().background(Color.Transparent).pointerInput(Unit) {
+                        detectHorizontalDragGestures { _, dragAmount ->
+                            if (dragAmount < -10 && !isLeftOpen && !isRightOpen) {
+                                isLeftOpen = true
+                                isRightOpen = true
+                                updateMainOverlayTouchable()
+                                openLeftMenu?.invoke()
+                                openRightMenu?.invoke()
+                            }
                         }
-                    }
-                }) {
-                    if (!isLeftOpen && !isRightOpen) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
-                            Box(modifier = Modifier.width(4.dp).height(64.dp).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                    }) {
+                        if (!isLeftOpen && !isRightOpen) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
+                                Box(modifier = Modifier.width(4.dp).height(64.dp).background(Color.White.copy(alpha=0.4f), RoundedCornerShape(2.dp)))
+                            }
                         }
                     }
                 }
