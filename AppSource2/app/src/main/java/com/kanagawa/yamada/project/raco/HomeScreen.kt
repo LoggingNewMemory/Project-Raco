@@ -98,6 +98,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
@@ -429,6 +430,7 @@ fun HomeScreen() {
                                                     color = Color.White,
                                                     fontSize = 32.sp,
                                                     fontWeight = FontWeight.Bold,
+                                                    textAlign = TextAlign.End,
                                                     maxLines = 2,
                                                     overflow = TextOverflow.Ellipsis
                                                 )
@@ -438,6 +440,7 @@ fun HomeScreen() {
                                                     color = activeGradientMode.color,
                                                     fontSize = 32.sp,
                                                     fontWeight = FontWeight.Bold,
+                                                    textAlign = TextAlign.End,
                                                     maxLines = 2,
                                                     overflow = TextOverflow.Ellipsis,
                                                     modifier = Modifier.drawWithContent {
@@ -632,7 +635,7 @@ fun GameListItem(game: Game, isSelected: Boolean, accentColor: Color, onClick: (
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
-                overflow = TextOverflow.Visible
+                overflow = TextOverflow.Ellipsis
             )
 
             AnimatedVisibility(
