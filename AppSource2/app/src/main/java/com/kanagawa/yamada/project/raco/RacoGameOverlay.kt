@@ -448,49 +448,67 @@ fun RacoLeftPanel(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.CenterEnd
             ) {
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    modifier = Modifier.wrapContentWidth()
+                Row(
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    TriangleSlider(
-                        value = brightnessRatio,
-                        onValueChange = { newValue ->
-                            val newBrightness = (newValue * 255).roundToInt().coerceIn(0, 255)
-                            if (newBrightness != currentBrightness) {
-                                currentBrightness = newBrightness
-                                try {
-                                    android.provider.Settings.System.putInt(
-                                        context.contentResolver,
-                                        android.provider.Settings.System.SCREEN_BRIGHTNESS,
-                                        newBrightness
-                                    )
-                                } catch (e: Exception) {
-                                    Thread {
-                                        try {
-                                            Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system screen_brightness $newBrightness")).waitFor()
-                                        } catch (ex: Exception) {}
-                                    }.start()
-                                }
-                            }
-                        },
-                        activeColor = themeColor,
-                        inactiveColor = Color.White.copy(alpha = 0.2f),
-                        maxWidth = 35.dp,
-                        minWidth = dynamicMinWidth,
-                        barHeight = 4.2.dp,
-                        spacing = 2.1.dp,
-                        steps = 14,
-                        alignRight = false
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    androidx.compose.material3.Icon(
-                        imageVector = Icons.Filled.BrightnessHigh,
-                        contentDescription = "Brightness",
-                        tint = themeColor,
+                    // Gradient Separator Line
+                    Box(
                         modifier = Modifier
-                            .offset(x = (-8).dp)
-                            .size(18.dp)
+                            .padding(end = 16.dp)
+                            .width(2.dp)
+                            .height(86.dp)
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(Color.White, themeColor)
+                                )
+                            )
                     )
+
+                    Column(
+                        horizontalAlignment = Alignment.Start,
+                        modifier = Modifier.wrapContentWidth()
+                    ) {
+                        TriangleSlider(
+                            value = brightnessRatio,
+                            onValueChange = { newValue ->
+                                val newBrightness = (newValue * 255).roundToInt().coerceIn(0, 255)
+                                if (newBrightness != currentBrightness) {
+                                    currentBrightness = newBrightness
+                                    try {
+                                        android.provider.Settings.System.putInt(
+                                            context.contentResolver,
+                                            android.provider.Settings.System.SCREEN_BRIGHTNESS,
+                                            newBrightness
+                                        )
+                                    } catch (e: Exception) {
+                                        Thread {
+                                            try {
+                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system screen_brightness $newBrightness")).waitFor()
+                                            } catch (ex: Exception) {}
+                                        }.start()
+                                    }
+                                }
+                            },
+                            activeColor = themeColor,
+                            inactiveColor = Color.White.copy(alpha = 0.2f),
+                            maxWidth = 35.dp,
+                            minWidth = dynamicMinWidth,
+                            barHeight = 4.2.dp,
+                            spacing = 2.1.dp,
+                            steps = 14,
+                            alignRight = false
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        androidx.compose.material3.Icon(
+                            imageVector = Icons.Filled.BrightnessHigh,
+                            contentDescription = "Brightness",
+                            tint = themeColor,
+                            modifier = Modifier
+                                .offset(x = (-8).dp)
+                                .size(18.dp)
+                        )
+                    }
                 }
             }
             
@@ -731,44 +749,66 @@ fun RacoRightPanel(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
+                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.Top
             ) {
                 // Volume Slider Column
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    modifier = Modifier.wrapContentWidth()
+                Box(
+                    modifier = Modifier.wrapContentWidth(),
+                    contentAlignment = Alignment.TopStart
                 ) {
-                    TriangleSlider(
-                        value = volumeRatio,
-                        onValueChange = { newValue ->
-                            val newVol = (newValue * maxVolume).roundToInt()
-                            if (newVol != currentVolume) {
-                                audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, newVol, 0)
-                                currentVolume = newVol
-                            }
-                        },
-                        activeColor = themeColor,
-                        inactiveColor = Color.White.copy(alpha = 0.2f),
-                        maxWidth = 35.dp,
-                        minWidth = dynamicMinWidth,
-                        barHeight = 4.2.dp,
-                        spacing = 2.1.dp,
-                        steps = 14,
-                        alignRight = true
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    androidx.compose.material3.Icon(
-                        imageVector = Icons.Filled.VolumeUp,
-                        contentDescription = "Volume",
-                        tint = themeColor,
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        modifier = Modifier.wrapContentWidth()
+                    ) {
+                        TriangleSlider(
+                            value = volumeRatio,
+                            onValueChange = { newValue ->
+                                val newVol = (newValue * maxVolume).roundToInt()
+                                if (newVol != currentVolume) {
+                                    audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, newVol, 0)
+                                    currentVolume = newVol
+                                }
+                            },
+                            activeColor = themeColor,
+                            inactiveColor = Color.White.copy(alpha = 0.2f),
+                            maxWidth = 35.dp,
+                            minWidth = dynamicMinWidth,
+                            barHeight = 4.2.dp,
+                            spacing = 2.1.dp,
+                            steps = 14,
+                            alignRight = true
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        androidx.compose.material3.Icon(
+                            imageVector = Icons.Filled.VolumeUp,
+                            contentDescription = "Volume",
+                            tint = themeColor,
+                            modifier = Modifier
+                                .offset(x = 8.dp)
+                                .size(20.dp)
+                        )
+                    }
+                }
+                
+                // Centered Glowing Separator Line
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(86.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
                         modifier = Modifier
-                            .offset(x = 8.dp)
-                            .size(20.dp)
+                            .width(2.dp)
+                            .fillMaxHeight()
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(Color.White, themeColor)
+                                )
+                            )
                     )
                 }
-
-                Spacer(modifier = Modifier.width(16.dp))
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     OverlayInfo(themeColor = themeColor)
