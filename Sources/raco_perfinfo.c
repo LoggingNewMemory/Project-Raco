@@ -8,25 +8,84 @@ Copyright (C) 2026 Kanagawa Yamada
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+
+int str_contains_nocase(const char *haystack, const char *needle) {
+    if (!haystack || !needle) return 0;
+    size_t h_len = strlen(haystack);
+    size_t n_len = strlen(needle);
+    if (n_len == 0) return 1;
+    if (h_len < n_len) return 0;
+    for (size_t i = 0; i <= h_len - n_len; i++) {
+        if (strncasecmp(haystack + i, needle, n_len) == 0) return 1;
+    }
+    return 0;
+}
+
+typedef struct {
+    FILE *fp;
+    pid_t pid;
+} FastPipe;
+
+FastPipe popen_dumpsys(const char *arg1, const char *arg2, const char *arg3) {
+    FastPipe p = {NULL, -1};
+    int fd[2];
+    if (pipe(fd) < 0) return p;
+    pid_t pid = fork();
+    if (pid == 0) {
+        close(fd[0]);
+        dup2(fd[1], STDOUT_FILENO);
+        close(fd[1]);
+        
+        int null_fd = open("/dev/null", O_WRONLY);
+        if (null_fd >= 0) {
+            dup2(null_fd, STDERR_FILENO);
+            close(null_fd);
+        }
+
+        if (arg3) {
+            execl("/system/bin/dumpsys", "dumpsys", arg1, arg2, arg3, NULL);
+        } else if (arg2) {
+            execl("/system/bin/dumpsys", "dumpsys", arg1, arg2, NULL);
+        } else {
+            execl("/system/bin/dumpsys", "dumpsys", arg1, NULL);
+        }
+        exit(1);
+    }
+    close(fd[1]);
+    p.fp = fdopen(fd[0], "r");
+    p.pid = pid;
+    return p;
+}
+
+void pclose_dumpsys(FastPipe p) {
+    if (p.fp) fclose(p.fp);
+    if (p.pid > 0) waitpid(p.pid, NULL, 0);
+}
 
 int get_universal_fps(const char *pkg) {
     char current_pkg[256] = {0};
 
     if (pkg == NULL || pkg[0] == '\0' || strcmp(pkg, "SurfaceView") == 0) {
-        FILE *fp_focus = popen("dumpsys window | grep mCurrentFocus", "r");
-        if (fp_focus) {
+        FastPipe fp_focus = popen_dumpsys("window", "displays", NULL);
+        if (fp_focus.fp) {
             char focus_line[512];
-            if (fgets(focus_line, sizeof(focus_line), fp_focus)) {
-                char *slash = strchr(focus_line, '/');
-                if (slash) {
-                    *slash = '\0';
-                    char *space = strrchr(focus_line, ' ');
-                    if (space) {
-                        strncpy(current_pkg, space + 1, sizeof(current_pkg) - 1);
+            while (fgets(focus_line, sizeof(focus_line), fp_focus.fp)) {
+                if (strstr(focus_line, "mCurrentFocus")) {
+                    char *slash = strchr(focus_line, '/');
+                    if (slash) {
+                        *slash = '\0';
+                        char *space = strrchr(focus_line, ' ');
+                        if (space) {
+                            strncpy(current_pkg, space + 1, sizeof(current_pkg) - 1);
+                        }
                     }
+                    break;
                 }
             }
-            pclose(fp_focus);
+            pclose_dumpsys(fp_focus);
         }
         
         if (current_pkg[0] != '\0') {
@@ -36,17 +95,16 @@ int get_universal_fps(const char *pkg) {
         }
     }
 
-    char cmd_list[512];
-    snprintf(cmd_list, sizeof(cmd_list), "dumpsys SurfaceFlinger --list | grep -i '%s'", pkg);
-    FILE *fp_list = popen(cmd_list, "r");
-    if (!fp_list) return 0;
+    FastPipe fp_list = popen_dumpsys("SurfaceFlinger", "--list", NULL);
+    if (!fp_list.fp) return 0;
 
     int max_fps = 0;
     char layer_name[256];
 
-    while (fgets(layer_name, sizeof(layer_name), fp_list)) {
+    while (fgets(layer_name, sizeof(layer_name), fp_list.fp)) {
         layer_name[strcspn(layer_name, "\r\n")] = '\0';
         if (layer_name[0] == '\0') continue;
+        if (!str_contains_nocase(layer_name, pkg)) continue;
 
         if (strncmp(layer_name, "RequestedLayerState{", 20) == 0) {
             char *start = layer_name + 20;
@@ -65,19 +123,17 @@ int get_universal_fps(const char *pkg) {
             memmove(layer_name, start, strlen(start) + 1);
         }
 
-        char cmd[512];
-        snprintf(cmd, sizeof(cmd), "dumpsys SurfaceFlinger --latency \"%s\"", layer_name);
-        FILE *fp = popen(cmd, "r");
-        if (!fp) continue;
+        FastPipe fp = popen_dumpsys("SurfaceFlinger", "--latency", layer_name);
+        if (!fp.fp) continue;
 
         char line[256];
         long long timestamps[128];
         int ts_count = 0;
         long long latest = 0;
 
-        if (fgets(line, sizeof(line), fp)) { // skip refresh period
+        if (fgets(line, sizeof(line), fp.fp)) { // skip refresh period
             long long t1, t2, t3;
-            while (fgets(line, sizeof(line), fp) && ts_count < 128) {
+            while (fgets(line, sizeof(line), fp.fp) && ts_count < 128) {
                 if (sscanf(line, "%lld\t%lld\t%lld", &t1, &t2, &t3) == 3) {
                     if (t2 != 0 && t2 != 9223372036854775807LL) {
                         timestamps[ts_count++] = t2;
@@ -86,10 +142,8 @@ int get_universal_fps(const char *pkg) {
                 }
             }
         }
-        pclose(fp);
+        pclose_dumpsys(fp);
 
-        // Count frames within 1 second of the most recent frame
-        // This is clock-agnostic: no dependency on CLOCK_MONOTONIC vs CLOCK_BOOTTIME
         if (ts_count > 0 && latest > 0) {
             long long cutoff = latest - 1000000000LL;
             int layer_fps = 0;
@@ -103,7 +157,7 @@ int get_universal_fps(const char *pkg) {
             }
         }
     }
-    pclose(fp_list);
+    pclose_dumpsys(fp_list);
 
     if (max_fps > 144) max_fps = 144;
     return max_fps;
