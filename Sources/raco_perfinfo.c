@@ -97,7 +97,7 @@ int get_universal_fps(const char *pkg) {
             pclose_dumpsys(fp);
             if (ts_count > 0 && latest > 0) {
                 struct timespec ts;
-                clock_gettime(CLOCK_MONOTONIC, &ts);
+                clock_gettime(CLOCK_BOOTTIME, &ts);
                 long long now_ns = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
                 long long cutoff = now_ns - 1000000000LL;
                 
@@ -204,7 +204,7 @@ int get_universal_fps(const char *pkg) {
 
         if (ts_count > 0 && latest > 0) {
             struct timespec ts;
-            clock_gettime(CLOCK_MONOTONIC, &ts);
+            clock_gettime(CLOCK_BOOTTIME, &ts);
             long long now_ns = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
             long long cutoff = now_ns - 1000000000LL;
             
