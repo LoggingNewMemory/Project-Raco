@@ -431,6 +431,7 @@ fun HomeScreen() {
                                                     fontSize = 32.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     textAlign = TextAlign.End,
+                                                    lineHeight = 40.sp,
                                                     maxLines = 2,
                                                     overflow = TextOverflow.Ellipsis
                                                 )
@@ -441,6 +442,7 @@ fun HomeScreen() {
                                                     fontSize = 32.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     textAlign = TextAlign.End,
+                                                    lineHeight = 40.sp,
                                                     maxLines = 2,
                                                     overflow = TextOverflow.Ellipsis,
                                                     modifier = Modifier.drawWithContent {
