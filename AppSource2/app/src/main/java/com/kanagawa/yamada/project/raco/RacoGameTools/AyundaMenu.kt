@@ -78,7 +78,7 @@ fun AyundaMenu(themeColor: Color, onClose: () -> Unit) {
                 
                 if (matrix != null) {
                     cmd.append("service call SurfaceFlinger 1015 i32 1 $matrix")
-                } else {
+                } else if (filter != AyundaFilter.INVERT) {
                     cmd.append("service call SurfaceFlinger 1015 i32 0")
                 }
                 
@@ -119,7 +119,7 @@ fun AyundaMenu(themeColor: Color, onClose: () -> Unit) {
                         .clickable {
                             selectedFilter = filter
                             prefs.edit().putString("ayunda_filter", filter.name).apply()
-                            prefs.edit().putBoolean("is_ayunda_enabled", true).apply()
+                            prefs.edit().putBoolean("is_ayunda_enabled", filter != AyundaFilter.NORMAL).apply()
                             applyFilter(filter)
                         },
                     contentAlignment = Alignment.CenterStart

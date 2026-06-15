@@ -123,7 +123,7 @@ class InGameMenuService : Service() {
                     }
                     if (matrix != null) {
                         cmd.append("service call SurfaceFlinger 1015 i32 1 $matrix")
-                    } else {
+                    } else if (filterName != "INVERT") {
                         cmd.append("service call SurfaceFlinger 1015 i32 0")
                     }
                     Runtime.getRuntime().exec(arrayOf("su", "-c", cmd.toString())).waitFor()

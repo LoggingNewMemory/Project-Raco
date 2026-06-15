@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -655,7 +656,11 @@ fun RacoLeftPanel(
                                                 try {
                                                     val cmd = java.lang.StringBuilder()
                                                     if (isAyundaOn) {
-                                                        val currentFilterStr = prefs.getString("ayunda_filter", "NORMAL") ?: "NORMAL"
+                                                        var currentFilterStr = prefs.getString("ayunda_filter", "NORMAL") ?: "NORMAL"
+                                                        if (currentFilterStr == "NORMAL") {
+                                                            currentFilterStr = "VIVID"
+                                                            prefs.edit().putString("ayunda_filter", "VIVID").apply()
+                                                        }
                                                         cmd.append("settings put secure accessibility_display_inversion_enabled ${if (currentFilterStr == "INVERT") 1 else 0}; ")
                                                         cmd.append("settings put secure accessibility_display_daltonizer_enabled 0; ")
                                                         
@@ -677,7 +682,7 @@ fun RacoLeftPanel(
                                                         
                                                         if (matrix != null) {
                                                             cmd.append("service call SurfaceFlinger 1015 i32 1 $matrix")
-                                                        } else {
+                                                        } else if (currentFilterStr != "INVERT") {
                                                             cmd.append("service call SurfaceFlinger 1015 i32 0")
                                                         }
                                                     } else {
@@ -693,11 +698,9 @@ fun RacoLeftPanel(
                                         .padding(start = 12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    androidx.compose.material3.Icon(
-                                        imageVector = androidx.compose.material.icons.Icons.Filled.Visibility,
-                                        contentDescription = "Ayunda Toggle",
-                                        tint = ayundaContentAnimColor,
-                                        modifier = Modifier.size(16.dp)
+                                    com.kanagawa.yamada.project.raco.RacoGameTools.RisuFaceCanvas(
+                                        modifier = Modifier.size(18.dp)
+                                            .alpha(if (isAyundaOn) 1f else 0.5f)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
