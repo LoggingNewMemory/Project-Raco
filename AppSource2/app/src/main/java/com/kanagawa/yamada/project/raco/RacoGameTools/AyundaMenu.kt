@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
@@ -26,8 +28,12 @@ import kotlinx.coroutines.launch
 enum class AyundaFilter(val title: String) {
     NORMAL("Normal"),
     VIVID("Vivid"),
+    VIVID_MAX("Vivid+"),
     GRAYSCALE("B&W"),
-    INVERT("Invert")
+    INVERT("Invert"),
+    PROTAN("Protan"),
+    DEUTAN("Deutan"),
+    TRITAN("Tritan")
 }
 
 @Composable
@@ -49,24 +55,21 @@ fun AyundaMenu(themeColor: Color, onClose: () -> Unit) {
     val applyFilter = { filter: AyundaFilter ->
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                when (filter) {
-                    AyundaFilter.NORMAL -> {
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 0")).waitFor()
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.0")).waitFor()
-                    }
-                    AyundaFilter.VIVID -> {
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 0")).waitFor()
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.5")).waitFor()
-                    }
-                    AyundaFilter.GRAYSCALE -> {
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 0")).waitFor()
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 0.0")).waitFor()
-                    }
-                    AyundaFilter.INVERT -> {
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.0")).waitFor()
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 1")).waitFor()
-                    }
+                val cmd = java.lang.StringBuilder()
+                cmd.append("settings put secure accessibility_display_inversion_enabled ${if (filter == AyundaFilter.INVERT) 1 else 0}; ")
+                cmd.append("settings put secure accessibility_display_daltonizer_enabled ${if (filter == AyundaFilter.PROTAN || filter == AyundaFilter.DEUTAN || filter == AyundaFilter.TRITAN) 1 else 0}; ")
+                if (filter == AyundaFilter.PROTAN) cmd.append("settings put secure accessibility_display_daltonizer 1; ")
+                if (filter == AyundaFilter.DEUTAN) cmd.append("settings put secure accessibility_display_daltonizer 2; ")
+                if (filter == AyundaFilter.TRITAN) cmd.append("settings put secure accessibility_display_daltonizer 3; ")
+                
+                val saturation = when(filter) {
+                    AyundaFilter.VIVID -> 1.5f
+                    AyundaFilter.VIVID_MAX -> 2.0f
+                    AyundaFilter.GRAYSCALE -> 0.0f
+                    else -> 1.0f
                 }
+                cmd.append("service call SurfaceFlinger 1022 f $saturation")
+                Runtime.getRuntime().exec(arrayOf("su", "-c", cmd.toString())).waitFor()
             } catch (e: Exception) {}
         }
     }
@@ -86,7 +89,9 @@ fun AyundaMenu(themeColor: Color, onClose: () -> Unit) {
         
         val filters = AyundaFilter.values()
         Column(
-            modifier = Modifier.padding(end = 24.dp),
+            modifier = Modifier
+                .padding(end = 24.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             for (filter in filters) {

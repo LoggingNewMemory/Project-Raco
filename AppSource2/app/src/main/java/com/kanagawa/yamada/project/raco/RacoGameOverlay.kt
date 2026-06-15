@@ -653,32 +653,28 @@ fun RacoLeftPanel(
                                             
                                             kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                                                 try {
+                                                    val cmd = java.lang.StringBuilder()
                                                     if (isAyundaOn) {
-                                                        // Apply current filter
                                                         val currentFilterStr = prefs.getString("ayunda_filter", "NORMAL") ?: "NORMAL"
-                                                        when (currentFilterStr) {
-                                                            "NORMAL" -> {
-                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 0")).waitFor()
-                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.0")).waitFor()
-                                                            }
-                                                            "VIVID" -> {
-                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 0")).waitFor()
-                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.5")).waitFor()
-                                                            }
-                                                            "GRAYSCALE" -> {
-                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 0")).waitFor()
-                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 0.0")).waitFor()
-                                                            }
-                                                            "INVERT" -> {
-                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.0")).waitFor()
-                                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 1")).waitFor()
-                                                            }
+                                                        cmd.append("settings put secure accessibility_display_inversion_enabled ${if (currentFilterStr == "INVERT") 1 else 0}; ")
+                                                        cmd.append("settings put secure accessibility_display_daltonizer_enabled ${if (currentFilterStr in listOf("PROTAN", "DEUTAN", "TRITAN")) 1 else 0}; ")
+                                                        if (currentFilterStr == "PROTAN") cmd.append("settings put secure accessibility_display_daltonizer 1; ")
+                                                        if (currentFilterStr == "DEUTAN") cmd.append("settings put secure accessibility_display_daltonizer 2; ")
+                                                        if (currentFilterStr == "TRITAN") cmd.append("settings put secure accessibility_display_daltonizer 3; ")
+                                                        
+                                                        val saturation = when(currentFilterStr) {
+                                                            "VIVID" -> 1.5f
+                                                            "VIVID_MAX" -> 2.0f
+                                                            "GRAYSCALE" -> 0.0f
+                                                            else -> 1.0f
                                                         }
+                                                        cmd.append("service call SurfaceFlinger 1022 f $saturation")
                                                     } else {
-                                                        // Reset filter
-                                                        Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 0")).waitFor()
-                                                        Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.0")).waitFor()
+                                                        cmd.append("settings put secure accessibility_display_inversion_enabled 0; ")
+                                                        cmd.append("settings put secure accessibility_display_daltonizer_enabled 0; ")
+                                                        cmd.append("service call SurfaceFlinger 1022 f 1.0")
                                                     }
+                                                    Runtime.getRuntime().exec(arrayOf("su", "-c", cmd.toString())).waitFor()
                                                 } catch (e: Exception) {}
                                             }
                                         }
