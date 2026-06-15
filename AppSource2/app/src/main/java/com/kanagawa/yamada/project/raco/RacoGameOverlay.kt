@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
@@ -313,42 +314,56 @@ fun RacoLeftPanel(
 
     var leftMenuState by remember { mutableStateOf("MAIN") }
 
+    val density = LocalDensity.current
+    val stroke6 = remember(density) { Stroke(width = with(density) { 6.dp.toPx() }) }
+    val stroke9 = remember(density) { Stroke(width = with(density) { 9.dp.toPx() }) }
+    val transPxLeft = remember(density) { with(density) { 1.5.dp.toPx() } }
+    val gradientBrushLeft = remember { Brush.horizontalGradient(listOf(Color.Black.copy(alpha=0.9f), Color.Black.copy(alpha=0.4f))) }
+
+    val pathLeft = remember { Path() }
+    val borderPathLeft = remember { Path() }
+    var lastSizeLeft by remember { mutableStateOf(androidx.compose.ui.geometry.Size.Zero) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .drawBehind {
-                val path = Path().apply {
-                    moveTo(0f, -size.height * 0.2f)
-                    lineTo(size.width * 0.5f, -size.height * 0.2f)
-                    lineTo(size.width, size.height * 0.3f)
-                    lineTo(size.width * 0.58f, size.height * 1.2f)
-                    lineTo(0f, size.height * 1.2f)
-                    close()
+                if (size != lastSizeLeft) {
+                    pathLeft.reset()
+                    pathLeft.moveTo(0f, -size.height * 0.2f)
+                    pathLeft.lineTo(size.width * 0.5f, -size.height * 0.2f)
+                    pathLeft.lineTo(size.width, size.height * 0.3f)
+                    pathLeft.lineTo(size.width * 0.58f, size.height * 1.2f)
+                    pathLeft.lineTo(0f, size.height * 1.2f)
+                    pathLeft.close()
+
+                    borderPathLeft.reset()
+                    borderPathLeft.moveTo(size.width * 0.5f, -size.height * 0.2f)
+                    borderPathLeft.lineTo(size.width, size.height * 0.3f)
+                    borderPathLeft.lineTo(size.width * 0.58f, size.height * 1.2f)
+
+                    lastSizeLeft = size
                 }
+                
+                val themeColorAlpha = themeColor.copy(alpha=0.4f)
+
                 drawPath(
-                    path = path,
-                    brush = Brush.horizontalGradient(listOf(Color.Black.copy(alpha=0.9f), Color.Black.copy(alpha=0.4f)))
+                    path = pathLeft,
+                    brush = gradientBrushLeft
                 )
                 
-                // Red glowing border
-                val borderPath = Path().apply {
-                    moveTo(size.width * 0.5f, -size.height * 0.2f)
-                    lineTo(size.width, size.height * 0.3f)
-                    lineTo(size.width * 0.58f, size.height * 1.2f)
-                }
-                
                 // Base white line
-                drawPath(path = borderPath, color = Color.White, style = Stroke(width = 6.dp.toPx()))
-
+                drawPath(path = borderPathLeft, color = Color.White, style = stroke6)
+                
                 // Uprise Red glowing border
                 val progress = progressProvider() * animatedCpuPercentage
                 if (progress > 0f) {
                     val currentTop = size.height * 1.2f - (size.height * 1.4f * progress)
                     clipRect(top = currentTop, bottom = size.height * 1.2f, left = -size.width, right = size.width * 2f) {
-                        translate(left = 1.5.dp.toPx(), top = 0f) {
-                            drawPath(path = borderPath, color = themeColor.copy(alpha=0.4f), style = Stroke(width = 9.dp.toPx()))
+                        translate(left = transPxLeft, top = 0f) {
+                            drawPath(path = borderPathLeft, color = themeColorAlpha, style = stroke9)
                         }
-                        drawPath(path = borderPath, color = themeColor, style = Stroke(width = 6.dp.toPx()))
+                        drawPath(path = borderPathLeft, color = themeColor, style = stroke6)
                     }
                 }
             }
@@ -973,42 +988,56 @@ fun RacoRightPanel(
         }
     }
 
+    val density = LocalDensity.current
+    val stroke6 = remember(density) { Stroke(width = with(density) { 6.dp.toPx() }) }
+    val stroke9 = remember(density) { Stroke(width = with(density) { 9.dp.toPx() }) }
+    val transPxRight = remember(density) { with(density) { -1.5.dp.toPx() } }
+    val gradientBrushRight = remember { Brush.horizontalGradient(listOf(Color.Black.copy(alpha=0.4f), Color.Black.copy(alpha=0.9f))) }
+
+    val pathRight = remember { Path() }
+    val borderPathRight = remember { Path() }
+    var lastSizeRight by remember { mutableStateOf(androidx.compose.ui.geometry.Size.Zero) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .drawBehind {
-                val path = Path().apply {
-                    moveTo(size.width, -size.height * 0.2f)
-                    lineTo(size.width * 0.5f, -size.height * 0.2f)
-                    lineTo(0f, size.height * 0.3f)
-                    lineTo(size.width * 0.42f, size.height * 1.2f)
-                    lineTo(size.width, size.height * 1.2f)
-                    close()
+                if (size != lastSizeRight) {
+                    pathRight.reset()
+                    pathRight.moveTo(size.width, -size.height * 0.2f)
+                    pathRight.lineTo(size.width * 0.5f, -size.height * 0.2f)
+                    pathRight.lineTo(0f, size.height * 0.3f)
+                    pathRight.lineTo(size.width * 0.42f, size.height * 1.2f)
+                    pathRight.lineTo(size.width, size.height * 1.2f)
+                    pathRight.close()
+
+                    borderPathRight.reset()
+                    borderPathRight.moveTo(size.width * 0.5f, -size.height * 0.2f)
+                    borderPathRight.lineTo(0f, size.height * 0.3f)
+                    borderPathRight.lineTo(size.width * 0.42f, size.height * 1.2f)
+
+                    lastSizeRight = size
                 }
+                
+                val themeColorAlpha = themeColor.copy(alpha=0.4f)
+
                 drawPath(
-                    path = path,
-                    brush = Brush.horizontalGradient(listOf(Color.Black.copy(alpha=0.4f), Color.Black.copy(alpha=0.9f)))
+                    path = pathRight,
+                    brush = gradientBrushRight
                 )
                 
-                // Red glowing border
-                val borderPath = Path().apply {
-                    moveTo(size.width * 0.5f, -size.height * 0.2f)
-                    lineTo(0f, size.height * 0.3f)
-                    lineTo(size.width * 0.42f, size.height * 1.2f)
-                }
-                
                 // Base white line
-                drawPath(path = borderPath, color = Color.White, style = Stroke(width = 6.dp.toPx()))
+                drawPath(path = borderPathRight, color = Color.White, style = stroke6)
 
                 // Uprise Red glowing border
                 val progress = progressProvider() * animatedBatteryPercentage
                 if (progress > 0f) {
                     val currentTop = size.height * 1.2f - (size.height * 1.4f * progress)
                     clipRect(top = currentTop, bottom = size.height * 1.2f, left = -size.width, right = size.width * 2f) {
-                        translate(left = -1.5.dp.toPx(), top = 0f) {
-                            drawPath(path = borderPath, color = themeColor.copy(alpha=0.4f), style = Stroke(width = 9.dp.toPx()))
+                        translate(left = transPxRight, top = 0f) {
+                            drawPath(path = borderPathRight, color = themeColorAlpha, style = stroke9)
                         }
-                        drawPath(path = borderPath, color = themeColor, style = Stroke(width = 6.dp.toPx()))
+                        drawPath(path = borderPathRight, color = themeColor, style = stroke6)
                     }
                 }
             }
