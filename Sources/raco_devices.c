@@ -440,6 +440,31 @@ void snapdragon_devfreq_apply(int mode) {
     }
 }
 
+void snapdragon_set_kgsl_pwrlevel(int mode) {
+    char num_buf[32] = {0};
+    int max_idx = 5; // fallback
+    if (raread("/sys/class/kgsl/kgsl-3d0/num_pwrlevels", num_buf, sizeof(num_buf)) > 0) {
+        max_idx = atoi(num_buf) - 1;
+        if (max_idx < 0) max_idx = 5;
+    }
+    
+    char min_val[16];
+    if (mode == 0) {
+        // Max perf
+        rawrite("0", "/sys/class/kgsl/kgsl-3d0/min_pwrlevel");
+        rawrite("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
+    } else if (mode == 2) {
+        // Mid perf
+        snprintf(min_val, sizeof(min_val), "%d", max_idx / 2);
+        rawrite(min_val, "/sys/class/kgsl/kgsl-3d0/min_pwrlevel");
+        rawrite("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
+    } else {
+        // Release
+        rawrite("99", "/sys/class/kgsl/kgsl-3d0/min_pwrlevel");
+        rawrite("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
+    }
+}
+
 // Device Performance Settings
 
 void snapdragon_awaken() {
@@ -452,8 +477,7 @@ void snapdragon_awaken() {
     const char *kgsl_1[] = {"force_clk_on", "default_pwrlevel"};
     raco_bulk(kgsl_base, kgsl_1, 2, "1", 1);
     
-    rawrite("0", "/sys/class/kgsl/kgsl-3d0/min_pwrlevel");
-    rawrite("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
+    snapdragon_set_kgsl_pwrlevel(0);
 
     // Bus Split & Throttling
     if (config.device_mitigation == 1) {
@@ -499,8 +523,7 @@ void snapdragon_balanced() {
     const char *kgsl_1[] = {"force_clk_on", "default_pwrlevel"};
     raco_bulk(kgsl_base, kgsl_1, 2, "0", 0);
     
-    rawrite("99", "/sys/class/kgsl/kgsl-3d0/min_pwrlevel");
-    rawrite("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
+    snapdragon_set_kgsl_pwrlevel(2);
 
     // Bus Split & Throttling
     const char *kgsl_0[] = {"bus_split", "throttling"};
@@ -539,8 +562,7 @@ void snapdragon_normal() {
     const char *kgsl_1[] = {"force_clk_on", "default_pwrlevel"};
     raco_bulk(kgsl_base, kgsl_1, 2, "0", 0);
     
-    rawrite("99", "/sys/class/kgsl/kgsl-3d0/min_pwrlevel");
-    rawrite("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
+    snapdragon_set_kgsl_pwrlevel(1);
 
     // Bus Split & Throttling
     const char *kgsl_0[] = {"bus_split", "throttling"};
@@ -579,8 +601,7 @@ void snapdragon_powersave() {
     const char *kgsl_1[] = {"force_clk_on", "default_pwrlevel"};
     raco_bulk(kgsl_base, kgsl_1, 2, "0", 0);
     
-    rawrite("99", "/sys/class/kgsl/kgsl-3d0/min_pwrlevel");
-    rawrite("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
+    snapdragon_set_kgsl_pwrlevel(1);
 
     // Bus Split & Throttling
     const char *kgsl_0[] = {"bus_split", "throttling"};
