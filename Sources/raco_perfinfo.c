@@ -61,6 +61,7 @@ FastPipe popen_dumpsys(const char *arg1, const char *arg2, const char *arg3) {
 }
 
 #include <signal.h>
+#include <time.h>
 
 void pclose_dumpsys(FastPipe p) {
     if (p.fp) fclose(p.fp);
@@ -70,7 +71,52 @@ void pclose_dumpsys(FastPipe p) {
     }
 }
 
+static char cached_layer_name[256] = {0};
+static time_t last_full_check = 0;
+
 int get_universal_fps(const char *pkg) {
+    time_t now = time(NULL);
+
+    if (cached_layer_name[0] != '\0') {
+        FastPipe fp = popen_dumpsys("SurfaceFlinger", "--latency", cached_layer_name);
+        if (fp.fp) {
+            char line[256];
+            long long timestamps[128];
+            int ts_count = 0;
+            long long latest = 0;
+            if (fgets(line, sizeof(line), fp.fp)) {
+                long long t1, t2, t3;
+                while (fgets(line, sizeof(line), fp.fp) && ts_count < 128) {
+                    if (sscanf(line, "%lld\t%lld\t%lld", &t1, &t2, &t3) == 3) {
+                        if (t2 != 0 && t2 != 9223372036854775807LL) {
+                            timestamps[ts_count++] = t2;
+                            if (t2 > latest) latest = t2;
+                        }
+                    }
+                }
+            }
+            pclose_dumpsys(fp);
+            if (ts_count > 0 && latest > 0) {
+                long long cutoff = latest - 1000000000LL;
+                int layer_fps = 0;
+                for (int i = 0; i < ts_count; i++) {
+                    if (timestamps[i] > cutoff) {
+                        layer_fps++;
+                    }
+                }
+                if (layer_fps > 0) {
+                    return layer_fps > 144 ? 144 : layer_fps;
+                }
+            }
+        }
+        cached_layer_name[0] = '\0';
+    }
+
+    if (now - last_full_check < 2) {
+        return 0;
+    }
+    last_full_check = now;
+
     char current_pkg[256] = {0};
 
     if (pkg == NULL || pkg[0] == '\0' || strcmp(pkg, "SurfaceView") == 0) {
@@ -159,6 +205,7 @@ int get_universal_fps(const char *pkg) {
             }
             if (layer_fps > max_fps) {
                 max_fps = layer_fps;
+                strncpy(cached_layer_name, layer_name, sizeof(cached_layer_name) - 1);
             }
         }
     }
