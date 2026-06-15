@@ -249,18 +249,25 @@ fun InfoWidgetContent(startTimeMillis: Long) {
 
 @Composable
 fun InfoItem(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String, width: androidx.compose.ui.unit.Dp) {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isTablet = configuration.smallestScreenWidthDp >= 600
+    
+    val iconSize = if (isTablet) 10.dp else 13.dp
+    val spacerWidth = if (isTablet) 2.dp else 3.dp
+    val fontSize = if (isTablet) 7.sp else 11.sp
+
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.width(width)) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             tint = Color.White.copy(alpha = 0.8f),
-            modifier = Modifier.size(13.dp)
+            modifier = Modifier.size(iconSize)
         )
-        Spacer(modifier = Modifier.width(3.dp))
+        Spacer(modifier = Modifier.width(spacerWidth))
         Text(
             text = text,
             color = Color.White,
-            fontSize = 11.sp,
+            fontSize = fontSize,
             fontWeight = FontWeight.Medium,
             maxLines = 1
         )
