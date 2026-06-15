@@ -258,8 +258,8 @@ build_modules() {
     echo "Compiling RacoFpsDaemon..."
     mkdir -p "$SRC_DIR/classes"
     SDK_PATH="${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}"
-    javac -source 1.8 -target 1.8 -cp "$SDK_PATH/platforms/android-34/android.jar:AppSource2/stubs.jar" -d "$SRC_DIR/classes" "$SRC_DIR/RacoFpsDaemon.java"
-    d8 "$SRC_DIR"/classes/com/raco/*.class --output "$MODULES_DIR/CoreSys/"
+    javac -Xlint:-options -source 1.8 -target 1.8 -cp "$SDK_PATH/platforms/android-34/android.jar:AppSource2/stubs.jar" -d "$SRC_DIR/classes" "$SRC_DIR/RacoFpsDaemon.java"
+    d8 "$SRC_DIR"/classes/com/raco/*.class --lib "$SDK_PATH/platforms/android-34/android.jar" --lib "AppSource2/stubs.jar" --output "$MODULES_DIR/CoreSys/"
     mv "$MODULES_DIR/CoreSys/classes.dex" "$MODULES_DIR/CoreSys/raco_fps.dex"
     # Clean up class files
     rm -rf "$SRC_DIR/classes"

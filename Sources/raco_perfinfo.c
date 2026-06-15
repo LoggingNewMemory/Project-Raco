@@ -70,8 +70,7 @@ void pclose_dumpsys(FastPipe p) {
     }
 }
 
-static char cached_layer_name[256] = {0};
-static time_t last_full_check = 0;
+
 
 int get_universal_fps(const char *pkg) {
     int fps = 0;
