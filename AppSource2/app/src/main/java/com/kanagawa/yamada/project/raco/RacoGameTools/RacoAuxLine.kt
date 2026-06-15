@@ -252,6 +252,32 @@ fun AuxLineMenu(themeColor: Color, onClose: () -> Unit) {
                     )
                 }
             }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Box(
+                modifier = Modifier
+                    .width(134.dp)
+                    .height(36.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White.copy(alpha=0.1f))
+                    .border(1.dp, Color.White.copy(alpha=0.2f), RoundedCornerShape(8.dp))
+                    .clickable {
+                        width = 200f
+                        height = 200f
+                        opacity = 1f
+                        selectedColorIndex = 0
+                        
+                        updatePref("width", 200f)
+                        updatePref("height", 200f)
+                        updatePref("opacity", 1f)
+                        updatePref("color", 0)
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text("RESET", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
