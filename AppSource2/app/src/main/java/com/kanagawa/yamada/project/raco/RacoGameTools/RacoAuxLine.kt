@@ -83,7 +83,7 @@ class GameAuxLineService : Service() {
                 val colorOptions = listOf(Color.White, Color.Red, Color.Green, Color.Blue)
                 val activeColor = colorOptions.getOrElse(colorIndex) { Color.White }
 
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(contentAlignment = Alignment.Center) {
                     Canvas(modifier = Modifier.size(width.dp, height.dp)) {
                         drawOval(
                             color = activeColor.copy(alpha = opacity),
@@ -102,8 +102,8 @@ class GameAuxLineService : Service() {
         })
 
         val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                     WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
