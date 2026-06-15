@@ -13,6 +13,10 @@ $MODDIR/CoreSys/raco_service &
 # Execute the Raco Game Monitoring Service
 $MODDIR/CoreSys/raco_gameservice &
 
+# Forcefully start the companion app's AutoGameMonitorService
+# Bypasses Android 14+ background FGS restrictions and OEM Autostart blocks
+su -lp 2000 -c "am start-foreground-service -n com.kanagawa.yamada.project.raco/.AutoGameMonitorService" &
+
 # Wait briefly to ensure services are started
 sleep 2
 
