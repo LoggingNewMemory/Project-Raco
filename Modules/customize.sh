@@ -139,8 +139,6 @@ unzip -o "$ZIPFILE" 'raco.txt' -d $MODPATH >&2
 # File copy operations
 rm -f "/data/local/tmp/logo.png" >/dev/null 2>&1
 cp "$MODPATH/logo.png" "/data/local/tmp" >/dev/null 2>&1 || abort "! Failed to copy logo.png"
-rm -f "/data/local/tmp/Anya.png" >/dev/null 2>&1
-cp "$MODPATH/Anya.png" "/data/local/tmp" >/dev/null 2>&1 || abort "! Failed to copy Anya.png"
 
 ui_print " "
 
