@@ -88,6 +88,37 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
     // Premium fluid motion curve: perfectly smooth transition from high speed to a long, gentle glide
     val dramaticEasing = androidx.compose.animation.core.CubicBezierEasing(0.16f, 1.0f, 0.3f, 1.0f)
 
+    var toastMessage by remember { mutableStateOf<String?>(null) }
+    var lastToastMessage by remember { mutableStateOf("") }
+    var toastTrigger by remember { mutableStateOf(0) }
+
+    LaunchedEffect(toastMessage) {
+        if (toastMessage != null) lastToastMessage = toastMessage!!
+    }
+
+    LaunchedEffect(Unit) {
+        val until = prefs.getLong("entrance_anim_playing_until", 0L)
+        val now = System.currentTimeMillis()
+        if (until > now) {
+            delay((until - now) + 500L)
+        }
+        toastTrigger++
+    }
+
+    LaunchedEffect(toastTrigger) {
+        if (toastTrigger > 0) {
+            toastMessage = when (currentPerfMode.name) {
+                "AWAKEN" -> "Switched to Awaken Mode"
+                "BALANCED" -> "Switched to Balanced Mode"
+                "POWERSAVE" -> "Switched to Eco Mode"
+                "NORMAL" -> "Restored Normal State"
+                else -> null
+            }
+            delay(2000)
+            toastMessage = null
+        }
+    }
+
     LaunchedEffect(isLeftOpen || isRightOpen) {
         if (isLeftOpen || isRightOpen) {
             lineSlideProgress.snapTo(0f)
@@ -197,6 +228,7 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
                 themeColor = themeColor,
                 onModeChange = { 
                     currentPerfMode = it 
+                    toastTrigger++
                     // Send command to UNIX socket
                     kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                         try {
@@ -217,9 +249,31 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
                 }
             )
         }
+
+        // FAKE TOAST
+        androidx.compose.animation.AnimatedVisibility(
+            visible = toastMessage != null,
+            enter = androidx.compose.animation.fadeIn(),
+            exit = androidx.compose.animation.fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 64.dp).zIndex(50f)
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color(0xCC000000))
+                    .border(1.dp, themeColor.copy(alpha=0.5f), RoundedCornerShape(24.dp))
+                    .padding(horizontal = 24.dp, vertical = 12.dp)
+            ) {
+                Text(
+                    text = lastToastMessage,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
     }
 }
-
 @Composable
 fun RacoLeftPanel(
     progressProvider: () -> Float = { 1f },

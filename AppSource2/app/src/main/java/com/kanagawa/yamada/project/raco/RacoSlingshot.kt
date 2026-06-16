@@ -315,6 +315,10 @@ fun SlingshotScreen(
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 context.startActivity(intent)
 
+                                // Save entrance anim delay for toast
+                                val prefs = context.getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+                                prefs.edit().putLong("entrance_anim_playing_until", System.currentTimeMillis() + 4500).apply()
+
                                 // Start the overlay service
                                 val serviceIntent = Intent(context, GameOverlayService::class.java)
                                 context.startService(serviceIntent)

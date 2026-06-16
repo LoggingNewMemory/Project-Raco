@@ -141,12 +141,7 @@ void corin_storage(const char *sched, const char *rq) {
     }
 }
 
-// Toast Helper
-void app_toast(const char *msg) {
-    char cmd[1024];
-    snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"am startservice -n com.kanagawa.yamada.project.raco/.ToastOverlayService --es msg '%s'\" >/dev/null 2>&1 &", msg);
-    system(cmd);
-}
+
 
 // Master Profiles
 void mode_awaken() {
@@ -189,7 +184,6 @@ void mode_awaken() {
 
     clear_slingshot();
     anyamelfissa();
-    app_toast("Switched to Awaken Mode");
 }
 
 void mode_balanced() {
@@ -234,7 +228,6 @@ void mode_balanced() {
 
     clear_slingshot();
     anyakawaii();
-    app_toast("Switched to Balanced Mode");
 }
 
 void mode_powersave() {
@@ -279,7 +272,6 @@ void mode_powersave() {
 
     clear_slingshot();
     anyakawaii();
-    app_toast("Switched to Eco Mode");
 }
 
 void mode_normal() {
@@ -323,7 +315,6 @@ void mode_normal() {
 
     clear_slingshot();
     anyakawaii();
-    app_toast("Restored Normal State");
 }
 
 // Main Execution
