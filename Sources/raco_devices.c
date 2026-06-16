@@ -460,7 +460,8 @@ void snapdragon_set_kgsl_pwrlevel(int mode) {
         rawrite("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
     } else {
         // Release
-        rawrite("99", "/sys/class/kgsl/kgsl-3d0/min_pwrlevel");
+        snprintf(min_val, sizeof(min_val), "%d", max_idx);
+        rawrite(min_val, "/sys/class/kgsl/kgsl-3d0/min_pwrlevel");
         rawrite("0", "/sys/class/kgsl/kgsl-3d0/max_pwrlevel");
     }
 }
