@@ -155,7 +155,7 @@ void zetamin_unlock_fps() {
     // Disable Android 15 Game Default Frame Rate (Unlock 60FPS limit)
     system("resetprop persist.graphics.game_default_frame_rate.enabled true >/dev/null 2>&1");
     system("resetprop debug.graphics.game_default_frame_rate.disabled true >/dev/null 2>&1");
-    
+    system("service call SurfaceFlinger 1035 i32 0");
     snprintf(cmd, sizeof(cmd), "resetprop ro.surface_flinger.game_default_frame_rate_override %d >/dev/null 2>&1", max_fps);
     system(cmd);
 }
