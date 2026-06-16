@@ -264,7 +264,16 @@ class InGameMenuService : Service() {
                     }
                 }
                 
-                if (lastKnownApp != targetPackageName && lastKnownApp != "com.android.systemui" && lastKnownApp != "android" && lastKnownApp != "com.kanagawa.yamada.project.raco") {
+                val isIgnored = lastKnownApp == targetPackageName || 
+                                lastKnownApp == "android" || 
+                                lastKnownApp == "com.android.systemui" || 
+                                lastKnownApp == "com.kanagawa.yamada.project.raco" ||
+                                lastKnownApp?.contains("permission", ignoreCase = true) == true ||
+                                lastKnownApp?.contains("installer", ignoreCase = true) == true ||
+                                lastKnownApp?.contains("securitycenter", ignoreCase = true) == true ||
+                                lastKnownApp?.contains("safecenter", ignoreCase = true) == true
+                                
+                if (!isIgnored) {
                     withContext(Dispatchers.Main) {
                         stopSelf()
                     }

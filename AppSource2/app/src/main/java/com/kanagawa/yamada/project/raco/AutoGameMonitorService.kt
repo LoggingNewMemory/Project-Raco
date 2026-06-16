@@ -78,12 +78,15 @@ class AutoGameMonitorService : Service() {
                     events.getNextEvent(event)
                     if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
                         val pkg = event.packageName
-                        if (pkg != "com.kanagawa.yamada.project.raco" && 
-                            pkg != "com.android.systemui" && 
-                            pkg != "com.google.android.permissioncontroller" && 
-                            pkg != "com.android.permissioncontroller" && 
-                            pkg != "com.android.packageinstaller" && 
-                            pkg != "android") {
+                        val isIgnored = pkg == "android" || 
+                                        pkg == "com.android.systemui" || 
+                                        pkg == "com.kanagawa.yamada.project.raco" ||
+                                        pkg.contains("permission", ignoreCase = true) ||
+                                        pkg.contains("installer", ignoreCase = true) ||
+                                        pkg.contains("securitycenter", ignoreCase = true) ||
+                                        pkg.contains("safecenter", ignoreCase = true)
+                                        
+                        if (!isIgnored) {
                             currentForeground = pkg
                         }
                     }
