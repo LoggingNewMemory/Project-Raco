@@ -208,7 +208,7 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
                             socket.close()
                             
                             // Save globally for next launches
-                            val prefs = context.getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+                            val prefs = context.getSharedPreferences("raco_slingshot_prefs", android.content.Context.MODE_PRIVATE)
                             prefs.edit().putString("global_perf_mode", it.name).apply()
                         } catch (e: Exception) {
                             e.printStackTrace()

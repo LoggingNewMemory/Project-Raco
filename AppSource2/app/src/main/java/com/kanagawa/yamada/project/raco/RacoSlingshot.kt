@@ -279,7 +279,7 @@ fun SlingshotScreen(
 
                                 // Run Kasane
                                 if (selectedMode != "none") {
-                                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/Binaries/kasane -a ${game.packageName} -m $selectedMode -l")).waitFor()
+                                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Binaries/kasane -a ${game.packageName} -m $selectedMode -l")).waitFor()
                                 }
 
                                 if (enablePlayboost) {

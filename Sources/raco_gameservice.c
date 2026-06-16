@@ -47,7 +47,7 @@ void handle_client(int client_sock) {
             pid_t pid = fork();
             if (pid == 0) {
                 if (fork() == 0) {
-                    system("/data/adb/modules/ProjectRaco/Compiled/raco 4 >/dev/null 2>&1");
+                    system("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco 4 >/dev/null 2>&1");
                     exit(0);
                 }
                 exit(0);
@@ -56,7 +56,7 @@ void handle_client(int client_sock) {
             pid_t pid = fork();
             if (pid == 0) {
                 if (fork() == 0) {
-                    system("/data/adb/modules/ProjectRaco/Compiled/raco 3 >/dev/null 2>&1");
+                    system("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco 3 >/dev/null 2>&1");
                     exit(0);
                 }
                 exit(0);
@@ -65,7 +65,7 @@ void handle_client(int client_sock) {
             pid_t pid = fork();
             if (pid == 0) {
                 if (fork() == 0) {
-                    system("/data/adb/modules/ProjectRaco/Compiled/raco 2 >/dev/null 2>&1");
+                    system("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco 2 >/dev/null 2>&1");
                     exit(0);
                 }
                 exit(0);
@@ -74,7 +74,7 @@ void handle_client(int client_sock) {
             pid_t pid = fork();
             if (pid == 0) {
                 if (fork() == 0) {
-                    system("/data/adb/modules/ProjectRaco/Compiled/raco 1 >/dev/null 2>&1");
+                    system("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco 1 >/dev/null 2>&1");
                     exit(0);
                 }
                 exit(0);
