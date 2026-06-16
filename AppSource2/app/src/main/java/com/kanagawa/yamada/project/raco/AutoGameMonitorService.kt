@@ -128,14 +128,14 @@ class AutoGameMonitorService : Service() {
         // Delay any toasts until EntranceAnim finishes (~4.5s)
         prefs.edit().putLong("entrance_anim_playing_until", System.currentTimeMillis() + 4500).apply()
 
-        // Trigger Daemon via UNIX Socket
-        triggerDaemonMode(mode, packageName)
-
         // Prevent launching duplicate overlays if the user just launched via Slingshot
         val lastPlayed = GameManager.getGameLastPlayed(this, packageName)
         if (System.currentTimeMillis() - lastPlayed < 10000) {
             return
         }
+
+        // Trigger Daemon via UNIX Socket
+        triggerDaemonMode(mode, packageName)
         
         // Update the timestamp for manual launches
         GameManager.setGameLastPlayed(this, packageName, System.currentTimeMillis())
