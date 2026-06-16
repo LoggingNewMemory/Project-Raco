@@ -13,6 +13,7 @@ Copyright (C) 2026 Kanagawa Yamada
 #include <fcntl.h>
 #include <signal.h>
 #include <time.h>
+#include <sys/time.h>
 
 int str_contains_nocase(const char *haystack, const char *needle) {
     if (!haystack || !needle) return 0;
@@ -76,12 +77,18 @@ int get_universal_fps(const char *pkg) {
     int fps = 0;
     int sock = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sock < 0) return 0;
-    
+
+    // 1-second receive timeout: if the Java FPS daemon is dead or stalled,
+    // read() would block forever and stall handle_client(), which in turn
+    // stalls accept() for all future clients (daemon is single-threaded).
+    struct timeval tv = { .tv_sec = 1, .tv_usec = 0 };
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
     struct sockaddr_un addr;
     memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_UNIX;
     strncpy(&addr.sun_path[1], "raco_fps_daemon", sizeof(addr.sun_path) - 2);
-    
+
     if (connect(sock, (struct sockaddr*)&addr, sizeof(sa_family_t) + strlen("raco_fps_daemon") + 1) == 0) {
         write(sock, "GET_FPS", 7);
         char buf[16] = {0};

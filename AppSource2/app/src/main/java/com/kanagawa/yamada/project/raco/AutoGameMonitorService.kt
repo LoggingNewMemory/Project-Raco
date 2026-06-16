@@ -73,10 +73,13 @@ class AutoGameMonitorService : Service() {
         }
     }
 
-    private suspend fun refreshCacheIfNeeded() {
-        val now = System.currentTimeMillis()
+    // Accept the already-computed `now` timestamp from the caller to avoid a
+    // redundant System.currentTimeMillis() call on every foreground change check.
+    // Uses getAllInstalledAppsLite() — skips icon loading entirely since the
+    // monitoring path only ever needs packageName + isSystemGame.
+    private suspend fun refreshCacheIfNeeded(now: Long) {
         if (now - lastCacheRefresh > CACHE_TTL_MS) {
-            cachedAppList = GameManager.getAllInstalledApps(this@AutoGameMonitorService)
+            cachedAppList = GameManager.getAllInstalledAppsLite(this@AutoGameMonitorService)
             cachedAddedGames = GameManager.getManuallyAddedGames(this@AutoGameMonitorService)
             cachedHiddenGames = GameManager.getHiddenGames(this@AutoGameMonitorService)
             lastCacheRefresh = now
@@ -86,34 +89,37 @@ class AutoGameMonitorService : Service() {
     private fun startMonitoring() {
         serviceScope.launch {
             val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+            // Allocate once — reused every poll tick to avoid GC pressure on a tight 1.5s loop.
+            val event = UsageEvents.Event()
             while (isActive) {
                 delay(1500) // Poll every 1.5 seconds
                 val time = System.currentTimeMillis()
                 val events = usageStatsManager.queryEvents(time - 2000, time)
-                val event = UsageEvents.Event()
                 var currentForeground = lastForegroundApp
-                
+
                 while (events.hasNextEvent()) {
                     events.getNextEvent(event)
                     if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
                         val pkg = event.packageName
-                        val isIgnored = pkg == "android" || 
-                                        pkg == "com.android.systemui" || 
+                        val isIgnored = pkg == "android" ||
+                                        pkg == "com.android.systemui" ||
                                         pkg == "com.kanagawa.yamada.project.raco" ||
                                         pkg.contains("permission", ignoreCase = true) ||
                                         pkg.contains("installer", ignoreCase = true) ||
                                         pkg.contains("securitycenter", ignoreCase = true) ||
                                         pkg.contains("safecenter", ignoreCase = true)
-                                        
+
                         if (!isIgnored) {
                             currentForeground = pkg
                         }
                     }
                 }
-                
+
                 if (currentForeground != lastForegroundApp) {
-                    // Refresh the game list cache (at most once per minute)
-                    refreshCacheIfNeeded()
+                    // Refresh the game list cache (at most once per minute).
+                    // Pass the already-computed timestamp so refreshCacheIfNeeded
+                    // doesn't call System.currentTimeMillis() a second time.
+                    refreshCacheIfNeeded(time)
 
                     val isGame = cachedAppList.find { it.packageName == currentForeground }?.let {
                         (it.isSystemGame && it.packageName !in cachedHiddenGames) || it.packageName in cachedAddedGames
@@ -125,7 +131,7 @@ class AutoGameMonitorService : Service() {
                         val wasGame = cachedAppList.find { it.packageName == lastForegroundApp }?.let {
                             (it.isSystemGame && it.packageName !in cachedHiddenGames) || it.packageName in cachedAddedGames
                         } ?: false
-                        
+
                         if (wasGame) {
                             onGameExited(lastForegroundApp)
                         }

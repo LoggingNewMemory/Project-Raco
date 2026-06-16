@@ -252,11 +252,12 @@ class InGameMenuService : Service() {
         serviceScope.launch {
             val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
             var lastKnownApp: String? = targetPackageName
+            // Allocate once — reused every poll tick to avoid GC pressure on the 1s loop.
+            val event = UsageEvents.Event()
             while (isActive) {
                 delay(1000)
                 val time = System.currentTimeMillis()
                 val events = usageStatsManager.queryEvents(time - 2000, time)
-                val event = UsageEvents.Event()
                 while (events.hasNextEvent()) {
                     events.getNextEvent(event)
                     if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {

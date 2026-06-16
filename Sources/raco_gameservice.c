@@ -59,11 +59,11 @@ long get_mem_available() {
 }
 
 void handle_client(int client_sock) {
-    char buffer[256];
+    char buffer[128]; // Mode strings are at most ~9 chars + ':' + package name
     int bytes_read = read(client_sock, buffer, sizeof(buffer) - 1);
     if (bytes_read > 0) {
         buffer[bytes_read] = '\0';
-        
+
         // Ensure string is cleanly terminated
         buffer[strcspn(buffer, "\r\n")] = '\0';
 
@@ -92,7 +92,7 @@ void handle_client(int client_sock) {
             return;
         } else if (strncmp(buffer, "GET_FPS", 7) == 0) {
             int fps = get_universal_fps(pkg ? pkg : "");
-            
+
             char out_buf[16];
             snprintf(out_buf, sizeof(out_buf), "%d", fps);
             write(client_sock, out_buf, strlen(out_buf));
@@ -116,13 +116,22 @@ int main(int argc, char *argv[]) {
     }
 
     // Launch Java FPS Daemon
-    pid_t pid = fork();
-    if (pid == 0) {
+    pid_t fps_pid = fork();
+    if (fps_pid == 0) {
         char dex_path[512];
         snprintf(dex_path, sizeof(dex_path), "-Djava.class.path=%s/CoreSys/raco_fps.dex",
                  argc >= 2 ? argv[1] : "/data/adb/modules/ProjectRaco");
         execl("/system/bin/app_process", "app_process", dex_path, "/system/bin", "com.raco.RacoFpsDaemon", NULL);
-        exit(1);
+        exit(1); // execl only returns on failure
+    } else if (fps_pid > 0) {
+        // Short WNOHANG check: if the child exited instantly it failed to exec.
+        // We don't wait() properly (the daemon runs long), but at least catch
+        // an immediate exec failure so it's not silently swallowed.
+        usleep(50000); // 50ms grace period for execl to succeed
+        int status;
+        if (waitpid(fps_pid, &status, WNOHANG) > 0 && WIFEXITED(status)) {
+            // Child already exited — execl failed. Continue without FPS daemon.
+        }
     }
 
     server_sock = socket(AF_UNIX, SOCK_STREAM, 0);

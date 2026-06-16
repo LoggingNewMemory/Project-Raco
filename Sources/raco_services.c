@@ -47,41 +47,20 @@ void send_notif(const char *title, const char *message, const char *tag, const c
 }
 
 // Configuration parsing from /data/ProjectRaco/raco.txt
+// NOTE: load_config() already reads raco.txt and now populates inc_kobo/inc_zeta/
+// inc_sandev/sandev_dur/default_gov directly into the global `config` struct.
+// This function exists only to copy those values into the legacy local globals
+// used by the rest of raco_services.c, avoiding a second file read.
 void parse_service_config() {
     load_config("/data/ProjectRaco/raco.txt");
 
-    inc_kobo = 0;
-    inc_zeta = 0;
-    inc_sandev = 0;
-    sandev_dur = 300;
-    default_gov[0] = '\0';
-
-    char file_content[4096];
-    if (raread("/data/ProjectRaco/raco.txt", file_content, sizeof(file_content)) <= 0) {
-        return;
-    }
-
-    char *saveptr_line;
-    char *line = strtok_r(file_content, "\n", &saveptr_line);
-
-    while (line != NULL) {
-        char *equal_pos = strchr(line, '=');
-        if (equal_pos) {
-            *equal_pos = ' ';
-        }
-
-        char key[128] = {0};
-        char value[128] = {0};
-        int parsed = sscanf(line, "%127s %127s", key, value);
-
-        if (parsed >= 1) {
-            if (strcmp(key, "INCLUDE_KOBO") == 0 && parsed == 2) inc_kobo = atoi(value);
-            else if (strcmp(key, "INCLUDE_ZETAMIN") == 0 && parsed == 2) inc_zeta = atoi(value);
-            else if (strcmp(key, "INCLUDE_SANDEV") == 0 && parsed == 2) inc_sandev = atoi(value);
-            else if (strcmp(key, "SANDEV_DUR") == 0 && parsed == 2) sandev_dur = atoi(value);
-            else if (strcmp(key, "GOV") == 0 && parsed == 2) strcpy(default_gov, value);
-        }
-        line = strtok_r(NULL, "\n", &saveptr_line);
+    // Mirror the values load_config() already parsed into the local globals.
+    inc_kobo    = config.inc_kobo;
+    inc_zeta    = config.inc_zeta;
+    inc_sandev  = config.inc_sandev;
+    sandev_dur  = config.sandev_dur > 0 ? config.sandev_dur : 300;
+    if (config.default_gov[0] != '\0') {
+        strncpy(default_gov, config.default_gov, sizeof(default_gov) - 1);
     }
 }
 

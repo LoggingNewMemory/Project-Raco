@@ -134,6 +134,38 @@ object GameManager {
         }
         appList.sortedBy { it.name.lowercase() }
     }
+
+    /**
+     * Lightweight variant for the game-monitoring daemon.
+     *
+     * The daemon only ever needs [AppInfo.packageName] and [AppInfo.isSystemGame]
+     * to decide whether a foreground app is a game. Loading icons ([app.loadIcon])
+     * for every installed package is the single largest avoidable allocation in
+     * the service — this drops it entirely and uses a transparent 1x1 stub instead.
+     *
+     * Do NOT use this variant anywhere that renders the icon in the UI.
+     */
+    suspend fun getAllInstalledAppsLite(context: Context): List<AppInfo> = withContext(Dispatchers.IO) {
+        val pm = context.packageManager
+        val apps = pm.getInstalledApplications(0) // No GET_META_DATA needed here
+        val appList = mutableListOf<AppInfo>()
+        // Reusable transparent 1×1 stub — avoids allocating a Drawable per app.
+        val stubIcon = android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
+
+        for (app in apps) {
+            if ((app.flags and ApplicationInfo.FLAG_SYSTEM) == 0 || (app.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0) {
+                val isAndroidGame = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    app.category == ApplicationInfo.CATEGORY_GAME
+                } else {
+                    (app.flags and ApplicationInfo.FLAG_IS_GAME) != 0
+                }
+                // loadLabel is still needed so AppInfo.name is usable if ever inspected,
+                // but the icon is intentionally skipped.
+                appList.add(AppInfo(app.loadLabel(pm).toString(), app.packageName, stubIcon, isAndroidGame))
+            }
+        }
+        appList
+    }
 }
 
 // ── UI Components ─────────────────────────────────────────────────────────

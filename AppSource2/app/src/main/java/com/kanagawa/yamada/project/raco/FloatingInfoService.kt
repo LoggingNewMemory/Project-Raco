@@ -167,6 +167,10 @@ fun InfoWidgetContent(startTimeMillis: Long) {
             val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
             var lastRxBytes = TrafficStats.getTotalRxBytes()
             var lastTxBytes = TrafficStats.getTotalTxBytes()
+            // Hoisted outside the loop: getSystemService is an IPC call and never changes.
+            val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+            // Hoisted outside the loop: this is a pure value object, no need to reallocate every second.
+            val fpsSocketAddress = android.net.LocalSocketAddress("raco_gameservice", android.net.LocalSocketAddress.Namespace.ABSTRACT)
 
             while (isActive) {
                 // Time
@@ -191,15 +195,14 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                 lastTxBytes = currentTx
 
                 // Battery
-                val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
                 val level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
                 batteryLevel = "$level%"
 
                 // FPS (Fetch real hardware FPS from raco_gameservice daemon)
                 try {
                     val socket = android.net.LocalSocket()
-                    val address = android.net.LocalSocketAddress("raco_gameservice", android.net.LocalSocketAddress.Namespace.ABSTRACT)
-                    socket.connect(address)
+                    socket.soTimeout = 1_000 // Don't stall the widget loop if daemon is slow
+                    socket.connect(fpsSocketAddress)
 
                     val payload = "GET_FPS:"
                     socket.outputStream.write(payload.toByteArray())

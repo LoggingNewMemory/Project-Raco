@@ -122,6 +122,10 @@ void load_config(const char *config_path) {
     config.legacy_notif = 0;
     config.silent_notif = 0;
     config.device_mitigation = 0;
+    config.inc_kobo = 0;
+    config.inc_zeta = 0;
+    config.inc_sandev = 0;
+    config.sandev_dur = 300;
     strcpy(config.default_gov, "schedutil");
 
     char file_content[4096];
@@ -145,6 +149,10 @@ void load_config(const char *config_path) {
             else if (strcmp(key, "LEGACY_NOTIF") == 0 && parsed == 2) config.legacy_notif = atol(value);
             else if (strcmp(key, "SILENT_NOTIF") == 0 && parsed == 2) config.silent_notif = atol(value);
             else if (strcmp(key, "DEVICE_MITIGATION") == 0 && parsed == 2) config.device_mitigation = atol(value);
+            else if (strcmp(key, "INCLUDE_KOBO") == 0 && parsed == 2) config.inc_kobo = atoi(value);
+            else if (strcmp(key, "INCLUDE_ZETAMIN") == 0 && parsed == 2) config.inc_zeta = atoi(value);
+            else if (strcmp(key, "INCLUDE_SANDEV") == 0 && parsed == 2) config.inc_sandev = atoi(value);
+            else if (strcmp(key, "SANDEV_DUR") == 0 && parsed == 2) config.sandev_dur = atoi(value);
             else if (strcmp(key, "GOV") == 0 && parsed == 2) strcpy(config.default_gov, value);
         }
         line = strtok_r(NULL, "\n", &saveptr_line);

@@ -28,6 +28,12 @@ typedef struct {
     int legacy_notif;
     int silent_notif;
     int device_mitigation;
+    // Service daemon feature flags — parsed once from raco.txt by load_config()
+    // so raco_services.c doesn't need a second file read.
+    int inc_kobo;
+    int inc_zeta;
+    int inc_sandev;
+    int sandev_dur;
     char default_gov[32];
 } RacoConfig;
 

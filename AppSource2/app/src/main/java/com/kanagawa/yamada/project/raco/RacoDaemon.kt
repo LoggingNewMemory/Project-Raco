@@ -2,9 +2,11 @@ package com.kanagawa.yamada.project.raco
 
 import android.net.LocalSocket
 import android.net.LocalSocketAddress
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 /**
  * Central helper for communicating with the raco_gameservice daemon.
@@ -17,6 +19,10 @@ import kotlinx.coroutines.launch
  *     as long as root is available.
  */
 object RacoDaemon {
+
+    // Dedicated scope — SupervisorJob means one failed send doesn’t cancel others.
+    // Using GlobalScope here would leak the coroutine indefinitely with no way to cancel.
+    private val ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     // Mode string → raco binary argument number
     private fun modeToArg(mode: String): String = when (mode.uppercase()) {
@@ -34,7 +40,7 @@ object RacoDaemon {
      * dispatches to IO internally.
      */
     fun sendMode(mode: String, packageName: String? = null) {
-        GlobalScope.launch(Dispatchers.IO) {
+        ioScope.launch {
             val socketOk = trySendViaSocket(mode, packageName)
             if (!socketOk) {
                 // Socket failed — daemon is likely dead or busy.
@@ -47,6 +53,9 @@ object RacoDaemon {
     private fun trySendViaSocket(mode: String, packageName: String?): Boolean {
         return try {
             val socket = LocalSocket()
+            // 3-second timeout: if the daemon is dead or stalled, we must not
+            // hang the IO thread waiting for the OS default (~2 min).
+            socket.soTimeout = 3_000
             val address = LocalSocketAddress("raco_gameservice", LocalSocketAddress.Namespace.ABSTRACT)
             socket.connect(address)
             val payload = if (packageName != null) "$mode:$packageName" else mode
@@ -62,7 +71,11 @@ object RacoDaemon {
     private fun tryExecDirect(mode: String) {
         try {
             val cmd = "/system/bin/linker64 $RACO_BIN ${modeToArg(mode)} >/dev/null 2>&1"
-            Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
+            val proc = Runtime.getRuntime().exec(arrayOf("su", "-c", cmd))
+            // 5-second guard: don’t let a hung su block the IO thread indefinitely.
+            if (!proc.waitFor(5, TimeUnit.SECONDS)) {
+                proc.destroy()
+            }
         } catch (_: Exception) { }
     }
 }
