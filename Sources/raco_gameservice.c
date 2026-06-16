@@ -59,7 +59,7 @@ long get_mem_available() {
 }
 
 void handle_client(int client_sock) {
-    char buffer[128]; // Mode strings are at most ~9 chars + ':' + package name
+    char buffer[256];
     int bytes_read = read(client_sock, buffer, sizeof(buffer) - 1);
     if (bytes_read > 0) {
         buffer[bytes_read] = '\0';
