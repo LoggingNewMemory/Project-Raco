@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
@@ -91,6 +92,7 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
     var toastMessage by remember { mutableStateOf<String?>(null) }
     var lastToastMessage by remember { mutableStateOf("") }
     var toastTrigger by remember { mutableStateOf(0) }
+    val toastSlideProgress = remember { Animatable(0f) }
 
     LaunchedEffect(toastMessage) {
         if (toastMessage != null) lastToastMessage = toastMessage!!
@@ -107,6 +109,7 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
 
     LaunchedEffect(toastTrigger) {
         if (toastTrigger > 0) {
+            toastSlideProgress.snapTo(0f)
             toastMessage = when (currentPerfMode.name) {
                 "AWAKEN" -> "Switched to Awaken Mode"
                 "BALANCED" -> "Switched to Balanced Mode"
@@ -114,7 +117,8 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
                 "NORMAL" -> "Restored Normal State"
                 else -> null
             }
-            delay(2000)
+            toastSlideProgress.animateTo(1f, tween(1000, easing = FastOutSlowInEasing))
+            delay(1000)
             toastMessage = null
         }
     }
@@ -264,12 +268,25 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
                     .border(1.dp, themeColor.copy(alpha=0.5f), RoundedCornerShape(24.dp))
                     .padding(horizontal = 24.dp, vertical = 12.dp)
             ) {
-                Text(
-                    text = lastToastMessage,
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                Box {
+                    Text(
+                        text = lastToastMessage,
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = lastToastMessage,
+                        color = themeColor,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.drawWithContent {
+                            clipRect(right = size.width * toastSlideProgress.value) {
+                                this@drawWithContent.drawContent()
+                            }
+                        }
+                    )
+                }
             }
         }
     }
