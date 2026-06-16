@@ -18,6 +18,15 @@ class AutoGameMonitorService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
     private var lastForegroundApp: String = ""
 
+    // Cache the app/game list — only refresh every 60s, not on every poll tick.
+    // Loading icons for every installed app on every 1.5s poll was extremely heavy
+    // and could silently crash/freeze the monitoring coroutine.
+    private var cachedAppList: List<AppInfo> = emptyList()
+    private var cachedAddedGames: Set<String> = emptySet()
+    private var cachedHiddenGames: Set<String> = emptySet()
+    private var lastCacheRefresh = 0L
+    private val CACHE_TTL_MS = 60_000L
+
     override fun onBind(intent: Intent?): IBinder? = null
     private val toastReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -55,12 +64,22 @@ class AutoGameMonitorService : Service() {
         val notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle("Project Raco")
             .setContentText("Game Monitoring is Active")
-            .setSmallIcon(android.R.drawable.ic_media_play) // Use built-in generic icon
+            .setSmallIcon(android.R.drawable.ic_media_play)
             .build()
         if (Build.VERSION.SDK_INT >= 34) {
             startForeground(1001, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         } else {
             startForeground(1001, notification)
+        }
+    }
+
+    private suspend fun refreshCacheIfNeeded() {
+        val now = System.currentTimeMillis()
+        if (now - lastCacheRefresh > CACHE_TTL_MS) {
+            cachedAppList = GameManager.getAllInstalledApps(this@AutoGameMonitorService)
+            cachedAddedGames = GameManager.getManuallyAddedGames(this@AutoGameMonitorService)
+            cachedHiddenGames = GameManager.getHiddenGames(this@AutoGameMonitorService)
+            lastCacheRefresh = now
         }
     }
 
@@ -93,21 +112,18 @@ class AutoGameMonitorService : Service() {
                 }
                 
                 if (currentForeground != lastForegroundApp) {
-                    val appList = GameManager.getAllInstalledApps(this@AutoGameMonitorService)
-                    val addedGames = GameManager.getManuallyAddedGames(this@AutoGameMonitorService)
-                    val hiddenGames = GameManager.getHiddenGames(this@AutoGameMonitorService)
-                    
-                    val isGame = appList.find { it.packageName == currentForeground }?.let {
-                        (it.isSystemGame && it.packageName !in hiddenGames) || it.packageName in addedGames
+                    // Refresh the game list cache (at most once per minute)
+                    refreshCacheIfNeeded()
+
+                    val isGame = cachedAppList.find { it.packageName == currentForeground }?.let {
+                        (it.isSystemGame && it.packageName !in cachedHiddenGames) || it.packageName in cachedAddedGames
                     } ?: false
 
                     if (isGame) {
-                        // Detected a game launching!
                         onGameLaunched(currentForeground)
                     } else if (lastForegroundApp.isNotEmpty()) {
-                        // Transitioned from a game to a non-game app
-                        val wasGame = appList.find { it.packageName == lastForegroundApp }?.let {
-                            (it.isSystemGame && it.packageName !in hiddenGames) || it.packageName in addedGames
+                        val wasGame = cachedAppList.find { it.packageName == lastForegroundApp }?.let {
+                            (it.isSystemGame && it.packageName !in cachedHiddenGames) || it.packageName in cachedAddedGames
                         } ?: false
                         
                         if (wasGame) {
@@ -121,7 +137,6 @@ class AutoGameMonitorService : Service() {
     }
 
     private fun onGameLaunched(packageName: String) {
-        // Read raco_slingshot_prefs to determine if user has a global preferred perf mode
         val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
         val mode = prefs.getString("global_perf_mode", "AWAKEN") ?: "AWAKEN"
         
@@ -134,8 +149,8 @@ class AutoGameMonitorService : Service() {
             return
         }
 
-        // Trigger Daemon via UNIX Socket
-        triggerDaemonMode(mode, packageName)
+        // Trigger mode switch
+        RacoDaemon.sendMode(mode, packageName)
         
         // Update the timestamp for manual launches
         GameManager.setGameLastPlayed(this, packageName, System.currentTimeMillis())
@@ -152,25 +167,12 @@ class AutoGameMonitorService : Service() {
     }
 
     private fun onGameExited(packageName: String) {
-        // When game exits, revert to NORMAL mode
-        triggerDaemonMode("NORMAL")
-    }
-
-    private fun triggerDaemonMode(mode: String, packageName: String? = null) {
-        try {
-            val socket = LocalSocket()
-            val address = LocalSocketAddress("raco_gameservice", LocalSocketAddress.Namespace.ABSTRACT)
-            socket.connect(address)
-            val payload = if (packageName != null) "$mode:$packageName" else mode
-            socket.outputStream.write(payload.toByteArray())
-            socket.close()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        RacoDaemon.sendMode("NORMAL")
     }
 
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
+        try { unregisterReceiver(toastReceiver) } catch (_: Exception) {}
     }
 }

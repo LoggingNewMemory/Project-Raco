@@ -8,10 +8,10 @@ done
 MODDIR=${0%/*}
 
 # Execute the Raco core service in the background
-/system/bin/linker64 $MODDIR/CoreSys/raco_service &
+/system/bin/linker64 $MODDIR/CoreSys/raco_service $MODDIR &
 
 # Execute the Raco Game Monitoring Service
-/system/bin/linker64 $MODDIR/CoreSys/raco_gameservice &
+/system/bin/linker64 $MODDIR/CoreSys/raco_gameservice $MODDIR &
 
 # Forcefully start the companion app's AutoGameMonitorService
 # Bypasses Android 14+ background FGS restrictions and OEM Autostart blocks

@@ -330,18 +330,8 @@ fun SlingshotScreen(
                                 context.startService(inGameIntent)
                                 
                                 // Direct Daemon Trigger (Bypasses AutoGameMonitorService if it was killed by OEM)
-                                try {
-                                    val prefs = context.getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
-                                    val mode = prefs.getString("global_perf_mode", "AWAKEN") ?: "AWAKEN"
-                                    val socket = android.net.LocalSocket()
-                                    val address = android.net.LocalSocketAddress("raco_gameservice", android.net.LocalSocketAddress.Namespace.ABSTRACT)
-                                    socket.connect(address)
-                                    val payload = "$mode:${game.packageName}"
-                                    socket.outputStream.write(payload.toByteArray())
-                                    socket.close()
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
+                                val mode = prefs.getString("global_perf_mode", "AWAKEN") ?: "AWAKEN"
+                                RacoDaemon.sendMode(mode, game.packageName)
                             }
                             
                             onBack()

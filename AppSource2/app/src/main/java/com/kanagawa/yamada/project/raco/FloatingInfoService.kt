@@ -203,6 +203,7 @@ fun InfoWidgetContent(startTimeMillis: Long) {
 
                     val payload = "GET_FPS:"
                     socket.outputStream.write(payload.toByteArray())
+                    socket.outputStream.flush()
 
                     val buffer = ByteArray(16)
                     val bytesRead = socket.inputStream.read(buffer)

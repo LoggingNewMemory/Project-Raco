@@ -12,6 +12,36 @@ Copyright (C) 2026 Kanagawa Yamada
 #include <sys/un.h>
 #include <stddef.h>
 #include <sys/wait.h>
+#include <signal.h>
+
+// Full path to the raco mode-switcher binary, built from MODDIR (argv[1])
+static char raco_bin_path[512] = {0};
+
+// Execute the raco binary with a given mode argument.
+// Uses execv() directly — no shell, no environment inheritance issues.
+static void exec_raco_mode(const char *mode_arg) {
+    if (raco_bin_path[0] == '\0') return;
+
+    pid_t pid = fork();
+    if (pid == 0) {
+        // Double-fork to fully detach from daemon so we don't block accept()
+        if (fork() == 0) {
+            char *args[] = {
+                "/system/bin/linker64",
+                raco_bin_path,
+                (char *)mode_arg,
+                NULL
+            };
+            execv("/system/bin/linker64", args);
+            _exit(1);
+        }
+        _exit(0);
+    } else if (pid > 0) {
+        // Only wait for the intermediate child (which exits immediately).
+        // The grandchild (actual raco exec) is detached and runs independently.
+        waitpid(pid, NULL, 0);
+    }
+}
 
 long get_mem_available() {
     FILE *fp = fopen("/proc/meminfo", "r");
@@ -28,7 +58,6 @@ long get_mem_available() {
     return mem_avail / 1024; // MB
 }
 
-
 void handle_client(int client_sock) {
     char buffer[256];
     int bytes_read = read(client_sock, buffer, sizeof(buffer) - 1);
@@ -39,55 +68,34 @@ void handle_client(int client_sock) {
         buffer[strcspn(buffer, "\r\n")] = '\0';
 
         char *colon = strchr(buffer, ':');
+        char *pkg = NULL;
         if (colon) {
-            *colon = '\0'; // split the buffer so strncmp for AWAKEN etc below works properly
+            *colon = '\0';
+            pkg = colon + 1;
         }
 
         if (strncmp(buffer, "AWAKEN", 6) == 0) {
-            pid_t pid = fork();
-            if (pid == 0) {
-                if (fork() == 0) {
-                    system("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco 4 >/dev/null 2>&1");
-                    exit(0);
-                }
-                exit(0);
-            } else if (pid > 0) waitpid(pid, NULL, 0);
+            close(client_sock); // Close BEFORE exec so accept() can resume immediately
+            exec_raco_mode("4");
+            return;
         } else if (strncmp(buffer, "BALANCED", 8) == 0) {
-            pid_t pid = fork();
-            if (pid == 0) {
-                if (fork() == 0) {
-                    system("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco 3 >/dev/null 2>&1");
-                    exit(0);
-                }
-                exit(0);
-            } else if (pid > 0) waitpid(pid, NULL, 0);
+            close(client_sock);
+            exec_raco_mode("3");
+            return;
         } else if (strncmp(buffer, "POWERSAVE", 9) == 0) {
-            pid_t pid = fork();
-            if (pid == 0) {
-                if (fork() == 0) {
-                    system("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco 2 >/dev/null 2>&1");
-                    exit(0);
-                }
-                exit(0);
-            } else if (pid > 0) waitpid(pid, NULL, 0);
+            close(client_sock);
+            exec_raco_mode("2");
+            return;
         } else if (strncmp(buffer, "NORMAL", 6) == 0) {
-            pid_t pid = fork();
-            if (pid == 0) {
-                if (fork() == 0) {
-                    system("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco 1 >/dev/null 2>&1");
-                    exit(0);
-                }
-                exit(0);
-            } else if (pid > 0) waitpid(pid, NULL, 0);
+            close(client_sock);
+            exec_raco_mode("1");
+            return;
         } else if (strncmp(buffer, "GET_FPS", 7) == 0) {
-            char *pkg = colon ? (colon + 1) : "";
-            int fps = get_universal_fps(pkg);
+            int fps = get_universal_fps(pkg ? pkg : "");
             
             char out_buf[16];
             snprintf(out_buf, sizeof(out_buf), "%d", fps);
             write(client_sock, out_buf, strlen(out_buf));
-            close(client_sock);
-            return;
         }
     }
     close(client_sock);
@@ -98,14 +106,24 @@ int main(int argc, char *argv[]) {
     struct sockaddr_un server_addr, client_addr;
     socklen_t client_len = sizeof(client_addr);
 
+    // Prevent zombie children from accumulating
+    signal(SIGCHLD, SIG_IGN);
+
+    // argv[1] is MODDIR passed from service.sh
+    // Build the path to raco: $MODDIR/Compiled/raco
+    if (argc >= 2) {
+        snprintf(raco_bin_path, sizeof(raco_bin_path), "%s/Compiled/raco", argv[1]);
+    }
+
     // Launch Java FPS Daemon
     pid_t pid = fork();
     if (pid == 0) {
-        // Child process
-        execl("/system/bin/app_process", "app_process", "-Djava.class.path=/data/adb/modules/ProjectRaco/CoreSys/raco_fps.dex", "/system/bin", "com.raco.RacoFpsDaemon", NULL);
+        char dex_path[512];
+        snprintf(dex_path, sizeof(dex_path), "-Djava.class.path=%s/CoreSys/raco_fps.dex",
+                 argc >= 2 ? argv[1] : "/data/adb/modules/ProjectRaco");
+        execl("/system/bin/app_process", "app_process", dex_path, "/system/bin", "com.raco.RacoFpsDaemon", NULL);
         exit(1);
     }
-
 
     server_sock = socket(AF_UNIX, SOCK_STREAM, 0);
     if (server_sock < 0) {
@@ -122,7 +140,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (listen(server_sock, 5) < 0) {
+    if (listen(server_sock, 10) < 0) {
         return 1;
     }
 

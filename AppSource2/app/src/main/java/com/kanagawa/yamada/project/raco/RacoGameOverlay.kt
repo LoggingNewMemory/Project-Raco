@@ -233,23 +233,11 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
                 onModeChange = { 
                     currentPerfMode = it 
                     toastTrigger++
-                    // Send command to UNIX socket
-                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-                        try {
-                            val socket = android.net.LocalSocket()
-                            val address = android.net.LocalSocketAddress("raco_gameservice", android.net.LocalSocketAddress.Namespace.ABSTRACT)
-                            socket.connect(address)
-                            val payload = if (targetPackageName != null) "${it.name}:$targetPackageName" else it.name
-                            socket.outputStream.write(payload.toByteArray())
-                            socket.close()
-                            
-                            // Save globally for next launches
-                            val prefs = context.getSharedPreferences("raco_slingshot_prefs", android.content.Context.MODE_PRIVATE)
-                            prefs.edit().putString("global_perf_mode", it.name).apply()
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
+                    // Send command via RacoDaemon (socket-first, su fallback)
+                    RacoDaemon.sendMode(it.name, targetPackageName)
+                    // Save globally for next launches
+                    val prefs = context.getSharedPreferences("raco_slingshot_prefs", android.content.Context.MODE_PRIVATE)
+                    prefs.edit().putString("global_perf_mode", it.name).apply()
                 }
             )
         }
