@@ -84,77 +84,15 @@ void pclose_dumpsys(FastPipe p) {
 }
 
 int get_universal_fps(const char *pkg) {
-    FastPipe p = popen_dumpsys("SurfaceFlinger", NULL, NULL);
-    if (!p.fp) return 0;
-
-    char line[1024];
-    char current_layer_name[128] = {0};
-    int in_layer = 0;
-    long long current_frame = -1;
-    int active_fps = 0;
-
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    double now = ts.tv_sec + ts.tv_nsec / 1e9;
-
-    while (fgets(line, sizeof(line), p.fp)) {
-        if (!in_layer) {
-            if (strstr(line, "SurfaceView[") && strstr(line, "(BLAST)")) {
-                char *start = strstr(line, "SurfaceView[");
-                char *end = strstr(line, "](BLAST)");
-                if (start && end && end > start) {
-                    in_layer = 1;
-                    int len = end - start;
-                    if (len >= sizeof(current_layer_name)) len = sizeof(current_layer_name) - 1;
-                    strncpy(current_layer_name, start, len);
-                    current_layer_name[len] = '\0';
-                }
-            }
-        } else {
-            char *frame_ptr = strstr(line, "frame=");
-            if (frame_ptr) {
-                if (sscanf(frame_ptr, "frame=%lld", &current_frame) == 1) {
-                    // Check if it matches requested pkg (if any)
-                    int match_pkg = 1;
-                    if (pkg && strlen(pkg) > 0) {
-                        if (!strstr(current_layer_name, pkg)) {
-                            match_pkg = 0;
-                        }
-                    }
-
-                    if (match_pkg) {
-                        int found = 0;
-                        for (int i = 0; i < layer_count; i++) {
-                            if (strcmp(tracked_layers[i].name, current_layer_name) == 0) {
-                                found = 1;
-                                double delta_t = now - tracked_layers[i].prev_time;
-                                if (delta_t > 0.0 && current_frame >= tracked_layers[i].prev_frame) {
-                                    int fps = (int)((current_frame - tracked_layers[i].prev_frame) / delta_t);
-                                    if (fps > active_fps && fps <= 240) {
-                                        active_fps = fps;
-                                    }
-                                }
-                                tracked_layers[i].prev_frame = current_frame;
-                                tracked_layers[i].prev_time = now;
-                                break;
-                            }
-                        }
-                        if (!found && layer_count < MAX_LAYERS) {
-                            strcpy(tracked_layers[layer_count].name, current_layer_name);
-                            tracked_layers[layer_count].prev_frame = current_frame;
-                            tracked_layers[layer_count].prev_time = now;
-                            layer_count++;
-                        }
-                    }
-                }
-                in_layer = 0;
-            }
-            if (strstr(line, "Layer [") || strstr(line, "+ name:")) {
-                in_layer = 0;
-            }
-        }
-    }
-    pclose_dumpsys(p);
+    FILE *fp = popen("dumpsys SurfaceFlinger|grep fps=|awk '{print$2$3}'|sort -n|tail -n1|cut -f2 -d=", "r");
+    if (!fp) return 0;
     
-    return active_fps;
+    char result[32] = {0};
+    int fps = 0;
+    if (fgets(result, sizeof(result), fp) != NULL) {
+        fps = (int)strtof(result, NULL);
+    }
+    
+    pclose(fp);
+    return fps;
 }
