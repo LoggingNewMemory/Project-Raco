@@ -115,24 +115,8 @@ int main(int argc, char *argv[]) {
         snprintf(raco_bin_path, sizeof(raco_bin_path), "%s/Compiled/raco", argv[1]);
     }
 
-    // Launch Java FPS Daemon
-    pid_t fps_pid = fork();
-    if (fps_pid == 0) {
-        char dex_path[512];
-        snprintf(dex_path, sizeof(dex_path), "-Djava.class.path=%s/CoreSys/raco_fps.dex",
-                 argc >= 2 ? argv[1] : "/data/adb/modules/ProjectRaco");
-        execl("/system/bin/app_process", "app_process", dex_path, "/system/bin", "com.raco.RacoFpsDaemon", NULL);
-        exit(1); // execl only returns on failure
-    } else if (fps_pid > 0) {
-        // Short WNOHANG check: if the child exited instantly it failed to exec.
-        // We don't wait() properly (the daemon runs long), but at least catch
-        // an immediate exec failure so it's not silently swallowed.
-        usleep(50000); // 50ms grace period for execl to succeed
-        int status;
-        if (waitpid(fps_pid, &status, WNOHANG) > 0 && WIFEXITED(status)) {
-            // Child already exited — execl failed. Continue without FPS daemon.
-        }
-    }
+    // Java FPS daemon has been removed in favor of direct C implementation.
+    // fps_pid check is skipped.
 
     server_sock = socket(AF_UNIX, SOCK_STREAM, 0);
     if (server_sock < 0) {

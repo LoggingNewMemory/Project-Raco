@@ -74,29 +74,52 @@ void pclose_dumpsys(FastPipe p) {
 
 
 int get_universal_fps(const char *pkg) {
-    int fps = 0;
-    int sock = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sock < 0) return 0;
+    static long long prev_frame = -1;
+    static double prev_time = 0.0;
+    
+    FastPipe p = popen_dumpsys("SurfaceFlinger", NULL, NULL);
+    if (!p.fp) return 0;
 
-    // 1-second receive timeout: if the Java FPS daemon is dead or stalled,
-    // read() would block forever and stall handle_client(), which in turn
-    // stalls accept() for all future clients (daemon is single-threaded).
-    struct timeval tv = { .tv_sec = 1, .tv_usec = 0 };
-    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    char line[1024];
+    int found_layer = 0;
+    long long current_frame = -1;
 
-    struct sockaddr_un addr;
-    memset(&addr, 0, sizeof(addr));
-    addr.sun_family = AF_UNIX;
-    strncpy(&addr.sun_path[1], "raco_fps_daemon", sizeof(addr.sun_path) - 2);
-
-    if (connect(sock, (struct sockaddr*)&addr, sizeof(sa_family_t) + strlen("raco_fps_daemon") + 1) == 0) {
-        write(sock, "GET_FPS", 7);
-        char buf[16] = {0};
-        int bytes = read(sock, buf, sizeof(buf) - 1);
-        if (bytes > 0) {
-            fps = atoi(buf);
+    while (fgets(line, sizeof(line), p.fp)) {
+        if (!found_layer) {
+            if (strstr(line, "SurfaceView[") && strstr(line, "(BLAST)")) {
+                if (!pkg || strlen(pkg) == 0 || strstr(line, pkg)) {
+                    found_layer = 1;
+                }
+            }
+        } else {
+            char *frame_ptr = strstr(line, "frame=");
+            if (frame_ptr) {
+                if (sscanf(frame_ptr, "frame=%lld", &current_frame) == 1) {
+                    break;
+                }
+            }
+            if (strstr(line, "Layer [")) {
+                found_layer = 0; // Missed frame=, new layer started
+            }
         }
     }
-    close(sock);
+    pclose_dumpsys(p);
+
+    int fps = 0;
+    if (current_frame >= 0) {
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        double now = ts.tv_sec + ts.tv_nsec / 1e9;
+        
+        if (prev_frame >= 0) {
+            double delta_t = now - prev_time;
+            if (delta_t > 0.0 && current_frame >= prev_frame) {
+                fps = (int)((current_frame - prev_frame) / delta_t);
+            }
+        }
+        prev_frame = current_frame;
+        prev_time = now;
+    }
+    
     return fps;
 }
