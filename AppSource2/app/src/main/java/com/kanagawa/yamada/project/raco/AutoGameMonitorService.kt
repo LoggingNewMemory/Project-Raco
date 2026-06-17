@@ -26,6 +26,9 @@ class AutoGameMonitorService : Service() {
     private var cachedHiddenGames: Set<String> = emptySet()
     private var lastCacheRefresh = 0L
     private val CACHE_TTL_MS = 60_000L
+    
+    // Tracks the last known PIDs of games. Used to distinguish resume vs fresh launch.
+    private val savedGamePids = mutableMapOf<String, Set<String>>()
 
     override fun onBind(intent: Intent?): IBinder? = null
     private val toastReceiver = object : android.content.BroadcastReceiver() {
@@ -145,13 +148,11 @@ class AutoGameMonitorService : Service() {
     private fun onGameLaunched(packageName: String) {
         val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
         val mode = prefs.getString("global_perf_mode", "AWAKEN") ?: "AWAKEN"
-        
-        // Delay any toasts until EntranceAnim finishes (~4.5s)
-        prefs.edit().putLong("entrance_anim_playing_until", System.currentTimeMillis() + 4500).apply()
 
         // Prevent launching duplicate overlays if the user just launched via Slingshot
         val lastPlayed = GameManager.getGameLastPlayed(this, packageName)
-        if (System.currentTimeMillis() - lastPlayed < 10000) {
+        val timeSinceLastPlayed = System.currentTimeMillis() - lastPlayed
+        if (timeSinceLastPlayed < 10000) {
             return
         }
 
@@ -161,9 +162,25 @@ class AutoGameMonitorService : Service() {
         // Update the timestamp for manual launches
         GameManager.setGameLastPlayed(this, packageName, System.currentTimeMillis())
 
-        // Trigger entrance animation overlay
-        val overlayIntent = Intent(this, GameOverlayService::class.java)
-        startService(overlayIntent)
+        // Check if the game process actually survived in the background by querying the C daemon
+        val currentPids = getGamePids(packageName)
+        val lastPids = savedGamePids[packageName] ?: emptySet()
+        
+        // If ANY of the current PIDs match ANY of the PIDs we saved when it last exited, it's a true Resume!
+        val isResume = currentPids.intersect(lastPids).isNotEmpty()
+        
+        // Update the saved PIDs for the next time
+        savedGamePids[packageName] = currentPids
+
+        if (isResume) {
+            // Restore the tools immediately without playing the intro animation
+            com.kanagawa.yamada.project.raco.RacoGameTools.RacoToolHandler.restoreSavedTools(this)
+        } else {
+            // Fresh launch: Delay any toasts and trigger entrance animation overlay
+            prefs.edit().putLong("entrance_anim_playing_until", System.currentTimeMillis() + 4500).apply()
+            val overlayIntent = Intent(this, GameOverlayService::class.java)
+            startService(overlayIntent)
+        }
         
         // Trigger the Side Triggers (In-Game Menu)
         val inGameIntent = Intent(this, InGameMenuService::class.java).apply {
@@ -174,6 +191,32 @@ class AutoGameMonitorService : Service() {
 
     private fun onGameExited(packageName: String) {
         RacoDaemon.sendMode("NORMAL")
+    }
+
+    private fun getGamePids(packageName: String): Set<String> {
+        try {
+            val address = LocalSocketAddress("raco_gameservice", LocalSocketAddress.Namespace.ABSTRACT)
+            val socket = LocalSocket()
+            socket.connect(address)
+            socket.soTimeout = 1000
+            
+            socket.outputStream.write("GET_PID:$packageName".toByteArray())
+            socket.outputStream.flush()
+            
+            val buffer = ByteArray(512)
+            val bytesRead = socket.inputStream.read(buffer)
+            socket.close()
+            
+            if (bytesRead > 0) {
+                val str = String(buffer, 0, bytesRead).trim()
+                if (str.isNotEmpty() && str != "-1") {
+                    return str.split(" ").toSet()
+                }
+            }
+        } catch (e: Exception) {
+            // Ignore
+        }
+        return emptySet()
     }
 
     override fun onDestroy() {

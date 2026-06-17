@@ -96,6 +96,21 @@ void handle_client(int client_sock) {
             char out_buf[16];
             snprintf(out_buf, sizeof(out_buf), "%d", fps);
             write(client_sock, out_buf, strlen(out_buf));
+        } else if (strncmp(buffer, "GET_PID", 7) == 0) {
+            char out_buf[512] = "-1";
+            if (pkg && strlen(pkg) > 0) {
+                char cmd[256];
+                snprintf(cmd, sizeof(cmd), "pgrep -f %s | tr '\\n' ' '", pkg);
+                FILE *fp = popen(cmd, "r");
+                if (fp) {
+                    if (fgets(out_buf, sizeof(out_buf), fp) != NULL) {
+                        out_buf[strcspn(out_buf, "\r\n")] = '\0';
+                        if (strlen(out_buf) == 0) strcpy(out_buf, "-1");
+                    }
+                    pclose(fp);
+                }
+            }
+            write(client_sock, out_buf, strlen(out_buf));
         }
     }
     close(client_sock);
