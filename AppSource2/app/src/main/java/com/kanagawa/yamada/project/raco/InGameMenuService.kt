@@ -66,7 +66,6 @@ class InGameMenuService : Service() {
         val newTarget = intent?.getStringExtra("package_name")
         if (newTarget != null) {
             targetPackageName = newTarget
-            startForegroundAppChecker()
         }
         return START_NOT_STICKY
     }
@@ -252,43 +251,6 @@ class InGameMenuService : Service() {
         })
     }
 
-    private fun startForegroundAppChecker() {
-        if (isCheckerRunning || targetPackageName == null) return
-        isCheckerRunning = true
-        serviceScope.launch {
-            val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-            var lastKnownApp: String? = targetPackageName
-            // Allocate once — reused every poll tick to avoid GC pressure on the 1s loop.
-            val event = UsageEvents.Event()
-            while (isActive) {
-                delay(1000)
-                val time = System.currentTimeMillis()
-                val events = usageStatsManager.queryEvents(time - 2000, time)
-                while (events.hasNextEvent()) {
-                    events.getNextEvent(event)
-                    if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
-                        lastKnownApp = event.packageName
-                    }
-                }
-                
-                val isIgnored = lastKnownApp == targetPackageName || 
-                                lastKnownApp == "android" || 
-                                lastKnownApp == "com.android.systemui" || 
-                                lastKnownApp == "com.kanagawa.yamada.project.raco" ||
-                                lastKnownApp?.contains("permission", ignoreCase = true) == true ||
-                                lastKnownApp?.contains("installer", ignoreCase = true) == true ||
-                                lastKnownApp?.contains("securitycenter", ignoreCase = true) == true ||
-                                lastKnownApp?.contains("safecenter", ignoreCase = true) == true
-                                
-                if (!isIgnored) {
-                    withContext(Dispatchers.Main) {
-                        stopSelf()
-                    }
-                    break
-                }
-            }
-        }
-    }
 
     override fun onDestroy() {
         super.onDestroy()

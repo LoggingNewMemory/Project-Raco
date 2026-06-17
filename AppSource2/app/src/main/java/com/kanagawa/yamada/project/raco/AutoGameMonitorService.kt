@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.withLock
 
 class AutoGameMonitorService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
@@ -24,6 +25,10 @@ class AutoGameMonitorService : Service() {
     private var cachedAppList: List<AppInfo> = emptyList()
     private var cachedAddedGames: Set<String> = emptySet()
     private var cachedHiddenGames: Set<String> = emptySet()
+    private var isCheckerRunning = false
+    private var exitDebounceJob: kotlinx.coroutines.Job? = null
+    private val stateMutex = kotlinx.coroutines.sync.Mutex()
+    private var isGameForeground = false
     private var lastCacheRefresh = 0L
     private val CACHE_TTL_MS = 60_000L
     
@@ -55,7 +60,7 @@ class AutoGameMonitorService : Service() {
             registerReceiver(toastReceiver, filter)
         }
         
-        startMonitoring()
+        startForegroundAppChecker()
     }
 
     private fun startForegroundService() {
@@ -89,11 +94,13 @@ class AutoGameMonitorService : Service() {
         }
     }
 
-    private fun startMonitoring() {
+    private fun startForegroundAppChecker() {
+        isCheckerRunning = true
+        val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val event = UsageEvents.Event()
+        var lastForegroundApp = ""
+
         serviceScope.launch {
-            val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-            // Allocate once — reused every poll tick to avoid GC pressure on a tight 1.5s loop.
-            val event = UsageEvents.Event()
             while (isActive) {
                 delay(1500) // Poll every 1.5 seconds
                 val time = System.currentTimeMillis()
@@ -119,9 +126,6 @@ class AutoGameMonitorService : Service() {
                 }
 
                 if (currentForeground != lastForegroundApp) {
-                    // Refresh the game list cache (at most once per minute).
-                    // Pass the already-computed timestamp so refreshCacheIfNeeded
-                    // doesn't call System.currentTimeMillis() a second time.
                     refreshCacheIfNeeded(time)
 
                     val isGame = cachedAppList.find { it.packageName == currentForeground }?.let {
@@ -129,14 +133,18 @@ class AutoGameMonitorService : Service() {
                     } ?: false
 
                     if (isGame) {
-                        onGameLaunched(currentForeground)
+                        stateMutex.withLock {
+                            onGameLaunched(currentForeground)
+                        }
                     } else if (lastForegroundApp.isNotEmpty()) {
                         val wasGame = cachedAppList.find { it.packageName == lastForegroundApp }?.let {
                             (it.isSystemGame && it.packageName !in cachedHiddenGames) || it.packageName in cachedAddedGames
                         } ?: false
 
                         if (wasGame) {
-                            onGameExited(lastForegroundApp)
+                            stateMutex.withLock {
+                                onGameExited(lastForegroundApp)
+                            }
                         }
                     }
                 }
@@ -146,15 +154,12 @@ class AutoGameMonitorService : Service() {
     }
 
     private fun onGameLaunched(packageName: String) {
+        isGameForeground = true
+        exitDebounceJob?.cancel()
         val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
         val mode = prefs.getString("global_perf_mode", "AWAKEN") ?: "AWAKEN"
 
-        // Prevent launching duplicate overlays if the user just launched via Slingshot
-        val lastPlayed = GameManager.getGameLastPlayed(this, packageName)
-        val timeSinceLastPlayed = System.currentTimeMillis() - lastPlayed
-        if (timeSinceLastPlayed < 10000) {
-            return
-        }
+        // (Duplicate protection removed because it breaks quick-resumes)
 
         // Trigger mode switch
         RacoDaemon.sendMode(mode, packageName)
@@ -190,7 +195,17 @@ class AutoGameMonitorService : Service() {
     }
 
     private fun onGameExited(packageName: String) {
-        RacoDaemon.sendMode("NORMAL")
+        isGameForeground = false
+        exitDebounceJob?.cancel()
+        exitDebounceJob = serviceScope.launch {
+            kotlinx.coroutines.delay(1500) // Wait 1.5s to ensure they didn't just quick-switch or open an ad
+            stateMutex.withLock {
+                if (isGameForeground) return@launch // Abort if game was relaunched while waiting
+                RacoDaemon.sendMode("NORMAL")
+                // Master service now explicitly kills the menu to prevent desyncs
+                stopService(Intent(this@AutoGameMonitorService, InGameMenuService::class.java))
+            }
+        }
     }
 
     private fun getGamePids(packageName: String): Set<String> {
@@ -217,6 +232,29 @@ class AutoGameMonitorService : Service() {
             // Ignore
         }
         return emptySet()
+    }
+
+    private fun getTopAppFromDaemon(): String {
+        try {
+            val address = LocalSocketAddress("raco_gameservice", LocalSocketAddress.Namespace.ABSTRACT)
+            val socket = LocalSocket()
+            socket.connect(address)
+            socket.soTimeout = 1000
+            
+            socket.outputStream.write("GET_TOP_APP".toByteArray())
+            socket.outputStream.flush()
+            
+            val buffer = ByteArray(1024)
+            val bytesRead = socket.inputStream.read(buffer)
+            socket.close()
+            
+            if (bytesRead > 0) {
+                return String(buffer, 0, bytesRead).trim()
+            }
+        } catch (e: Exception) {
+            // Ignore
+        }
+        return ""
     }
 
     override fun onDestroy() {

@@ -111,6 +111,29 @@ void handle_client(int client_sock) {
                 }
             }
             write(client_sock, out_buf, strlen(out_buf));
+        } else if (strncmp(buffer, "GET_TOP_APP", 11) == 0) {
+            char out_buf[1024] = "";
+            FILE *fp = fopen("/dev/cpuset/top-app/cgroup.procs", "r");
+            if (fp) {
+                int pid;
+                while (fscanf(fp, "%d", &pid) == 1) {
+                    char cmdline_path[256];
+                    snprintf(cmdline_path, sizeof(cmdline_path), "/proc/%d/cmdline", pid);
+                    FILE *cmd_fp = fopen(cmdline_path, "r");
+                    if (cmd_fp) {
+                        char cmd[256] = {0};
+                        if (fread(cmd, 1, sizeof(cmd) - 1, cmd_fp) > 0) {
+                            if (strlen(cmd) > 0 && !strstr(out_buf, cmd)) {
+                                if (strlen(out_buf) > 0) strcat(out_buf, ",");
+                                strcat(out_buf, cmd);
+                            }
+                        }
+                        fclose(cmd_fp);
+                    }
+                }
+                fclose(fp);
+            }
+            write(client_sock, out_buf, strlen(out_buf));
         }
     }
     close(client_sock);
