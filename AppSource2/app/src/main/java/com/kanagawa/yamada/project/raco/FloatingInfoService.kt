@@ -201,8 +201,8 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                 // FPS (Fetch real hardware FPS from raco_gameservice daemon)
                 try {
                     val socket = android.net.LocalSocket()
-                    socket.soTimeout = 1_000 // Don't stall the widget loop if daemon is slow
                     socket.connect(fpsSocketAddress)
+                    socket.soTimeout = 1_000 // Don't stall the widget loop if daemon is slow
 
                     val payload = "GET_FPS:"
                     socket.outputStream.write(payload.toByteArray())
@@ -219,7 +219,7 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                     }
                     socket.close()
                 } catch (e: Exception) {
-                    // Ignore
+                    android.util.Log.e("RacoFPS", "Socket Error: ${e.message}")
                 }
 
                 delay(1000)

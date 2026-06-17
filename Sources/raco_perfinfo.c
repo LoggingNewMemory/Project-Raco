@@ -6,6 +6,7 @@ Copyright (C) 2026 Kanagawa Yamada
 #include "raco.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/un.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -14,6 +15,17 @@ Copyright (C) 2026 Kanagawa Yamada
 #include <signal.h>
 #include <time.h>
 #include <sys/time.h>
+
+#define MAX_LAYERS 32
+
+typedef struct {
+    char name[128];
+    long long prev_frame;
+    double prev_time;
+} LayerFPS;
+
+static LayerFPS tracked_layers[MAX_LAYERS];
+static int layer_count = 0;
 
 int str_contains_nocase(const char *haystack, const char *needle) {
     if (!haystack || !needle) return 0;
@@ -71,55 +83,78 @@ void pclose_dumpsys(FastPipe p) {
     }
 }
 
-
-
 int get_universal_fps(const char *pkg) {
-    static long long prev_frame = -1;
-    static double prev_time = 0.0;
-    
     FastPipe p = popen_dumpsys("SurfaceFlinger", NULL, NULL);
     if (!p.fp) return 0;
 
     char line[1024];
-    int found_layer = 0;
+    char current_layer_name[128] = {0};
+    int in_layer = 0;
     long long current_frame = -1;
+    int active_fps = 0;
+
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    double now = ts.tv_sec + ts.tv_nsec / 1e9;
 
     while (fgets(line, sizeof(line), p.fp)) {
-        if (!found_layer) {
+        if (!in_layer) {
             if (strstr(line, "SurfaceView[") && strstr(line, "(BLAST)")) {
-                if (!pkg || strlen(pkg) == 0 || strstr(line, pkg)) {
-                    found_layer = 1;
+                char *start = strstr(line, "SurfaceView[");
+                char *end = strstr(line, "](BLAST)");
+                if (start && end && end > start) {
+                    in_layer = 1;
+                    int len = end - start;
+                    if (len >= sizeof(current_layer_name)) len = sizeof(current_layer_name) - 1;
+                    strncpy(current_layer_name, start, len);
+                    current_layer_name[len] = '\0';
                 }
             }
         } else {
             char *frame_ptr = strstr(line, "frame=");
             if (frame_ptr) {
                 if (sscanf(frame_ptr, "frame=%lld", &current_frame) == 1) {
-                    break;
+                    // Check if it matches requested pkg (if any)
+                    int match_pkg = 1;
+                    if (pkg && strlen(pkg) > 0) {
+                        if (!strstr(current_layer_name, pkg)) {
+                            match_pkg = 0;
+                        }
+                    }
+
+                    if (match_pkg) {
+                        int found = 0;
+                        for (int i = 0; i < layer_count; i++) {
+                            if (strcmp(tracked_layers[i].name, current_layer_name) == 0) {
+                                found = 1;
+                                double delta_t = now - tracked_layers[i].prev_time;
+                                if (delta_t > 0.0 && current_frame >= tracked_layers[i].prev_frame) {
+                                    int fps = (int)((current_frame - tracked_layers[i].prev_frame) / delta_t);
+                                    if (fps > active_fps && fps <= 240) {
+                                        active_fps = fps;
+                                    }
+                                }
+                                tracked_layers[i].prev_frame = current_frame;
+                                tracked_layers[i].prev_time = now;
+                                break;
+                            }
+                        }
+                        if (!found && layer_count < MAX_LAYERS) {
+                            strcpy(tracked_layers[layer_count].name, current_layer_name);
+                            tracked_layers[layer_count].prev_frame = current_frame;
+                            tracked_layers[layer_count].prev_time = now;
+                            layer_count++;
+                        }
+                    }
                 }
+                in_layer = 0;
             }
-            if (strstr(line, "Layer [")) {
-                found_layer = 0; // Missed frame=, new layer started
+            if (strstr(line, "Layer [") || strstr(line, "+ name:")) {
+                in_layer = 0;
             }
         }
     }
     pclose_dumpsys(p);
-
-    int fps = 0;
-    if (current_frame >= 0) {
-        struct timespec ts;
-        clock_gettime(CLOCK_MONOTONIC, &ts);
-        double now = ts.tv_sec + ts.tv_nsec / 1e9;
-        
-        if (prev_frame >= 0) {
-            double delta_t = now - prev_time;
-            if (delta_t > 0.0 && current_frame >= prev_frame) {
-                fps = (int)((current_frame - prev_frame) / delta_t);
-            }
-        }
-        prev_frame = current_frame;
-        prev_time = now;
-    }
     
-    return fps;
+    return active_fps;
 }
