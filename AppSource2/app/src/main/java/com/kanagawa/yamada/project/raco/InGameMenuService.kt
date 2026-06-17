@@ -135,6 +135,8 @@ class InGameMenuService : Service() {
                     WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, // Initially NOT touchable!
             PixelFormat.TRANSLUCENT
         )
+        params.alpha = 0.8f // Fix for Android 12 untrusted touches
+
         
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
             params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
@@ -177,6 +179,7 @@ class InGameMenuService : Service() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
         )
+        leftParams.alpha = 0.8f // Fix for XOS 12 / Android 12 touch block
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
             leftParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
@@ -217,6 +220,7 @@ class InGameMenuService : Service() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
         )
+        rightParams.alpha = 0.8f // Fix for XOS 12 / Android 12 touch block
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
             rightParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
@@ -230,9 +234,11 @@ class InGameMenuService : Service() {
         if (isLeftOpen || isRightOpen) {
             // Remove FLAG_NOT_TOUCHABLE so it can receive touches (clicks, close swipes)
             params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+            params.alpha = 1.0f // Fully visible when open
         } else {
             // Add FLAG_NOT_TOUCHABLE so game receives touches
             params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            params.alpha = 0.8f // <= 0.8f avoids Android 12 untrusted touch blocking
         }
         windowManager?.updateViewLayout(mainComposeView, params)
     }
