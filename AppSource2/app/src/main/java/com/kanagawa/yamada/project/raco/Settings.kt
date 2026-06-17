@@ -22,6 +22,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.zIndex
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import kotlinx.coroutines.delay
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.getValue
 import kotlinx.coroutines.Dispatchers
@@ -55,6 +65,22 @@ fun SettingsScreen(
     
     var selectedCategory by remember { mutableStateOf("Modules") }
     var pendingCropUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    
+    // Fake Toast State
+    var toastMessage by remember { mutableStateOf<String?>(null) }
+    var lastToastMessage by remember { mutableStateOf("") }
+    var toastTrigger by remember { mutableStateOf(0) }
+
+    LaunchedEffect(toastMessage) {
+        if (toastMessage != null) lastToastMessage = toastMessage!!
+    }
+
+    LaunchedEffect(toastTrigger) {
+        if (toastTrigger > 0) {
+            delay(2500)
+            toastMessage = null
+        }
+    }
     
     val cropImage = androidx.activity.compose.rememberLauncherForActivityResult(com.canhub.cropper.CropImageContract()) { result ->
         if (result.isSuccessful) {
@@ -176,6 +202,12 @@ fun SettingsScreen(
             sharedPrefs.edit().putFloat(key, value.toFloatOrNull() ?: 0f).apply()
             return
         }
+        
+        if (key in listOf("INCLUDE_KOBO", "INCLUDE_SANDEV", "INCLUDE_ZETAMIN")) {
+            toastMessage = "Please reboot the device"
+            toastTrigger++
+        }
+        
         coroutineScope.launch(Dispatchers.IO) {
             try {
                 val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /data/ProjectRaco/raco.txt"))
@@ -448,6 +480,31 @@ fun SettingsScreen(
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // FAKE TOAST
+        AnimatedVisibility(
+            visible = toastMessage != null,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 64.dp).zIndex(50f)
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color(0xCC000000))
+                    .border(1.dp, accentColor.copy(alpha=0.5f), RoundedCornerShape(24.dp))
+                    .padding(horizontal = 24.dp, vertical = 12.dp)
+            ) {
+                Box {
+                    Text(
+                        text = lastToastMessage,
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                    )
                 }
             }
         }
