@@ -199,7 +199,7 @@ fun SlingshotScreen(
                     .weight(0.55f)
                     .fillMaxHeight()
             ) {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
@@ -207,9 +207,29 @@ fun SlingshotScreen(
                         .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                         .padding(16.dp)
                 ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, accentColor.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                            .background(accentColor.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                            .padding(8.dp)
+                    ) {
+                        Text(
+                            text = "Please do keep in mind that every settings are different on each device and each game. So please experiment it by yourself!",
+                            color = Color.White.copy(alpha = 0.9f),
+                            fontSize = 9.sp,
+                            lineHeight = 11.sp,
+                            fontFamily = gilmerBold,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     Column(
                         modifier = Modifier
-                            .fillMaxSize()
+                            .fillMaxWidth()
+                            .weight(1f)
                             .verticalScroll(rememberScrollState())
                     ) {
                         
