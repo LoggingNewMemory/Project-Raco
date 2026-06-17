@@ -249,14 +249,6 @@ build_modules() {
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/kobo"
 
     # ------------------------------------------
-    # B. BUILD JAVA DAEMON (REMOVED)
-    # ------------------------------------------
-    echo ""
-    echo "---------------------------------"
-    echo "   Java Daemon Removed (Using C) "
-    echo "---------------------------------"
-
-    # ------------------------------------------
     # C. BUILD ANDROID APP
     # ------------------------------------------
     echo ""
