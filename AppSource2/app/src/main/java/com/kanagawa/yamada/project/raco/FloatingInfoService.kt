@@ -169,8 +169,6 @@ fun InfoWidgetContent(startTimeMillis: Long) {
             var lastTxBytes = TrafficStats.getTotalTxBytes()
             // Hoisted outside the loop: getSystemService is an IPC call and never changes.
             val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-            // Hoisted outside the loop: this is a pure value object, no need to reallocate every second.
-            val fpsSocketAddress = android.net.LocalSocketAddress("raco_gameservice", android.net.LocalSocketAddress.Namespace.ABSTRACT)
 
             while (isActive) {
                 // Time
@@ -198,33 +196,56 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                 val level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
                 batteryLevel = "$level%"
 
-                // FPS (Fetch real hardware FPS from raco_gameservice daemon)
-                try {
-                    val socket = android.net.LocalSocket()
-                    socket.connect(fpsSocketAddress)
-                    socket.soTimeout = 1_000 // Don't stall the widget loop if daemon is slow
-
-                    val pkg = AutoGameMonitorService.currentGamePackage
-                    val payload = if (pkg.isNotEmpty()) "GET_FPS:$pkg" else "GET_FPS:"
-                    socket.outputStream.write(payload.toByteArray())
-                    socket.outputStream.flush()
-
-                    val buffer = ByteArray(16)
-                    val bytesRead = socket.inputStream.read(buffer)
-                    if (bytesRead > 0) {
-                        val fpsStr = String(buffer, 0, bytesRead).trim()
-                        val fpsVal = fpsStr.toIntOrNull()
-                        if (fpsVal != null) {
-                            fps = fpsVal
-                        }
-                    }
-                    socket.close()
-                } catch (e: Exception) {
-                    android.util.Log.e("RacoFPS", "Socket Error: ${e.message}")
-                }
+                // FPS reading is now handled in a separate background coroutine
 
                 delay(1000)
             }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            var fpsProcess: Process? = null
+            var fpsReader: java.io.BufferedReader? = null
+            var lastPkg = ""
+
+            while (isActive) {
+                val pkg = AutoGameMonitorService.currentGamePackage
+                if (pkg != lastPkg || fpsProcess == null) {
+                    fpsProcess?.destroy()
+                    try {
+                        val cmd = if (pkg.isNotEmpty()) {
+                            arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --monitor-fps $pkg")
+                        } else {
+                            arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --monitor-fps \"\"")
+                        }
+                        fpsProcess = Runtime.getRuntime().exec(cmd)
+                        fpsReader = java.io.BufferedReader(java.io.InputStreamReader(fpsProcess!!.inputStream))
+                        lastPkg = pkg
+                    } catch (e: Exception) {
+                        fpsProcess = null
+                        fpsReader = null
+                    }
+                }
+
+                try {
+                    val line = fpsReader?.readLine()
+                    if (line != null) {
+                        val fpsVal = line.trim().toIntOrNull()
+                        if (fpsVal != null) {
+                            fps = fpsVal
+                        }
+                    } else {
+                        // EOF reached, process might have died
+                        fpsProcess?.destroy()
+                        fpsProcess = null
+                        delay(1000)
+                    }
+                } catch (e: Exception) {
+                    delay(1000)
+                }
+            }
+            fpsProcess?.destroy()
         }
     }
 

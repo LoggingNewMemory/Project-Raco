@@ -229,23 +229,11 @@ class AutoGameMonitorService : Service() {
 
     private fun getGamePids(packageName: String): Set<String> {
         try {
-            val address = LocalSocketAddress("raco_gameservice", LocalSocketAddress.Namespace.ABSTRACT)
-            val socket = LocalSocket()
-            socket.connect(address)
-            socket.soTimeout = 1000
-            
-            socket.outputStream.write("GET_PID:$packageName".toByteArray())
-            socket.outputStream.flush()
-            
-            val buffer = ByteArray(512)
-            val bytesRead = socket.inputStream.read(buffer)
-            socket.close()
-            
-            if (bytesRead > 0) {
-                val str = String(buffer, 0, bytesRead).trim()
-                if (str.isNotEmpty() && str != "-1") {
-                    return str.split(" ").toSet()
-                }
+            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --get-pid $packageName"))
+            val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
+            val str = reader.readLine()?.trim() ?: ""
+            if (str.isNotEmpty() && str != "-1") {
+                return str.split(" ").toSet()
             }
         } catch (e: Exception) {
             // Ignore
@@ -255,20 +243,11 @@ class AutoGameMonitorService : Service() {
 
     private fun getTopAppFromDaemon(): String {
         try {
-            val address = LocalSocketAddress("raco_gameservice", LocalSocketAddress.Namespace.ABSTRACT)
-            val socket = LocalSocket()
-            socket.connect(address)
-            socket.soTimeout = 1000
-            
-            socket.outputStream.write("GET_TOP_APP".toByteArray())
-            socket.outputStream.flush()
-            
-            val buffer = ByteArray(1024)
-            val bytesRead = socket.inputStream.read(buffer)
-            socket.close()
-            
-            if (bytesRead > 0) {
-                return String(buffer, 0, bytesRead).trim()
+            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --get-top-app"))
+            val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
+            val str = reader.readLine()?.trim() ?: ""
+            if (str.isNotEmpty()) {
+                return str
             }
         } catch (e: Exception) {
             // Ignore
