@@ -18,6 +18,18 @@ Copyright (C) 2026 Kanagawa Yamada
 
 
 
+
+#define MAX_LAYERS 32
+
+typedef struct {
+    char name[128];
+    long long prev_frame;
+    double prev_time;
+} LayerFPS;
+
+static LayerFPS tracked_layers[MAX_LAYERS];
+static int layer_count = 0;
+
 int str_contains_nocase(const char *haystack, const char *needle) {
     if (!haystack || !needle) return 0;
     size_t h_len = strlen(haystack);
@@ -75,15 +87,94 @@ void pclose_dumpsys(FastPipe p) {
 }
 
 int get_universal_fps(const char *pkg) {
-    FILE *fp = popen("dumpsys SurfaceFlinger|grep fps=|awk '{print$2$3}'|sort -n|tail -n1|cut -f2 -d=", "r");
-    if (!fp) return 0;
-    
-    char result[32] = {0};
-    int fps = 0;
-    if (fgets(result, sizeof(result), fp) != NULL) {
-        fps = (int)strtof(result, NULL);
+    FastPipe p = popen_dumpsys("SurfaceFlinger", NULL, NULL);
+    if (!p.fp) return 0;
+
+    char line[1024];
+    char current_layer_name[128] = {0};
+    int in_layer = 0;
+    long long current_frame = -1;
+    int active_fps = 0;
+
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    double now = ts.tv_sec + ts.tv_nsec / 1e9;
+
+    while (fgets(line, sizeof(line), p.fp)) {
+        // Always check for layer boundary first before evaluating anything else
+        if (strstr(line, "Layer [") || strstr(line, "+ name:") || strstr(line, "RequestedLayerState")) {
+            in_layer = 0;
+        }
+
+        if (!in_layer) {
+            int match_pkg = (!pkg || strlen(pkg) == 0) ? 1 : str_contains_nocase(line, pkg);
+            if (match_pkg && (strstr(line, "SurfaceView") || strstr(line, "Vulkan"))) {
+                
+                // Ignore known non-drawing container layers
+                if (strstr(line, "Background for") || strstr(line, "Bounds for")) {
+                    continue;
+                }
+
+                // If no specific package is requested, ignore our own overlay and system UI
+                if ((!pkg || strlen(pkg) == 0) && (str_contains_nocase(line, "com.kanagawa.yamada.project.raco") || str_contains_nocase(line, "com.android.systemui"))) {
+                    continue;
+                }
+
+                in_layer = 1;
+                char *start = strchr(line, '[');
+                if (!start) start = strstr(line, " - ");
+                if (!start) start = line;
+
+                int len = strlen(start);
+                if (len >= sizeof(current_layer_name)) len = sizeof(current_layer_name) - 1;
+                strncpy(current_layer_name, start, len);
+                current_layer_name[len] = '\0';
+            }
+        } else {
+            char *frame_ptr = strstr(line, "frame=");
+            if (frame_ptr) {
+                if (sscanf(frame_ptr, "frame=%lld", &current_frame) == 1) {
+                    int found = 0;
+                    for (int i = 0; i < layer_count; i++) {
+                        if (strcmp(tracked_layers[i].name, current_layer_name) == 0) {
+                            found = 1;
+                            double delta_t = now - tracked_layers[i].prev_time;
+                            if (delta_t > 0.0 && current_frame >= tracked_layers[i].prev_frame) {
+                                int fps = (int)((current_frame - tracked_layers[i].prev_frame) / delta_t);
+                                if (fps > active_fps && fps <= 240) {
+                                    active_fps = fps;
+                                }
+                            }
+                            tracked_layers[i].prev_frame = current_frame;
+                            tracked_layers[i].prev_time = now;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        int insert_idx = layer_count;
+                        if (layer_count >= MAX_LAYERS) {
+                            // Find oldest layer
+                            double oldest_time = now + 1000.0;
+                            int oldest_idx = 0;
+                            for (int i = 0; i < MAX_LAYERS; i++) {
+                                if (tracked_layers[i].prev_time < oldest_time) {
+                                    oldest_time = tracked_layers[i].prev_time;
+                                    oldest_idx = i;
+                                }
+                            }
+                            insert_idx = oldest_idx;
+                        } else {
+                            layer_count++;
+                        }
+                        strncpy(tracked_layers[insert_idx].name, current_layer_name, sizeof(tracked_layers[insert_idx].name) - 1);
+                        tracked_layers[insert_idx].prev_frame = current_frame;
+                        tracked_layers[insert_idx].prev_time = now;
+                    }
+                }
+                in_layer = 0;
+            }
+        }
     }
-    
-    pclose(fp);
-    return fps;
+    pclose_dumpsys(p);
+    return active_fps;
 }
