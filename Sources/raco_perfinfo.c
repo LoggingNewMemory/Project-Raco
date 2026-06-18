@@ -16,16 +16,7 @@ Copyright (C) 2026 Kanagawa Yamada
 #include <time.h>
 #include <sys/time.h>
 
-#define MAX_LAYERS 32
 
-typedef struct {
-    char name[128];
-    long long prev_frame;
-    double prev_time;
-} LayerFPS;
-
-static LayerFPS tracked_layers[MAX_LAYERS];
-static int layer_count = 0;
 
 int str_contains_nocase(const char *haystack, const char *needle) {
     if (!haystack || !needle) return 0;
