@@ -102,7 +102,7 @@ int get_universal_fps(const char *pkg) {
 
     while (fgets(line, sizeof(line), p.fp)) {
         // Always check for layer boundary first before evaluating anything else
-        if (strstr(line, "Layer [") || strstr(line, "+ name:") || strstr(line, "RequestedLayerState")) {
+        if (strstr(line, "Layer [") || strstr(line, "+ name:")) {
             in_layer = 0;
         }
 
