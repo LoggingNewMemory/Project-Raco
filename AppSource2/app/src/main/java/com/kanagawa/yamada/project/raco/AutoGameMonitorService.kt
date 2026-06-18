@@ -150,6 +150,20 @@ class AutoGameMonitorService : Service() {
                             }
                         }
                     }
+                } else if (isGameForeground) {
+                    // Watchdog: If the game is still foreground but the background overlays were killed by Android, revive them.
+                    val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+                    
+                    if (!InGameMenuService.isRunning) {
+                        val inGameIntent = Intent(this@AutoGameMonitorService, InGameMenuService::class.java).apply {
+                            putExtra("package_name", currentForeground)
+                        }
+                        startService(inGameIntent)
+                    }
+                    
+                    if (prefs.getBoolean("is_info_enabled", false) && !FloatingInfoService.isRunning) {
+                        startService(Intent(this@AutoGameMonitorService, FloatingInfoService::class.java))
+                    }
                 }
                 lastForegroundApp = currentForeground
             }

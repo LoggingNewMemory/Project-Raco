@@ -41,6 +41,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class InGameMenuService : Service() {
+    companion object {
+        var isRunning = false
+    }
     private var windowManager: WindowManager? = null
     private var mainComposeView: ComposeView? = null
     private var leftTriggerView: ComposeView? = null
@@ -72,6 +75,7 @@ class InGameMenuService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        isRunning = true
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         
         lifecycleOwner = MyLifecycleOwner().apply {
