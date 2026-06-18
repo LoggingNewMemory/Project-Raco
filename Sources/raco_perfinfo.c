@@ -107,7 +107,20 @@ int get_universal_fps(const char *pkg) {
         }
 
         if (!in_layer) {
-            int match_pkg = (!pkg || strlen(pkg) == 0) ? 1 : str_contains_nocase(line, pkg);
+            int match_pkg = 0;
+            if (!pkg || strlen(pkg) == 0) {
+                match_pkg = 1;
+            } else {
+                // Match the regex logic from testfps_merge.py: 
+                // Must contain SurfaceView[, the package name, and ](BLAST)
+                if (strstr(line, "SurfaceView[") && str_contains_nocase(line, pkg) && strstr(line, "](BLAST)")) {
+                    match_pkg = 1;
+                } else if (strstr(line, "SurfaceView[") && str_contains_nocase(line, pkg)) {
+                    // Fallback in case some devices don't have (BLAST) but are still SurfaceViews
+                    match_pkg = 1;
+                }
+            }
+
             if (match_pkg) {
                 
                 // Ignore known non-drawing container layers
