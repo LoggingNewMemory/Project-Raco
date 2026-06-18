@@ -16,6 +16,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.withLock
 
 class AutoGameMonitorService : Service() {
+    companion object {
+        var currentGamePackage = ""
+    }
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
     private var lastForegroundApp: String = ""
 
@@ -155,6 +158,7 @@ class AutoGameMonitorService : Service() {
 
     private fun onGameLaunched(packageName: String) {
         isGameForeground = true
+        currentGamePackage = packageName
         exitDebounceJob?.cancel()
         val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
         val mode = prefs.getString("global_perf_mode", "AWAKEN") ?: "AWAKEN"
@@ -201,6 +205,7 @@ class AutoGameMonitorService : Service() {
             kotlinx.coroutines.delay(1500) // Wait 1.5s to ensure they didn't just quick-switch or open an ad
             stateMutex.withLock {
                 if (isGameForeground) return@launch // Abort if game was relaunched while waiting
+                currentGamePackage = ""
                 RacoDaemon.sendMode("NORMAL")
                 // Master service now explicitly kills the menu to prevent desyncs
                 stopService(Intent(this@AutoGameMonitorService, InGameMenuService::class.java))

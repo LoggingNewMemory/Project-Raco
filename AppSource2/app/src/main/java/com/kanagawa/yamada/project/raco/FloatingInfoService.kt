@@ -204,7 +204,8 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                     socket.connect(fpsSocketAddress)
                     socket.soTimeout = 1_000 // Don't stall the widget loop if daemon is slow
 
-                    val payload = "GET_FPS:"
+                    val pkg = AutoGameMonitorService.currentGamePackage
+                    val payload = if (pkg.isNotEmpty()) "GET_FPS:$pkg" else "GET_FPS:"
                     socket.outputStream.write(payload.toByteArray())
                     socket.outputStream.flush()
 

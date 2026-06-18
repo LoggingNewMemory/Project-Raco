@@ -108,10 +108,10 @@ int get_universal_fps(const char *pkg) {
 
         if (!in_layer) {
             int match_pkg = (!pkg || strlen(pkg) == 0) ? 1 : str_contains_nocase(line, pkg);
-            if (match_pkg && (strstr(line, "SurfaceView") || strstr(line, "Vulkan"))) {
+            if (match_pkg) {
                 
                 // Ignore known non-drawing container layers
-                if (strstr(line, "Background for") || strstr(line, "Bounds for")) {
+                if (strstr(line, "Background for") || strstr(line, "Bounds for") || strstr(line, "ActivityRecordInputSink")) {
                     continue;
                 }
 
