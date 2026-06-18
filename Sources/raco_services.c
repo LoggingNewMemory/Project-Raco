@@ -80,11 +80,6 @@ void apply_mali_tweaks() {
         }
         closedir(dir);
 
-        if (mali_dir_path[0] != '\0') {
-            char file_path[512];
-            snprintf(file_path, sizeof(file_path), "%s/serialize_jobs", mali_dir_path);
-            rawrite("full", file_path);
-        }
         if (mali1_dir_path[0] != '\0') {
             char file_path[512];
             snprintf(file_path, sizeof(file_path), "%s/js_ctx_scheduling_mode", mali1_dir_path);
@@ -214,7 +209,7 @@ void apply_system_optimizations() {
         const char *ged_base = "/sys/module/ged/parameters";
         const char *ged_files[] = {
             "gx_boost_on", "gx_game_mode", "ged_smart_boost", "enable_gpu_boost",
-            "ged_boost_enable", "gx_frc_mode", "cpu_boost_policy", "boost_extra"
+            "ged_boost_enable", "cpu_boost_policy", "boost_extra"
         };
         int ged_count = sizeof(ged_files) / sizeof(ged_files[0]);
         raco_bulk(ged_base, ged_files, ged_count, "0", 1);

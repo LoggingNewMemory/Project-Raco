@@ -111,8 +111,8 @@ void optimize_gpu_misc() {
         const char *ged_ones[] = {"g_gpu_timer_based_emu", "boost_gpu_enable", "ged_boost_enable", "enable_gpu_boost", "gx_game_mode", "gx_boost_on", "gx_3D_benchmark_on", "is_GED_KPI_enabled", "gpu_dvfs_enable"};
         write_bulk(ged, ged_ones, 9, "1");
 
-        const char *ged_zeros[] = {"gpu_idle", "gx_frc_mode"};
-        write_bulk(ged, ged_zeros, 2, "0");
+        const char *ged_zeros[] = {"gpu_idle"};
+        write_bulk(ged, ged_zeros, 1, "0");
     }
 
     rawrite("1", "/sys/devices/platform/gpu/dvfs_enable");
@@ -153,7 +153,7 @@ void zetamin_unlock_fps() {
     char cmd[256];
 
     // Disable Android 15 Game Default Frame Rate (Unlock 60FPS limit)
-    system("resetprop persist.graphics.game_default_frame_rate.enabled true >/dev/null 2>&1");
+    system("resetprop persist.graphics.game_default_frame_rate.enabled false >/dev/null 2>&1");
     system("resetprop debug.graphics.game_default_frame_rate.disabled true >/dev/null 2>&1");
     system("service call SurfaceFlinger 1035 i32 0");
     snprintf(cmd, sizeof(cmd), "resetprop ro.surface_flinger.game_default_frame_rate_override %d >/dev/null 2>&1", max_fps);

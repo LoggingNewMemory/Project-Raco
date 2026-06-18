@@ -54,6 +54,17 @@ class AutoGameMonitorService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        
+        // Disable Android 12+ Phantom Process Killer
+        // Since we are continuously spawning `dumpsys` via the C binary, the OS might kill the parent app.
+        try {
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "device_config put activity_manager max_phantom_processes 2147483647"))
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global settings_enable_monitor_phantom_procs false"))
+            
+            // Force-whitelist the app from aggressive OEM battery killers (Doze/App Standby)
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "dumpsys deviceidle whitelist +com.kanagawa.yamada.project.raco"))
+        } catch (_: Exception) {}
+
         startForegroundService()
         
         val filter = android.content.IntentFilter("com.kanagawa.yamada.project.raco.SHOW_TOAST")
