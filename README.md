@@ -4,6 +4,9 @@
 
 **Universal Android Performance & Optimization Module**
 
+# NOTICE
+Due to cracking (Version 3.0, 4.0, 5.0, 6.0) got cracked before Public Release, Now Project Raco is no longer available to the public for free (Meaning it become paid module). However, version 5.0 - 1.0 will remain free
+
 ## 📱 Compatibility
 Project Raco is designed to support a wide range of chipsets, including but not limited to:
 * **Snapdragon**
