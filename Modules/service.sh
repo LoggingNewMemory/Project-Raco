@@ -7,12 +7,6 @@ done
 
 MODDIR=${0%/*}
 
-# DO NOT REMOVE!
-# This is a mitigation to a device that got crashed during afterbootanim! 
-# This has to be done because some device can't handle the execution (sometimes)
-# And end up crashing (reboot by itself then stucked)
-sleep 40 
-
 # Execute the Raco core service in the background
 /system/bin/linker64 $MODDIR/CoreSys/raco_service $MODDIR &
 
