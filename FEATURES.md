@@ -30,6 +30,13 @@ Some modules may be compatible, but proceed with caution.
   - **Note:** Standard thermal checking via `getprop | grep thermal` doesn't work
   - **Alternative command:** `ps -A | grep -i thermal`
 
+### Raco App & In-Game Overlays (New!)
+- **Auto Game Monitor** - Automatically detects when a game is launched to apply optimizations and start the overlay
+- **In-Game Overlay Menu** - Access essential tools without leaving the game (Brightness, Volume, etc.)
+- **Floating System Monitor** - Real-time FPS and system info tracking
+- **Game Tools Overlay** - Custom Game Crosshair and Auxiliary Lines (Aux Line)
+- **Quick Controls** - Refresh Rate, Rotation Lock, and RAM Clean directly from the overlay
+
 ---
 
 ## Plugin Features

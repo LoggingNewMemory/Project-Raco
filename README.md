@@ -17,6 +17,12 @@ Project Raco is designed to support a wide range of chipsets, including but not 
 ---
 
 ## ⚡ Features
+**NEW:** Project Raco now includes a robust **Companion App** with an **In-Game Overlay**, featuring:
+* **Auto Game Detection & Monitoring**
+* **Real-time Floating FPS & System Info**
+* **Quick Controls Overlay** (Refresh Rate, Rotation Lock, Brightness, Volume, RAM Clean)
+* **Gaming Tools** (Custom Crosshair, Auxiliary Lines)
+
 **MUST READ:** Before installing, please review the full feature list and compatibility warnings.
 👉 **[View Full Features List](https://github.com/LoggingNewMemory/Project-Raco/blob/main/FEATURES.md)**
 
