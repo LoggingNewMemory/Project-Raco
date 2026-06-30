@@ -1,11 +1,8 @@
-<img width="1280" height="720" alt="Banner" src="https://github.com/user-attachments/assets/c36338a1-e6db-4855-bfde-d2bcf8245a1b" />
+<img width="1280" height="720" alt="Banner" src="https://github.com/user-attachments/assets/78637f78-1a79-41cc-9dba-ab1dfd2bdf0a" />
 
 # Project Raco
 
 **Universal Android Performance & Optimization Module**
-
-# NOTICE
-Due to cracking (Version 3.0, 4.0, 5.0, 6.0) got cracked before Public Release, Now Project Raco is no longer available to the public for free (Meaning it become paid module). However, version 5.0 - 1.0 will remain free
 
 ## 📱 Compatibility
 Project Raco is designed to support a wide range of chipsets, including but not limited to:
