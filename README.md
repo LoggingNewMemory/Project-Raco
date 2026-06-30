@@ -37,13 +37,6 @@ If you want your tweaks merged into Project Raco, please adhere to the following
 5.  **Format:** Follow the formatting standards seen in `Service.sh`.
 6.  **Functionality:** Tweaks must offer real performance benefits (no gimmicks).
 
-👉 **[To Port Modules to Raco Plugins](https://github.com/LoggingNewMemory/Project-Raco/blob/main/PORT%20MODULES.md)**
-
----
-
-## 🌐 Want to Help translation?
-Help us translate Project Raco on **[Crowdin](https://crowdin.com/project/project-raco)**.
-
 ---
 **Project Raco Official Telegram is** [HERE](https://t.me/ProjectRacoOfficial)
 ---
