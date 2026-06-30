@@ -39,13 +39,9 @@ Some modules may be compatible, but proceed with caution.
 
 ---
 
-## Plugin Features
-- **Read Here** - [DOCUMENTATION](https://github.com/LoggingNewMemory/Project-Raco/blob/main/PLUGIN.md)
-
 ### Charging & Battery
 - **Fast Charge** - Accelerated charging speeds
 - **Kobo Fast Charge** - Enhanced fast charging implementation
-- **Bypass Charging** *(on supported devices)* - Direct power mode
 - **Disable Lock Frame Rate When Low Battery** - Maintain performance on low battery
 - **FPSGo Tweaks** - KamiGO OSS (Mediatek)
 
