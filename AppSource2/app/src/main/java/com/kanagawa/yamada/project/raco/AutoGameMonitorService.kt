@@ -209,6 +209,12 @@ class AutoGameMonitorService : Service() {
     }
 
     private fun onGameLaunched(packageName: String) {
+        if (!isGameForeground) {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            val wasDndOn = notificationManager.currentInterruptionFilter != android.app.NotificationManager.INTERRUPTION_FILTER_ALL
+            val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+            prefs.edit().putBoolean("dnd_state_before_game", wasDndOn).apply()
+        }
         isGameForeground = true
         currentGamePackage = packageName
         exitDebounceJob?.cancel()
@@ -259,6 +265,14 @@ class AutoGameMonitorService : Service() {
             stateMutex.withLock {
                 if (!isGameForeground) return@launch // Already handled
                 isGameForeground = false
+                
+                val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+                val wasDndOn = prefs.getBoolean("dnd_state_before_game", false)
+                try {
+                    val cmd = if (wasDndOn) "cmd notification set_dnd priority" else "cmd notification set_dnd off"
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
+                } catch (e: Exception) {}
+
                 currentGamePackage = ""
                 RacoDaemon.sendMode("NORMAL")
                 // Master service now explicitly kills the menu to prevent desyncs
