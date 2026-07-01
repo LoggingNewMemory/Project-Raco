@@ -101,11 +101,6 @@ int get_universal_fps(const char *pkg) {
     double now = ts.tv_sec + ts.tv_nsec / 1e9;
 
     while (fgets(line, sizeof(line), p.fp)) {
-        // Always check for layer boundary first before evaluating anything else
-        if (strstr(line, "Layer [") || strstr(line, "+ name:")) {
-            in_layer = 0;
-        }
-
         if (!in_layer) {
             int match_pkg = 0;
             if (!pkg || strlen(pkg) == 0) {

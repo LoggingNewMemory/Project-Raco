@@ -157,7 +157,7 @@ void mode_awaken() {
     corin_storage("deadline", "1");
     system("settings put secure high_priority 1; settings put secure low_priority 0; "
            "cmd power set-adaptive-power-saver-enabled false; "
-           "cmd power set-fixed-performance-mode-enabled true; "
+           "cmd power set-fixed-performance-mode-enabled false; "
            "cmd looper_stats disable; "
            "cmd power set-mode 0 &");
     
