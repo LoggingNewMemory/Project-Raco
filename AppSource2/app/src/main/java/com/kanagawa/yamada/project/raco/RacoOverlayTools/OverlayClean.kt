@@ -48,7 +48,7 @@ fun OverlayClean(themeColor: Color) {
                     isCleaning = true
                     Thread {
                         try {
-                            Runtime.getRuntime().exec(arrayOf("su", "-c", "sync; cmd activity kill-all > /dev/null 2>&1; pm trim-caches 100G > /dev/null 2>&1; echo 3 > /proc/sys/vm/drop_caches; logcat -b all -c")).waitFor()
+                            Runtime.getRuntime().exec(arrayOf("su", "-c", "sync; pm trim-caches 100G > /dev/null 2>&1; echo 3 > /proc/sys/vm/drop_caches; logcat -b all -c")).waitFor()
                             
                             val intent = Intent(context, ToastOverlayService::class.java).apply {
                                 putExtra("msg", "Clean Up Finished")

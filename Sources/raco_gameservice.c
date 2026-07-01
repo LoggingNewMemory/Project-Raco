@@ -41,7 +41,8 @@ int main(int argc, char *argv[]) {
         }
         return 0;
     } else if (argc >= 2 && strcmp(argv[1], "--get-top-app") == 0) {
-        char out_buf[1024] = "";
+        char out_buf[4096] = "";
+        size_t out_len = 0;
         FILE *fp = fopen("/dev/cpuset/top-app/cgroup.procs", "r");
         if (fp) {
             int pid;
@@ -52,9 +53,17 @@ int main(int argc, char *argv[]) {
                 if (cmd_fp) {
                     char cmd[256] = {0};
                     if (fread(cmd, 1, sizeof(cmd) - 1, cmd_fp) > 0) {
-                        if (strlen(cmd) > 0 && !strstr(out_buf, cmd)) {
-                            if (strlen(out_buf) > 0) strcat(out_buf, ",");
-                            strcat(out_buf, cmd);
+                        size_t cmd_len = strlen(cmd);
+                        if (cmd_len > 0 && !strstr(out_buf, cmd)) {
+                            // +1 for comma, +1 for null terminator
+                            if (out_len + cmd_len + 2 < sizeof(out_buf)) {
+                                if (out_len > 0) {
+                                    out_buf[out_len++] = ',';
+                                }
+                                memcpy(out_buf + out_len, cmd, cmd_len);
+                                out_len += cmd_len;
+                                out_buf[out_len] = '\0';
+                            }
                         }
                     }
                     fclose(cmd_fp);

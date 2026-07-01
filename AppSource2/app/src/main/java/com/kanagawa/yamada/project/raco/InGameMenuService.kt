@@ -4,6 +4,9 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
 import android.view.WindowManager
@@ -70,12 +73,13 @@ class InGameMenuService : Service() {
         if (newTarget != null) {
             targetPackageName = newTarget
         }
-        return START_NOT_STICKY
+        return START_STICKY
     }
 
     override fun onCreate() {
         super.onCreate()
         isRunning = true
+        promoteToForeground()
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         
         lifecycleOwner = MyLifecycleOwner().apply {
@@ -256,9 +260,33 @@ class InGameMenuService : Service() {
     }
 
 
+    private fun promoteToForeground() {
+        val channelId = "ingame_overlay_channel"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "In-Game Overlay", NotificationManager.IMPORTANCE_LOW).apply {
+                description = "Keeps the game overlay alive during gaming sessions"
+                setShowBadge(false)
+            }
+            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        }
+        val notification = androidx.core.app.NotificationCompat.Builder(this, channelId)
+            .setContentTitle("Project Raco")
+            .setContentText("In-Game Overlay Active")
+            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setOngoing(true)
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_LOW)
+            .build()
+        if (Build.VERSION.SDK_INT >= 34) {
+            startForeground(1002, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(1002, notification)
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         isRunning = false
+        stopForeground(STOP_FOREGROUND_REMOVE)
         stopService(Intent(this, FloatingInfoService::class.java))
         stopService(Intent(this, RotationLockService::class.java))
         stopService(Intent(this, RefreshRateService::class.java))

@@ -209,43 +209,47 @@ fun InfoWidgetContent(startTimeMillis: Long) {
             var fpsReader: java.io.BufferedReader? = null
             var lastPkg = ""
 
-            while (isActive) {
-                val pkg = AutoGameMonitorService.currentGamePackage
-                if (pkg != lastPkg || fpsProcess == null) {
-                    fpsProcess?.destroy()
-                    try {
-                        val cmd = if (pkg.isNotEmpty()) {
-                            arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --monitor-fps $pkg")
-                        } else {
-                            arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --monitor-fps \"\"")
-                        }
-                        fpsProcess = Runtime.getRuntime().exec(cmd)
-                        fpsReader = java.io.BufferedReader(java.io.InputStreamReader(fpsProcess!!.inputStream))
-                        lastPkg = pkg
-                    } catch (e: Exception) {
-                        fpsProcess = null
-                        fpsReader = null
-                    }
-                }
-
-                try {
-                    val line = fpsReader?.readLine()
-                    if (line != null) {
-                        val fpsVal = line.trim().toIntOrNull()
-                        if (fpsVal != null) {
-                            fps = fpsVal
-                        }
-                    } else {
-                        // EOF reached, process might have died
+            try {
+                while (isActive) {
+                    val pkg = AutoGameMonitorService.currentGamePackage
+                    if (pkg != lastPkg || fpsProcess == null) {
                         fpsProcess?.destroy()
-                        fpsProcess = null
+                        try {
+                            val cmd = if (pkg.isNotEmpty()) {
+                                arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --monitor-fps $pkg")
+                            } else {
+                                arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --monitor-fps \"\"")
+                            }
+                            fpsProcess = Runtime.getRuntime().exec(cmd)
+                            fpsReader = java.io.BufferedReader(java.io.InputStreamReader(fpsProcess!!.inputStream))
+                            lastPkg = pkg
+                        } catch (e: Exception) {
+                            fpsProcess = null
+                            fpsReader = null
+                        }
+                    }
+
+                    try {
+                        val line = fpsReader?.readLine()
+                        if (line != null) {
+                            val fpsVal = line.trim().toIntOrNull()
+                            if (fpsVal != null) {
+                                fps = fpsVal
+                            }
+                        } else {
+                            // EOF reached, process might have died
+                            fpsProcess?.destroy()
+                            fpsProcess = null
+                            delay(1000)
+                        }
+                    } catch (e: Exception) {
                         delay(1000)
                     }
-                } catch (e: Exception) {
-                    delay(1000)
                 }
+            } finally {
+                // Ensure the FPS monitor process is always cleaned up on cancellation
+                fpsProcess?.destroy()
             }
-            fpsProcess?.destroy()
         }
     }
 

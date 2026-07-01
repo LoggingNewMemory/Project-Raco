@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.LocalSocket
 import android.net.LocalSocketAddress
+import android.app.ActivityManager
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
@@ -17,7 +18,7 @@ import kotlinx.coroutines.sync.withLock
 
 class AutoGameMonitorService : Service() {
     companion object {
-        var currentGamePackage = ""
+        @Volatile var currentGamePackage = ""
     }
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
     private var lastForegroundApp: String = ""
@@ -186,17 +187,19 @@ class AutoGameMonitorService : Service() {
                         }
                     }
                 } else if (isGameForeground) {
-                    // Watchdog: If the game is still foreground but the background overlays were killed by Android, revive them.
-                    val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
-                    
-                    if (!InGameMenuService.isRunning) {
+                    // Watchdog: If the game is still foreground but overlays were killed by Android, revive them.
+                    // Uses ActivityManager instead of static flags because onDestroy() is NOT guaranteed on OOM kill.
+                    if (!isServiceActuallyRunning(InGameMenuService::class.java)) {
+                        InGameMenuService.isRunning = false
                         val inGameIntent = Intent(this@AutoGameMonitorService, InGameMenuService::class.java).apply {
                             putExtra("package_name", currentForeground)
                         }
                         startService(inGameIntent)
                     }
                     
-                    if (prefs.getBoolean("is_info_enabled", false) && !FloatingInfoService.isRunning) {
+                    val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+                    if (prefs.getBoolean("is_info_enabled", false) && !isServiceActuallyRunning(FloatingInfoService::class.java)) {
+                        FloatingInfoService.isRunning = false
                         startService(Intent(this@AutoGameMonitorService, FloatingInfoService::class.java))
                     }
                 }
@@ -248,12 +251,14 @@ class AutoGameMonitorService : Service() {
     }
 
     private fun onGameExited(packageName: String) {
-        isGameForeground = false
+        // Don't set isGameForeground=false here — wait until after debounce.
+        // Setting it early created a window where the watchdog wouldn't revive killed overlays.
         exitDebounceJob?.cancel()
         exitDebounceJob = serviceScope.launch {
             kotlinx.coroutines.delay(1500) // Wait 1.5s to ensure they didn't just quick-switch or open an ad
             stateMutex.withLock {
-                if (isGameForeground) return@launch // Abort if game was relaunched while waiting
+                if (!isGameForeground) return@launch // Already handled
+                isGameForeground = false
                 currentGamePackage = ""
                 RacoDaemon.sendMode("NORMAL")
                 // Master service now explicitly kills the menu to prevent desyncs
@@ -263,8 +268,9 @@ class AutoGameMonitorService : Service() {
     }
 
     private fun getGamePids(packageName: String): Set<String> {
+        var process: Process? = null
         try {
-            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --get-pid $packageName"))
+            process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --get-pid $packageName"))
             val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
             val str = reader.readLine()?.trim() ?: ""
             if (str.isNotEmpty() && str != "-1") {
@@ -272,13 +278,19 @@ class AutoGameMonitorService : Service() {
             }
         } catch (e: Exception) {
             // Ignore
+        } finally {
+            try { process?.inputStream?.close() } catch (_: Exception) {}
+            try { process?.errorStream?.close() } catch (_: Exception) {}
+            try { process?.outputStream?.close() } catch (_: Exception) {}
+            process?.destroy()
         }
         return emptySet()
     }
 
     private fun getTopAppFromDaemon(): String {
+        var process: Process? = null
         try {
-            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --get-top-app"))
+            process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --get-top-app"))
             val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
             val str = reader.readLine()?.trim() ?: ""
             if (str.isNotEmpty()) {
@@ -286,8 +298,24 @@ class AutoGameMonitorService : Service() {
             }
         } catch (e: Exception) {
             // Ignore
+        } finally {
+            try { process?.inputStream?.close() } catch (_: Exception) {}
+            try { process?.errorStream?.close() } catch (_: Exception) {}
+            try { process?.outputStream?.close() } catch (_: Exception) {}
+            process?.destroy()
         }
         return ""
+    }
+
+    @Suppress("DEPRECATION")
+    private fun isServiceActuallyRunning(serviceClass: Class<*>): Boolean {
+        val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
+        }
+        return false
     }
 
     override fun onDestroy() {
