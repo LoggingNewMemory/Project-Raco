@@ -502,6 +502,10 @@ void snapdragon_awaken() {
     rawrite("1", "/sys/module/msm_performance/parameters/touchboost"); // Enable Touchboost
     rawrite("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
 
+    // Clear msm_performance cpu_max_freq and cpu_min_freq limits
+    rawrite("0:4294967295 1:4294967295 2:4294967295 3:4294967295 4:4294967295 5:4294967295 6:4294967295 7:4294967295", "/sys/module/msm_performance/parameters/cpu_max_freq");
+    rawrite("0:0 1:0 2:0 3:0 4:0 5:0 6:0 7:0", "/sys/module/msm_performance/parameters/cpu_min_freq");
+
     snapdragon_core_ctl_apply("1", 1);
 
     // ==============================
