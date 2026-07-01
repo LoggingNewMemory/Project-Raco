@@ -10,6 +10,7 @@ Copyright (C) 2026 Kanagawa Yamada
 
 // Constants for LINUX ARM64
 .equ SYS_FACCESSAT, 48 // Function of check file accessibility
+.equ SYS_FCHMOD,    52 // Function of Change file permission on fd
 .equ SYS_FCHMODAT,  53 // Function of Change file permission
 .equ SYS_OPENAT,    56 // Function of open file
 .equ SYS_CLOSE,     57 // Function of close file
@@ -56,6 +57,8 @@ raco_write:
     mov x3, #0                // No flags
     mov x8, #SYS_FCHMODAT     // Load Syscall for FCHMODAT
     svc #0                    // Trigger Kernel System Call
+    cmp x0, #0
+    blt .L_write_fail         // If fchmodat fails, jump to fail
 
     // Open file
     mov x0, #AT_FDCWD         // Directory of FD
@@ -75,18 +78,18 @@ raco_write:
     mov x8, #SYS_WRITE        // Load SYSCALL for write
     svc #0                    // Trigger syscall
 
+    // Chmod 444 via fchmod (using the open FD)
+    mov x0, x22               // File descriptor x22 into x0
+    mov x1, #PERM_444         // Change to perm 444
+    mov x8, #SYS_FCHMOD       // Load Syscall for FCHMOD
+    svc #0                    // Trigger Kernel System Call
+    cmp x0, #0
+    blt .L_write_fail         // If fchmod fails, jump to fail
+
     // Close File
     mov x0, x22               // File descriptor x22 into x0
     mov x8, #SYS_CLOSE        // Load syscall for close into x8
     svc #0                    // Trigger Syscall
-
-    // Chmod 444 via fchmodat
-    mov x0, #AT_FDCWD         // Directory of FD
-    mov x1, x19               // Pointer to file path
-    mov x2, #PERM_444         // Change to perm 444
-    mov x3, #0                // No flags
-    mov x8, #SYS_FCHMODAT     // Load Syscall for FCHMODAT
-    svc #0                    // Trigger Kernel System Call
 
     // Exit OK
     mov x0, #0                // Set return as 0
@@ -134,6 +137,8 @@ raco_kakikomi:
     mov x3, #0                // No flags
     mov x8, #SYS_FCHMODAT     // Load Syscall for FCHMODAT
     svc #0                    // Trigger Kernel System Call
+    cmp x0, #0
+    blt .L_kaki_fail          // If fchmodat fails, jump to fail
 
     // Open file
     mov x0, #AT_FDCWD         // Directory of FD
