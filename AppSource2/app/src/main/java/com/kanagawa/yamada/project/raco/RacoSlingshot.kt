@@ -287,7 +287,7 @@ fun SlingshotScreen(
 
                                 // Cleanup first
                                 try {
-                                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings delete global angle_debug_package; settings delete global angle_gl_driver_all_angle; settings delete global angle_gl_driver_selection_pkgs; settings delete global angle_gl_driver_selection_values; setprop debug.hwui.renderer none")).waitFor()
+                                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings delete global angle_debug_package; settings delete global angle_gl_driver_all_angle; settings delete global angle_gl_driver_selection_pkgs; settings delete global angle_gl_driver_selection_values; setprop debug.hwui.renderer \"\"")).waitFor()
                                 } catch (e: Exception) {}
 
                                 if (useSkia) {

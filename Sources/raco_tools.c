@@ -176,7 +176,7 @@ void notification(const char *message) {
 void clear_slingshot() {
     system("settings delete global angle_debug_package");
     system("settings delete global angle_gl_driver_all_angle");
-    system("setprop debug.hwui.renderer none");
+    system("setprop debug.hwui.renderer \"\"");
 }
 
 #ifndef STANDALONE
