@@ -316,37 +316,50 @@ fun RacoLeftPanel(
             isDndOn = notificationManager.currentInterruptionFilter != android.app.NotificationManager.INTERRUPTION_FILTER_ALL
         } catch (e: Exception) {}
 
-        var targetFile = "/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq"
-        var maxFile = "/sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq"
+        var targetFile = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"
+        var maxFile = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"
+        var maxFreqHz = 0L
+
         try {
-            val cpufreqDir = java.io.File("/sys/devices/system/cpu/cpufreq/")
-            val maxPolicyNum = cpufreqDir.listFiles()
+            val cpuDir = java.io.File("/sys/devices/system/cpu/")
+            val maxCpuNum = cpuDir.listFiles()
                 ?.mapNotNull { 
-                    if (it.name.startsWith("policy")) it.name.removePrefix("policy").toIntOrNull() else null 
+                    if (it.name.startsWith("cpu") && it.name.removePrefix("cpu").toIntOrNull() != null) it.name.removePrefix("cpu").toInt() else null 
                 }
                 ?.maxOrNull()
             
-            if (maxPolicyNum != null) {
-                val file = java.io.File("/sys/devices/system/cpu/cpufreq/policy$maxPolicyNum/scaling_cur_freq")
+            if (maxCpuNum != null) {
+                val file = java.io.File("/sys/devices/system/cpu/cpu$maxCpuNum/cpufreq/scaling_cur_freq")
                 if (file.exists()) {
                     targetFile = file.absolutePath
-                    maxFile = "/sys/devices/system/cpu/cpufreq/policy$maxPolicyNum/cpuinfo_max_freq"
+                    val availFile = java.io.File("/sys/devices/system/cpu/cpu$maxCpuNum/cpufreq/scaling_available_frequencies")
+                    if (availFile.exists()) {
+                        val freqs = availFile.readText().trim().split("\\s+".toRegex()).mapNotNull { it.toLongOrNull() }
+                        if (freqs.isNotEmpty()) {
+                            maxFreqHz = freqs.maxOrNull() ?: 3000000L
+                        } else {
+                            maxFile = "/sys/devices/system/cpu/cpu$maxCpuNum/cpufreq/scaling_max_freq"
+                        }
+                    } else {
+                        maxFile = "/sys/devices/system/cpu/cpu$maxCpuNum/cpufreq/scaling_max_freq"
+                    }
                 }
             }
         } catch (e: Exception) {
-            // Fallback to policy0
+            // Fallback
         }
 
-        var maxFreqHz = 3000000L
-        try {
-            val maxReader = RandomAccessFile(maxFile, "r")
-            val maxFreqStr = maxReader.readLine()
-            maxReader.close()
-            if (maxFreqStr != null) {
-                maxFreqHz = maxFreqStr.toLong()
+        if (maxFreqHz == 0L) {
+            try {
+                val maxReader = RandomAccessFile(maxFile, "r")
+                val maxFreqStr = maxReader.readLine()
+                maxReader.close()
+                if (maxFreqStr != null) {
+                    maxFreqHz = maxFreqStr.toLong()
+                }
+            } catch (e: Exception) {
+                // Ignore
             }
-        } catch (e: Exception) {
-            // Ignore
         }
 
         val sdf = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
@@ -359,12 +372,18 @@ fun RacoLeftPanel(
                 val freqGHz = freqHz / 1000000.0
                 cpuFreq = String.format(java.util.Locale.US, "%.2f", freqGHz)
                 
-                var percentage = freqHz.toFloat() / maxFreqHz.toFloat()
-                if (percentage > 1f) percentage = 1f
-                if (percentage < 0.05f) percentage = 0.05f
-                cpuPercentage = percentage
+                if (maxFreqHz > 0L) {
+                    var percentage = freqHz.toFloat() / maxFreqHz.toFloat()
+                    if (percentage > 1f) percentage = 1f
+                    if (percentage < 0.05f) percentage = 0.05f
+                    cpuPercentage = percentage
+                } else {
+                    cpuFreq = "__"
+                    cpuPercentage = 0f
+                }
             } catch (e: Exception) {
-                // Ignore or keep last known
+                cpuFreq = "__"
+                cpuPercentage = 0f
             }
             currentTimeString = sdf.format(java.util.Date())
             delay(1000)
