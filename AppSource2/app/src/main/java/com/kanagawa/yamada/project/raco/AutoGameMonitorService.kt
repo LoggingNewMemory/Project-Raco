@@ -39,6 +39,10 @@ class AutoGameMonitorService : Service() {
     private val savedGamePids = mutableMapOf<String, Set<String>>()
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return START_STICKY
+    }
     private val toastReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == "com.kanagawa.yamada.project.raco.SHOW_TOAST") {
@@ -115,12 +119,14 @@ class AutoGameMonitorService : Service() {
         var lastForegroundApp = ""
 
         serviceScope.launch {
+            var isFirstRun = true
             while (isActive) {
                 delay(1500) // Poll every 1.5 seconds
                 val time = System.currentTimeMillis()
                 val events = usageStatsManager.queryEvents(time - 2000, time)
                 var currentForeground = lastForegroundApp
 
+                var hasEvents = false
                 while (events.hasNextEvent()) {
                     events.getNextEvent(event)
                     if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
@@ -136,8 +142,26 @@ class AutoGameMonitorService : Service() {
                         if (!isIgnored) {
                             currentForeground = pkg
                         }
+                        hasEvents = true
                     }
                 }
+
+                if (isFirstRun && !hasEvents) {
+                    val topApp = getTopAppFromDaemon()
+                    if (topApp.isNotEmpty()) {
+                        val isIgnored = topApp == "android" ||
+                                        topApp == "com.android.systemui" ||
+                                        topApp == "com.kanagawa.yamada.project.raco" ||
+                                        topApp.contains("permission", ignoreCase = true) ||
+                                        topApp.contains("installer", ignoreCase = true) ||
+                                        topApp.contains("securitycenter", ignoreCase = true) ||
+                                        topApp.contains("safecenter", ignoreCase = true)
+                        if (!isIgnored) {
+                            currentForeground = topApp
+                        }
+                    }
+                }
+                isFirstRun = false
 
                 if (currentForeground != lastForegroundApp) {
                     refreshCacheIfNeeded(time)

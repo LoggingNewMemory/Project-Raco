@@ -5,7 +5,7 @@
 # ==========================================
 # Uncomment and modify these to skip interactive prompts.
 # Comment them out to return to normal interactive mode.
-RACOVER="6.1"
+RACOVER="6.1.1"
 BUILD="LAB"
 
 # ==========================================
@@ -255,6 +255,14 @@ build_modules() {
     echo "---------------------------------"
     echo "       Building Android App      "
     echo "---------------------------------"
+    echo "Syncing App version to $VERSION..."
+    VCODE=$(echo "$VERSION" | tr -d '.' | tr -d 'vV')
+    if ! [[ "$VCODE" =~ ^[0-9]+$ ]]; then
+        VCODE=1
+    fi
+    sed -i "s/versionName = \".*\"/versionName = \"$VERSION\"/" "AppSource2/app/build.gradle.kts"
+    sed -i "s/versionCode = [0-9]*/versionCode = $VCODE/" "AppSource2/app/build.gradle.kts"
+
     echo "Building release APK..."
     cd "AppSource2" || exit 1
     ./gradlew assembleRelease

@@ -258,6 +258,7 @@ class InGameMenuService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        isRunning = false
         stopService(Intent(this, FloatingInfoService::class.java))
         stopService(Intent(this, RotationLockService::class.java))
         stopService(Intent(this, RefreshRateService::class.java))
