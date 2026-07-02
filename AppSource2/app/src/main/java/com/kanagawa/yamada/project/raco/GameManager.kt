@@ -408,8 +408,8 @@ fun AppListItem(app: AppInfo, isAdded: Boolean, fontFamily: FontFamily, onToggle
 fun getOriginalImageBitmap(drawable: Drawable): ImageBitmap? {
     try {
         if (drawable is BitmapDrawable && drawable.bitmap != null) return drawable.bitmap.asImageBitmap()
-        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 256
-        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 256
+        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth.coerceAtMost(256) else 256
+        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight.coerceAtMost(256) else 256
         val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
         val canvas = android.graphics.Canvas(bitmap)
         drawable.setBounds(0, 0, canvas.width, canvas.height)
