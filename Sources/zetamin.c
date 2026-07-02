@@ -47,23 +47,35 @@ void change_task_cgroup_nice() {
 
 // Calculation (Facur and Flux)
 void zetamin_facur() {
-    int max_fps = 60;
-    FILE *fp = popen("cmd display dump 2>/dev/null | grep -Eo 'fps=[0-9]+' | cut -d= -f2 | sort -nr | head -n1", "r");
+    int max_fps = 0;
+    FILE *fp = popen("dumpsys display 2>/dev/null | grep -Eo '(fps|mRefreshRate|defaultPeakRefreshRate)[:=] ?[0-9]+' | grep -Eo '[0-9]+' | sort -nr | head -n1", "r");
     if (fp) {
-        fscanf(fp, "%d", &max_fps);
+        if (fscanf(fp, "%d", &max_fps) != 1) {
+            max_fps = 0;
+        }
         pclose(fp);
     }
-    if (max_fps <= 0) max_fps = 60;
+    if (max_fps <= 0) max_fps = 120;
 
     long long vsync_ns = 1000000000LL / max_fps;
-    long long val_e = (vsync_ns * 80) / 100;
-    long long val_f = (vsync_ns * 60) / 100;
-    char cmd[256];
-    const char *props_e[] = {"debug.sf.early.app.duration", "debug.sf.earlyGl.app.duration", "debug.sf.high_fps.early.app.duration", "debug.sf.high_fps.earlyGl.app.duration", "debug.sf.high_fps.late.app.duration", "debug.sf.late.app.duration"};
-    for (int i=0; i<6; i++) { snprintf(cmd, sizeof(cmd), "setprop %s %lld", props_e[i], val_e); system(cmd); }
+    long long late_duration = vsync_ns;
+    long long early_duration = vsync_ns + (vsync_ns / 2); // 1.5x frame time
 
-    const char *props_f[] = {"debug.sf.early.sf.duration", "debug.sf.earlyGl.sf.duration", "debug.sf.high_fps.early.sf.duration", "debug.sf.high_fps.earlyGl.sf.duration", "debug.sf.high_fps.late.sf.duration", "debug.sf.late.sf.duration"};
-    for (int i=0; i<6; i++) { snprintf(cmd, sizeof(cmd), "setprop %s %lld", props_f[i], val_f); system(cmd); }
+    char cmd[256];
+    
+    const char *props_late[] = {
+        "debug.sf.late.app.duration", "debug.sf.late.sf.duration",
+        "debug.sf.high_fps.late.app.duration", "debug.sf.high_fps.late.sf.duration"
+    };
+    for (int i=0; i<4; i++) { snprintf(cmd, sizeof(cmd), "setprop %s %lld", props_late[i], late_duration); system(cmd); }
+
+    const char *props_early[] = {
+        "debug.sf.early.app.duration", "debug.sf.early.sf.duration",
+        "debug.sf.earlyGl.app.duration", "debug.sf.earlyGl.sf.duration",
+        "debug.sf.high_fps.early.app.duration", "debug.sf.high_fps.early.sf.duration",
+        "debug.sf.high_fps.earlyGl.app.duration", "debug.sf.high_fps.earlyGl.sf.duration"
+    };
+    for (int i=0; i<8; i++) { snprintf(cmd, sizeof(cmd), "setprop %s %lld", props_early[i], early_duration); system(cmd); }
 }
 
 void zetamin_flux() {
@@ -142,10 +154,12 @@ void optimize_gpu_misc() {
 }
 
 void zetamin_unlock_fps() {
-    int max_fps = 60;
-    FILE *fp = popen("cmd display dump 2>/dev/null | grep -Eo 'fps=[0-9]+' | cut -d= -f2 | sort -nr | head -n1", "r");
+    int max_fps = 0;
+    FILE *fp = popen("dumpsys display 2>/dev/null | grep -Eo '(fps|mRefreshRate|defaultPeakRefreshRate)[:=] ?[0-9]+' | grep -Eo '[0-9]+' | sort -nr | head -n1", "r");
     if (fp) {
-        fscanf(fp, "%d", &max_fps);
+        if (fscanf(fp, "%d", &max_fps) != 1) {
+            max_fps = 0;
+        }
         pclose(fp);
     }
     if (max_fps <= 0) max_fps = 120; // Fallback just in case
