@@ -206,7 +206,6 @@ fun InfoWidgetContent(startTimeMillis: Long) {
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             var fpsProcess: Process? = null
-            var fpsReader: java.io.BufferedReader? = null
             var lastPkg = ""
 
             try {
@@ -215,35 +214,46 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                     if (pkg != lastPkg || fpsProcess == null) {
                         fpsProcess?.destroy()
                         try {
+                            // Clean up any stray background instances first to avoid multiple writers
+                            Runtime.getRuntime().exec(arrayOf("su", "-c", "pkill -f raco_gameservice.*--monitor-fps")).waitFor()
+                            
                             val cmd = if (pkg.isNotEmpty()) {
                                 arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --monitor-fps $pkg")
                             } else {
                                 arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --monitor-fps \"\"")
                             }
                             fpsProcess = Runtime.getRuntime().exec(cmd)
-                            fpsReader = java.io.BufferedReader(java.io.InputStreamReader(fpsProcess!!.inputStream))
                             lastPkg = pkg
                         } catch (e: Exception) {
                             fpsProcess = null
-                            fpsReader = null
                             delay(1000)
                             continue
                         }
                     }
 
                     try {
-                        val line = fpsReader?.readLine()
-                        if (line != null) {
-                            val fpsVal = line.trim().toIntOrNull()
+                        val file = java.io.File("/data/local/tmp/raco_fps.txt")
+                        if (file.exists() && file.canRead()) {
+                            val line = file.readText().trim()
+                            val fpsVal = line.toIntOrNull()
                             if (fpsVal != null) {
                                 fps = fpsVal
                             }
-                        } else {
-                            // EOF reached, process might have died
-                            fpsProcess?.destroy()
-                            fpsProcess = null
-                            delay(1000)
                         }
+                        
+                        // Process Hold Check: Actively verify if the C Daemon was killed by the ROM
+                        if (fpsProcess != null) {
+                            try {
+                                fpsProcess!!.exitValue()
+                                // If this DOES NOT throw an exception, it means the process is DEAD.
+                                // We set it to null so the loop above will instantly restart it.
+                                fpsProcess = null
+                            } catch (e: IllegalThreadStateException) {
+                                // Process is still happily running (throws exception)
+                            }
+                        }
+                        
+                        delay(1000)
                     } catch (e: Exception) {
                         delay(1000)
                     }
@@ -251,6 +261,10 @@ fun InfoWidgetContent(startTimeMillis: Long) {
             } finally {
                 // Ensure the FPS monitor process is always cleaned up on cancellation
                 fpsProcess?.destroy()
+                try {
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "pkill -f raco_gameservice.*--monitor-fps"))
+                    java.io.File("/data/local/tmp/raco_fps.txt").delete()
+                } catch (e: Exception) {}
             }
         }
     }
