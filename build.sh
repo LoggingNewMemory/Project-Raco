@@ -5,7 +5,7 @@
 # ==========================================
 # Uncomment and modify these to skip interactive prompts.
 # Comment them out to return to normal interactive mode.
-RACOVER="6.1.24"
+RACOVER="6.1.25"
 BUILD="LAB"
 
 # ==========================================
@@ -201,6 +201,7 @@ build_modules() {
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/CoreSys/raco_gameservice" \
         "$SRC_DIR/raco_gameservice.c" \
+        "$SRC_DIR/raco_perfinfo.c" \
         "$SRC_DIR/anya.c" \
         "$SRC_DIR/raco_tools.c" \
         "$SRC_DIR/raco_tool.s"; then

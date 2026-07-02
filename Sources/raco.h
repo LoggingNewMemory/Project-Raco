@@ -63,6 +63,7 @@ void clear_slingshot();
 void kill_all();
 void anyamelfissa();
 void anyakawaii();
+int get_universal_fps(const char *pkg);
 
 // Tool of Frequency
 FreqData get_target_freq(const char *path, int mode); // 0=Max 1=Min 2=Mid

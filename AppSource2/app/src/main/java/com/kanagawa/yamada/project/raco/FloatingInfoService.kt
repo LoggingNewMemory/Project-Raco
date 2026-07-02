@@ -207,100 +207,22 @@ fun InfoWidgetContent(startTimeMillis: Long) {
         withContext(Dispatchers.IO) {
             var fpsProcess: Process? = null
             var fpsReader: java.io.BufferedReader? = null
-            var daemonStarted = false
-            
-            var lastHwFrames = -1L
-            var lastLayerFrames = mutableMapOf<String, Long>()
-            var lastSampleTime = -1L
+            var lastPkg = ""
 
             try {
                 while (isActive) {
-                    var daemonFps = -1
-                    
-                    // 1. Try RacoFpsDaemon (Android 12+ TaskFpsCallback)
-                    try {
-                        val socket = android.net.LocalSocket()
-                        val address = android.net.LocalSocketAddress("raco_fps_daemon", android.net.LocalSocketAddress.Namespace.ABSTRACT)
-                        socket.connect(address)
-
-                        val payload = "GET_FPS"
-                        socket.outputStream.write(payload.toByteArray())
-
-                        val buffer = ByteArray(16)
-                        val bytesRead = socket.inputStream.read(buffer)
-                        if (bytesRead > 0) {
-                            val fpsStr = String(buffer, 0, bytesRead).trim()
-                            val fpsVal = fpsStr.toIntOrNull()
-                            if (fpsVal != null && fpsVal > 0) {
-                                daemonFps = fpsVal
-                            }
-                        }
-                        socket.close()
-                    } catch (e: Exception) {
-                        if (android.os.Build.VERSION.SDK_INT >= 31 && !daemonStarted) {
-                            try {
-                                Runtime.getRuntime().exec(arrayOf("su", "-c", "CLASSPATH=/data/adb/modules/ProjectRaco/CoreSys/raco_fps.dex app_process / com.raco.RacoFpsDaemon &"))
-                                daemonStarted = true
-                            } catch (ex: Exception) {}
-                        }
-                    }
-
-                    if (daemonFps != -1) {
-                        fps = daemonFps
-                        
+                    val pkg = AutoGameMonitorService.currentGamePackage
+                    if (pkg != lastPkg || fpsProcess == null) {
                         fpsProcess?.destroy()
-                        fpsProcess = null
-                        fpsReader = null
-                        
-                        delay(1000)
-                        continue
-                    }
-
-                    // 2. Fallback to robust su script
-                    if (fpsProcess == null) {
                         try {
-                            val script = """
-                                while true; do
-                                    echo "TIME:${'$'}(cat /proc/uptime | awk '{printf "%d", ${'$'}1 * 1000}')"
-                                    service call SurfaceFlinger 1013 2>/dev/null
-                                    
-                                    pkg=${'$'}(dumpsys window 2>/dev/null | grep -E 'mCurrentFocus|mFocusedApp' | grep -Eo '[a-zA-Z0-9_.]+/[a-zA-Z0-9_.]+' | cut -d/ -f1 | head -n1)
-                                    if [ -z "${'$'}pkg" ]; then pkg="SurfaceView"; fi
-                                    
-                                    dumpsys SurfaceFlinger --list 2>/dev/null | grep -i "${'$'}pkg" | while read -r layer; do
-                                        dumpsys SurfaceFlinger --latency "${'$'}layer" 2>/dev/null | awk '
-                                        NR>1 {
-                                            if (NF>=2) {
-                                                t = ${'$'}2;
-                                                if (t != 0 && t != 9223372036854775807) {
-                                                    ts[count++] = t;
-                                                    if (t > latest) latest = t;
-                                                }
-                                            }
-                                        }
-                                        END {
-                                            if (count > 0 && latest > 0) {
-                                                cutoff = latest - 1000000000;
-                                                fps = 0;
-                                                for (i=0; i<count; i++) {
-                                                    if (ts[i] > cutoff) fps++;
-                                                }
-                                                print "LATENCY_FPS:" fps;
-                                            }
-                                        }'
-                                    done
-                                    
-                                    dumpsys SurfaceFlinger 2>/dev/null | grep -iE 'layer|surface|frame-counter=|flips='
-                                    echo "---"
-                                    sleep 1
-                                done
-                            """.trimIndent()
-                            fpsProcess = Runtime.getRuntime().exec(arrayOf("su", "-c", script))
+                            val cmd = if (pkg.isNotEmpty()) {
+                                arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --monitor-fps $pkg")
+                            } else {
+                                arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --monitor-fps \"\"")
+                            }
+                            fpsProcess = Runtime.getRuntime().exec(cmd)
                             fpsReader = java.io.BufferedReader(java.io.InputStreamReader(fpsProcess!!.inputStream))
-                            
-                            lastHwFrames = -1L
-                            lastLayerFrames.clear()
-                            lastSampleTime = -1L
+                            lastPkg = pkg
                         } catch (e: Exception) {
                             fpsProcess = null
                             fpsReader = null
@@ -310,108 +232,24 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                     }
 
                     try {
-                        var hwFrames = -1L
-                        val layerFrames = mutableMapOf<String, Long>()
-                        var latencyFps = -1
-                        var sampleTime = -1L
-                        var line: String? = null
-                        var currentLayerName = ""
-                        var layerIndex = 0
-
-                        while (isActive) {
-                            line = fpsReader?.readLine()
-                            if (line == null || line == "---") {
-                                break
+                        val line = fpsReader?.readLine()
+                        if (line != null) {
+                            val fpsVal = line.trim().toIntOrNull()
+                            if (fpsVal != null) {
+                                fps = fpsVal
                             }
-
-                            if (line.startsWith("TIME:")) {
-                                sampleTime = line.substring(5).toLongOrNull() ?: -1L
-                            } else if (line.startsWith("LATENCY_FPS:")) {
-                                val f = line.substring(12).toIntOrNull() ?: -1
-                                if (f > latencyFps) latencyFps = f
-                            } else if (line.contains("Parcel(")) {
-                                val hexes = """([0-9a-fA-F]{8})""".toRegex().findAll(line).map { it.groupValues[1] }.toList()
-                                var maxVal = -1L
-                                for (i in 1 until hexes.size) {
-                                    val v = hexes[i].toLongOrNull(16) ?: -1L
-                                    if (v > maxVal) maxVal = v
-                                }
-                                if (maxVal != -1L) {
-                                    hwFrames = maxVal
-                                }
-                            } else if (line.contains("layer", ignoreCase = true) || line.contains("surface", ignoreCase = true)) {
-                                currentLayerName = line.trim()
-                                layerIndex = 0
-                            } else if (line.contains("frame-counter=") || line.contains("flips=")) {
-                                val match = """(?:frame-counter=|flips=)\s*([0-9]+)""".toRegex().find(line)
-                                if (match != null) {
-                                    val key = "$currentLayerName-$layerIndex"
-                                    layerFrames[key] = match.groupValues[1].toLong()
-                                    layerIndex++
-                                }
-                            }
-                        }
-
-                        if (line == null) {
+                        } else {
+                            // EOF reached, process might have died
                             fpsProcess?.destroy()
                             fpsProcess = null
                             delay(1000)
-                            continue
-                        }
-
-                        if (sampleTime != -1L && lastSampleTime != -1L) {
-                            val timeDiff = sampleTime - lastSampleTime
-                            if (timeDiff > 0) {
-                                var newFps = 0
-                                
-                                if (latencyFps > 0) {
-                                    newFps = latencyFps
-                                }
-
-                                if (hwFrames > 0L) {
-                                    if (lastHwFrames > 0 && hwFrames >= lastHwFrames) {
-                                        val f = ((hwFrames - lastHwFrames) * 1000f / timeDiff).toInt()
-                                        if (f > newFps) newFps = f
-                                    }
-                                    lastHwFrames = hwFrames
-                                }
-
-                                if (layerFrames.isNotEmpty()) {
-                                    for ((key, cur) in layerFrames) {
-                                        val last = lastLayerFrames[key] ?: 0L
-                                        if (last > 0 && cur >= last) {
-                                            val f = ((cur - last) * 1000f / timeDiff).toInt()
-                                            if (f > newFps) newFps = f
-                                        }
-                                    }
-                                    lastLayerFrames.clear()
-                                    lastLayerFrames.putAll(layerFrames)
-                                }
-
-                                if (newFps > 1) newFps -= 1
-                                if (newFps > 144) newFps = 144
-                                if (newFps < 0) newFps = 0
-
-                                fps = newFps
-                            }
-                        } else if (sampleTime != -1L) {
-                            if (hwFrames > 0L) lastHwFrames = hwFrames
-                            if (layerFrames.isNotEmpty()) {
-                                lastLayerFrames.clear()
-                                lastLayerFrames.putAll(layerFrames)
-                            }
-                        }
-                        
-                        if (sampleTime != -1L) {
-                            lastSampleTime = sampleTime
                         }
                     } catch (e: Exception) {
-                        fpsProcess?.destroy()
-                        fpsProcess = null
                         delay(1000)
                     }
                 }
             } finally {
+                // Ensure the FPS monitor process is always cleaned up on cancellation
                 fpsProcess?.destroy()
             }
         }
