@@ -553,7 +553,7 @@ void snapdragon_awaken() {
     rawrite("1", "/sys/module/msm_performance/parameters/touchboost"); // Enable Touchboost
     rawrite("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
 
-    snapdragon_core_ctl_apply("1", 1);
+    snapdragon_core_ctl_apply("0", 1);
 
     // ==============================
     // GPU & FREQ TWEAKS

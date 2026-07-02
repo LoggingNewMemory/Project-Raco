@@ -30,6 +30,15 @@ int raread(const char *path, char *out_buffer, int max_size) {
     } else {
         out_buffer[0] = '\0'; // Return empty if error
     }
+
+    // Strip trailing newline
+    if (bytes_read > 0) {
+        int last_char_idx = (bytes_read == max_size) ? max_size - 2 : bytes_read - 1;
+        if (last_char_idx >= 0 && out_buffer[last_char_idx] == '\n') {
+            out_buffer[last_char_idx] = '\0';
+        }
+    }
+
     return bytes_read;
 }
 
@@ -326,8 +335,8 @@ void cpufreq_awaken() {
                 snprintf(info_path, sizeof(info_path), "%s/cpuinfo_max_freq", path);
                 if (raread(info_path, hw_max_buf, sizeof(hw_max_buf)) <= 0) continue;
 
-                rawrite(hw_max_buf, min_path);
                 rawrite(hw_max_buf, max_path);
+                rawrite(hw_max_buf, min_path);
             }
         }
         closedir(dir);

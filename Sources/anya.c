@@ -27,6 +27,12 @@ void exec_anya_kawaii() {
     // Unmount thermald
     system("umount /vendor/bin/thermald 2>/dev/null");
 
+    // Enable msm_thermal
+    system("find /sys/ -name enabled 2>/dev/null | grep 'msm_thermal' | while read -r msm; do "
+           "echo 'Y' > \"$msm\" 2>/dev/null; "
+           "echo '1' > \"$msm\" 2>/dev/null; "
+           "done");
+
     // Restart thermal services
     system("getprop | grep -E '^\\[init\\.svc\\..*thermal' | grep -v -iE 'hal|hardware\\.thermal' | "
            "cut -d: -f1 | tr -d '[]' | sed 's/init\\.svc\\.//g' | "
@@ -51,6 +57,12 @@ void exec_anya_melfissa() {
     // Block thermald & clean configs
     system("mount -o bind /dev/null /vendor/bin/thermald 2>/dev/null; "
            "rm -f /data/vendor/thermal/config /data/vendor/thermal/*.dump 2>/dev/null");
+
+    // Disable msm_thermal
+    system("find /sys/ -name enabled 2>/dev/null | grep 'msm_thermal' | while read -r msm; do "
+           "echo 'N' > \"$msm\" 2>/dev/null; "
+           "echo '0' > \"$msm\" 2>/dev/null; "
+           "done");
 
     // Spoof thermal props + OEM check
     system("for prop in $(getprop | grep -E 'sys\\..*thermal|thermal_config' | grep -v -iE 'hal|hardware\\.thermal' | "
