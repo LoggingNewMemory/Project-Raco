@@ -980,7 +980,7 @@ fun RacoLeftPanel(
                                     currentBrightness = newBrightness
                                     Thread {
                                         try {
-                                            val sysfsCmd = "for p in /sys/class/backlight/*/brightness /sys/class/leds/lcd-backlight/brightness; do if [ -e \"\$p\" ]; then m=\"\${p%/*}/max_hw_brightness\"; if [ ! -e \"\$m\" ]; then m=\"\${p%/*}/max_brightness\"; fi; if [ -e \"\$m\" ]; then max=\$(cat \"\$m\"); val=\$((max * $newBrightness / 255)); echo \"\$val\" > \"\$p\"; else echo \"$newBrightness\" > \"\$p\"; fi; fi; done"
+                                            val sysfsCmd = "for p in /sys/class/backlight/*/brightness /sys/class/leds/lcd-backlight/brightness; do if [ -e \"\$p\" ]; then m=\"\${p%/*}/max_hw_brightness\"; if [ ! -e \"\$m\" ]; then m=\"\${p%/*}/max_brightness\"; fi; if [ -e \"\$m\" ]; then max=\$(cat \"\$m\"); val=\$((max * $newBrightness / 255)); min_f=\"\${p%/*}/min_brightness\"; if [ -e \"\$min_f\" ]; then min_v=\$(cat \"\$min_f\"); if [ \"\$val\" -lt \"\$min_v\" ]; then val=\$min_v; fi; fi; echo \"\$val\" > \"\$p\"; else echo \"$newBrightness\" > \"\$p\"; fi; fi; done"
                                             Runtime.getRuntime().exec(arrayOf("su", "-c", sysfsCmd)).waitFor()
                                         } catch (ex: Exception) {}
                                     }.start()
