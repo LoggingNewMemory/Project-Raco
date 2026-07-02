@@ -14,16 +14,7 @@ int main(int argc, char *argv[]) {
     // Prevent zombie children from accumulating if we ever fork
     signal(SIGCHLD, SIG_IGN);
 
-    if (argc >= 3 && strcmp(argv[1], "--monitor-fps") == 0) {
-        const char *pkg = argv[2];
-        while (1) {
-            int fps = get_universal_fps(pkg);
-            printf("%d\n", fps);
-            fflush(stdout);
-            sleep(1);
-        }
-        return 0;
-    } else if (argc >= 3 && strcmp(argv[1], "--get-pid") == 0) {
+    if (argc >= 3 && strcmp(argv[1], "--get-pid") == 0) {
         const char *pkg = argv[2];
         if (pkg && strlen(pkg) > 0) {
             char cmd[256];

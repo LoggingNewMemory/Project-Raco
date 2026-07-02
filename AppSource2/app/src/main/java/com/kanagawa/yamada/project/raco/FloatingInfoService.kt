@@ -207,22 +207,24 @@ fun InfoWidgetContent(startTimeMillis: Long) {
         withContext(Dispatchers.IO) {
             var fpsProcess: Process? = null
             var fpsReader: java.io.BufferedReader? = null
-            var lastPkg = ""
 
             try {
                 while (isActive) {
-                    val pkg = AutoGameMonitorService.currentGamePackage
-                    if (pkg != lastPkg || fpsProcess == null) {
-                        fpsProcess?.destroy()
+                    if (fpsProcess == null) {
                         try {
-                            val cmd = if (pkg.isNotEmpty()) {
-                                arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --monitor-fps $pkg")
-                            } else {
-                                arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/CoreSys/raco_gameservice --monitor-fps \"\"")
-                            }
-                            fpsProcess = Runtime.getRuntime().exec(cmd)
+                            val script = """
+                                while true; do
+                                    res=${'$'}(dumpsys SurfaceFlinger 2>/dev/null | grep -E -m 1 'frame-counter=|flips=')
+                                    if [ -n "${'$'}res" ]; then
+                                        echo "${'$'}res"
+                                    else
+                                        service call SurfaceFlinger 1013 2>/dev/null
+                                    fi
+                                    sleep 1
+                                done
+                            """.trimIndent()
+                            fpsProcess = Runtime.getRuntime().exec(arrayOf("su", "-c", script))
                             fpsReader = java.io.BufferedReader(java.io.InputStreamReader(fpsProcess!!.inputStream))
-                            lastPkg = pkg
                         } catch (e: Exception) {
                             fpsProcess = null
                             fpsReader = null
@@ -230,24 +232,55 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                     }
 
                     try {
-                        val line = fpsReader?.readLine()
-                        if (line != null) {
-                            val fpsVal = line.trim().toIntOrNull()
-                            if (fpsVal != null) {
-                                fps = fpsVal
+                        var lastFrameCount = 0L
+                        var lastUpdateTime = System.currentTimeMillis()
+
+                        while (isActive) {
+                            val line = fpsReader?.readLine()
+                            if (line == null) {
+                                fpsProcess?.destroy()
+                                fpsProcess = null
+                                delay(1000)
+                                break
                             }
-                        } else {
-                            // EOF reached, process might have died
-                            fpsProcess?.destroy()
-                            fpsProcess = null
-                            delay(1000)
+
+                            var currentFrames = -1L
+                            if (line.contains("frame-counter=") || line.contains("flips=")) {
+                                val match = """(?:frame-counter=|flips=)\s*([0-9]+)""".toRegex().find(line)
+                                if (match != null) {
+                                    currentFrames = match.groupValues[1].toLong()
+                                }
+                            } else if (line.contains("Parcel(")) {
+                                val hexMatch = """Parcel\([^\s]+\s+([0-9a-fA-F]+)""".toRegex().find(line)
+                                if (hexMatch != null) {
+                                    currentFrames = hexMatch.groupValues[1].toLongOrNull(16) ?: -1L
+                                }
+                            }
+
+                            if (currentFrames != -1L) {
+                                val currentTime = System.currentTimeMillis()
+                                val timeDiff = currentTime - lastUpdateTime
+                                var newFps = 0
+
+                                if (lastFrameCount > 0 && currentFrames > lastFrameCount && timeDiff > 0) {
+                                    newFps = ((currentFrames - lastFrameCount) * 1000f / timeDiff).toInt()
+                                    if (newFps > 1) newFps -= 1
+                                    if (newFps > 144) newFps = 144
+                                    if (newFps < 0) newFps = 0
+                                }
+                                
+                                fps = newFps
+                                lastFrameCount = currentFrames
+                                lastUpdateTime = currentTime
+                            }
                         }
                     } catch (e: Exception) {
+                        fpsProcess?.destroy()
+                        fpsProcess = null
                         delay(1000)
                     }
                 }
             } finally {
-                // Ensure the FPS monitor process is always cleaned up on cancellation
                 fpsProcess?.destroy()
             }
         }
