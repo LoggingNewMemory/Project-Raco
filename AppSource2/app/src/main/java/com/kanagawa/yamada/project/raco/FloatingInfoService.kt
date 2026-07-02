@@ -216,7 +216,7 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                                 while true; do
                                     echo "TIME:$(cat /proc/uptime | awk '{printf "%d", $1 * 1000}')"
                                     service call SurfaceFlinger 1013 2>/dev/null
-                                    dumpsys SurfaceFlinger 2>/dev/null | grep -E 'frame-counter=|flips='
+                                    dumpsys SurfaceFlinger 2>/dev/null | grep -iE 'layer|surface|frame-counter=|flips='
                                     echo "---"
                                     sleep 1
                                 done
@@ -231,14 +231,16 @@ fun InfoWidgetContent(startTimeMillis: Long) {
 
                     try {
                         var lastHwFrames = -1L
-                        var lastLayerFrames = mutableMapOf<Int, Long>()
+                        var lastLayerFrames = mutableMapOf<String, Long>()
                         var lastSampleTime = -1L
 
                         while (isActive) {
                             var hwFrames = -1L
-                            val layerFrames = mutableListOf<Long>()
+                            val layerFrames = mutableMapOf<String, Long>()
                             var sampleTime = -1L
                             var line: String? = null
+                            var currentLayerName = ""
+                            var layerIndex = 0
 
                             while (isActive) {
                                 line = fpsReader?.readLine()
@@ -258,10 +260,15 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                                     if (maxVal != -1L) {
                                         hwFrames = maxVal
                                     }
+                                } else if (line.contains("layer", ignoreCase = true) || line.contains("surface", ignoreCase = true)) {
+                                    currentLayerName = line.trim()
+                                    layerIndex = 0
                                 } else if (line.contains("frame-counter=") || line.contains("flips=")) {
                                     val match = """(?:frame-counter=|flips=)\s*([0-9]+)""".toRegex().find(line)
                                     if (match != null) {
-                                        layerFrames.add(match.groupValues[1].toLong())
+                                        val key = "$currentLayerName-$layerIndex"
+                                        layerFrames[key] = match.groupValues[1].toLong()
+                                        layerIndex++
                                     }
                                 }
                             }
@@ -289,18 +296,15 @@ fun InfoWidgetContent(startTimeMillis: Long) {
 
                                     // Calculate Layer FPS
                                     if (layerFrames.isNotEmpty()) {
-                                        for (i in layerFrames.indices) {
-                                            val cur = layerFrames[i]
-                                            val last = lastLayerFrames[i] ?: 0L
+                                        for ((key, cur) in layerFrames) {
+                                            val last = lastLayerFrames[key] ?: 0L
                                             if (last > 0 && cur >= last) {
                                                 val f = ((cur - last) * 1000f / timeDiff).toInt()
                                                 if (f > newFps) newFps = f
                                             }
                                         }
                                         lastLayerFrames.clear()
-                                        for (i in layerFrames.indices) {
-                                            lastLayerFrames[i] = layerFrames[i]
-                                        }
+                                        lastLayerFrames.putAll(layerFrames)
                                     }
 
                                     if (newFps > 1) newFps -= 1
@@ -313,9 +317,8 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                                 // Initialize base values on first successful read
                                 if (hwFrames > 0L) lastHwFrames = hwFrames
                                 if (layerFrames.isNotEmpty()) {
-                                    for (i in layerFrames.indices) {
-                                        lastLayerFrames[i] = layerFrames[i]
-                                    }
+                                    lastLayerFrames.clear()
+                                    lastLayerFrames.putAll(layerFrames)
                                 }
                             }
                             
