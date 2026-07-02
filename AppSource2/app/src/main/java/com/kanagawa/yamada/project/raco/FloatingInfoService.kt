@@ -263,6 +263,33 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                                 while true; do
                                     echo "TIME:${'$'}(cat /proc/uptime | awk '{printf "%d", ${'$'}1 * 1000}')"
                                     service call SurfaceFlinger 1013 2>/dev/null
+                                    
+                                    pkg=${'$'}(dumpsys window 2>/dev/null | grep -E 'mCurrentFocus|mFocusedApp' | grep -Eo '[a-zA-Z0-9_.]+/[a-zA-Z0-9_.]+' | cut -d/ -f1 | head -n1)
+                                    if [ -z "${'$'}pkg" ]; then pkg="SurfaceView"; fi
+                                    
+                                    dumpsys SurfaceFlinger --list 2>/dev/null | grep -i "${'$'}pkg" | while read -r layer; do
+                                        dumpsys SurfaceFlinger --latency "${'$'}layer" 2>/dev/null | awk '
+                                        NR>1 {
+                                            if (NF>=2) {
+                                                t = ${'$'}2;
+                                                if (t != 0 && t != 9223372036854775807) {
+                                                    ts[count++] = t;
+                                                    if (t > latest) latest = t;
+                                                }
+                                            }
+                                        }
+                                        END {
+                                            if (count > 0 && latest > 0) {
+                                                cutoff = latest - 1000000000;
+                                                fps = 0;
+                                                for (i=0; i<count; i++) {
+                                                    if (ts[i] > cutoff) fps++;
+                                                }
+                                                print "LATENCY_FPS:" fps;
+                                            }
+                                        }'
+                                    done
+                                    
                                     dumpsys SurfaceFlinger 2>/dev/null | grep -iE 'layer|surface|frame-counter=|flips='
                                     echo "---"
                                     sleep 1
@@ -285,6 +312,7 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                     try {
                         var hwFrames = -1L
                         val layerFrames = mutableMapOf<String, Long>()
+                        var latencyFps = -1
                         var sampleTime = -1L
                         var line: String? = null
                         var currentLayerName = ""
@@ -298,6 +326,9 @@ fun InfoWidgetContent(startTimeMillis: Long) {
 
                             if (line.startsWith("TIME:")) {
                                 sampleTime = line.substring(5).toLongOrNull() ?: -1L
+                            } else if (line.startsWith("LATENCY_FPS:")) {
+                                val f = line.substring(12).toIntOrNull() ?: -1
+                                if (f > latencyFps) latencyFps = f
                             } else if (line.contains("Parcel(")) {
                                 val hexes = """([0-9a-fA-F]{8})""".toRegex().findAll(line).map { it.groupValues[1] }.toList()
                                 var maxVal = -1L
@@ -332,6 +363,10 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                             val timeDiff = sampleTime - lastSampleTime
                             if (timeDiff > 0) {
                                 var newFps = 0
+                                
+                                if (latencyFps > 0) {
+                                    newFps = latencyFps
+                                }
 
                                 if (hwFrames > 0L) {
                                     if (lastHwFrames > 0 && hwFrames >= lastHwFrames) {
