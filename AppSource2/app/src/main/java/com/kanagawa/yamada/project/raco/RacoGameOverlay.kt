@@ -294,14 +294,19 @@ fun RacoLeftPanel(
     val context = LocalContext.current
     var isDndOn by remember { mutableStateOf(false) }
 
-    var currentBrightness by remember { 
-        mutableStateOf(
+    var currentBrightness by remember { mutableStateOf(128) }
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             try {
-                android.provider.Settings.System.getInt(context.contentResolver, android.provider.Settings.System.SCREEN_BRIGHTNESS)
-            } catch (e: Exception) {
-                128
-            }
-        )
+                val sysfsRead = "for p in /sys/class/backlight/*/brightness /sys/class/leds/lcd-backlight/brightness; do if [ -e \"\$p\" ]; then m=\"\${p%/*}/max_hw_brightness\"; if [ ! -e \"\$m\" ]; then m=\"\${p%/*}/max_brightness\"; fi; if [ -e \"\$m\" ]; then max=\$(cat \"\$m\"); val=\$(cat \"\$p\"); echo \$((val * 255 / max)); exit 0; fi; fi; done"
+                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", sysfsRead))
+                val output = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream)).readLine()
+                if (output != null) {
+                    currentBrightness = output.trim().toInt()
+                }
+            } catch (e: Exception) {}
+        }
     }
 
     val animatedCpuPercentage by animateFloatAsState(
@@ -973,19 +978,12 @@ fun RacoLeftPanel(
                                 val newBrightness = (newValue * 255).roundToInt().coerceIn(0, 255)
                                 if (newBrightness != currentBrightness) {
                                     currentBrightness = newBrightness
-                                    try {
-                                        android.provider.Settings.System.putInt(
-                                            context.contentResolver,
-                                            android.provider.Settings.System.SCREEN_BRIGHTNESS,
-                                            newBrightness
-                                        )
-                                    } catch (e: Exception) {
-                                        Thread {
-                                            try {
-                                                Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system screen_brightness $newBrightness")).waitFor()
-                                            } catch (ex: Exception) {}
-                                        }.start()
-                                    }
+                                    Thread {
+                                        try {
+                                            val sysfsCmd = "for p in /sys/class/backlight/*/brightness /sys/class/leds/lcd-backlight/brightness; do if [ -e \"\$p\" ]; then m=\"\${p%/*}/max_hw_brightness\"; if [ ! -e \"\$m\" ]; then m=\"\${p%/*}/max_brightness\"; fi; if [ -e \"\$m\" ]; then max=\$(cat \"\$m\"); val=\$((max * $newBrightness / 255)); echo \"\$val\" > \"\$p\"; else echo \"$newBrightness\" > \"\$p\"; fi; fi; done"
+                                            Runtime.getRuntime().exec(arrayOf("su", "-c", sysfsCmd)).waitFor()
+                                        } catch (ex: Exception) {}
+                                    }.start()
                                 }
                             },
                             activeColor = themeColor,
@@ -1408,6 +1406,7 @@ fun TriangleSlider(
                     onDragEnd = { isDragging = false },
                     onDragCancel = { isDragging = false }
                 ) { change, _ ->
+                    change.consume()
                     val y = change.position.y
                     val newValue = 1f - (y / size.height).coerceIn(0f, 1f)
                     onValueChange(newValue)
