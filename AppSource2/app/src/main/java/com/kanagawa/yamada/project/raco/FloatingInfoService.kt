@@ -214,12 +214,10 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                         try {
                             val script = """
                                 while true; do
-                                    res=${'$'}(dumpsys SurfaceFlinger 2>/dev/null | grep -E -m 1 'frame-counter=|flips=')
-                                    if [ -n "${'$'}res" ]; then
-                                        echo "${'$'}res"
-                                    else
-                                        service call SurfaceFlinger 1013 2>/dev/null
-                                    fi
+                                    echo "TIME:$(cat /proc/uptime | awk '{printf "%d", $1 * 1000}')"
+                                    service call SurfaceFlinger 1013 2>/dev/null
+                                    dumpsys SurfaceFlinger 2>/dev/null | grep -E 'frame-counter=|flips='
+                                    echo "---"
                                     sleep 1
                                 done
                             """.trimIndent()
@@ -232,11 +230,42 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                     }
 
                     try {
-                        var lastFrameCount = 0L
-                        var lastUpdateTime = System.currentTimeMillis()
+                        var lastHwFrames = -1L
+                        var lastLayerFrames = mutableMapOf<Int, Long>()
+                        var lastSampleTime = -1L
 
                         while (isActive) {
-                            val line = fpsReader?.readLine()
+                            var hwFrames = -1L
+                            val layerFrames = mutableListOf<Long>()
+                            var sampleTime = -1L
+                            var line: String? = null
+
+                            while (isActive) {
+                                line = fpsReader?.readLine()
+                                if (line == null || line == "---") {
+                                    break
+                                }
+
+                                if (line.startsWith("TIME:")) {
+                                    sampleTime = line.substring(5).toLongOrNull() ?: -1L
+                                } else if (line.contains("Parcel(")) {
+                                    val hexes = """([0-9a-fA-F]{8})""".toRegex().findAll(line).map { it.groupValues[1] }.toList()
+                                    var maxVal = -1L
+                                    for (i in 1 until hexes.size) {
+                                        val v = hexes[i].toLongOrNull(16) ?: -1L
+                                        if (v > maxVal) maxVal = v
+                                    }
+                                    if (maxVal != -1L) {
+                                        hwFrames = maxVal
+                                    }
+                                } else if (line.contains("frame-counter=") || line.contains("flips=")) {
+                                    val match = """(?:frame-counter=|flips=)\s*([0-9]+)""".toRegex().find(line)
+                                    if (match != null) {
+                                        layerFrames.add(match.groupValues[1].toLong())
+                                    }
+                                }
+                            }
+
                             if (line == null) {
                                 fpsProcess?.destroy()
                                 fpsProcess = null
@@ -244,34 +273,54 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                                 break
                             }
 
-                            var currentFrames = -1L
-                            if (line.contains("frame-counter=") || line.contains("flips=")) {
-                                val match = """(?:frame-counter=|flips=)\s*([0-9]+)""".toRegex().find(line)
-                                if (match != null) {
-                                    currentFrames = match.groupValues[1].toLong()
-                                }
-                            } else if (line.contains("Parcel(")) {
-                                val hexMatch = """Parcel\([^\s]+\s+([0-9a-fA-F]+)""".toRegex().find(line)
-                                if (hexMatch != null) {
-                                    currentFrames = hexMatch.groupValues[1].toLongOrNull(16) ?: -1L
-                                }
-                            }
+                            if (sampleTime != -1L && lastSampleTime != -1L) {
+                                val timeDiff = sampleTime - lastSampleTime
+                                if (timeDiff > 0) {
+                                    var newFps = 0
 
-                            if (currentFrames != -1L) {
-                                val currentTime = System.currentTimeMillis()
-                                val timeDiff = currentTime - lastUpdateTime
-                                var newFps = 0
+                                    // Calculate HW FPS
+                                    if (hwFrames > 0L) {
+                                        if (lastHwFrames > 0 && hwFrames >= lastHwFrames) {
+                                            val f = ((hwFrames - lastHwFrames) * 1000f / timeDiff).toInt()
+                                            if (f > newFps) newFps = f
+                                        }
+                                        lastHwFrames = hwFrames
+                                    }
 
-                                if (lastFrameCount > 0 && currentFrames > lastFrameCount && timeDiff > 0) {
-                                    newFps = ((currentFrames - lastFrameCount) * 1000f / timeDiff).toInt()
+                                    // Calculate Layer FPS
+                                    if (layerFrames.isNotEmpty()) {
+                                        for (i in layerFrames.indices) {
+                                            val cur = layerFrames[i]
+                                            val last = lastLayerFrames[i] ?: 0L
+                                            if (last > 0 && cur >= last) {
+                                                val f = ((cur - last) * 1000f / timeDiff).toInt()
+                                                if (f > newFps) newFps = f
+                                            }
+                                        }
+                                        lastLayerFrames.clear()
+                                        for (i in layerFrames.indices) {
+                                            lastLayerFrames[i] = layerFrames[i]
+                                        }
+                                    }
+
                                     if (newFps > 1) newFps -= 1
                                     if (newFps > 144) newFps = 144
                                     if (newFps < 0) newFps = 0
+
+                                    fps = newFps
                                 }
-                                
-                                fps = newFps
-                                lastFrameCount = currentFrames
-                                lastUpdateTime = currentTime
+                            } else if (sampleTime != -1L) {
+                                // Initialize base values on first successful read
+                                if (hwFrames > 0L) lastHwFrames = hwFrames
+                                if (layerFrames.isNotEmpty()) {
+                                    for (i in layerFrames.indices) {
+                                        lastLayerFrames[i] = layerFrames[i]
+                                    }
+                                }
+                            }
+                            
+                            if (sampleTime != -1L) {
+                                lastSampleTime = sampleTime
                             }
                         }
                     } catch (e: Exception) {
