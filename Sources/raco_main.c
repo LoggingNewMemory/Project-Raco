@@ -178,7 +178,9 @@ void mode_awaken() {
            "cmd display dmd-logging-disable >/dev/null 2>&1; "
            "logcat -G 64K >/dev/null 2>&1; logcat -c >/dev/null 2>&1 &");
 
+    // CPU SETTINGS: Order matters. Set Gov, Safety Wait, Then Apply Profile
     change_cpu_gov("performance");
+    sleep(1);
     cpufreq_awaken();
     route_soc(4);
 
@@ -222,8 +224,12 @@ void mode_balanced() {
 
     system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
 
-    change_cpu_gov(config.default_gov);
+    // CPU SETTINGS
+    // 1. First, reset frequencies to hardware defaults (Unlock)
+    // This prevents the "max < min" write errors if coming from powersave/perf
     cpufreq_balanced();
+    // 2. Then set the balanced governor
+    change_cpu_gov(config.default_gov);
     route_soc(3);
 
     clear_slingshot();
@@ -266,7 +272,13 @@ void mode_powersave() {
 
     system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
     
-    change_cpu_gov(config.default_gov);
+    // CPU SETTINGS
+    // 1. Reset limits to prevent errors
+    cpufreq_reset_limits();
+    // 2. Set powersave gov
+    change_cpu_gov("powersave");
+    sleep(1);
+    // 3. Apply limits
     cpufreq_powersave();
     route_soc(2);
 
@@ -309,8 +321,9 @@ void mode_normal() {
 
     system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
 
-    change_cpu_gov(config.default_gov);
+    // CPU SETTINGS: Unlock first, then set governor
     cpufreq_normal();
+    change_cpu_gov(config.default_gov);
     route_soc(1);
 
     clear_slingshot();

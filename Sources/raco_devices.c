@@ -302,7 +302,7 @@ void mediatek_normal() {
     if (strlen(min_idx) > 0) rawrite(min_idx, "/sys/kernel/ged/hal/custom_boost_gpu_freq");
 
     // Defreq Tweaks
-    devfreq_release("/sys/class/devfreq/mtk-dvfsrc-devfreq");
+    devfreq_normal("/sys/class/devfreq/mtk-dvfsrc-devfreq");
 }
 
 void mediatek_powersave() {
@@ -372,7 +372,7 @@ void mediatek_powersave() {
     if (strlen(min_idx) > 0) rawrite(min_idx, "/sys/kernel/ged/hal/custom_boost_gpu_freq");
 
     // Defreq Tweaks
-    devfreq_release("/sys/class/devfreq/mtk-dvfsrc-devfreq");
+    devfreq_normal("/sys/class/devfreq/mtk-dvfsrc-devfreq");
 }
 
 // ==============================
@@ -402,6 +402,57 @@ void snapdragon_core_ctl_apply(const char *val, int lock) {
     }
 }
 
+static void qcom_cpudcvs_max_perf(const char *path) {
+    char avail[256], hw_min[256], hw_max[256];
+    snprintf(avail, sizeof(avail), "%s/available_frequencies", path);
+    snprintf(hw_min, sizeof(hw_min), "%s/hw_min_freq", path);
+    snprintf(hw_max, sizeof(hw_max), "%s/hw_max_freq", path);
+
+    FreqData f_max = get_target_freq(avail, 0);
+    if (f_max.freq == -1) return;
+
+    char v_max[32];
+    snprintf(v_max, sizeof(v_max), "%ld", f_max.freq);
+    rawrite(v_max, hw_max);
+    rawrite(v_max, hw_min);
+}
+
+static void qcom_cpudcvs_mid_perf(const char *path) {
+    char avail[256], hw_min[256], hw_max[256];
+    snprintf(avail, sizeof(avail), "%s/available_frequencies", path);
+    snprintf(hw_min, sizeof(hw_min), "%s/hw_min_freq", path);
+    snprintf(hw_max, sizeof(hw_max), "%s/hw_max_freq", path);
+
+    FreqData f_max = get_target_freq(avail, 0);
+    FreqData f_mid = get_target_freq(avail, 2);
+    if (f_max.freq == -1) return;
+
+    char v_max[32], v_mid[32];
+    snprintf(v_max, sizeof(v_max), "%ld", f_max.freq);
+    snprintf(v_mid, sizeof(v_mid), "%ld", f_mid.freq);
+    
+    rawrite(v_max, hw_max);
+    rawrite(v_mid, hw_min);
+}
+
+static void qcom_cpudcvs_unlock(const char *path) {
+    char avail[256], hw_min[256], hw_max[256];
+    snprintf(avail, sizeof(avail), "%s/available_frequencies", path);
+    snprintf(hw_min, sizeof(hw_min), "%s/hw_min_freq", path);
+    snprintf(hw_max, sizeof(hw_max), "%s/hw_max_freq", path);
+
+    FreqData f_max = get_target_freq(avail, 0);
+    FreqData f_min = get_target_freq(avail, 1);
+    if (f_max.freq == -1) return;
+
+    char v_max[32], v_min[32];
+    snprintf(v_max, sizeof(v_max), "%ld", f_max.freq);
+    snprintf(v_min, sizeof(v_min), "%ld", f_min.freq);
+    
+    rakakikomi(v_min, hw_min);
+    rakakikomi(v_max, hw_max);
+}
+
 void snapdragon_devfreq_apply(int mode) {
     if(config.device_mitigation == 1) return;
     DIR *dir; struct dirent *ent;
@@ -422,7 +473,7 @@ void snapdragon_devfreq_apply(int mode) {
                 snprintf(path, sizeof(path), "/sys/class/devfreq/%s", ent->d_name);
 
                     if (mode == 0) devfreq_max(path);
-                    else if (mode == 1) devfreq_release(path);
+                    else if (mode == 1) devfreq_normal(path);
                     else if (mode == 2) devfreq_mid_perf(path);
             }
         }
@@ -434,9 +485,9 @@ void snapdragon_devfreq_apply(int mode) {
         "/sys/devices/system/cpu/bus_dcvs/L3"
     };
     for (int i = 0; i < 3; i++) {
-        if (mode == 0) devfreq_max(dcvs_paths[i]);
-        else if (mode == 1) devfreq_release(dcvs_paths[i]);
-        else if (mode == 2) devfreq_mid_perf(dcvs_paths[i]);
+        if (mode == 0) qcom_cpudcvs_max_perf(dcvs_paths[i]);
+        else if (mode == 1) qcom_cpudcvs_unlock(dcvs_paths[i]);
+        else if (mode == 2) qcom_cpudcvs_mid_perf(dcvs_paths[i]);
     }
 }
 
@@ -589,7 +640,7 @@ void snapdragon_normal() {
     // ==============================
 
     snapdragon_devfreq_apply(1);
-    devfreq_release("/sys/class/kgsl/kgsl-3d0/devfreq");
+    devfreq_normal("/sys/class/kgsl/kgsl-3d0/devfreq");
 }
 
 void snapdragon_powersave() {
@@ -628,7 +679,7 @@ void snapdragon_powersave() {
     // ==============================
 
     snapdragon_devfreq_apply(1);
-    devfreq_release("/sys/class/kgsl/kgsl-3d0/devfreq");
+    devfreq_normal("/sys/class/kgsl/kgsl-3d0/devfreq");
 }
 
 // =================================================================
@@ -648,7 +699,7 @@ void scan_minor_devfreq_and_apply(const char *target, int mode) {
                 snprintf(path, sizeof(path), "/sys/class/devfreq/%s", ent->d_name);
 
                 if (mode == 0) devfreq_max(path);
-                else if (mode == 1) devfreq_release(path);
+                else if (mode == 1) devfreq_normal(path);
                 else if (mode == 2) devfreq_mid_perf(path);
                 else if (mode == 3) devfreq_min_perf(path);
             }
