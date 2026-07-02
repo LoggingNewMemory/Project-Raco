@@ -273,12 +273,10 @@ void mode_powersave() {
     system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
     
     // CPU SETTINGS
-    // 1. Reset limits to prevent errors
-    cpufreq_reset_limits();
-    // 2. Set powersave gov
+    // 1. Set powersave gov
     change_cpu_gov("powersave");
     sleep(1);
-    // 3. Apply limits
+    // 2. Apply limits
     cpufreq_powersave();
     route_soc(2);
 

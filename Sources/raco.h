@@ -73,7 +73,6 @@ void devfreq_mid_perf(const char *path);
 void devfreq_min_perf(const char *path);
 void devfreq_normal(const char *path);
 void change_cpu_gov(const char *gov);
-void cpufreq_reset_limits();
 void cpufreq_awaken();
 void cpufreq_balanced();
 void cpufreq_normal();
