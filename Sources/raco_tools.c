@@ -146,6 +146,7 @@ void load_config(const char *config_path) {
     config.inc_zeta = 0;
     config.inc_sandev = 0;
     config.sandev_dur = 300;
+    config.alter_cpu_method = 0;
     strcpy(config.default_gov, "schedutil");
 
     char file_content[4096];
@@ -174,6 +175,7 @@ void load_config(const char *config_path) {
             else if (strcmp(key, "INCLUDE_SANDEV") == 0 && parsed == 2) config.inc_sandev = atoi(value);
             else if (strcmp(key, "SANDEV_DUR") == 0 && parsed == 2) config.sandev_dur = atoi(value);
             else if (strcmp(key, "GOV") == 0 && parsed == 2) strcpy(config.default_gov, value);
+            else if (strcmp(key, "ALTER_CPU_METHOD") == 0 && parsed == 2) config.alter_cpu_method = atoi(value);
         }
         line = strtok_r(NULL, "\n", &saveptr_line);
     }
@@ -288,6 +290,8 @@ void change_cpu_gov(const char *gov) {
 
 
 void cpufreq_awaken() {
+    if (config.alter_cpu_method == 1) return;
+    
     // 2. Apply Max Perf
     DIR *dir;
     struct dirent *ent;
@@ -314,6 +318,8 @@ void cpufreq_awaken() {
 }
 
 void cpufreq_balanced() {
+    if (config.alter_cpu_method == 1) return;
+    
     DIR *dir;
     struct dirent *ent;
     if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) != NULL) {
@@ -350,6 +356,8 @@ void cpufreq_normal() {
 }
 
 void cpufreq_powersave() {
+    if (config.alter_cpu_method == 1) return;
+    
     // 2. Apply Min Perf
     DIR *dir;
     struct dirent *ent;

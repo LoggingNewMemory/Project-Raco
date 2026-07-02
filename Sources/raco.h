@@ -35,6 +35,7 @@ typedef struct {
     int inc_sandev;
     int sandev_dur;
     char default_gov[32];
+    int alter_cpu_method;
 } RacoConfig;
 
 extern RacoConfig config;

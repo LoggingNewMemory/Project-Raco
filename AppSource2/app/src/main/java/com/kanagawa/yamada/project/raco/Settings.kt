@@ -136,7 +136,8 @@ fun SettingsScreen(
             ),
             "System" to listOf(
                 Triple("DEVICE_MITIGATION", "Device Mitigation", "Enable Device Mitigation"),
-                Triple("GOV", "Custom GOV", "Your Default GOV, Will Applied After You Close The Game")
+                Triple("GOV", "Custom GOV", "Your Default GOV, Will Applied After You Close The Game"),
+                Triple("ALTER_CPU_METHOD", "Alternative CPU Method", "Set Governor only, leave CPUFreq untoched. Enable this if your CPU can't set Frequecny correctly")
             ),
             "Notifications" to listOf(
                 Triple("LEGACY_NOTIF", "Legacy Notifications", "Use Legacy Notifications"),
