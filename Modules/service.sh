@@ -10,6 +10,9 @@ MODDIR=${0%/*}
 # Execute the Raco core service in the background
 /system/bin/linker64 $MODDIR/CoreSys/raco_service $MODDIR &
 
+# Start the FPS Daemon (Android 12+)
+CLASSPATH=$MODDIR/CoreSys/raco_fps.dex app_process / com.raco.RacoFpsDaemon &
+
 # Forcefully start the companion app's AutoGameMonitorService
 # Bypasses Android 14+ background FGS restrictions and OEM Autostart blocks
 su -lp 2000 -c "am start-foreground-service -n com.kanagawa.yamada.project.raco/.AutoGameMonitorService" &

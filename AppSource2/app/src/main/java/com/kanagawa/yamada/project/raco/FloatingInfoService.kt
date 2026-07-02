@@ -207,14 +207,61 @@ fun InfoWidgetContent(startTimeMillis: Long) {
         withContext(Dispatchers.IO) {
             var fpsProcess: Process? = null
             var fpsReader: java.io.BufferedReader? = null
+            var daemonStarted = false
+            
+            var lastHwFrames = -1L
+            var lastLayerFrames = mutableMapOf<String, Long>()
+            var lastSampleTime = -1L
 
             try {
                 while (isActive) {
+                    var daemonFps = -1
+                    
+                    // 1. Try RacoFpsDaemon (Android 12+ TaskFpsCallback)
+                    try {
+                        val socket = android.net.LocalSocket()
+                        val address = android.net.LocalSocketAddress("raco_fps_daemon", android.net.LocalSocketAddress.Namespace.ABSTRACT)
+                        socket.connect(address)
+
+                        val payload = "GET_FPS"
+                        socket.outputStream.write(payload.toByteArray())
+
+                        val buffer = ByteArray(16)
+                        val bytesRead = socket.inputStream.read(buffer)
+                        if (bytesRead > 0) {
+                            val fpsStr = String(buffer, 0, bytesRead).trim()
+                            val fpsVal = fpsStr.toIntOrNull()
+                            if (fpsVal != null && fpsVal > 0) {
+                                daemonFps = fpsVal
+                            }
+                        }
+                        socket.close()
+                    } catch (e: Exception) {
+                        if (android.os.Build.VERSION.SDK_INT >= 31 && !daemonStarted) {
+                            try {
+                                Runtime.getRuntime().exec(arrayOf("su", "-c", "CLASSPATH=/data/adb/modules/ProjectRaco/CoreSys/raco_fps.dex app_process / com.raco.RacoFpsDaemon &"))
+                                daemonStarted = true
+                            } catch (ex: Exception) {}
+                        }
+                    }
+
+                    if (daemonFps != -1) {
+                        fps = daemonFps
+                        
+                        fpsProcess?.destroy()
+                        fpsProcess = null
+                        fpsReader = null
+                        
+                        delay(1000)
+                        continue
+                    }
+
+                    // 2. Fallback to robust su script
                     if (fpsProcess == null) {
                         try {
                             val script = """
                                 while true; do
-                                    echo "TIME:$(cat /proc/uptime | awk '{printf "%d", $1 * 1000}')"
+                                    echo "TIME:${'$'}(cat /proc/uptime | awk '{printf "%d", ${'$'}1 * 1000}')"
                                     service call SurfaceFlinger 1013 2>/dev/null
                                     dumpsys SurfaceFlinger 2>/dev/null | grep -iE 'layer|surface|frame-counter=|flips='
                                     echo "---"
@@ -223,108 +270,105 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                             """.trimIndent()
                             fpsProcess = Runtime.getRuntime().exec(arrayOf("su", "-c", script))
                             fpsReader = java.io.BufferedReader(java.io.InputStreamReader(fpsProcess!!.inputStream))
+                            
+                            lastHwFrames = -1L
+                            lastLayerFrames.clear()
+                            lastSampleTime = -1L
                         } catch (e: Exception) {
                             fpsProcess = null
                             fpsReader = null
+                            delay(1000)
+                            continue
                         }
                     }
 
                     try {
-                        var lastHwFrames = -1L
-                        var lastLayerFrames = mutableMapOf<String, Long>()
-                        var lastSampleTime = -1L
+                        var hwFrames = -1L
+                        val layerFrames = mutableMapOf<String, Long>()
+                        var sampleTime = -1L
+                        var line: String? = null
+                        var currentLayerName = ""
+                        var layerIndex = 0
 
                         while (isActive) {
-                            var hwFrames = -1L
-                            val layerFrames = mutableMapOf<String, Long>()
-                            var sampleTime = -1L
-                            var line: String? = null
-                            var currentLayerName = ""
-                            var layerIndex = 0
-
-                            while (isActive) {
-                                line = fpsReader?.readLine()
-                                if (line == null || line == "---") {
-                                    break
-                                }
-
-                                if (line.startsWith("TIME:")) {
-                                    sampleTime = line.substring(5).toLongOrNull() ?: -1L
-                                } else if (line.contains("Parcel(")) {
-                                    val hexes = """([0-9a-fA-F]{8})""".toRegex().findAll(line).map { it.groupValues[1] }.toList()
-                                    var maxVal = -1L
-                                    for (i in 1 until hexes.size) {
-                                        val v = hexes[i].toLongOrNull(16) ?: -1L
-                                        if (v > maxVal) maxVal = v
-                                    }
-                                    if (maxVal != -1L) {
-                                        hwFrames = maxVal
-                                    }
-                                } else if (line.contains("layer", ignoreCase = true) || line.contains("surface", ignoreCase = true)) {
-                                    currentLayerName = line.trim()
-                                    layerIndex = 0
-                                } else if (line.contains("frame-counter=") || line.contains("flips=")) {
-                                    val match = """(?:frame-counter=|flips=)\s*([0-9]+)""".toRegex().find(line)
-                                    if (match != null) {
-                                        val key = "$currentLayerName-$layerIndex"
-                                        layerFrames[key] = match.groupValues[1].toLong()
-                                        layerIndex++
-                                    }
-                                }
-                            }
-
-                            if (line == null) {
-                                fpsProcess?.destroy()
-                                fpsProcess = null
-                                delay(1000)
+                            line = fpsReader?.readLine()
+                            if (line == null || line == "---") {
                                 break
                             }
 
-                            if (sampleTime != -1L && lastSampleTime != -1L) {
-                                val timeDiff = sampleTime - lastSampleTime
-                                if (timeDiff > 0) {
-                                    var newFps = 0
+                            if (line.startsWith("TIME:")) {
+                                sampleTime = line.substring(5).toLongOrNull() ?: -1L
+                            } else if (line.contains("Parcel(")) {
+                                val hexes = """([0-9a-fA-F]{8})""".toRegex().findAll(line).map { it.groupValues[1] }.toList()
+                                var maxVal = -1L
+                                for (i in 1 until hexes.size) {
+                                    val v = hexes[i].toLongOrNull(16) ?: -1L
+                                    if (v > maxVal) maxVal = v
+                                }
+                                if (maxVal != -1L) {
+                                    hwFrames = maxVal
+                                }
+                            } else if (line.contains("layer", ignoreCase = true) || line.contains("surface", ignoreCase = true)) {
+                                currentLayerName = line.trim()
+                                layerIndex = 0
+                            } else if (line.contains("frame-counter=") || line.contains("flips=")) {
+                                val match = """(?:frame-counter=|flips=)\s*([0-9]+)""".toRegex().find(line)
+                                if (match != null) {
+                                    val key = "$currentLayerName-$layerIndex"
+                                    layerFrames[key] = match.groupValues[1].toLong()
+                                    layerIndex++
+                                }
+                            }
+                        }
 
-                                    // Calculate HW FPS
-                                    if (hwFrames > 0L) {
-                                        if (lastHwFrames > 0 && hwFrames >= lastHwFrames) {
-                                            val f = ((hwFrames - lastHwFrames) * 1000f / timeDiff).toInt()
+                        if (line == null) {
+                            fpsProcess?.destroy()
+                            fpsProcess = null
+                            delay(1000)
+                            continue
+                        }
+
+                        if (sampleTime != -1L && lastSampleTime != -1L) {
+                            val timeDiff = sampleTime - lastSampleTime
+                            if (timeDiff > 0) {
+                                var newFps = 0
+
+                                if (hwFrames > 0L) {
+                                    if (lastHwFrames > 0 && hwFrames >= lastHwFrames) {
+                                        val f = ((hwFrames - lastHwFrames) * 1000f / timeDiff).toInt()
+                                        if (f > newFps) newFps = f
+                                    }
+                                    lastHwFrames = hwFrames
+                                }
+
+                                if (layerFrames.isNotEmpty()) {
+                                    for ((key, cur) in layerFrames) {
+                                        val last = lastLayerFrames[key] ?: 0L
+                                        if (last > 0 && cur >= last) {
+                                            val f = ((cur - last) * 1000f / timeDiff).toInt()
                                             if (f > newFps) newFps = f
                                         }
-                                        lastHwFrames = hwFrames
                                     }
-
-                                    // Calculate Layer FPS
-                                    if (layerFrames.isNotEmpty()) {
-                                        for ((key, cur) in layerFrames) {
-                                            val last = lastLayerFrames[key] ?: 0L
-                                            if (last > 0 && cur >= last) {
-                                                val f = ((cur - last) * 1000f / timeDiff).toInt()
-                                                if (f > newFps) newFps = f
-                                            }
-                                        }
-                                        lastLayerFrames.clear()
-                                        lastLayerFrames.putAll(layerFrames)
-                                    }
-
-                                    if (newFps > 1) newFps -= 1
-                                    if (newFps > 144) newFps = 144
-                                    if (newFps < 0) newFps = 0
-
-                                    fps = newFps
-                                }
-                            } else if (sampleTime != -1L) {
-                                // Initialize base values on first successful read
-                                if (hwFrames > 0L) lastHwFrames = hwFrames
-                                if (layerFrames.isNotEmpty()) {
                                     lastLayerFrames.clear()
                                     lastLayerFrames.putAll(layerFrames)
                                 }
+
+                                if (newFps > 1) newFps -= 1
+                                if (newFps > 144) newFps = 144
+                                if (newFps < 0) newFps = 0
+
+                                fps = newFps
                             }
-                            
-                            if (sampleTime != -1L) {
-                                lastSampleTime = sampleTime
+                        } else if (sampleTime != -1L) {
+                            if (hwFrames > 0L) lastHwFrames = hwFrames
+                            if (layerFrames.isNotEmpty()) {
+                                lastLayerFrames.clear()
+                                lastLayerFrames.putAll(layerFrames)
                             }
+                        }
+                        
+                        if (sampleTime != -1L) {
+                            lastSampleTime = sampleTime
                         }
                     } catch (e: Exception) {
                         fpsProcess?.destroy()
