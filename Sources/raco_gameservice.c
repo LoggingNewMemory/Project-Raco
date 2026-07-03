@@ -17,19 +17,10 @@ int main(int argc, char *argv[]) {
     if (argc >= 3 && strcmp(argv[1], "--monitor-fps") == 0) {
         const char *pkg = argv[2];
         
-        // Ensure the file exists before rakakikomi (since it doesn't create files)
-        FILE *init_f = fopen("/data/local/tmp/raco_fps.txt", "w");
-        if (init_f) {
-            fprintf(init_f, "0\n");
-            fclose(init_f);
-            chmod("/data/local/tmp/raco_fps.txt", 0666);
-        }
-
         while (1) {
             int fps = get_universal_fps(pkg);
-            char fps_buf[16];
-            snprintf(fps_buf, sizeof(fps_buf), "%d\n", fps);
-            rakakikomi(fps_buf, "/data/local/tmp/raco_fps.txt");
+            printf("%d\n", fps);
+            fflush(stdout); // Crucial: fflush to ensure Java receives the output immediately
             sleep(1);
         }
         return 0;

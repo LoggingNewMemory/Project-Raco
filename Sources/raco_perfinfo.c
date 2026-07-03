@@ -108,12 +108,9 @@ int get_universal_fps(const char *pkg) {
             if (!pkg || strlen(pkg) == 0) {
                 match_pkg = 1;
             } else {
-                // Match the regex logic from testfps_merge.py: 
-                // Must contain SurfaceView[, the package name, and ](BLAST)
-                if (strstr(line, "SurfaceView[") && str_contains_nocase(line, pkg) && strstr(line, "](BLAST)")) {
-                    match_pkg = 1;
-                } else if (strstr(line, "SurfaceView[") && str_contains_nocase(line, pkg)) {
-                    // Fallback in case some devices don't have (BLAST) but are still SurfaceViews
+                // Broad fallback: some games/ROMs don't use "SurfaceView[" prefix for the main drawing surface.
+                // We match any line containing the package name that looks like a layer declaration.
+                if (str_contains_nocase(line, pkg) && (strstr(line, "SurfaceView") || strstr(line, "Layer") || strchr(line, '/'))) {
                     match_pkg = 1;
                 }
             }

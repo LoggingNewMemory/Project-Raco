@@ -207,11 +207,13 @@ fun InfoWidgetContent(startTimeMillis: Long) {
         withContext(Dispatchers.IO) {
             var fpsProcess: Process? = null
             var lastPkg = ""
+            var readerJob: Job? = null
 
             try {
                 while (isActive) {
                     val pkg = AutoGameMonitorService.currentGamePackage
                     if (pkg != lastPkg || fpsProcess == null) {
+                        readerJob?.cancel()
                         fpsProcess?.destroy()
                         try {
                             // Clean up any stray background instances first to avoid multiple writers
@@ -224,6 +226,21 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                             }
                             fpsProcess = Runtime.getRuntime().exec(cmd)
                             lastPkg = pkg
+                            
+                            readerJob = launch(Dispatchers.IO) {
+                                try {
+                                    val reader = java.io.BufferedReader(java.io.InputStreamReader(fpsProcess!!.inputStream))
+                                    var line: String?
+                                    while (isActive) {
+                                        line = reader.readLine()
+                                        if (line == null) break
+                                        val fpsVal = line.trim().toIntOrNull()
+                                        if (fpsVal != null) {
+                                            fps = fpsVal
+                                        }
+                                    }
+                                } catch (e: Exception) {}
+                            }
                         } catch (e: Exception) {
                             fpsProcess = null
                             delay(1000)
@@ -232,15 +249,6 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                     }
 
                     try {
-                        val file = java.io.File("/data/local/tmp/raco_fps.txt")
-                        if (file.exists() && file.canRead()) {
-                            val line = file.readText().trim()
-                            val fpsVal = line.toIntOrNull()
-                            if (fpsVal != null) {
-                                fps = fpsVal
-                            }
-                        }
-                        
                         // Process Hold Check: Actively verify if the C Daemon was killed by the ROM
                         if (fpsProcess != null) {
                             try {
@@ -260,10 +268,10 @@ fun InfoWidgetContent(startTimeMillis: Long) {
                 }
             } finally {
                 // Ensure the FPS monitor process is always cleaned up on cancellation
+                readerJob?.cancel()
                 fpsProcess?.destroy()
                 try {
                     Runtime.getRuntime().exec(arrayOf("su", "-c", "pkill -f raco_gameservice.*--monitor-fps"))
-                    java.io.File("/data/local/tmp/raco_fps.txt").delete()
                 } catch (e: Exception) {}
             }
         }
