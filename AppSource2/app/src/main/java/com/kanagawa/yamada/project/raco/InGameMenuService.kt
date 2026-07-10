@@ -150,6 +150,14 @@ class InGameMenuService : Service() {
         }
 
         windowManager?.addView(mainComposeView, params)
+        
+        mainComposeView?.viewTreeObserver?.addOnWindowFocusChangeListener { hasFocus ->
+            if (!hasFocus && (isLeftOpen || isRightOpen)) {
+                isLeftOpen = false
+                isRightOpen = false
+                updateMainOverlayTouchable()
+            }
+        }
     }
 
     private fun setupTriggers() {
