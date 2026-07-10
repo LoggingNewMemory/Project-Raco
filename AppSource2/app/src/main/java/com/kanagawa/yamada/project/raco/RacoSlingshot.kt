@@ -317,9 +317,8 @@ fun SlingshotScreen(
                                         "battery" -> 3
                                         else -> 1
                                     }
-                                    
                                     if (downscaleRes != "1.0") {
-                                        Runtime.getRuntime().exec(arrayOf("su", "-c", "device_config put game_overlay ${game.packageName} mode=$sysMode,downscaleFactor=$downscaleRes")).waitFor()
+                                        Runtime.getRuntime().exec(arrayOf("su", "-c", "device_config put game_overlay ${game.packageName} mode=1,downscaleFactor=$downscaleRes:mode=2,downscaleFactor=$downscaleRes:mode=3,downscaleFactor=$downscaleRes")).waitFor()
                                     } else {
                                         Runtime.getRuntime().exec(arrayOf("su", "-c", "device_config delete game_overlay ${game.packageName}")).waitFor()
                                     }
