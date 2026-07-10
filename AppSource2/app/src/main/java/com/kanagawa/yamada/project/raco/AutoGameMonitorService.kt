@@ -195,26 +195,6 @@ class AutoGameMonitorService : Service() {
                             }
                         }
                     }
-                } else {
-                    stateMutex.withLock {
-                        if (isGameForeground) {
-                            // Watchdog: If the game is still foreground but overlays were killed by Android, revive them.
-                            // Uses ActivityManager instead of static flags because onDestroy() is NOT guaranteed on OOM kill.
-                            if (!isServiceActuallyRunning(InGameMenuService::class.java)) {
-                                InGameMenuService.isRunning = false
-                                val inGameIntent = Intent(this@AutoGameMonitorService, InGameMenuService::class.java).apply {
-                                    putExtra("package_name", currentForeground)
-                                }
-                                startService(inGameIntent)
-                            }
-                            
-                            val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
-                            if (prefs.getBoolean("is_info_enabled", false) && !isServiceActuallyRunning(FloatingInfoService::class.java)) {
-                                FloatingInfoService.isRunning = false
-                                startService(Intent(this@AutoGameMonitorService, FloatingInfoService::class.java))
-                            }
-                        }
-                    }
                 }
                 lastForegroundApp = currentForeground
             }
@@ -270,27 +250,24 @@ class AutoGameMonitorService : Service() {
     }
 
     private fun onGameExited(packageName: String) {
-        // Don't set isGameForeground=false here — wait until after debounce.
-        // Setting it early created a window where the watchdog wouldn't revive killed overlays.
         exitDebounceJob?.cancel()
         exitDebounceJob = serviceScope.launch {
-            kotlinx.coroutines.delay(1500) // Wait 1.5s to ensure they didn't just quick-switch or open an ad
-            stateMutex.withLock {
-                if (!isGameForeground) return@launch // Already handled
-                isGameForeground = false
-                
-                val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
-                val wasDndOn = prefs.getBoolean("dnd_state_before_game", false)
-                try {
-                    val cmd = if (wasDndOn) "cmd notification set_dnd priority" else "cmd notification set_dnd off"
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
-                } catch (e: Exception) {}
+            if (!isGameForeground) return@launch // Already handled
+            isGameForeground = false
+            
+            val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+            val wasDndOn = prefs.getBoolean("dnd_state_before_game", false)
+            try {
+                val cmd = if (wasDndOn) "cmd notification set_dnd priority" else "cmd notification set_dnd off"
+                Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
+            } catch (e: Exception) {}
 
-                currentGamePackage = ""
-                RacoDaemon.sendMode("NORMAL")
-                // Master service now explicitly kills the menu to prevent desyncs
-                stopService(Intent(this@AutoGameMonitorService, InGameMenuService::class.java))
-            }
+            currentGamePackage = ""
+            RacoDaemon.sendMode("NORMAL")
+            // Explicitly kill the overlay service
+            stopService(Intent(this@AutoGameMonitorService, InGameMenuService::class.java))
+            kotlinx.coroutines.delay(500)
+            android.os.Process.killProcess(android.os.Process.myPid())
         }
     }
 
