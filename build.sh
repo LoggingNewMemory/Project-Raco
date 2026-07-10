@@ -5,7 +5,7 @@
 # ==========================================
 # Uncomment and modify these to skip interactive prompts.
 # Comment them out to return to normal interactive mode.
-RACOVER="6.1.42"
+RACOVER="6.1.43"
 BUILD="LAB"
 
 # ==========================================

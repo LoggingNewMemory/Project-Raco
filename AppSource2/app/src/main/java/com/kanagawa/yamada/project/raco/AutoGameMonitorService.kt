@@ -106,10 +106,10 @@ class AutoGameMonitorService : Service() {
     private suspend fun refreshCacheIfNeeded(now: Long) {
         if (now - lastCacheRefresh > CACHE_TTL_MS) {
             cachedAppList = GameManager.getAllInstalledAppsLite(this@AutoGameMonitorService)
-            cachedAddedGames = GameManager.getManuallyAddedGames(this@AutoGameMonitorService)
-            cachedHiddenGames = GameManager.getHiddenGames(this@AutoGameMonitorService)
             lastCacheRefresh = now
         }
+        cachedAddedGames = GameManager.getManuallyAddedGames(this@AutoGameMonitorService)
+        cachedHiddenGames = GameManager.getHiddenGames(this@AutoGameMonitorService)
     }
 
     private fun startForegroundAppChecker() {
