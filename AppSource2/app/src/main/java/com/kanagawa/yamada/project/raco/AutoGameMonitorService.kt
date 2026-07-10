@@ -180,15 +180,8 @@ class AutoGameMonitorService : Service() {
                         } ?: false
 
                         if (wasGame) {
-                            // Check if the game is still actively in the top-app cgroup (floating window scenario)
-                            val topApps = getTopAppFromDaemon().split(",")
-                            if (topApps.contains(lastForegroundApp)) {
-                                // Game is still running and visible, revert currentForeground to prevent exiting
-                                currentForeground = lastForegroundApp
-                            } else {
-                                stateMutex.withLock {
-                                    onGameExited(lastForegroundApp)
-                                }
+                            stateMutex.withLock {
+                                onGameExited(lastForegroundApp)
                             }
                         }
                     }
