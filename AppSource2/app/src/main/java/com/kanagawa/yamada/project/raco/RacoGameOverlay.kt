@@ -233,7 +233,7 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
                 onModeChange = { 
                     currentPerfMode = it 
                     toastTrigger++
-                    // Send command via RacoDaemon (socket-first, su fallback)
+                    // Send command via RacoDaemon (direct su execution)
                     RacoDaemon.sendMode(it.name, targetPackageName)
                     // Save globally for next launches
                     val prefs = context.getSharedPreferences("raco_slingshot_prefs", android.content.Context.MODE_PRIVATE)

@@ -7,8 +7,7 @@ import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
-import android.net.LocalSocket
-import android.net.LocalSocketAddress
+
 import android.app.ActivityManager
 import android.os.Build
 import android.os.IBinder
