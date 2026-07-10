@@ -73,7 +73,7 @@ class InGameMenuService : Service() {
         if (newTarget != null) {
             targetPackageName = newTarget
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     override fun onCreate() {

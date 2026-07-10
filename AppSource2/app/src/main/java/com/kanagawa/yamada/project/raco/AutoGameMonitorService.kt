@@ -117,13 +117,16 @@ class AutoGameMonitorService : Service() {
         val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val event = UsageEvents.Event()
         var lastForegroundApp = ""
+        var lastQueryTime = System.currentTimeMillis() - 2000
 
         serviceScope.launch {
             var isFirstRun = true
             while (isActive) {
                 delay(1500) // Poll every 1.5 seconds
                 val time = System.currentTimeMillis()
-                val events = usageStatsManager.queryEvents(time - 2000, time)
+                // Use lastQueryTime to guarantee no events are missed if the coroutine stalls due to heavy system load
+                val events = usageStatsManager.queryEvents(lastQueryTime, time)
+                lastQueryTime = time
                 var currentForeground = lastForegroundApp
 
                 var hasEvents = false
