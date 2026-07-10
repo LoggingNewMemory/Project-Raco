@@ -188,7 +188,7 @@ class InGameMenuService : Service() {
         setupViewTree(leftTriggerView!!)
         
         val leftParams = WindowManager.LayoutParams(
-            dpToPx(16), // width
+            dpToPx(32), // width
             dpToPx(150), // height
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
@@ -201,6 +201,14 @@ class InGameMenuService : Service() {
         leftParams.gravity = Gravity.TOP or Gravity.START
         leftParams.y = dpToPx(16)
         windowManager?.addView(leftTriggerView, leftParams)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            leftTriggerView?.post {
+                leftTriggerView?.systemGestureExclusionRects = listOf(
+                    android.graphics.Rect(0, 0, dpToPx(32), dpToPx(150))
+                )
+            }
+        }
 
         // Right Trigger
         rightTriggerView = ComposeView(this).apply {
@@ -229,7 +237,7 @@ class InGameMenuService : Service() {
         setupViewTree(rightTriggerView!!)
         
         val rightParams = WindowManager.LayoutParams(
-            dpToPx(16), // width
+            dpToPx(32), // width
             dpToPx(150), // height
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
@@ -242,6 +250,14 @@ class InGameMenuService : Service() {
         rightParams.gravity = Gravity.TOP or Gravity.END
         rightParams.y = dpToPx(16)
         windowManager?.addView(rightTriggerView, rightParams)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            rightTriggerView?.post {
+                rightTriggerView?.systemGestureExclusionRects = listOf(
+                    android.graphics.Rect(0, 0, dpToPx(32), dpToPx(150))
+                )
+            }
+        }
     }
     
     private fun updateMainOverlayTouchable() {
