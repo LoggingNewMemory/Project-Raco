@@ -479,9 +479,8 @@ fun RacoLeftPanel(
                 )
             } else {
                 val configuration = LocalConfiguration.current
-                val isTablet = configuration.smallestScreenWidthDp >= 600
-                val topSpacerHeight = if (isTablet) 48.dp else 0.dp
-                val labelFontSize = if (isTablet) 8.sp else 12.sp
+                val topSpacerHeight = 0.dp
+                val labelFontSize = 12.sp
 
                 Column(modifier = Modifier.fillMaxSize()) {
                     Spacer(modifier = Modifier.height(topSpacerHeight))
@@ -548,7 +547,7 @@ fun RacoLeftPanel(
                     modifier = Modifier
                         .width(81.dp)
                         .height(32.dp)
-                        .border(1.dp, themeColor, RoundedCornerShape(16.dp))
+                        .border(1.dp, themeColor, RoundedCornerShape(6.dp))
                         .clickable {
                             onTakeScreenshot()
                         },
@@ -569,7 +568,14 @@ fun RacoLeftPanel(
             val density = LocalDensity.current
             val configuration = LocalConfiguration.current
             val context = LocalContext.current
-            val screenHeightPx = context.resources.displayMetrics.heightPixels.toFloat()
+            val windowManager = context.getSystemService(android.content.Context.WINDOW_SERVICE) as android.view.WindowManager
+            val screenHeightPx = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                windowManager.currentWindowMetrics.bounds.height().toFloat()
+            } else {
+                val dm = android.util.DisplayMetrics()
+                windowManager.defaultDisplay.getRealMetrics(dm)
+                dm.heightPixels.toFloat()
+            }
             val panelWidthPx = with(density) { 260.dp.toPx() }
             val slope = if (screenHeightPx > 0) (0.42f * panelWidthPx) / (0.9f * screenHeightPx) else 0.4f
 
@@ -688,7 +694,9 @@ fun RacoLeftPanel(
                                         text = "Crosshair",
                                         color = contentAnimColor,
                                         fontSize = labelFontSize,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                     )
                                 }
 
@@ -818,7 +826,9 @@ fun RacoLeftPanel(
                                         text = "Ayunda",
                                         color = ayundaContentAnimColor,
                                         fontSize = labelFontSize,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                     )
                                 }
 
@@ -928,7 +938,9 @@ fun RacoLeftPanel(
                                         text = "Aux Line",
                                         color = auxLineContentAnimColor,
                                         fontSize = labelFontSize,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                     )
                                 }
 
@@ -1146,8 +1158,7 @@ fun RacoRightPanel(
                     )
                 } else {
                     val configuration = LocalConfiguration.current
-                    val isTablet = configuration.smallestScreenWidthDp >= 600
-                    val topSpacerHeight = if (isTablet) 48.dp else 0.dp
+                    val topSpacerHeight = 0.dp
 
                     Column(horizontalAlignment = Alignment.End) {
                         Spacer(modifier = Modifier.height(topSpacerHeight))
@@ -1169,24 +1180,19 @@ fun RacoRightPanel(
             }
             
             val context = LocalContext.current
-            val screenHeightPx = context.resources.displayMetrics.heightPixels.toFloat()
+            val windowManager = context.getSystemService(android.content.Context.WINDOW_SERVICE) as android.view.WindowManager
+            val screenHeightPx = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                windowManager.currentWindowMetrics.bounds.height().toFloat()
+            } else {
+                val dm = android.util.DisplayMetrics()
+                windowManager.defaultDisplay.getRealMetrics(dm)
+                dm.heightPixels.toFloat()
+            }
             val panelWidthPx = with(density) { 260.dp.toPx() }
             val slope = if (screenHeightPx > 0) (0.42f * panelWidthPx) / (0.9f * screenHeightPx) else 0.4f
-
-            val trapezoidShape = remember(density, slope) {
-                androidx.compose.foundation.shape.GenericShape { size, _ ->
-                    moveTo(0f, 0f)
-                    lineTo(size.width, 0f)
-                    lineTo(size.width, size.height)
-                    lineTo(size.height * slope, size.height)
-                    close()
-                }
-            }
-
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth().zIndex(1f)) {
                 Box(
                     modifier = Modifier
-                        .offset(x = (-16).dp)
                         .weight(1f)
                         .height(32.dp)
                 ) {
@@ -1194,8 +1200,8 @@ fun RacoRightPanel(
                         modifier = Modifier
                             .fillMaxWidth()
                             .wrapContentHeight(align = Alignment.Top, unbounded = true)
-                            .clip(trapezoidShape)
-                            .border(1.dp, themeColor.copy(alpha = 0.5f), trapezoidShape)
+                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(6.dp))
+                            .border(1.dp, themeColor.copy(alpha = 0.5f), androidx.compose.foundation.shape.RoundedCornerShape(6.dp))
                     ) {
                         Box(
                             modifier = Modifier
@@ -1211,7 +1217,9 @@ fun RacoRightPanel(
                                 color = themeColor,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
+                                letterSpacing = 1.sp,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                             )
                         }
     
@@ -1236,7 +1244,9 @@ fun RacoRightPanel(
                                             text = getModeTitle(mode), 
                                             color = Color.White, 
                                             fontSize = 12.sp, 
-                                            fontWeight = FontWeight.Bold
+                                            fontWeight = FontWeight.Bold,
+                                            maxLines = 1,
+                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                         )
                                     }
                                 }
@@ -1254,7 +1264,8 @@ fun RacoRightPanel(
                     },
                     color = Color.White,
                     fontSize = 36.sp,
-                    fontWeight = FontWeight.Black
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.padding(start = 16.dp)
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))

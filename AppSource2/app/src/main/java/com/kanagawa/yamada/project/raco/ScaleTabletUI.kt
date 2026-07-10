@@ -8,22 +8,8 @@ import androidx.compose.ui.unit.Density
 
 @Composable
 fun ScaleTabletUI(content: @Composable () -> Unit) {
-    val configuration = LocalConfiguration.current
-    // Tablets typically have smallestScreenWidthDp >= 600.
-    val isTablet = configuration.smallestScreenWidthDp >= 600
-
-    if (!isTablet) {
-        content()
-        return
-    }
-
-    val currentDensity = LocalDensity.current
-    val scaledDensity = Density(
-        density = currentDensity.density * 1.5f,
-        fontScale = currentDensity.fontScale * 1.5f
-    )
-
-    CompositionLocalProvider(LocalDensity provides scaledDensity) {
-        content()
-    }
+    // Android natively handles DPI scaling through LocalDensity. 
+    // Artificially multiplying density by 1.5x when smallestScreenWidthDp >= 600
+    // breaks the layout on devices with custom high-DPI settings (since they want things smaller, not bigger).
+    content()
 }
