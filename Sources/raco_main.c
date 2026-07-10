@@ -252,7 +252,7 @@ void mode_powersave() {
            "cmd power set-adaptive-power-saver-enabled true; "
            "cmd power set-fixed-performance-mode-enabled false; "
            "cmd looper_stats enable; "
-           "cmd power set-mode 1 &");
+           "cmd power set-mode 0 &");
 
     system("atrace --async_stop >/dev/null 2>&1; "
            "cmd looper_stats reset >/dev/null 2>&1; "
