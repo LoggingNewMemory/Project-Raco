@@ -123,9 +123,21 @@ fun RefreshRateMenu(
                             val intent = Intent(context, RefreshRateService::class.java)
                             if (value == 0f) {
                                 context.stopService(intent)
+                                Thread {
+                                    try {
+                                        val cmd = "settings delete system min_refresh_rate; settings delete system peak_refresh_rate; settings delete system user_refresh_rate"
+                                        Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
+                                    } catch (e: Exception) {}
+                                }.start()
                             } else {
                                 intent.putExtra("refresh_rate", value)
                                 context.startService(intent)
+                                Thread {
+                                    try {
+                                        val cmd = "settings put system min_refresh_rate ${value}; settings put system peak_refresh_rate ${value}; settings put secure min_refresh_rate ${value}; settings put secure peak_refresh_rate ${value}; settings put system user_refresh_rate ${value.toInt()}; settings put global oneplus_screen_refresh_rate ${if (value == 120f) 2 else if (value == 90f) 1 else 0}; service call SurfaceFlinger 1035 i32 0; resetprop persist.graphics.game_default_frame_rate.enabled false; resetprop debug.graphics.game_default_frame_rate.disabled true"
+                                        Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
+                                    } catch (e: Exception) {}
+                                }.start()
                             }
                         }
                         .padding(vertical = 12.dp, horizontal = 16.dp),

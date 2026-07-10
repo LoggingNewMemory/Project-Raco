@@ -29,20 +29,29 @@ class RefreshRateService : Service() {
         if (targetRate > 0f) {
             if (!::layoutParams.isInitialized) {
                 layoutParams = WindowManager.LayoutParams(
-                    0, 0,
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT,
                     WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                             WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                    PixelFormat.TRANSPARENT
+                    PixelFormat.RGBA_8888
                 )
+                layoutParams.alpha = 0.01f
             }
 
+            val currentMode = windowManager.defaultDisplay.mode
             val modes = windowManager.defaultDisplay.supportedModes
-            val targetMode = modes.minByOrNull { abs(it.refreshRate - targetRate) }
+            val targetMode = modes
+                .filter { it.physicalWidth == currentMode.physicalWidth && it.physicalHeight == currentMode.physicalHeight }
+                .minByOrNull { abs(it.refreshRate - targetRate) } 
+                ?: modes.minByOrNull { abs(it.refreshRate - targetRate) }
             
             if (targetMode != null) {
                 layoutParams.preferredDisplayModeId = targetMode.modeId
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    layoutParams.preferredRefreshRate = targetRate
+                }
             }
 
             try {
