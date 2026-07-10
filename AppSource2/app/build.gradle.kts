@@ -15,8 +15,8 @@ android {
         applicationId = "com.kanagawa.yamada.project.raco"
         minSdk = 24
         targetSdk = 36
-        versionCode = 6129
-        versionName = "6.1.29"
+        versionCode = 6130
+        versionName = "6.1.30"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
