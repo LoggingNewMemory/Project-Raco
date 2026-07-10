@@ -146,6 +146,13 @@ class AutoGameMonitorService : Service() {
                             currentForeground = pkg
                         }
                         hasEvents = true
+                    } else if (event.eventType == UsageEvents.Event.ACTIVITY_PAUSED || event.eventType == 23 /* ACTIVITY_STOPPED */) {
+                        if (event.packageName == currentForeground) {
+                            // If the app we thought was resumed immediately paused/stopped (e.g. trampoline activities),
+                            // clear it so it doesn't trigger a false game launch.
+                            currentForeground = ""
+                        }
+                        hasEvents = true
                     }
                 }
 
