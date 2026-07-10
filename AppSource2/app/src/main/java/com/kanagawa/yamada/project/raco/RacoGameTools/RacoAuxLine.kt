@@ -86,9 +86,12 @@ class GameAuxLineService : Service() {
 
                     Box(contentAlignment = Alignment.Center) {
                         Canvas(modifier = Modifier.size(width.dp, height.dp)) {
+                            val strokeWidthPx = 3.dp.toPx()
                             drawOval(
                                 color = activeColor.copy(alpha = opacity),
-                                style = Stroke(width = 3f.dp.toPx())
+                                style = Stroke(width = strokeWidthPx),
+                                topLeft = androidx.compose.ui.geometry.Offset(strokeWidthPx / 2, strokeWidthPx / 2),
+                                size = androidx.compose.ui.geometry.Size(size.width - strokeWidthPx, size.height - strokeWidthPx)
                             )
                         }
                     }

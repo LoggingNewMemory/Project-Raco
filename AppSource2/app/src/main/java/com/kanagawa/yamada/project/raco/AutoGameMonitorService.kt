@@ -175,17 +175,14 @@ class AutoGameMonitorService : Service() {
 
                     if (isGame) {
                         stateMutex.withLock {
+                            if (isGameForeground && currentGamePackage != currentForeground) {
+                                onGameExited(currentGamePackage)
+                            }
                             onGameLaunched(currentForeground)
                         }
-                    } else if (lastForegroundApp.isNotEmpty()) {
-                        val wasGame = cachedAppList.find { it.packageName == lastForegroundApp }?.let {
-                            (it.isSystemGame && it.packageName !in cachedHiddenGames) || it.packageName in cachedAddedGames
-                        } ?: false
-
-                        if (wasGame) {
-                            stateMutex.withLock {
-                                onGameExited(lastForegroundApp)
-                            }
+                    } else if (isGameForeground) {
+                        stateMutex.withLock {
+                            onGameExited(currentGamePackage)
                         }
                     }
                 }

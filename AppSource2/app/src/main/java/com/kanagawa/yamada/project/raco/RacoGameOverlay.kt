@@ -174,6 +174,9 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
         label = "rightOffset"
     )
 
+    val configuration = LocalConfiguration.current
+    val isPortrait = configuration.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT
+
     Box(modifier = Modifier.fillMaxSize()) {
         // The invisible touch areas for edge swipe to OPEN are now handled by InGameMenuService directly!
         if (isLeftOpen || isRightOpen) {
@@ -192,17 +195,19 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
             )
         }
 
-        // LEFT PANEL
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .offset { androidx.compose.ui.unit.IntOffset(leftOffset.roundToPx(), 0) }
-                .fillMaxHeight()
-                .width(260.dp)
-        ) {
-            RacoLeftPanel(
-                progressProvider = { lineSlideProgress.value },
+        if (isPortrait) {
+            // PORTRAIT MODE UNIFIED OVERLAY
+            RacoPortraitPanel(
+                isOpen = isLeftOpen || isRightOpen,
+                isFromLeft = isLeftOpen,
                 themeColor = themeColor,
+                currentPerfMode = currentPerfMode,
+                onModeChange = { 
+                    currentPerfMode = it 
+                    toastTrigger++
+                    RacoDaemon.sendMode(it.name, targetPackageName)
+                    prefs.edit().putString("global_perf_mode", it.name).apply()
+                },
                 onClose = {
                     isLeftOpen = false
                     isRightOpen = false
@@ -215,31 +220,56 @@ fun RacoGameOverlay(targetPackageName: String? = null, onStateBind: (openLeft: (
                     onClose()
                 }
             )
-        }
+        } else {
+            // LEFT PANEL (LANDSCAPE)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .offset { androidx.compose.ui.unit.IntOffset(leftOffset.roundToPx(), 0) }
+                    .fillMaxHeight()
+                    .width(260.dp)
+            ) {
+                RacoLeftPanel(
+                    progressProvider = { lineSlideProgress.value },
+                    themeColor = themeColor,
+                    onClose = {
+                        isLeftOpen = false
+                        isRightOpen = false
+                        onClose()
+                    },
+                    onTakeScreenshot = {
+                        pendingScreenshot = true
+                        isLeftOpen = false
+                        isRightOpen = false
+                        onClose()
+                    }
+                )
+            }
 
-        // RIGHT PANEL
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .offset { androidx.compose.ui.unit.IntOffset(rightOffset.roundToPx(), 0) }
-                .fillMaxHeight()
-                .width(260.dp)
-        ) {
-            RacoRightPanel(
-                progressProvider = { lineSlideProgress.value },
-                currentPerfMode = currentPerfMode,
-                targetPackageName = targetPackageName,
-                themeColor = themeColor,
-                onModeChange = { 
-                    currentPerfMode = it 
-                    toastTrigger++
-                    // Send command via RacoDaemon (direct su execution)
-                    RacoDaemon.sendMode(it.name, targetPackageName)
-                    // Save globally for next launches
-                    val prefs = context.getSharedPreferences("raco_slingshot_prefs", android.content.Context.MODE_PRIVATE)
-                    prefs.edit().putString("global_perf_mode", it.name).apply()
-                }
-            )
+            // RIGHT PANEL (LANDSCAPE)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .offset { androidx.compose.ui.unit.IntOffset(rightOffset.roundToPx(), 0) }
+                    .fillMaxHeight()
+                    .width(260.dp)
+            ) {
+                RacoRightPanel(
+                    progressProvider = { lineSlideProgress.value },
+                    currentPerfMode = currentPerfMode,
+                    targetPackageName = targetPackageName,
+                    themeColor = themeColor,
+                    onModeChange = { 
+                        currentPerfMode = it 
+                        toastTrigger++
+                        // Send command via RacoDaemon (direct su execution)
+                        RacoDaemon.sendMode(it.name, targetPackageName)
+                        // Save globally for next launches
+                        val prefs = context.getSharedPreferences("raco_slingshot_prefs", android.content.Context.MODE_PRIVATE)
+                        prefs.edit().putString("global_perf_mode", it.name).apply()
+                    }
+                )
+            }
         }
 
         // FAKE TOAST
