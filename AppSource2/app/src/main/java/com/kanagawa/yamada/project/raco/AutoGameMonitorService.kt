@@ -188,21 +188,25 @@ class AutoGameMonitorService : Service() {
                             }
                         }
                     }
-                } else if (isGameForeground) {
-                    // Watchdog: If the game is still foreground but overlays were killed by Android, revive them.
-                    // Uses ActivityManager instead of static flags because onDestroy() is NOT guaranteed on OOM kill.
-                    if (!isServiceActuallyRunning(InGameMenuService::class.java)) {
-                        InGameMenuService.isRunning = false
-                        val inGameIntent = Intent(this@AutoGameMonitorService, InGameMenuService::class.java).apply {
-                            putExtra("package_name", currentForeground)
+                } else {
+                    stateMutex.withLock {
+                        if (isGameForeground) {
+                            // Watchdog: If the game is still foreground but overlays were killed by Android, revive them.
+                            // Uses ActivityManager instead of static flags because onDestroy() is NOT guaranteed on OOM kill.
+                            if (!isServiceActuallyRunning(InGameMenuService::class.java)) {
+                                InGameMenuService.isRunning = false
+                                val inGameIntent = Intent(this@AutoGameMonitorService, InGameMenuService::class.java).apply {
+                                    putExtra("package_name", currentForeground)
+                                }
+                                startService(inGameIntent)
+                            }
+                            
+                            val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
+                            if (prefs.getBoolean("is_info_enabled", false) && !isServiceActuallyRunning(FloatingInfoService::class.java)) {
+                                FloatingInfoService.isRunning = false
+                                startService(Intent(this@AutoGameMonitorService, FloatingInfoService::class.java))
+                            }
                         }
-                        startService(inGameIntent)
-                    }
-                    
-                    val prefs = getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
-                    if (prefs.getBoolean("is_info_enabled", false) && !isServiceActuallyRunning(FloatingInfoService::class.java)) {
-                        FloatingInfoService.isRunning = false
-                        startService(Intent(this@AutoGameMonitorService, FloatingInfoService::class.java))
                     }
                 }
                 lastForegroundApp = currentForeground
