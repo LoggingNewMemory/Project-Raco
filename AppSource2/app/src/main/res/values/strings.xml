@@ -142,23 +142,8 @@
     <string name="endfield_normal_interval_title">Normal Interval</string>
     <string name="endfield_screen_off_interval_title">Screen Off Interval</string>
     <string name="endfield_interval_hint">Enter seconds (min 2)</string>
-    <string name="plugins_title">Plugins</string>
-    <string name="plugins_description">Manage and install external modules for Project Raco</string>
-    <string name="install_plugin">Install Plugin</string>
-    <string name="no_plugins_installed">No plugins installed</string>
-    <string name="plugin_installer">Plugin Installer</string>
-    <string name="installing_module">Installing Raco Plugin</string>
-    <string name="install_question">Do you want to install this plugin?</string>
-    <string name="delete_plugin_title">Delete Plugin</string>
-    <string name="delete_plugin_confirm">Are you sure you want to delete {pluginName}?</string>
-    <string name="plugin_verification_failed">Verification Failed: RacoPlugin=1 not found in prop.</string>
-    <string name="plugin_script_error">Install Script Error.</string>
     <string name="logs_saved">Logs saved to Downloads.</string>
-    <string name="plugin_installed_success">Plugin installed successfully.</string>
-    <string name="plugin_uninstall_success">Plugin uninstalled.</string>
-    <string name="plugin_manually_executed">Plugin Manually Executed.</string>
-    <string name="plugin_run">Run</string>
-    <string name="plugin_boot">Boot</string>
+    <string name="button_run">Run</string>
     <string name="slingshot_no_app_selected">No app selected</string>
     <string name="slingshot_executing">Slingshoting {package}...</string>
     <string name="slingshot_complete">Slingshot Complete</string>

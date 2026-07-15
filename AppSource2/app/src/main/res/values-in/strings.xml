@@ -140,23 +140,7 @@
     <string name="endfield_normal_interval_title">Interval Normal</string>
     <string name="endfield_screen_off_interval_title">Interval Layar Mati</string>
     <string name="endfield_interval_hint">Masukkan detik (min 2)</string>
-    <string name="plugins_title">Plugin</string>
-    <string name="plugins_description">Kelola dan pasang modul eksternal untuk Project Raco</string>
-    <string name="install_plugin">Pasang Plugin</string>
-    <string name="no_plugins_installed">Tidak ada plugin terpasang</string>
-    <string name="plugin_installer">Pemasang Plugin</string>
-    <string name="installing_module">Memasang Plugin Raco</string>
-    <string name="install_question">Apakah Anda ingin memasang plugin ini?</string>
-    <string name="delete_plugin_title">Hapus Plugin</string>
-    <string name="delete_plugin_confirm">Apakah Anda yakin ingin menghapus {pluginName}?</string>
-    <string name="plugin_verification_failed">Verifikasi Gagal: RacoPlugin=1 tidak ditemukan di prop.</string>
-    <string name="plugin_script_error">Kesalahan Skrip Pemasangan.</string>
     <string name="logs_saved">Log disimpan ke Unduhan.</string>
-    <string name="plugin_installed_success">Plugin berhasil dipasang.</string>
-    <string name="plugin_uninstall_success">Plugin dihapus.</string>
-    <string name="plugin_manually_executed">Plugin Dijalankan Secara Manual.</string>
-    <string name="plugin_run">Jalankan</string>
-    <string name="plugin_boot">Boot</string>
     <string name="slingshot_no_app_selected">Tidak ada aplikasi dipilih</string>
     <string name="slingshot_executing">Sedang Slingshot {package}...</string>
     <string name="slingshot_complete">Slingshot Selesai</string>

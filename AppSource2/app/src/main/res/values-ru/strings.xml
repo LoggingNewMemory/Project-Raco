@@ -140,23 +140,7 @@
     <string name="endfield_normal_interval_title">Обычный интервал</string>
     <string name="endfield_screen_off_interval_title">Интервал при выключенном экране</string>
     <string name="endfield_interval_hint">Введите в секундах (минимум 2)</string>
-    <string name="plugins_title">Плагины</string>
-    <string name="plugins_description">Управление и установка внешних модулей для Project Raco</string>
-    <string name="install_plugin">Установить плагин</string>
-    <string name="no_plugins_installed">Плагины не установлены</string>
-    <string name="plugin_installer">Установщик плагинов</string>
-    <string name="installing_module">Установка плагина Raco</string>
-    <string name="install_question">Вы хотите установить этот плагин?</string>
-    <string name="delete_plugin_title">Удалить плагин</string>
-    <string name="delete_plugin_confirm">Вы уверены, что хотите удалить {pluginName}?</string>
-    <string name="plugin_verification_failed">Ошибка проверки: RacoPlugin=1 не найден в свойствах.</string>
-    <string name="plugin_script_error">Ошибка скрипта установки.</string>
     <string name="logs_saved">Логи сохранены в Загрузки.</string>
-    <string name="plugin_installed_success">Плагин успешно установлен.</string>
-    <string name="plugin_uninstall_success">Плагин удален.</string>
-    <string name="plugin_manually_executed">Плагин запущен вручную.</string>
-    <string name="plugin_run">Запустить</string>
-    <string name="plugin_boot">Загрузить</string>
     <string name="slingshot_no_app_selected">Приложение не выбрано</string>
     <string name="slingshot_executing">Slingshot для {package}...</string>
     <string name="slingshot_complete">Slingshot завершен</string>

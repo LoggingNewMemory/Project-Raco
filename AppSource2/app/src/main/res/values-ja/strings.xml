@@ -140,23 +140,7 @@
     <string name="endfield_normal_interval_title">通常間隔</string>
     <string name="endfield_screen_off_interval_title">画面オフ時の間隔</string>
     <string name="endfield_interval_hint">秒数を入力 (最小 2)</string>
-    <string name="plugins_title">プラグイン</string>
-    <string name="plugins_description">Project Racoの外部モジュールを管理およびインストール</string>
-    <string name="install_plugin">プラグインをインストール</string>
-    <string name="no_plugins_installed">プラグインはインストールされていません</string>
-    <string name="plugin_installer">プラグインインストーラー</string>
-    <string name="installing_module">Racoプラグインをインストール</string>
-    <string name="install_question">このプラグインをインストールしますか？</string>
-    <string name="delete_plugin_title">プラグインの削除</string>
-    <string name="delete_plugin_confirm">{pluginName} を削除してもよろしいですか？</string>
-    <string name="plugin_verification_failed">検証失敗: prop内に RacoPlugin=1 が見つかりません。</string>
-    <string name="plugin_script_error">インストールスクリプトエラー。</string>
     <string name="logs_saved">ログがダウンロードに保存されました。</string>
-    <string name="plugin_installed_success">プラグインが正常にインストールされました。</string>
-    <string name="plugin_uninstall_success">プラグインがアンインストールされました。</string>
-    <string name="plugin_manually_executed">プラグインを手動で実行しました。</string>
-    <string name="plugin_run">実行</string>
-    <string name="plugin_boot">ブート</string>
     <string name="slingshot_no_app_selected">アプリが選択されていません</string>
     <string name="slingshot_executing">{package} をSlingshot中...</string>
     <string name="slingshot_complete">Slingshot 完了</string>

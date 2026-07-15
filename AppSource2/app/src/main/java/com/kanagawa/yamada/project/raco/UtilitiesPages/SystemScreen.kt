@@ -310,7 +310,7 @@ fun SystemScreen(onBack: () -> Unit) {
                             enabled = !isBusyFstrim,
                             modifier = Modifier.width(100.dp)
                         ) {
-                            Text(stringResource(R.string.plugin_run))
+                            Text(stringResource(R.string.button_run))
                         }
                     }
                     Spacer(Modifier.height(16.dp))
