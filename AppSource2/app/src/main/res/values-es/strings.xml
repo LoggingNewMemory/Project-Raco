@@ -122,11 +122,9 @@
     <string name="legacy_notif_title">Notificación heredada</string>
     <string name="legacy_notif_description">Use la notificación heredada si la notificación no aparece en algunas ROMs</string>
     <string name="slingshot_title">Raco Slingshot</string>
-    <string name="slingshot_description">Precarga los archivos de tu aplicación antes de iniciarla, esto puede acelerar el tiempo de carga y mejorar el rendimiento</string>
     <string name="angle_title">Iniciar usando gráficos ANGLE</string>
     <string name="angle_not_supported">Los gráficos ANGLE no son compatibles con este dispositivo</string>
     <string name="skia_title">Usar SkiaVK como motor Skia predeterminado</string>
-    <string name="preload_mode">Modo de Preload</string>
     <string name="start_preload">Iniciar Slingshot</string>
     <string name="swipe_again_to_cancel">Desliza a la derecha de nuevo para cancelar</string>
     <string name="execution_cancelled">Ejecución cancelada</string>
@@ -165,10 +163,6 @@
     <string name="search_apps_hint">Buscar aplicaciones...</string>
     <string name="slingshot_reload_tooltip">Recargar lista de aplicaciones</string>
     <string name="slingshot_no_apps_found">No se encontraron aplicaciones</string>
-    <string name="slingshot_mode_normal">Normal (fadvise hint)</string>
-    <string name="slingshot_mode_deep">Profundo (fadvise + dlopen)</string>
-    <string name="slingshot_mode_extreme">Extremo (mmap + MAP_POPULATE)</string>
-    <string name="slingshot_mode_recursive">Recursivo (looped deep check)</string>
     <string name="silent_mode_title">Modo Silencioso</string>
     <string name="silent_mode_description">Desactiva las notificaciones, Raco aplicará los ajustes sin notificar</string>
     <string name="slingshot_graphics_warning">Algunos juegos pueden fallar, otros pueden mejorar el rendimiento, y otros pueden ni siquiera iniciar. ¡Pero no tengas miedo de probarlo primero!</string>
@@ -187,14 +181,6 @@
     <string name="sandev_boot_desc">Un intento de hacer el arranque más rápido</string>
     <string name="reboot_to_take_effect">Por favor reinicie para aplicar los cambios</string>
     <string name="please_restart_app">Por favor, reinicie la aplicación</string>
-    <string name="tips_title">¿Sabías que?</string>
-    <string name="tip_1">Desliza 3 veces a la izquierda en cualquier lugar para acceder a la terminal oculta</string>
-    <string name="tip_2">Desliza 3 veces a la izquierda y podrás cancelar la ejecución</string>
-    <string name="tip_3">El canal oficial de Telegram de Project Raco está en la página de Raco</string>
-    <string name="tip_4">¡Toca la imagen de Raco! Serás saludado por Raco</string>
-    <string name="tip_5">Project Raco no puede convertir una patata en un teléfono gaming</string>
-    <string name="tip_6">¿Project Raco? ¡GACOR KANG!</string>
-    <string name="tip_7">Bienvenido a la aplicación Project Raco. ¡Que tengas un buen día!</string>
     <string name="error_launch_url">No se pudo abrir {url}</string>
     <string name="root_required">Root Requerido</string>
     <string name="status_online">EN LÍNEA</string>

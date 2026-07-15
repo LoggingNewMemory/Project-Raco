@@ -122,11 +122,9 @@
     <string name="legacy_notif_title">Старые уведомления</string>
     <string name="legacy_notif_description">Включите, если уведомления не отображаются</string>
     <string name="slingshot_title">Raco Slingshot</string>
-    <string name="slingshot_description">Предварительно загрузите файлы вашего приложения перед запуском, это может ускорить время запуска и повысить производительность</string>
     <string name="angle_title">Запуск с графикой ANGLE</string>
     <string name="angle_not_supported">Графика ANGLE не поддерживается на этом устройстве</string>
     <string name="skia_title">Использовать SkiaVK как Skia бэкенд по умолчанию</string>
-    <string name="preload_mode">Режим предзагрузки</string>
     <string name="start_preload">Начать Slingshot</string>
     <string name="swipe_again_to_cancel">Свайпните вправо еще раз для отмены</string>
     <string name="execution_cancelled">Выполнение отменено</string>
@@ -165,10 +163,6 @@
     <string name="search_apps_hint">Поиск приложений...</string>
     <string name="slingshot_reload_tooltip">Обновить список приложений</string>
     <string name="slingshot_no_apps_found">Приложения не найдены</string>
-    <string name="slingshot_mode_normal">Обычный (fadvise hint)</string>
-    <string name="slingshot_mode_deep">Глубокий (fadvise + dlopen)</string>
-    <string name="slingshot_mode_extreme">Экстремальный (mmap + MAP_POPULATE)</string>
-    <string name="slingshot_mode_recursive">Рекурсивный (looped deep check)</string>
     <string name="silent_mode_title">Тихий режим</string>
     <string name="silent_mode_description">Отключает уведомления, Raco будет применять твики без уведомления</string>
     <string name="slingshot_graphics_warning">Некоторые игры могут сломаться, некоторые могут улучшить производительность, а некоторые могут даже не запуститься. Но не бойтесь попробовать!</string>
@@ -187,14 +181,6 @@
     <string name="sandev_boot_desc">Попытка ускорить загрузку</string>
     <string name="reboot_to_take_effect">Пожалуйста, перезагрузите устройство для применения изменений</string>
     <string name="please_restart_app">Пожалуйста, перезапустите приложение</string>
-    <string name="tips_title">А вы знали?</string>
-    <string name="tip_1">Свайпните 3 раза слева в любом месте, чтобы открыть скрытый терминал</string>
-    <string name="tip_2">Свайпните 3 раза слева, и вы сможете отменить выполнение</string>
-    <string name="tip_3">Официальный Telegram-канал Project Raco находится на странице Raco</string>
-    <string name="tip_4">Нажмите на изображение Raco! Raco поприветствует вас</string>
-    <string name="tip_5">Project Raco не сделает из картошки игровой телефон</string>
-    <string name="tip_6">Project Raco? GACOR KANG!</string>
-    <string name="tip_7">Добро пожаловать в Project Raco. Хорошего дня!</string>
     <string name="error_launch_url">Не удалось открыть {url}</string>
     <string name="root_required">Требуется Root</string>
     <string name="status_online">В СЕТИ</string>

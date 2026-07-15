@@ -146,18 +146,20 @@ fun AboutScreen(onBack: () -> Unit) {
                     stringResource(R.string.about_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
+                    textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(15.dp))
                 
                 credits.forEach { credit ->
-                    Text("• $credit", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 3.dp))
+                    Text("• $credit", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 3.dp), color = MaterialTheme.colorScheme.onSurface)
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
                     stringResource(R.string.about_note),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 
                 Spacer(modifier = Modifier.height(20.dp))

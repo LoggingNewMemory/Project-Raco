@@ -339,15 +339,12 @@
     <string name="loading">Loading...</string>
     <string name="settings">SETTINGS</string>
     <string name="credit">• $credit</string>
-    <string name="str_empty">\</string>
     <string name="set_a_custom_background_banner_image_for_the_app_supported_format_png">Set a custom background banner image for the app. Supported format: PNG.</string>
     <string name="controls_how_the_banner_image_appears_lower_opacity_more_transparent_higher_blur_softer">Controls how the banner image appears. Lower opacity = more transparent. Higher blur = softer.</string>
     <string name="opacity_bgopacity_100_toint">Opacity: ${(bgOpacity * 100).toInt()}%</string>
     <string name="blur_bgblur_toint_px">Blur: ${bgBlur.toInt()}px</string>
     <string name="override_screen_brightness_0_255_set_to_1_for_automatic">Override screen brightness (0-255). Set to -1 for automatic.</string>
-    <string name="str_empty_1">日本語</string>
-    <string name="str_empty_2">Русский</string>
-    <string name="str_empty_3">[ゼファニャ・ラチョ]</string>
+
     <string name="available_targets_filteredapps_size">AVAILABLE TARGETS: ${filteredApps.size}</string>
     <string name="current_when_graphicsdriver_1_stringresource_r_string_graphics_driver_game_2_stringresource_r_string_graphics_driver_developer_else_stringresource_r_string_graphics_driver_default">Current: ${when(graphicsDriver) { 1 -&gt; stringResource(R.string.graphics_driver_game); 2 -&gt; stringResource(R.string.graphics_driver_developer); else -&gt; stringResource(R.string.graphics_driver_default) }}</string>
     <string name="physical_originalresolution_current_currentresolution">Physical: $originalResolution | Current: $currentResolution</string>

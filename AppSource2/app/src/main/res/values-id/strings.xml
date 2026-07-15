@@ -122,11 +122,9 @@
     <string name="legacy_notif_title">Notifikasi Legacy</string>
     <string name="legacy_notif_description">Gunakan Notifikasi Legacy Jika Notifikasi Tidak Muncul Di Beberapa ROM</string>
     <string name="slingshot_title">Raco Slingshot</string>
-    <string name="slingshot_description">Preload file aplikasi Anda sebelum meluncurkan aplikasi, ini dapat mempercepat waktu memuat dan meningkatkan performa</string>
     <string name="angle_title">Jalankan dengan Grafis ANGLE</string>
     <string name="angle_not_supported">Grafis ANGLE tidak didukung di perangkat ini</string>
     <string name="skia_title">Gunakan SkiaVK sebagai backend Skia default</string>
-    <string name="preload_mode">Mode Preload</string>
     <string name="start_preload">Mulai Slingshot</string>
     <string name="swipe_again_to_cancel">Geser Kanan Lagi Untuk Membatalkan</string>
     <string name="execution_cancelled">Eksekusi Dibatalkan</string>
@@ -165,10 +163,6 @@
     <string name="search_apps_hint">Cari aplikasi...</string>
     <string name="slingshot_reload_tooltip">Muat Ulang Daftar Aplikasi</string>
     <string name="slingshot_no_apps_found">Aplikasi tidak ditemukan</string>
-    <string name="slingshot_mode_normal">Normal (fadvise hint)</string>
-    <string name="slingshot_mode_deep">Dalam (fadvise + dlopen)</string>
-    <string name="slingshot_mode_extreme">Ekstrem (mmap + MAP_POPULATE)</string>
-    <string name="slingshot_mode_recursive">Rekursif (looped deep check)</string>
     <string name="silent_mode_title">Mode Senyap</string>
     <string name="silent_mode_description">Nonaktifkan Notifikasi, Raco Akan Menerapkan Tweak Tanpa Memberitahu</string>
     <string name="slingshot_graphics_warning">Beberapa game mungkin rusak, Beberapa mungkin meningkatkan performa, Beberapa mungkin tidak bisa dibuka. Tapi jangan takut untuk mencobanya dulu!</string>
@@ -187,14 +181,6 @@
     <string name="sandev_boot_desc">Percobaan untuk Mempercepat Boot</string>
     <string name="reboot_to_take_effect">Harap Reboot untuk menerapkan efek</string>
     <string name="please_restart_app">Harap Restart Aplikasi</string>
-    <string name="tips_title">Tahukah Kamu?</string>
-    <string name="tip_1">Geser 3 kali di kiri di mana saja dan kamu bisa mengakses terminal tersembunyi</string>
-    <string name="tip_2">Geser 3 kali di kiri dan kamu bisa membatalkan eksekusi</string>
-    <string name="tip_3">Saluran Telegram Resmi Project Raco ada di Halaman Raco</string>
-    <string name="tip_4">Ketuk gambar Raco! Kamu akan disapa oleh Raco</string>
-    <string name="tip_5">Project Raco tidak bisa mengubah hp kentang jadi hp gaming</string>
-    <string name="tip_6">Project Raco? GACOR KANG!</string>
-    <string name="tip_7">Selamat datang di aplikasi Project Raco. Semoga harimu menyenangkan!</string>
     <string name="error_launch_url">Tidak dapat membuka {url}</string>
     <string name="root_required">Root Diperlukan</string>
     <string name="status_online">ONLINE</string>
