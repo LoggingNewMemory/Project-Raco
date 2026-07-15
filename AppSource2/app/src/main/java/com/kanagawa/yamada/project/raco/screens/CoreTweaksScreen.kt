@@ -1,5 +1,6 @@
 package com.kanagawa.yamada.project.raco.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -49,9 +50,9 @@ private suspend fun writeFlag(key: String, enable: Boolean, inverted: Boolean = 
 fun CoreTweaksScreen(onBack: () -> Unit) {
     var isLoading by remember { mutableStateOf(true) }
     var deviceMitigation by remember { mutableStateOf(false) }
-    var liteMode by remember { mutableStateOf(false) }
-    var lifeMode by remember { mutableStateOf(false) }
-    var betterPowersave by remember { mutableStateOf(false) }
+    var litePowersave by remember { mutableStateOf(false) }
+    var ultraPowersave by remember { mutableStateOf(false) }
+    var litePerformance by remember { mutableStateOf(false) }
     var alterCpuMethod by remember { mutableStateOf(false) }
     var legacyNotif by remember { mutableStateOf(false) }
     var silentNotif by remember { mutableStateOf(false) }
@@ -66,9 +67,9 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
         coroutineScope.launch {
             val content = readConfig()
             deviceMitigation = parseFlag(content, "DEVICE_MITIGATION")
-            liteMode = parseFlag(content, "LITE_MODE")
-            lifeMode = parseFlag(content, "LIFE_MODE")
-            betterPowersave = parseFlag(content, "BETTER_POWERAVE")
+            litePowersave = parseFlag(content, "LITE_POWERSAVE")
+            ultraPowersave = parseFlag(content, "ULTRA_POWERSAVE")
+            litePerformance = parseFlag(content, "LITE_PERFORMANCE")
             alterCpuMethod = parseFlag(content, "ALTER_CPU_METHOD")
             legacyNotif = parseFlag(content, "LEGACY_NOTIF")
             silentNotif = parseFlag(content, "SILENT_NOTIF", inverted = true)
@@ -117,14 +118,14 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
                         TweakToggle("Device Mitigation", "Fix screen freeze and device stability issues", Icons.Default.SecurityUpdate, deviceMitigation) {
                             toggle("DEVICE_MITIGATION", deviceMitigation) { deviceMitigation = it }
                         }
-                        TweakToggle("Lite Mode", "Enable battery-optimized lite performance", Icons.Default.EnergySavingsLeaf, liteMode) {
-                            toggle("LITE_MODE", liteMode) { liteMode = it }
+                        TweakToggle("Lite Powersave", "Battery optimized lite profile", Icons.Default.EnergySavingsLeaf, litePowersave) {
+                            toggle("LITE_POWERSAVE", litePowersave) { litePowersave = it }
                         }
-                        TweakToggle("Life Mode", "Balanced CPU at half frequency", Icons.Default.MonitorHeart, lifeMode) {
-                            toggle("LIFE_MODE", lifeMode) { lifeMode = it }
+                        TweakToggle("Ultra Powersave", "Maximum battery savings", Icons.Default.BatterySaver, ultraPowersave) {
+                            toggle("ULTRA_POWERSAVE", ultraPowersave) { ultraPowersave = it }
                         }
-                        TweakToggle("Better Powersave", "Cap CPU for maximum battery savings", Icons.Default.BatterySaver, betterPowersave) {
-                            toggle("BETTER_POWERAVE", betterPowersave) { betterPowersave = it }
+                        TweakToggle("Lite Performance", "Balanced performance for light usage", Icons.Default.MonitorHeart, litePerformance) {
+                            toggle("LITE_PERFORMANCE", litePerformance) { litePerformance = it }
                         }
                         TweakToggle("Alter CPU Method", "Use this if Scaling Frequency is Wrong for your device", Icons.Default.Memory, alterCpuMethod) {
                             toggle("ALTER_CPU_METHOD", alterCpuMethod) { alterCpuMethod = it }
@@ -187,11 +188,20 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
 
 @Composable
 private fun TweakToggle(title: String, description: String, icon: androidx.compose.ui.graphics.vector.ImageVector, checked: Boolean, onToggle: () -> Unit) {
-    ListItem(
-        headlineContent = { Text(title, fontWeight = FontWeight.Bold) },
-        supportingContent = { Text(description, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic) },
-        leadingContent = { Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        trailingContent = { Switch(checked = checked, onCheckedChange = { onToggle() }) },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() }
+            .padding(vertical = 12.dp, horizontal = 8.dp),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
+            Text(description, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Switch(checked = checked, onCheckedChange = { onToggle() })
+    }
 }
