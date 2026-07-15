@@ -246,12 +246,9 @@ fun AppearanceScreen(onBack: () -> Unit) {
                         ) {
                             if (isInstallingBanner) {
                                 CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Color.White)
-                                Spacer(Modifier.width(8.dp))
                             } else {
                                 Icon(Icons.Default.Upload, null)
-                                Spacer(Modifier.width(8.dp))
                             }
-                            Text(stringResource(R.string.select_image))
                         }
                         if (bannerExists) {
                             OutlinedButton(
@@ -267,8 +264,6 @@ fun AppearanceScreen(onBack: () -> Unit) {
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
                             ) {
                                 Icon(Icons.Default.Delete, null)
-                                Spacer(Modifier.width(8.dp))
-                                Text(stringResource(R.string.remove))
                             }
                         }
                     }
@@ -332,12 +327,9 @@ fun AppearanceScreen(onBack: () -> Unit) {
                         ) {
                             if (isInstallingBg) {
                                 CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Color.White)
-                                Spacer(Modifier.width(8.dp))
                             } else {
                                 Icon(Icons.Default.Upload, null)
-                                Spacer(Modifier.width(8.dp))
                             }
-                            Text(stringResource(R.string.select_image))
                         }
                         if (bgExists) {
                             OutlinedButton(
@@ -353,13 +345,11 @@ fun AppearanceScreen(onBack: () -> Unit) {
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
                             ) {
                                 Icon(Icons.Default.Delete, null)
-                                Spacer(Modifier.width(8.dp))
-                                Text(stringResource(R.string.remove))
                             }
                         }
                     }
 
-
+                    Spacer(Modifier.height(16.dp))
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Opacity, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
