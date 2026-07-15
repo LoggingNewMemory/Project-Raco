@@ -65,7 +65,7 @@ fun SettingsScreen(
     val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
     var hasCustomBackground by remember { mutableStateOf(sharedPrefs.getBoolean("HAS_CUSTOM_BACKGROUND", false)) }
     
-    var selectedCategory by remember { mutableStateOf("Modules") }
+    var selectedCategory by remember { mutableStateOf(R.string.modules) }
     var pendingCropUri by remember { mutableStateOf<android.net.Uri?>(null) }
     
     // Fake Toast State
@@ -100,7 +100,7 @@ fun SettingsScreen(
                         .putLong("CUSTOM_BG_TS", System.currentTimeMillis())
                         .apply()
                     hasCustomBackground = true
-                    android.widget.Toast.makeText(context, "Custom Background Set!", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(context, context.getString(R.string.custom_background_set), android.widget.Toast.LENGTH_SHORT).show()
                 } catch (e: Exception) { 
                     e.printStackTrace()
                     android.widget.Toast.makeText(context, "Failed to save: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
@@ -130,28 +130,28 @@ fun SettingsScreen(
 
     val categories = remember {
         mapOf(
-            "Modules" to listOf(
-                Triple("ANYA", "Anya Thermal", "Enable Anya Thermal Flowstate"),
-                Triple("INCLUDE_KOBO", "Kobo Fast Charge", "Fast Charge Module"),
-                Triple("INCLUDE_SANDEV", "Sandevistan Boot", "Make init boot faster"),
-                Triple("INCLUDE_ZETAMIN", "Zetamin", "All in one Screen Tweaks")
+            R.string.modules to listOf(
+                Triple("ANYA", R.string.anya_thermal, R.string.enable_anya_thermal_flowstate),
+                Triple("INCLUDE_KOBO", R.string.kobo_fast_charge, R.string.fast_charge_module),
+                Triple("INCLUDE_SANDEV", R.string.sandevistan_boot, R.string.make_init_boot_faster),
+                Triple("INCLUDE_ZETAMIN", R.string.zetamin, R.string.all_in_one_screen_tweaks)
             ),
-            "System" to listOf(
-                Triple("DEVICE_MITIGATION", "Device Mitigation", "Enable Device Mitigation"),
-                Triple("GOV", "Custom GOV", "Your Default GOV, Will Applied After You Close The Game"),
-                Triple("ALTER_CPU_METHOD", "Alternative CPU Method", "Set Governor only, leave CPUFreq untoched. Enable this if your CPU can't set Frequecny correctly")
+            R.string.system to listOf(
+                Triple("DEVICE_MITIGATION", R.string.device_mitigation, R.string.enable_device_mitigation),
+                Triple("GOV", R.string.custom_gov, R.string.your_default_gov_will_applied_after_you_close_the_game),
+                Triple("ALTER_CPU_METHOD", R.string.alternative_cpu_method, R.string.set_governor_only_leave_cpufreq_untoched_enable_this_if_your_cpu_can_t_set_frequecny_correctly)
             ),
-            "Notifications" to listOf(
-                Triple("LEGACY_NOTIF", "Legacy Notifications", "Use Legacy Notifications"),
-                Triple("SILENT_NOTIF", "Silent Notifications", "Use Silent Notifications")
+            R.string.notifications to listOf(
+                Triple("LEGACY_NOTIF", R.string.legacy_notifications, R.string.use_legacy_notifications),
+                Triple("SILENT_NOTIF", R.string.silent_notifications, R.string.use_silent_notifications)
             ),
-            "Customization" to listOf(
-                Triple("CUSTOM_BACKGROUND", "Set Custom Background", ""),
-                Triple("ENABLE_BACKGROUND", "Enable Background", ""),
-                Triple("BLUR_BACKGROUND", "Blur Background", ""),
-                Triple("BLUR_RADIUS", "Blur Radius", ""),
-                Triple("DIM_BACKGROUND", "Dim Background", ""),
-                Triple("DIM_OPACITY", "Dim Opacity", "")
+            R.string.customization to listOf(
+                Triple("CUSTOM_BACKGROUND", R.string.set_custom_background, R.string.empty_string),
+                Triple("ENABLE_BACKGROUND", R.string.enable_background, R.string.empty_string),
+                Triple("BLUR_BACKGROUND", R.string.blur_background, R.string.empty_string),
+                Triple("BLUR_RADIUS", R.string.blur_radius, R.string.empty_string),
+                Triple("DIM_BACKGROUND", R.string.dim_background, R.string.empty_string),
+                Triple("DIM_OPACITY", R.string.dim_opacity, R.string.empty_string)
             )
         )
     }
@@ -304,7 +304,7 @@ fun SettingsScreen(
                                 label = "CatOffset"
                             )
                             Text(
-                                cat,
+                                stringResource(cat),
                                 color = animatedColor,
                                 fontFamily = if (isSelected) gilmerBold else gilmerRegular,
                                 fontSize = 20.sp,
@@ -347,7 +347,7 @@ fun SettingsScreen(
                                     if (key == "BLUR_RADIUS" && configState["BLUR_BACKGROUND"] != "1") return@forEach
                                     if (key == "DIM_OPACITY" && configState["DIM_BACKGROUND"] != "1") return@forEach
                                     val isChecked = configState[key] == "1"
-                                    val vPadding = if (cat == "Customization") 8.dp else if (desc.isEmpty()) 4.dp else 12.dp
+                                    val vPadding = if (cat == R.string.customization) 8.dp else if (desc == R.string.empty_string) 4.dp else 12.dp
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -358,14 +358,14 @@ fun SettingsScreen(
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Text(
-                                            text = title,
+                                            text = stringResource(title),
                                             color = Color.White,
                                             fontFamily = gilmerBold,
                                             fontSize = 16.sp
                                         )
-                                        if (desc.isNotEmpty()) {
+                                        if (desc != R.string.empty_string) {
                                             Text(
-                                                text = desc,
+                                                text = stringResource(desc),
                                                 color = Color.Gray,
                                                 fontFamily = gilmerRegular,
                                                 fontSize = 9.sp,
@@ -386,7 +386,7 @@ fun SettingsScreen(
                                                         hasCustomBackground = false
                                                         val outFile = java.io.File(context.filesDir, "custom_background.png")
                                                         if (outFile.exists()) outFile.delete()
-                                                        android.widget.Toast.makeText(context, "Background Reset!", android.widget.Toast.LENGTH_SHORT).show()
+                                                        android.widget.Toast.makeText(context, context.getString(R.string.background_reset), android.widget.Toast.LENGTH_SHORT).show()
                                                     },
                                                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color.DarkGray),
                                                     modifier = Modifier.padding(end = 8.dp)

@@ -193,7 +193,7 @@ fun SystemScreen(onBack: () -> Unit) {
 
             // Graphics Driver Card
             item {
-                SystemCard("Graphics Driver") {
+                SystemCard(stringResource(R.string.graphics_driver)) {
                     Text(stringResource(R.string.set_the_angle_vulkan_graphics_driver_mode), style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))
                     Text("Current: ${when(graphicsDriver) { 1 -> stringResource(R.string.graphics_driver_game); 2 -> stringResource(R.string.graphics_driver_developer); else -> stringResource(R.string.graphics_driver_default) }}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
@@ -219,7 +219,7 @@ fun SystemScreen(onBack: () -> Unit) {
             // Resolution Downscale Card
             if (resolutionAvailable) {
                 item {
-                    SystemCard("Resolution Downscale") {
+                    SystemCard(stringResource(R.string.resolution_downscale)) {
                         Text(stringResource(R.string.override_display_resolution_and_density_use_reset_to_restore_defaults), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
                         Text("Physical: $originalResolution | Current: $currentResolution", style = MaterialTheme.typography.bodySmall)

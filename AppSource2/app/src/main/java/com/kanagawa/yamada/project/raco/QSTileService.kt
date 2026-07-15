@@ -9,7 +9,7 @@ class QSTileService : TileService() {
         super.onStartListening()
         val tile = qsTile ?: return
         tile.label = "Raco Mode"
-        tile.subtitle = "Tap for menu"
+        tile.subtitle = getString(R.string.tap_for_menu)
         tile.state = Tile.STATE_ACTIVE
         tile.updateTile()
     }

@@ -28,16 +28,16 @@ private const val EXTRA_CONFIG_PATH = "/data/ProjectRaco/raco.txt"
 
 private data class ExtraToggleItem(
     val key: String,
-    val title: String,
-    val subtitle: String,
+    val titleRes: Int,
+    val subtitleRes: Int,
     val icon: ImageVector,
 )
 
 private val EXTRA_TOGGLE_ITEMS = listOf(
-    ExtraToggleItem("INCLUDE_ANYA",    "Anya Thermal",            "Install the Anya thermal engine on next boot.",               Icons.Filled.Thermostat),
-    ExtraToggleItem("INCLUDE_KOBO",    "Kobo Fast Charge",        "Install the Kobo fast charging module on next boot.",         Icons.Filled.BatteryChargingFull),
-    ExtraToggleItem("INCLUDE_ZETAMIN", "Zetamin Game Optimizer",  "Install Zetamin optimization services on next boot.",         Icons.Filled.DisplaySettings),
-    ExtraToggleItem("INCLUDE_SANDEV",  "Sandevistan",             "Install the Sandevistan module on next boot.",                Icons.Filled.RocketLaunch)
+    ExtraToggleItem("INCLUDE_ANYA", R.string.anya_thermal, R.string.install_the_anya_thermal_engine_on_next_boot, Icons.Filled.Thermostat),
+    ExtraToggleItem("INCLUDE_KOBO", R.string.kobo_fast_charge, R.string.install_the_kobo_fast_charging_module_on_next_boot, Icons.Filled.BatteryChargingFull),
+    ExtraToggleItem("INCLUDE_ZETAMIN", R.string.zetamin_game_optimizer, R.string.install_zetamin_optimization_services_on_next_boot, Icons.Filled.DisplaySettings),
+    ExtraToggleItem("INCLUDE_SANDEV", R.string.sandevistan, R.string.install_the_sandevistan_module_on_next_boot, Icons.Filled.RocketLaunch)
 )
 
 private fun readExtraConfig(): String? = runCatching {
@@ -112,8 +112,8 @@ fun ExtraSettingsScreen(onBack: () -> Unit) {
                             Icon(item.icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(item.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                                Text(item.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(text = stringResource(item.titleRes), style = MaterialTheme.typography.titleMedium)
+                                Text(text = stringResource(item.subtitleRes), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Switch(

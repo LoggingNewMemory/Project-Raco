@@ -21,6 +21,7 @@ import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -60,9 +61,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContent {
-
-                ProjectRacoTheme(darkTheme = true) {
-                    var currentScreen by remember { mutableStateOf(ScreenState.CHECKING_ROOT) }
+            ProjectRacoTheme(darkTheme = true) {
+                var currentScreen by remember { mutableStateOf(ScreenState.CHECKING_ROOT) }
 
                 LaunchedEffect(Unit) {
                     val isRooted = checkRootAccess()
@@ -81,8 +81,7 @@ class MainActivity : AppCompatActivity() {
                     when (currentScreen) {
                         ScreenState.CHECKING_ROOT -> { } // Black screen while Magisk prompts
                         ScreenState.NO_ROOT -> {
-                            Text(
-                                "Root Access Denied. Project Raco requires Root.",
+                            Text(stringResource(R.string.root_access_denied_project_raco_requires_root),
                                 color = Color.Red,
                                 modifier = Modifier.align(Alignment.Center)
                             )
