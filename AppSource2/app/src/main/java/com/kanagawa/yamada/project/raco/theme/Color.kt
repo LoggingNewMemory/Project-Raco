@@ -2,7 +2,7 @@ package com.kanagawa.yamada.project.raco.theme
 
 import androidx.compose.ui.graphics.Color
 
-val RacoBackground = Color(0xFF0F172A)
+val RacoBackground = Color(0xFF000000)
 val RacoSurface = Color(0xFF1E293B)
 val RacoPrimary = Color(0xFF06B6D4)
 val RacoSecondary = Color(0xFF10B981)

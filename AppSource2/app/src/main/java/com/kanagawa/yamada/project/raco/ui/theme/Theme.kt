@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.toArgb
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -43,17 +44,24 @@ fun ProjectRacoTheme(
 ) {
     val colorScheme = when {
         seedColor != null -> {
+            val seedArgb = seedColor.toArgb()
             if (darkTheme) {
                 darkColorScheme(
                     primary = seedColor,
                     secondary = seedColor.copy(alpha = 0.8f),
-                    tertiary = seedColor.copy(alpha = 0.6f)
+                    tertiary = seedColor.copy(alpha = 0.6f),
+                    background = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.BLACK, seedArgb, 0.05f)),
+                    surface = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.BLACK, seedArgb, 0.1f)),
+                    surfaceVariant = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.BLACK, seedArgb, 0.15f))
                 )
             } else {
                 lightColorScheme(
                     primary = seedColor,
                     secondary = seedColor.copy(alpha = 0.8f),
-                    tertiary = seedColor.copy(alpha = 0.6f)
+                    tertiary = seedColor.copy(alpha = 0.6f),
+                    background = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.WHITE, seedArgb, 0.05f)),
+                    surface = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.WHITE, seedArgb, 0.1f)),
+                    surfaceVariant = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.WHITE, seedArgb, 0.15f))
                 )
             }
         }

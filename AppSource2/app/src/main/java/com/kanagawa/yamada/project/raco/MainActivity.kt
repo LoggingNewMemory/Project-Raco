@@ -30,6 +30,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -108,7 +109,7 @@ class MainActivity : AppCompatActivity() {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color(0xFF050505)) // Deep black background
+                        .background(MaterialTheme.colorScheme.background)
                 ) {
                     if (bgImagePath.isNotEmpty() && java.io.File(bgImagePath).exists()) {
                         coil.compose.AsyncImage(
