@@ -1,4 +1,4 @@
-package com.kanagawa.yamada.project.raco.screens
+package com.kanagawa.yamada.project.raco
 
 import com.kanagawa.yamada.project.raco.R
 import androidx.compose.ui.res.stringResource
@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import com.kanagawa.yamada.project.raco.UtilitiesPages.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color

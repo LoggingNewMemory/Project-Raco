@@ -2,7 +2,7 @@ package com.kanagawa.yamada.project.raco
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.*
-import com.kanagawa.yamada.project.raco.screens.*
+import com.kanagawa.yamada.project.raco.*
 
 enum class Screen {
     Main,

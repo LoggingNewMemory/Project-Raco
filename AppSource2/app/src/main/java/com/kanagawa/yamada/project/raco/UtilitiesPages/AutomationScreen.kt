@@ -1,4 +1,4 @@
-package com.kanagawa.yamada.project.raco.screens
+package com.kanagawa.yamada.project.raco.UtilitiesPages
 
 import com.kanagawa.yamada.project.raco.R
 import androidx.compose.ui.res.stringResource
