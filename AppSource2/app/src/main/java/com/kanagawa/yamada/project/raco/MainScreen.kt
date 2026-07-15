@@ -45,26 +45,6 @@ import com.kanagawa.yamada.project.raco.Screen
 import java.io.File
 import kotlin.random.Random
 
-// Helper for typewriter effect
-@Composable
-fun MainTypewriterText(
-    text: String,
-    style: androidx.compose.ui.text.TextStyle,
-    typeDuration: Long = 30L
-) {
-    var displayedText by remember { mutableStateOf("") }
-    
-    LaunchedEffect(text) {
-        displayedText = ""
-        for (i in text.indices) {
-            displayedText += text[i]
-            delay(typeDuration)
-        }
-    }
-    
-    Text(text = displayedText, style = style)
-}
-
 @Composable
 fun MainScreen(onNavigate: (Screen) -> Unit) {
     val psTitle = stringResource(R.string.power_save)
@@ -89,24 +69,6 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
 
     val configPath = "/data/ProjectRaco/raco.txt"
     val basePath = "/data/adb/modules/ProjectRaco/"
-
-    // Tips rotation
-    val tips = listOf(
-        stringResource(R.string.main_tip_1),
-        stringResource(R.string.main_tip_2),
-        stringResource(R.string.main_tip_3),
-        stringResource(R.string.main_tip_4),
-        stringResource(R.string.main_tip_5),
-        stringResource(R.string.main_tip_6),
-        stringResource(R.string.main_tip_7)
-    )
-    var currentTipIndex by remember { mutableStateOf(0) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(8000)
-            currentTipIndex = (currentTipIndex + 1) % tips.size
-        }
-    }
 
     suspend fun checkRoot(): Boolean = withContext(Dispatchers.IO) {
         try {
@@ -307,29 +269,6 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                         }
                     }
                     
-                    item {
-                        // Tips
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                                .padding(horizontal = 16.dp, vertical = 12.dp)
-                        ) {
-                            Column {
-                                Row {
-                                    Icon(Icons.Default.Lightbulb, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(stringResource(R.string.tip_of_the_day), style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.primary)
-                                }
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Box(modifier = Modifier.height(40.dp)) {
-                                    MainTypewriterText(tips[currentTipIndex], MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
-                                }
-                            }
-                        }
-                    }
-
                     data class ControlMode(val title: String, val descRes: Int, val modeId: String, val modeName: String, val icon: ImageVector)
 
                     val controlParams = listOf(
