@@ -100,6 +100,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
 
     var isLoading by remember { mutableStateOf(true) }
     var bannerExists by remember { mutableStateOf(false) }
+    var bgExists by remember { mutableStateOf(false) }
     var bgOpacity by remember { mutableFloatStateOf(0.3f) }
     var bgBlur by remember { mutableFloatStateOf(10f) }
     var screenBrightness by remember { mutableFloatStateOf(-1f) }
@@ -108,6 +109,8 @@ fun AppearanceScreen(onBack: () -> Unit) {
     var rgbB by remember { mutableFloatStateOf(1f) }
     var isBusy by remember { mutableStateOf(false) }
     var isInstallingBanner by remember { mutableStateOf(false) }
+    var isInstallingBg by remember { mutableStateOf(false) }
+    var adaptiveColorBg by remember { mutableStateOf(false) }
 
     // Image picker launcher
     val bannerPickerLauncher = rememberLauncherForActivityResult(
@@ -135,6 +138,31 @@ fun AppearanceScreen(onBack: () -> Unit) {
         }
     }
 
+    val bgPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            isInstallingBg = true
+            scope.launch {
+                try {
+                    val destFile = File(context.filesDir, "custom_background.png")
+                    withContext(Dispatchers.IO) {
+                        context.contentResolver.openInputStream(uri)?.use { input ->
+                            destFile.outputStream().use { output -> input.copyTo(output) }
+                        }
+                    }
+                    context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                        .edit().putString("background_image_path", destFile.absolutePath).apply()
+                    bgExists = true
+                    snackbarHostState.showSnackbar("Background installed successfully")
+                } catch (e: Exception) {
+                    snackbarHostState.showSnackbar("Failed to install background")
+                }
+                isInstallingBg = false
+            }
+        }
+    }
+
         LaunchedEffect(Unit) {
             val config = parseAppearanceConfig()
             bgOpacity = config["BG_OPACITY"]?.toFloatOrNull() ?: 0.3f
@@ -147,6 +175,9 @@ fun AppearanceScreen(onBack: () -> Unit) {
             val sharedPrefs = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
             val path = sharedPrefs.getString("banner_image_path", "")
             bannerExists = !path.isNullOrEmpty() && File(path).exists()
+            val bgPath = sharedPrefs.getString("background_image_path", "")
+            bgExists = !bgPath.isNullOrEmpty() && File(bgPath).exists()
+            adaptiveColorBg = sharedPrefs.getBoolean("adaptive_color_enabled", false)
             isLoading = false
         }
 
@@ -163,7 +194,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                 )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            containerColor = MaterialTheme.colorScheme.background
+            containerColor = Color.Transparent
         ) { padding ->
             val alpha by androidx.compose.animation.core.animateFloatAsState(
                 targetValue = if (isLoading) 0f else 1f,
@@ -241,6 +272,27 @@ fun AppearanceScreen(onBack: () -> Unit) {
                             }
                         }
                     }
+                    
+                    Spacer(Modifier.height(16.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Adaptive Color Background",
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Switch(
+                            checked = adaptiveColorBg,
+                            onCheckedChange = {
+                                adaptiveColorBg = it
+                                context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                                    .edit().putBoolean("adaptive_color_enabled", it).apply()
+                            }
+                        )
+                    }
                 }
             }
 
@@ -250,7 +302,64 @@ fun AppearanceScreen(onBack: () -> Unit) {
                     Text(stringResource(R.string.controls_how_the_banner_image_appears_lower_opacity_more_transparent_higher_blur_softer),
                         style = MaterialTheme.typography.bodySmall
                     )
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(12.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = if (bgExists) Icons.Default.CheckCircle else Icons.Default.Image,
+                            contentDescription = null,
+                            tint = if (bgExists) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = if (bgExists) "Background Set" else "No Background Set",
+                            modifier = Modifier.weight(1f),
+                            color = if (bgExists) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = if (bgExists) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = { bgPickerLauncher.launch("image/png") },
+                            modifier = Modifier.weight(1f),
+                            enabled = !isInstallingBg
+                        ) {
+                            if (isInstallingBg) {
+                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Color.White)
+                                Spacer(Modifier.width(8.dp))
+                            } else {
+                                Icon(Icons.Default.Upload, null)
+                                Spacer(Modifier.width(8.dp))
+                            }
+                            Text(stringResource(R.string.select_image))
+                        }
+                        if (bgExists) {
+                            OutlinedButton(
+                                onClick = {
+                                    scope.launch {
+                                        val path = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE).getString("background_image_path", "")
+                                        if (!path.isNullOrEmpty()) { File(path).delete() }
+                                        context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE).edit().remove("background_image_path").apply()
+                                        bgExists = false; snackbarHostState.showSnackbar("Background removed")
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                            ) {
+                                Icon(Icons.Default.Delete, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text(stringResource(R.string.remove))
+                            }
+                        }
+                    }
+
+
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Opacity, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
@@ -265,6 +374,8 @@ fun AppearanceScreen(onBack: () -> Unit) {
                             scope.launch {
                                 writeAppearanceKey("BG_OPACITY", bgOpacity.toString())
                             }
+                            context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                                .edit().putFloat("bg_opacity", bgOpacity).apply()
                         },
                         valueRange = 0f..1f,
                         steps = 9
@@ -284,6 +395,8 @@ fun AppearanceScreen(onBack: () -> Unit) {
                             scope.launch {
                                 writeAppearanceKey("BG_BLUR", bgBlur.toString())
                             }
+                            context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                                .edit().putFloat("bg_blur", bgBlur).apply()
                         },
                         valueRange = 0f..30f,
                         steps = 5

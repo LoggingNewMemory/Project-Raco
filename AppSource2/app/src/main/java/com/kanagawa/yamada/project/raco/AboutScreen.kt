@@ -119,7 +119,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent
     ) { padding ->
         val alpha by androidx.compose.animation.core.animateFloatAsState(
             targetValue = if (!isLoaded) 0f else 1f,

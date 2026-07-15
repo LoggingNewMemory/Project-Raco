@@ -86,8 +86,8 @@ fun ExtraSettingsScreen(onBack: () -> Unit) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent, titleContentColor = MaterialTheme.colorScheme.primary, navigationIconContentColor = MaterialTheme.colorScheme.primary)
             )
         },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.background
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = androidx.compose.ui.graphics.Color.Transparent
     ) { padding ->
         val alpha by androidx.compose.animation.core.animateFloatAsState(
             targetValue = if (isLoading) 0f else 1f,

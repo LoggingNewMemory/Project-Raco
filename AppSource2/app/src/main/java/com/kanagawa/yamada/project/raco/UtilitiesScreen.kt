@@ -113,7 +113,7 @@ fun UtilitiesScreen(onBack: () -> Unit) {
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent
     ) { padding ->
         val context = androidx.compose.ui.platform.LocalContext.current
         val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)

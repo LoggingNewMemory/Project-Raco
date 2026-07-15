@@ -38,9 +38,25 @@ fun ProjectRacoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
+    seedColor: androidx.compose.ui.graphics.Color? = null,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
+        seedColor != null -> {
+            if (darkTheme) {
+                darkColorScheme(
+                    primary = seedColor,
+                    secondary = seedColor.copy(alpha = 0.8f),
+                    tertiary = seedColor.copy(alpha = 0.6f)
+                )
+            } else {
+                lightColorScheme(
+                    primary = seedColor,
+                    secondary = seedColor.copy(alpha = 0.8f),
+                    tertiary = seedColor.copy(alpha = 0.6f)
+                )
+            }
+        }
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)

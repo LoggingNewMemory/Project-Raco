@@ -34,6 +34,9 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.kanagawa.yamada.project.raco.ui.theme.ProjectRacoTheme
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -56,7 +59,41 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContent {
-            ProjectRacoTheme(darkTheme = true) {
+            val context = androidx.compose.ui.platform.LocalContext.current
+            var bgImagePath by remember { mutableStateOf("") }
+            var bgOpacity by remember { mutableFloatStateOf(0.3f) }
+            var bgBlur by remember { mutableFloatStateOf(10f) }
+            var adaptiveColor by remember { mutableStateOf<Color?>(null) }
+            var isAdaptiveEnabled by remember { mutableStateOf(false) }
+            
+            LaunchedEffect(Unit) {
+                while(true) {
+                    val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
+                    bgImagePath = sharedPrefs.getString("background_image_path", "") ?: ""
+                    bgOpacity = sharedPrefs.getFloat("bg_opacity", 0.3f)
+                    bgBlur = sharedPrefs.getFloat("bg_blur", 10f)
+                    isAdaptiveEnabled = sharedPrefs.getBoolean("adaptive_color_enabled", false)
+                    val bannerPath = sharedPrefs.getString("banner_image_path", "") ?: ""
+                    
+                    if (isAdaptiveEnabled && bannerPath.isNotEmpty() && java.io.File(bannerPath).exists()) {
+                        withContext(Dispatchers.IO) {
+                            try {
+                                val bitmap = android.graphics.BitmapFactory.decodeFile(bannerPath)
+                                val scaled = android.graphics.Bitmap.createScaledBitmap(bitmap, 1, 1, true)
+                                val pixel = scaled.getPixel(0, 0)
+                                adaptiveColor = Color(pixel)
+                            } catch (e: Exception) {
+                                adaptiveColor = null
+                            }
+                        }
+                    } else {
+                        adaptiveColor = null
+                    }
+                    kotlinx.coroutines.delay(1000) // Poll for changes
+                }
+            }
+
+            ProjectRacoTheme(darkTheme = true, seedColor = adaptiveColor) {
                 var currentScreen by remember { mutableStateOf(ScreenState.CHECKING_ROOT) }
 
                 LaunchedEffect(Unit) {
@@ -73,6 +110,18 @@ class MainActivity : AppCompatActivity() {
                         .fillMaxSize()
                         .background(Color(0xFF050505)) // Deep black background
                 ) {
+                    if (bgImagePath.isNotEmpty() && java.io.File(bgImagePath).exists()) {
+                        coil.compose.AsyncImage(
+                            model = bgImagePath,
+                            contentDescription = "Background",
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .alpha(bgOpacity)
+                                .blur(bgBlur.dp)
+                        )
+                    }
+
                     when (currentScreen) {
                         ScreenState.CHECKING_ROOT -> { } // Black screen while Magisk prompts
                         ScreenState.NO_ROOT -> {

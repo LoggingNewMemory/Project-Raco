@@ -112,7 +112,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent
     ) { padding ->
         val alpha by androidx.compose.animation.core.animateFloatAsState(
             targetValue = if (isLoading) 0f else 1f,

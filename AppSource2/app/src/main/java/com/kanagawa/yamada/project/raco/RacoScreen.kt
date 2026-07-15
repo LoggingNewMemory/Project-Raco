@@ -128,7 +128,7 @@ fun RacoScreen(onBack: () -> Unit) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier

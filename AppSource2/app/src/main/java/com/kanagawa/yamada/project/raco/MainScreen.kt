@@ -367,7 +367,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Transparent
     ) { padding ->
         scaffoldContent(padding)
     }
