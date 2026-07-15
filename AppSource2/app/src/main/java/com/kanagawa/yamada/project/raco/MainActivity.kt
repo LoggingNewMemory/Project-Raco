@@ -96,13 +96,25 @@ class MainActivity : AppCompatActivity() {
             }
             
             LaunchedEffect(isAdaptiveEnabled, bannerPath, bannerUpdateTrigger) {
-                if (isAdaptiveEnabled && bannerPath.isNotEmpty() && java.io.File(bannerPath).exists()) {
+                if (isAdaptiveEnabled) {
                     withContext(Dispatchers.IO) {
                         try {
-                            val bitmap = android.graphics.BitmapFactory.decodeFile(bannerPath)
-                            val scaled = android.graphics.Bitmap.createScaledBitmap(bitmap, 1, 1, true)
-                            val pixel = scaled.getPixel(0, 0)
-                            adaptiveColor = Color(pixel)
+                            val bitmap = if (bannerPath.isNotEmpty() && java.io.File(bannerPath).exists()) {
+                                android.graphics.BitmapFactory.decodeFile(bannerPath)
+                            } else {
+                                android.graphics.BitmapFactory.decodeResource(context.resources, R.drawable.banner)
+                            }
+                            if (bitmap != null) {
+                                val palette = androidx.palette.graphics.Palette.from(bitmap).generate()
+                                val bestColor = palette.lightVibrantSwatch?.rgb
+                                    ?: palette.vibrantSwatch?.rgb
+                                    ?: palette.lightMutedSwatch?.rgb
+                                    ?: palette.dominantSwatch?.rgb
+                                    ?: android.graphics.Color.GRAY
+                                adaptiveColor = Color(bestColor)
+                            } else {
+                                adaptiveColor = null
+                            }
                         } catch (e: Exception) {
                             adaptiveColor = null
                         }
