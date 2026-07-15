@@ -35,7 +35,8 @@ fun AboutScreen(onBack: () -> Unit) {
         "Rem01 Gaming", "MiAzami", "Kazuyoo", "RiProG",
         "HoyoSlave", "Koneko_dev", "Not_ValentineSTCV",
         "Andreyka4_45", "Zexshia", "kaminarich",
-        "fuckyoustan", "Xyanz_25", "hirauki", "KanaDev_IS"
+        "fuckyoustan", "Xyanz_25", "hirauki", "KanaDev_IS",
+        "And All Testers That I Can't Mentioned One by One"
     )
 
     LaunchedEffect(Unit) {
@@ -136,16 +137,33 @@ fun AboutScreen(onBack: () -> Unit) {
                 }
 
                 Spacer(modifier = Modifier.height(40.dp))
-                Text("CREDITS", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                HorizontalDivider(color = MaterialTheme.colorScheme.primary, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+                Text(
+                    "Thank you for the great people who helped improve Project Raco:",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
+                )
+                Spacer(modifier = Modifier.height(15.dp))
                 
                 credits.forEach { credit ->
-                    Text("• $credit", color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(vertical = 4.dp))
+                    Text("• $credit", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 3.dp))
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
-                Text("Thanks to the open source community.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    "Project Raco Is Always Free, Open Source, and Open For Improvement",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    "\"Great Collaboration Lead to Great Innovation\"\n~ Kanagawa Yamada (Main Dev)",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }
