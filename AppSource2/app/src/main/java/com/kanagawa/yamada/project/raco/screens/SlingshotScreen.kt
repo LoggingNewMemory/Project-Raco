@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -239,7 +240,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Box(modifier = Modifier.size(40.dp).border(1.dp, Color.White.copy(alpha=0.24f)).padding(2.dp)) {
-                                        Icon(Icons.Default.Android, contentDescription = null, tint = Color.White.copy(alpha=0.54f), modifier = Modifier.align(Alignment.Center))
+                                        AppIcon(pkg = pkg, modifier = Modifier.size(32.dp).align(Alignment.Center))
                                     }
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Column(modifier = Modifier.weight(1f)) {
@@ -355,7 +356,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                                     .padding(16.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Android, contentDescription = null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    AppIcon(pkg = pkg, modifier = Modifier.size(32.dp))
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column {
                                         Text(pkg.split(".").last().uppercase(), color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
@@ -401,5 +402,40 @@ fun EndfieldSwitch(label: String, value: Boolean, onChanged: (Boolean) -> Unit) 
             Text(label, style = monoStyle.copy(color = if (value) Color.Black else Color.White.copy(alpha=0.54f), fontSize = 10.sp))
             Box(modifier = Modifier.size(8.dp).background(if (value) Color.Black else Color.White.copy(alpha=0.54f)))
         }
+    }
+}
+
+@Composable
+fun AppIcon(pkg: String, modifier: Modifier = Modifier) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var bitmap by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    
+    LaunchedEffect(pkg) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val pm = context.packageManager
+                val icon = pm.getApplicationIcon(pkg)
+                val bmp = if (icon is android.graphics.drawable.BitmapDrawable) {
+                    icon.bitmap
+                } else {
+                    val fallbackBmp = android.graphics.Bitmap.createBitmap(
+                        icon.intrinsicWidth.takeIf { it > 0 } ?: 96,
+                        icon.intrinsicHeight.takeIf { it > 0 } ?: 96,
+                        android.graphics.Bitmap.Config.ARGB_8888
+                    )
+                    val canvas = android.graphics.Canvas(fallbackBmp)
+                    icon.setBounds(0, 0, canvas.width, canvas.height)
+                    icon.draw(canvas)
+                    fallbackBmp
+                }
+                bitmap = bmp.asImageBitmap()
+            } catch (e: Exception) {}
+        }
+    }
+    
+    if (bitmap != null) {
+        androidx.compose.foundation.Image(bitmap = bitmap!!, contentDescription = null, modifier = modifier)
+    } else {
+        Icon(Icons.Default.Android, contentDescription = null, modifier = modifier, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
