@@ -282,7 +282,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                     items(controlParams) { p ->
                         val isCurr = currentMode == p.modeName
                         val isExec = executingMode == p.modeId
-                        ControlRow(p.title, stringResource(p.descRes), p.icon, if (isCurr) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant, isExec, isCurr, hasRoot) {
+                        ControlRow(p.title, stringResource(p.descRes), p.icon, if (isCurr) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, isExec, isCurr, hasRoot) {
                             executeScript(p.modeId, p.modeName)
                         }
                     }
@@ -298,7 +298,6 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                     item {
 
                     }
-
                     item { Spacer(modifier = Modifier.height(24.dp)) }
                 }
         }
@@ -319,16 +318,16 @@ fun ControlRow(title: String, desc: String, icon: ImageVector, bgColor: Color, i
         modifier = Modifier.fillMaxWidth().clickable(enabled = enabled && !isExecuting) { onClick() }
     ) {
         Row(modifier = Modifier.padding(16.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = if (isCurrent) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary)
+            Icon(icon, contentDescription = null, tint = if (isCurrent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal, color = if (isCurrent) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface)
-                Text(desc, style = MaterialTheme.typography.bodySmall, color = if (isCurrent) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(title, fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal, color = if (isCurrent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface)
+                Text(desc, style = MaterialTheme.typography.bodySmall, color = if (isCurrent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (isExecuting) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = if (isCurrent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary)
             } else if (isCurrent) {
-                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
             } else {
                 Icon(Icons.Default.ChevronRight, contentDescription = null)
             }
