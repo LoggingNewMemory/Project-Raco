@@ -103,7 +103,7 @@ fun SettingsScreen(
                     android.widget.Toast.makeText(context, context.getString(R.string.custom_background_set), android.widget.Toast.LENGTH_SHORT).show()
                 } catch (e: Exception) { 
                     e.printStackTrace()
-                    android.widget.Toast.makeText(context, "Failed to save: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                    android.widget.Toast.makeText(context, context.getString(R.string.file_save_failed) + ": ${e.message}", android.widget.Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -252,7 +252,7 @@ fun SettingsScreen(
             .displayCutoutPadding()
     ) {
         if (isLoading) {
-            Text("Loading...", color = Color.White, modifier = Modifier.align(Alignment.Center))
+            Text(stringResource(R.string.loading), color = Color.White, modifier = Modifier.align(Alignment.Center))
         } else {
             Column(modifier = Modifier.fillMaxSize()) {
                 // Header
@@ -269,8 +269,7 @@ fun SettingsScreen(
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
-                        Text(
-                            "SETTINGS",
+                        Text(stringResource(R.string.settings),
                             color = accentColor,
                             fontFamily = gilmerBold,
                             fontSize = 24.sp,

@@ -45,11 +45,11 @@ fun UtilitiesScreen(onBack: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
 
     val categories = listOf(
-        UtilityItem(stringResource(R.string.core_tweaks_title), "CPU mitigations, governors, lite modes", Icons.Default.Tune, UtilityRoute.CoreTweaks, "device mitigation lite mode life mode better powersave carlotta cpu legacy notif governor"),
-        UtilityItem(stringResource(R.string.automation_title), "Gaming mode, DND, app lists", Icons.Default.SmartToy, UtilityRoute.Automation, "automation gaming mode dnd do not disturb app list game txt interval"),
-        UtilityItem(stringResource(R.string.system_title), "Thermal, FSTRIM, resolution", Icons.Default.Settings, UtilityRoute.System, "anya thermal sandevistan fstrim clear cache graphics driver resolution downscale"),
-        UtilityItem(stringResource(R.string.appearance_title), "Background image, screen color modifiers", Icons.Default.ColorLens, UtilityRoute.Appearance, "background image wallpaper banner opacity blur screen color rgb saturation"),
-        UtilityItem(stringResource(R.string.extra_settings_title), "Anya, Kobo, Zetamin, Sandevistan installers", Icons.Default.BuildCircle, UtilityRoute.ExtraSettings, "anya kobo zetamin sandevistan installer config include")
+        UtilityItem(stringResource(R.string.core_tweaks_title), stringResource(R.string.util_desc_core_tweaks), Icons.Default.Tune, UtilityRoute.CoreTweaks, stringResource(R.string.util_kw_core_tweaks)),
+        UtilityItem(stringResource(R.string.automation_title), stringResource(R.string.util_desc_automation), Icons.Default.SmartToy, UtilityRoute.Automation, stringResource(R.string.util_kw_automation)),
+        UtilityItem(stringResource(R.string.system_title), stringResource(R.string.util_desc_system), Icons.Default.Settings, UtilityRoute.System, stringResource(R.string.util_kw_system)),
+        UtilityItem(stringResource(R.string.appearance_title), stringResource(R.string.util_desc_appearance), Icons.Default.ColorLens, UtilityRoute.Appearance, stringResource(R.string.util_kw_appearance)),
+        UtilityItem(stringResource(R.string.extra_settings_title), stringResource(R.string.util_desc_extra_settings), Icons.Default.BuildCircle, UtilityRoute.ExtraSettings, stringResource(R.string.util_kw_extra_settings))
     )
 
     LaunchedEffect(Unit) {
@@ -135,7 +135,7 @@ fun UtilitiesScreen(onBack: () -> Unit) {
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("Search utilities...") },
+                placeholder = { Text(stringResource(R.string.search_utilities_1)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 modifier = Modifier
                     .fillMaxWidth()

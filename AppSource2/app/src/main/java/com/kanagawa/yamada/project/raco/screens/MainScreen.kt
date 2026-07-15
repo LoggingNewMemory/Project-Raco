@@ -91,13 +91,13 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
 
     // Tips rotation
     val tips = listOf(
-        "Ensure Project Raco module is flashed correctly.",
-        "Performance mode drains battery faster.",
-        "Power Save limits background processes.",
-        "Use Cooldown if the device is overheating.",
-        "Slingshot speeds up app launching.",
-        "Endfield Collab enables industrial UI.",
-        "Join Telegram for official support."
+        stringResource(R.string.main_tip_1),
+        stringResource(R.string.main_tip_2),
+        stringResource(R.string.main_tip_3),
+        stringResource(R.string.main_tip_4),
+        stringResource(R.string.main_tip_5),
+        stringResource(R.string.main_tip_6),
+        stringResource(R.string.main_tip_7)
     )
     var currentTipIndex by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
@@ -209,15 +209,13 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text(
-                                text = "PROJECT RACO",
+                            Text(text = stringResource(R.string.app_title),
                                 style = MaterialTheme.typography.headlineSmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.clickable { onNavigate(Screen.About) }
                             )
-                            Text(
-                                text = "By Kanagawa Yamada",
+                            Text(text = stringResource(R.string.by_kanagawa_yamada),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -273,8 +271,8 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                                     modifier = Modifier.fillMaxSize()
                                 )
                                 val bannerText = if (hasRoot) {
-                                    if (moduleInstalled) "Project Raco " + moduleVersion else "Project Raco Not Installed"
-                                } else "Root Access Required"
+                                    if (moduleInstalled) stringResource(R.string.project_raco_version, moduleVersion) else stringResource(R.string.project_raco_not_installed)
+                                } else stringResource(R.string.root_access_required)
                                 Box(
                                     modifier = Modifier
                                         .align(Alignment.BottomStart)
@@ -343,12 +341,12 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                     data class ControlMode(val title: String, val descRes: Int, val modeId: String, val modeName: String, val icon: ImageVector)
 
                     val controlParams = listOf(
-                        ControlMode(psTitle, R.string.battery_optimization, "3", "POWER_SAVE", Icons.Default.BatterySaver),
-                        ControlMode(balTitle, R.string.everyday_usage, "2", "BALANCED", Icons.Default.Tune),
-                        ControlMode(perfTitle, R.string.maximized_output, "1", "PERFORMANCE", Icons.Default.FlashOn),
-                        ControlMode(gpTitle, R.string.maximum_performance, "4", "GAMING_PRO", Icons.Default.RocketLaunch),
-                        ControlMode(cdTitle, R.string.thermal_throttle, "5", "COOLDOWN", Icons.Default.AcUnit),
-                        ControlMode(clrTitle, R.string.reset_state, "6", "CLEAR", Icons.Default.Refresh)
+                        ControlMode(psTitle, R.string.power_save_desc, "3", "POWER_SAVE", Icons.Default.BatterySaver),
+                        ControlMode(balTitle, R.string.balanced_desc, "2", "BALANCED", Icons.Default.Tune),
+                        ControlMode(perfTitle, R.string.performance_desc, "1", "PERFORMANCE", Icons.Default.FlashOn),
+                        ControlMode(gpTitle, R.string.gaming_desc, "4", "GAMING_PRO", Icons.Default.RocketLaunch),
+                        ControlMode(cdTitle, R.string.cooldown_desc, "5", "COOLDOWN", Icons.Default.AcUnit),
+                        ControlMode(clrTitle, R.string.clear_desc, "6", "CLEAR", Icons.Default.Refresh)
                     )
 
                     items(controlParams) { p ->
@@ -362,7 +360,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                     item { Spacer(modifier = Modifier.height(16.dp)) }
 
                     item {
-                        FeatureCard("Slingshot", Icons.Default.RocketLaunch) { onNavigate(Screen.Slingshot) }
+                        FeatureCard(stringResource(R.string.slingshot_title), Icons.Default.RocketLaunch) { onNavigate(Screen.Slingshot) }
                     }
                     item {
                         FeatureCard(stringResource(R.string.utilities_title), Icons.Default.Build) { onNavigate(Screen.Utilities) }

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">Project Raco</string>
     <string name="app_title">Project Raco</string>
@@ -293,7 +293,7 @@
     <string name="preset">PRESET</string>
     <string name="width">WIDTH</string>
     <string name="height">HEIGHT</string>
-    <string name="empty_string"></string>
+    <string name="empty_string" />
     <string name="anya_thermal">Anya Thermal</string>
     <string name="enable_anya_thermal_flowstate">Enable Anya Thermal Flowstate</string>
     <string name="kobo_fast_charge">Kobo Fast Charge</string>
@@ -334,7 +334,6 @@
     <string name="resolution_downscale">Resolution Downscale</string>
     <string name="root_access_denied_project_raco_requires_root">Root Access Denied. Project Raco requires Root.</string>
     <string name="tap_for_menu">Tap for menu</string>
-
     <string name="battery_optimization">Battery optimization</string>
     <string name="everyday_usage">Everyday usage</string>
     <string name="maximized_output">Maximized output</string>
@@ -352,4 +351,59 @@
     <string name="alter_cpu_method_desc">Use this if Scaling Frequency is Wrong for your device</string>
     <string name="silent_notif_mode">Silent Notif Mode</string>
     <string name="silent_notif_mode_desc">Suppress notification sounds during performance mode</string>
-</resources>
+    <string name="loading">Loading...</string>
+    <string name="settings">SETTINGS</string>
+    <string name="credit">• $credit</string>
+    <string name="str_empty">\</string>
+    <string name="set_a_custom_background_banner_image_for_the_app_supported_format_png">Set a custom background banner image for the app. Supported format: PNG.</string>
+    <string name="controls_how_the_banner_image_appears_lower_opacity_more_transparent_higher_blur_softer">Controls how the banner image appears. Lower opacity = more transparent. Higher blur = softer.</string>
+    <string name="opacity_bgopacity_100_toint">Opacity: ${(bgOpacity * 100).toInt()}%</string>
+    <string name="blur_bgblur_toint_px">Blur: ${bgBlur.toInt()}px</string>
+    <string name="adjust_the_rgb_color_multipliers_applied_globally_1_0_no_change">Adjust the RGB color multipliers applied globally. 1.0 = no change.</string>
+    <string name="override_screen_brightness_0_255_set_to_1_for_automatic">Override screen brightness (0-255). Set to -1 for automatic.</string>
+    <string name="str_empty_1">日本語</string>
+    <string name="str_empty_2">Русский</string>
+    <string name="str_empty_3">[ゼファニャ・ラチョ]</string>
+    <string name="available_targets_filteredapps_size">AVAILABLE TARGETS: ${filteredApps.size}</string>
+    <string name="current_when_graphicsdriver_1_stringresource_r_string_graphics_driver_game_2_stringresource_r_string_graphics_driver_developer_else_stringresource_r_string_graphics_driver_default">Current: ${when(graphicsDriver) { 1 -&gt; stringResource(R.string.graphics_driver_game); 2 -&gt; stringResource(R.string.graphics_driver_developer); else -&gt; stringResource(R.string.graphics_driver_default) }}</string>
+    <string name="physical_originalresolution_current_currentresolution">Physical: $originalResolution | Current: $currentResolution</string>
+    <string name="search_utilities_1">Search utilities...</string>
+    <string name="by_kanagawa_yamada">By Kanagawa Yamada</string>
+    <string name="main_tip_1">Ensure Project Raco module is flashed correctly.</string>
+    <string name="main_tip_2">Performance mode drains battery faster.</string>
+    <string name="main_tip_3">Power Save limits background processes.</string>
+    <string name="main_tip_4">Use Cooldown if the device is overheating.</string>
+    <string name="main_tip_5">Slingshot speeds up app launching.</string>
+    <string name="main_tip_6">Endfield Collab enables industrial UI.</string>
+    <string name="main_tip_7">Join Telegram for official support.</string>
+    
+    <string name="project_raco_not_installed">Project Raco Not Installed</string>
+    <string name="root_access_required">Root Access Required</string>
+    <string name="project_raco_version">Project Raco %1$s</string>
+    
+    <string name="util_desc_core_tweaks">CPU mitigations, governors, lite modes</string>
+    <string name="util_desc_automation">Gaming mode, DND, app lists</string>
+    <string name="util_desc_system">Thermal, FSTRIM, resolution</string>
+    <string name="util_desc_appearance">Background image, screen color modifiers</string>
+    <string name="util_desc_extra_settings">Anya, Kobo, Zetamin, Sandevistan installers</string>
+    
+    <string name="util_kw_core_tweaks">device mitigation lite mode life mode better powersave carlotta cpu legacy notif governor</string>
+    <string name="util_kw_automation">automation gaming mode dnd do not disturb app list game txt interval</string>
+    <string name="util_kw_system">anya thermal sandevistan fstrim clear cache graphics driver resolution downscale</string>
+    <string name="util_kw_appearance">background image wallpaper banner opacity blur screen color rgb saturation</string>
+    <string name="util_kw_extra_settings">anya kobo zetamin sandevistan installer config include</string>
+    <string name="banner_installed_successfully">Banner installed successfully!</string>
+    <string name="failed_to_install_banner">Failed to install banner.</string>
+    <string name="banner_removed">Banner removed.</string>
+    <string name="colors_reset">Colors reset to default.</string>
+    <string name="failed_to_update_key">Failed to update %1$s</string>
+    <string name="no_target_package">NO TARGET PACKAGE SELECTED</string>
+    <string name="payload_deployed_to">PAYLOAD DEPLOYED TO %1$s</string>
+    <string name="saved">Saved!</string>
+    <string name="resolution_reset">Resolution reset to default</string>
+    <string name="fstrim_completed">FSTRIM completed!</string>
+    <string name="cache_cleared">Cache cleared!</string>
+    <string name="screen_brightness_title">Screen Brightness</string>
+    <string name="banner_installed">Banner installed</string>
+    <string name="no_banner_set">No banner set</string>
+<string name="custom_cpu_governor_desc">Select the CPU scaling governor (takes effect after applying a profile)</string></resources>

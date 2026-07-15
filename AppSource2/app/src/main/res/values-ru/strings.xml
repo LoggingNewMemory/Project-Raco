@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_title">Project Raco</string>
     <string name="by">Автор: Kanagawa Yamada</string>
@@ -233,4 +233,4 @@
     <string name="endfield_search_target">ПОИСК_ЦЕЛЕВОГО_ПАКЕТА...</string>
     <string name="endfield_available_targets">ДОСТУПНЫЕ ЦЕЛИ: {count}</string>
     <string name="endfield_locked">ЗАБЛОКИРОВАНО</string>
-</resources>
+<string name="util_desc_core_tweaks">Смягчение CPU, говерноры, лайт режимы</string><string name="util_desc_automation">Игровой режим, DND, списки приложений</string><string name="util_desc_system">Термал, FSTRIM, разрешение</string><string name="util_desc_appearance">Фоновое изображение, модификаторы цвета экрана</string><string name="util_desc_extra_settings">Установщики Anya, Kobo, Zetamin, Sandevistan</string><string name="lite_powersave">Лайт Энергосбережение</string><string name="ultra_powersave">Ультра Энергосбережение</string><string name="lite_performance">Лайт Производительность</string><string name="lite_powersave_desc">Использовать половину ядер CPU для экономии батареи</string><string name="ultra_powersave_desc">Использовать минимум ядер CPU для максимальной жизни батареи</string><string name="lite_performance_desc">Использовать все ядра CPU, но ограничить частоту</string><string name="alter_cpu_method">Альтернативный метод CPU</string><string name="alter_cpu_method_desc">Установить только говернор, не трогать cpufreq. Включите, если ваш CPU не может правильно установить частоту.</string><string name="custom_cpu_governor">Пользовательский говернор CPU</string><string name="custom_cpu_governor_desc">Выберите говернор масштабирования CPU (вступает в силу после применения профиля)</string><string name="fix_tweaks">Исправления и настройки</string></resources>

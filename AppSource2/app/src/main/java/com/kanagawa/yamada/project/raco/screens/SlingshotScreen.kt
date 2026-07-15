@@ -90,7 +90,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
 
     fun executeSlingshot() {
         if (selectedApp == null) {
-            coroutineScope.launch { snackbarHostState.showSnackbar("NO TARGET PACKAGE SELECTED") }
+            coroutineScope.launch { snackbarHostState.showSnackbar(context.getString(R.string.no_target_package)) }
             return
         }
         isExecuting = true
@@ -112,7 +112,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                         Runtime.getRuntime().exec(arrayOf("su", "-c", script)).waitFor()
                     }
                 }
-                snackbarHostState.showSnackbar("PAYLOAD DEPLOYED TO $selectedApp")
+                snackbarHostState.showSnackbar(context.getString(R.string.payload_deployed_to, selectedApp))
             } catch (e: Exception) {
             } finally {
                 isExecuting = false
@@ -234,7 +234,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
 
                     item {
                         Box(modifier = Modifier.fillMaxWidth().background(Color.Black.copy(alpha=0.5f)).padding(horizontal = 16.dp, vertical = 4.dp)) {
-                            Text("AVAILABLE TARGETS: ${filteredApps.size}", style = monoStyle.copy(color = Color.White.copy(alpha=0.54f), fontSize = 10.sp))
+                            Text(stringResource(R.string.available_targets_filteredapps_size), style = monoStyle.copy(color = Color.White.copy(alpha=0.54f), fontSize = 10.sp))
                         }
                     }
 

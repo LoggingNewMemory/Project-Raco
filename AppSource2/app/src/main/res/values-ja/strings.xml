@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_title">Project Raco</string>
     <string name="by">作成者: 神奈川山田</string>
@@ -233,4 +233,4 @@
     <string name="endfield_search_target">ターゲットパッケージ検索...</string>
     <string name="endfield_available_targets">利用可能なターゲット: {count}</string>
     <string name="endfield_locked">ロック中</string>
-</resources>
+<string name="util_desc_core_tweaks">CPU緩和、ガバナー、ライトモード</string><string name="util_desc_automation">ゲームモード、DND、アプリリスト</string><string name="util_desc_system">サーマル、FSTRIM、解像度</string><string name="util_desc_appearance">背景画像、画面カラーモディファイア</string><string name="util_desc_extra_settings">アーニャ、こぼ、ゼタミン、サンデヴィスタン インストーラー</string><string name="lite_powersave">ライト パワーセーブ</string><string name="ultra_powersave">ウルトラ パワーセーブ</string><string name="lite_performance">ライト パフォーマンス</string><string name="lite_powersave_desc">バッテリーを節約するために半分のCPUコアを使用します</string><string name="ultra_powersave_desc">バッテリー寿命を最大化するために最小限のCPUコアを使用します</string><string name="lite_performance_desc">すべてのCPUコアを使用しますが、周波数を制限します</string><string name="alter_cpu_method">代替CPUメソッド</string><string name="alter_cpu_method_desc">ガバナーのみを設定し、cpufreqは変更しません。CPUが周波数を正しく設定できない場合は有効にしてください。</string><string name="custom_cpu_governor">カスタムCPUガバナー</string><string name="custom_cpu_governor_desc">CPUスケーリングガバナーを選択します（プロファイル適用後に有効になります）</string><string name="fix_tweaks">修正と調整</string></resources>

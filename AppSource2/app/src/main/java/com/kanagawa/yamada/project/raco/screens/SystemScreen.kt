@@ -42,6 +42,7 @@ private suspend fun sysWriteKey(key: String, value: String) {
 @Composable
 fun SystemScreen(onBack: () -> Unit) {
     var isLoading by remember { mutableStateOf(true) }
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     // State
     var dndEnabled by remember { mutableStateOf(false) }
@@ -165,7 +166,7 @@ fun SystemScreen(onBack: () -> Unit) {
                                         scope.launch {
                                             sysRunRoot("grep -q '^SANDEV_DUR=' $SYS_CONFIG && sed -i 's|^SANDEV_DUR=.*|SANDEV_DUR=$newDur|' $SYS_CONFIG || echo 'SANDEV_DUR=$newDur' >> $SYS_CONFIG")
                                             isBusySandev = false
-                                            snackbarHostState.showSnackbar("Saved!")
+                                            snackbarHostState.showSnackbar(context.getString(R.string.saved))
                                         }
                                     }
                                 }
@@ -196,7 +197,7 @@ fun SystemScreen(onBack: () -> Unit) {
                 SystemCard(stringResource(R.string.graphics_driver)) {
                     Text(stringResource(R.string.set_the_angle_vulkan_graphics_driver_mode), style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))
-                    Text("Current: ${when(graphicsDriver) { 1 -> stringResource(R.string.graphics_driver_game); 2 -> stringResource(R.string.graphics_driver_developer); else -> stringResource(R.string.graphics_driver_default) }}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.current_when_graphicsdriver_1_stringresource_r_string_graphics_driver_game_2_stringresource_r_string_graphics_driver_developer_else_stringresource_r_string_graphics_driver_default), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(16.dp))
                     listOf(stringResource(R.string.graphics_driver_default) to 0, stringResource(R.string.graphics_driver_game) to 1, stringResource(R.string.graphics_driver_developer) to 2).forEach { (label, value) ->
                         OutlinedButton(
@@ -222,7 +223,7 @@ fun SystemScreen(onBack: () -> Unit) {
                     SystemCard(stringResource(R.string.resolution_downscale)) {
                         Text(stringResource(R.string.override_display_resolution_and_density_use_reset_to_restore_defaults), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
-                        Text("Physical: $originalResolution | Current: $currentResolution", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.physical_originalresolution_current_currentresolution), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(12.dp))
                         val resolutionOptions = remember(originalResolution) {
                             try {
@@ -256,7 +257,7 @@ fun SystemScreen(onBack: () -> Unit) {
                                     sysRunRoot("wm size reset")
                                     sysRunRoot("wm density reset")
                                     currentResolution = originalResolution
-                                    snackbarHostState.showSnackbar("Resolution reset to default")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.resolution_reset))
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -281,7 +282,7 @@ fun SystemScreen(onBack: () -> Unit) {
                                 scope.launch {
                                     fstrimResult = sysRunRoot("fstrim -v /data /cache /system")
                                     isBusyFstrim = false
-                                    snackbarHostState.showSnackbar("FSTRIM completed!")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.fstrim_completed))
                                 }
                             },
                             enabled = !isBusyFstrim
@@ -303,7 +304,7 @@ fun SystemScreen(onBack: () -> Unit) {
                                 scope.launch {
                                     sysRunRoot("rm -rf /cache/*")
                                     isBusyClearCache = false
-                                    snackbarHostState.showSnackbar("Cache cleared!")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.cache_cleared))
                                 }
                             },
                             enabled = !isBusyClearCache,

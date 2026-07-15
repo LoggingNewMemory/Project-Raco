@@ -132,11 +132,11 @@ fun AboutScreen(onBack: () -> Unit) {
                     .verticalScroll(rememberScrollState())
             ) {
                 Column(horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxWidth()) {
-                    DeviceInfoRow(deviceModel, "Device Name")
+                    DeviceInfoRow(deviceModel, stringResource(R.string.device_name))
                     DeviceInfoRow(cpuInfo, stringResource(R.string.processor))
                     DeviceInfoRow(ramInfo, stringResource(R.string.ram))
-                    DeviceInfoRow(storageInfo, "Storage")
-                    DeviceInfoRow(batteryInfo, "Battery")
+                    DeviceInfoRow(storageInfo, stringResource(R.string.phone_storage))
+                    DeviceInfoRow(batteryInfo, stringResource(R.string.battery_capacity))
                 }
 
                 Spacer(modifier = Modifier.height(40.dp))
@@ -159,8 +159,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 )
                 
                 Spacer(modifier = Modifier.height(20.dp))
-                Text(
-                    "\"Great Collaboration Lead to Great Innovation\"\n~ Kanagawa Yamada (Main Dev)",
+                Text(stringResource(R.string.about_quote),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,

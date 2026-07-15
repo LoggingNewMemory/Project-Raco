@@ -124,9 +124,9 @@ fun AppearanceScreen(onBack: () -> Unit) {
                     context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
                         .edit().putString("banner_image_path", destFile.absolutePath).apply()
                     bannerExists = true
-                    snackbarHostState.showSnackbar("Banner installed successfully!")
+                    snackbarHostState.showSnackbar(context.getString(R.string.banner_installed_successfully))
                 } catch (e: Exception) {
-                    snackbarHostState.showSnackbar("Failed to install banner.")
+                    snackbarHostState.showSnackbar(context.getString(R.string.failed_to_install_banner))
                 }
                 isInstallingBanner = false
             }
@@ -182,9 +182,8 @@ fun AppearanceScreen(onBack: () -> Unit) {
 
             // Banner Image Card
             item {
-                AppearanceCard("Background Banner") {
-                    Text(
-                        "Set a custom background banner image for the app. Supported format: PNG.",
+                AppearanceCard(stringResource(R.string.banner_settings_title)) {
+                    Text(stringResource(R.string.set_a_custom_background_banner_image_for_the_app_supported_format_png),
                         style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(Modifier.height(12.dp))
@@ -200,7 +199,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = if (bannerExists) "Banner installed" else "No banner set",
+                            text = if (bannerExists) stringResource(R.string.banner_installed) else stringResource(R.string.no_banner_set),
                             modifier = Modifier.weight(1f),
                             color = if (bannerExists) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = if (bannerExists) FontWeight.Bold else FontWeight.Normal
@@ -231,7 +230,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                                         val path = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE).getString("banner_image_path", "")
                                         if (!path.isNullOrEmpty()) { File(path).delete() }
                                         context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE).edit().remove("banner_image_path").apply()
-                                        bannerExists = false; snackbarHostState.showSnackbar("Banner removed.")
+                                        bannerExists = false; snackbarHostState.showSnackbar(context.getString(R.string.banner_removed))
                                     }
                                 },
                                 modifier = Modifier.weight(1f),
@@ -248,9 +247,8 @@ fun AppearanceScreen(onBack: () -> Unit) {
 
             // Background Opacity Card
             item {
-                AppearanceCard("Background Opacity & Blur") {
-                    Text(
-                        "Controls how the banner image appears. Lower opacity = more transparent. Higher blur = softer.",
+                AppearanceCard(stringResource(R.string.background_settings_title)) {
+                    Text(stringResource(R.string.controls_how_the_banner_image_appears_lower_opacity_more_transparent_higher_blur_softer),
                         style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(Modifier.height(16.dp))
@@ -258,7 +256,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Opacity, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Opacity: ${(bgOpacity * 100).toInt()}%", modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.opacity_bgopacity_100_toint), modifier = Modifier.weight(1f))
                         if (isBusy) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                     }
                     Slider(
@@ -278,7 +276,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.BlurOn, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Blur: ${bgBlur.toInt()}px", modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.blur_bgblur_toint_px), modifier = Modifier.weight(1f))
                     }
                     Slider(
                         value = bgBlur,
@@ -296,9 +294,8 @@ fun AppearanceScreen(onBack: () -> Unit) {
 
             // Screen Color Modifiers Card
             item {
-                AppearanceCard("Screen Color Modifiers") {
-                    Text(
-                        "Adjust the RGB color multipliers applied globally. 1.0 = no change.",
+                AppearanceCard(stringResource(R.string.screen_modifier_title)) {
+                    Text(stringResource(R.string.adjust_the_rgb_color_multipliers_applied_globally_1_0_no_change),
                         style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(Modifier.height(12.dp))
@@ -353,7 +350,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                                 writeAppearanceKey("RGB_R", "1.0")
                                 writeAppearanceKey("RGB_G", "1.0")
                                 writeAppearanceKey("RGB_B", "1.0")
-                                snackbarHostState.showSnackbar("Colors reset to default.")
+                                snackbarHostState.showSnackbar(context.getString(R.string.colors_reset))
                             }
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -367,9 +364,8 @@ fun AppearanceScreen(onBack: () -> Unit) {
 
             // Screen Brightness Card
             item {
-                AppearanceCard("Screen Brightness") {
-                    Text(
-                        "Override screen brightness (0-255). Set to -1 for automatic.",
+                AppearanceCard(stringResource(R.string.screen_brightness_title)) {
+                    Text(stringResource(R.string.override_screen_brightness_0_255_set_to_1_for_automatic),
                         style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(Modifier.height(16.dp))

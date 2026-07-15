@@ -66,6 +66,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
+    val context = androidx.compose.ui.platform.LocalContext.current
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             val content = readConfig()
@@ -95,7 +96,8 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
         setter(newValue)
         coroutineScope.launch {
             val success = writeFlag(key, newValue, inverted)
-            if (!success) { setter(current); snackbarHostState.showSnackbar("Failed to update $key") }
+            val failMsg = context.getString(R.string.failed_to_update_key, key)
+            if (!success) { setter(current); snackbarHostState.showSnackbar(failMsg) }
         }
     }
 

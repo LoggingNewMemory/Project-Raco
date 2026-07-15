@@ -65,6 +65,7 @@ fun ExtraSettingsScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     val toggleStates = remember { mutableStateMapOf<String, Boolean>() }
     var isLoading by remember { mutableStateOf(true) }
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -122,7 +123,7 @@ fun ExtraSettingsScreen(onBack: () -> Unit) {
                                     toggleStates[item.key] = newValue
                                     scope.launch {
                                         withContext(Dispatchers.IO) { writeExtraFlag(item.key, newValue) }
-                                        snackbarHostState.showSnackbar("Reboot to take effect", duration = SnackbarDuration.Short)
+                                        snackbarHostState.showSnackbar(context.getString(R.string.reboot_to_take_effect), duration = SnackbarDuration.Short)
                                     }
                                 }
                             )

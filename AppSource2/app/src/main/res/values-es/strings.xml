@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_title">Project Raco</string>
     <string name="by">Por: Kanagawa Yamada</string>
@@ -233,4 +233,4 @@
     <string name="endfield_search_target">BUSCAR_PAQUETE_OBJETIVO...</string>
     <string name="endfield_available_targets">OBJETIVOS DISPONIBLES: {count}</string>
     <string name="endfield_locked">BLOQUEADO</string>
-</resources>
+<string name="util_desc_core_tweaks">Mitigaciones de CPU, gobernadores, modos lite</string><string name="util_desc_automation">Modo juego, DND, listas de aplicaciones</string><string name="util_desc_system">Termal, FSTRIM, resolución</string><string name="util_desc_appearance">Imagen de fondo, modificadores de color de pantalla</string><string name="util_desc_extra_settings">Instaladores de Anya, Kobo, Zetamin, Sandevistan</string><string name="lite_powersave">Ahorro de energía Lite</string><string name="ultra_powersave">Ahorro de energía Ultra</string><string name="lite_performance">Rendimiento Lite</string><string name="lite_powersave_desc">Usar la mitad de los núcleos de la CPU para ahorrar batería</string><string name="ultra_powersave_desc">Usar los núcleos mínimos de la CPU para maximizar la vida de la batería</string><string name="lite_performance_desc">Usar todos los núcleos de la CPU pero limitar la frecuencia</string><string name="alter_cpu_method">Método de CPU alternativo</string><string name="alter_cpu_method_desc">Establecer solo el gobernador, dejar cpufreq intacto. Habilite esto si su CPU no puede establecer la frecuencia correctamente.</string><string name="custom_cpu_governor">Gobernador de CPU personalizado</string><string name="custom_cpu_governor_desc">Seleccione el gobernador de escala de la CPU (surte efecto después de aplicar un perfil)</string><string name="fix_tweaks">Correcciones y ajustes</string></resources>

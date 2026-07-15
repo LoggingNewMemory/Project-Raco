@@ -205,11 +205,11 @@ private fun AppListPage(onBack: () -> Unit) {
         scope.launch {
             if (isEnable) {
                 runRoot("echo '$pkg' >> $GAME_TXT_PATH")
-                snackbarHostState.showSnackbar("Added $pkg", duration = SnackbarDuration.Short)
+                snackbarHostState.showSnackbar(context.getString(R.string.added_to_gamelist).replace("{package}", pkg), duration = SnackbarDuration.Short)
             } else {
                 val escaped = pkg.replace(".", "\\.")
                 runRoot("sed -i '/^$escaped\$/d' $GAME_TXT_PATH")
-                snackbarHostState.showSnackbar("Removed $pkg", duration = SnackbarDuration.Short)
+                snackbarHostState.showSnackbar(context.getString(R.string.removed_from_gamelist).replace("{package}", pkg), duration = SnackbarDuration.Short)
             }
         }
     }

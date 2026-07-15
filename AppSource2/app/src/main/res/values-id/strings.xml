@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_title">Project Raco</string>
     <string name="by">Oleh: Kanagawa Yamada</string>
@@ -233,4 +233,4 @@
     <string name="endfield_search_target">CARI_TARGET_PAKET...</string>
     <string name="endfield_available_targets">TARGET TERSEDIA: {count}</string>
     <string name="endfield_locked">TERKUNCI</string>
-</resources>
+<string name="util_desc_core_tweaks">Mitigasi CPU, governor, mode lite</string><string name="util_desc_automation">Mode gaming, DND, daftar aplikasi</string><string name="util_desc_system">Termal, FSTRIM, resolusi</string><string name="util_desc_appearance">Gambar latar, pengubah warna layar</string><string name="util_desc_extra_settings">Penginstal Anya, Kobo, Zetamin, Sandevistan</string><string name="lite_powersave">Hemat Daya Lite</string><string name="ultra_powersave">Hemat Daya Ultra</string><string name="lite_performance">Performa Lite</string><string name="lite_powersave_desc">Gunakan setengah core CPU untuk menghemat baterai</string><string name="ultra_powersave_desc">Gunakan core CPU minimum untuk memaksimalkan masa pakai baterai</string><string name="lite_performance_desc">Gunakan semua core CPU tetapi batasi frekuensinya</string><string name="alter_cpu_method">Metode CPU Alternatif</string><string name="alter_cpu_method_desc">Setel governor saja, biarkan cpufreq tidak tersentuh. Aktifkan ini jika CPU Anda tidak dapat menyetel frekuensi dengan benar.</string><string name="custom_cpu_governor">Governor CPU Kustom</string><string name="custom_cpu_governor_desc">Pilih governor penskalaan CPU (berlaku setelah menerapkan profil)</string><string name="fix_tweaks">Perbaikan dan Penyesuaian</string></resources>
