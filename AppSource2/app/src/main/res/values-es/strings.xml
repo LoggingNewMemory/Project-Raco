@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Project Raco</string>
     <string name="app_title">Project Raco</string>
     <string name="by">Por: Kanagawa Yamada</string>
     <string name="root_access">Acceso Root:</string>
