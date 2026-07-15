@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco.UtilitiesPages
 
+import androidx.compose.ui.draw.alpha
+
 import com.kanagawa.yamada.project.raco.R
 import androidx.compose.ui.res.stringResource
 
@@ -87,13 +89,12 @@ fun ExtraSettingsScreen(onBack: () -> Unit) {
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth(0.6f))
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 8.dp, vertical = 8.dp),
+        val alpha by androidx.compose.animation.core.animateFloatAsState(
+            targetValue = if (isLoading) 0f else 1f,
+            animationSpec = androidx.compose.animation.core.tween(500), label = ""
+        )
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 8.dp, vertical = 8.dp).alpha(alpha),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
@@ -132,5 +133,4 @@ fun ExtraSettingsScreen(onBack: () -> Unit) {
                 }
             }
         }
-    }
 }

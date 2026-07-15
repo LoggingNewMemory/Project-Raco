@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco.UtilitiesPages
 
+import androidx.compose.ui.draw.alpha
+
 import com.kanagawa.yamada.project.raco.R
 import androidx.compose.ui.res.stringResource
 
@@ -112,9 +114,11 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        if (isLoading) { Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) { CircularProgressIndicator() }; return@Scaffold }
-
-        LazyColumn(modifier = Modifier.padding(padding).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        val alpha by androidx.compose.animation.core.animateFloatAsState(
+            targetValue = if (isLoading) 0f else 1f,
+            animationSpec = androidx.compose.animation.core.tween(500), label = ""
+        )
+        LazyColumn(modifier = Modifier.padding(padding).padding(horizontal = 16.dp).alpha(alpha), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             item {
                 Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                     Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {

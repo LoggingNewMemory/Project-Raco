@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco.UtilitiesPages
 
+import androidx.compose.ui.draw.alpha
+
 import com.kanagawa.yamada.project.raco.R
 import androidx.compose.ui.res.stringResource
 
@@ -81,13 +83,12 @@ fun AutomationScreen(onBack: () -> Unit) {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        if (isLoading) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-            return@Scaffold
-        }
-
+        val alpha by androidx.compose.animation.core.animateFloatAsState(
+            targetValue = if (isLoading) 0f else 1f,
+            animationSpec = androidx.compose.animation.core.tween(500), label = ""
+        )
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp).alpha(alpha),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
         ) {
@@ -243,12 +244,13 @@ private fun AppListPage(onBack: () -> Unit) {
                 singleLine = true
             )
 
-            if (isLoading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 80.dp)
+            val alpha2 by androidx.compose.animation.core.animateFloatAsState(
+                targetValue = if (isLoading) 0f else 1f,
+                animationSpec = androidx.compose.animation.core.tween(500), label = ""
+            )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().alpha(alpha2),
+                contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 80.dp)
                 ) {
                     items(filteredApps) { app ->
                         val isEnabled = enabledPackages.contains(app.packageName)
@@ -300,7 +302,6 @@ private fun AppListPage(onBack: () -> Unit) {
                     }
                 }
             }
-        }
     }
 }
 

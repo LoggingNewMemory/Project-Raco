@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco
 
+import androidx.compose.ui.draw.alpha
+
 import com.kanagawa.yamada.project.raco.R
 import androidx.compose.ui.res.stringResource
 
@@ -119,16 +121,16 @@ fun AboutScreen(onBack: () -> Unit) {
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        if (!isLoaded) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 24.dp)
+        val alpha by androidx.compose.animation.core.animateFloatAsState(
+            targetValue = if (!isLoaded) 0f else 1f,
+            animationSpec = androidx.compose.animation.core.tween(500), label = ""
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 24.dp)
+                .alpha(alpha)
                     .verticalScroll(rememberScrollState())
             ) {
                 Column(horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxWidth()) {
@@ -167,7 +169,6 @@ fun AboutScreen(onBack: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(20.dp))
             }
-        }
     }
 }
 

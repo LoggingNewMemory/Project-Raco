@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco
 
+import androidx.compose.ui.draw.alpha
+
 import com.kanagawa.yamada.project.raco.R
 import androidx.compose.ui.res.stringResource
 
@@ -116,17 +118,16 @@ fun UtilitiesScreen(onBack: () -> Unit) {
         val context = androidx.compose.ui.platform.LocalContext.current
         val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
 
+            val alpha by androidx.compose.animation.core.animateFloatAsState(
+                targetValue = if (!isLoaded) 0f else 1f,
+                animationSpec = androidx.compose.animation.core.tween(500), label = ""
+            )
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
+                    .alpha(alpha)
             ) {
-                if (!isLoaded) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
-                return@Column
-            }
 
             if (!hasRoot) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
