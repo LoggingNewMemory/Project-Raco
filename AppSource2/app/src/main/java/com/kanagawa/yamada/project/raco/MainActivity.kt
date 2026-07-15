@@ -37,7 +37,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 enum class ScreenState {
-    CHECKING_ROOT, NO_ROOT, ENTRANCE_ANIM, HOME_SCREEN
+    CHECKING_ROOT, NO_ROOT, HOME_SCREEN
 }
 
 class MainActivity : ComponentActivity() {
@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(Unit) {
                     val isRooted = checkRootAccess()
                     currentScreen = if (isRooted) {
-                        ScreenState.ENTRANCE_ANIM
+                        ScreenState.HOME_SCREEN
                     } else {
                         ScreenState.NO_ROOT
                     }
@@ -87,13 +87,9 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.align(Alignment.Center)
                             )
                         }
-                        ScreenState.ENTRANCE_ANIM -> {
-                            EntranceAnim(onAnimComplete = {
-                                currentScreen = ScreenState.HOME_SCREEN
-                            })
-                        }
+                        // Removed ENTRANCE_ANIM
                         ScreenState.HOME_SCREEN -> {
-                            HomeScreen()
+                            RacoApp()
                         }
                     }
                 }
