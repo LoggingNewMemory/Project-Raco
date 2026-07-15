@@ -116,7 +116,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
             item {
                 Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                     Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
-                        Text("Fix & Tweaks", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                        Text(stringResource(R.string.fix_tweaks), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
 
                         TweakToggle(stringResource(R.string.device_mitigation_title), "Fix screen freeze and device stability issues", Icons.Default.SecurityUpdate, deviceMitigation) {
                             toggle("DEVICE_MITIGATION", deviceMitigation) { deviceMitigation = it }
@@ -146,19 +146,19 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
             item {
                 Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Custom CPU Governor", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.custom_cpu_governor), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("Select the CPU scaling governor. Takes effect after applying a profile.", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.select_the_cpu_scaling_governor_takes_effect_after_applying_a_profile), style = MaterialTheme.typography.bodySmall)
                         Spacer(modifier = Modifier.height(16.dp))
                         if (availableGovernors.isEmpty()) {
-                            Text("No governors found or root access denied.", color = MaterialTheme.colorScheme.error)
+                            Text(stringResource(R.string.no_governors_found_or_root_access_denied), color = MaterialTheme.colorScheme.error)
                         } else {
                             ExposedDropdownMenuBox(expanded = governorExpanded, onExpandedChange = { governorExpanded = !governorExpanded }) {
                                 OutlinedTextField(
                                     value = selectedGovernor ?: stringResource(R.string.no_governor_selected),
                                     onValueChange = {},
                                     readOnly = true,
-                                    label = { Text("Governor") },
+                                    label = { Text(stringResource(R.string.governor)) },
                                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = governorExpanded) },
                                     modifier = Modifier.fillMaxWidth().menuAnchor()
                                 )

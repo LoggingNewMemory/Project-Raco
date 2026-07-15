@@ -1,4 +1,6 @@
 package com.kanagawa.yamada.project.raco
+import androidx.compose.ui.res.stringResource
+import com.kanagawa.yamada.project.raco.R
 
 import android.content.Context
 import android.content.Intent
@@ -330,23 +332,12 @@ fun SlingshotScreen(
                             // Launch Game
                             val intent = context.packageManager.getLaunchIntentForPackage(game.packageName)
                             if (intent != null) {
-                                GameManager.setGameLastPlayed(context, game.packageName, System.currentTimeMillis())
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 context.startActivity(intent)
 
                                 // Save entrance anim delay for toast
                                 val prefs = context.getSharedPreferences("raco_slingshot_prefs", Context.MODE_PRIVATE)
                                 prefs.edit().putLong("entrance_anim_playing_until", System.currentTimeMillis() + 4500).apply()
-
-                                // Start the overlay service
-                                val serviceIntent = Intent(context, GameOverlayService::class.java)
-                                context.startService(serviceIntent)
-
-                                // Start the persistent in-game menu service
-                                val inGameIntent = Intent(context, InGameMenuService::class.java).apply {
-                                    putExtra("package_name", game.packageName)
-                                }
-                                context.startService(inGameIntent)
                                 
                                 // Direct Daemon Trigger (Bypasses AutoGameMonitorService if it was killed by OEM)
                                 val mode = prefs.getString("global_perf_mode", "AWAKEN") ?: "AWAKEN"
@@ -369,7 +360,7 @@ fun SlingshotScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Text("LAUNCHING...", color = Color.White, fontFamily = gilmerBold, fontSize = 18.sp, letterSpacing = 2.sp)
                     } else {
-                        Text("LAUNCH", color = Color.White, fontFamily = gilmerBold, fontSize = 18.sp, letterSpacing = 2.sp)
+                        Text(stringResource(R.string.launch), color = Color.White, fontFamily = gilmerBold, fontSize = 18.sp, letterSpacing = 2.sp)
                     }
                 }
             }

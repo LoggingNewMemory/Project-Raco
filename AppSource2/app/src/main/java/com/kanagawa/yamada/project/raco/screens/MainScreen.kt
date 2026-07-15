@@ -234,9 +234,9 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                                     languageExpanded = false
                                     androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(androidx.core.os.LocaleListCompat.forLanguageTags(code))
                                 }
-                                androidx.compose.material3.DropdownMenuItem(text = { Text("English") }, onClick = { setLang("en") })
-                                androidx.compose.material3.DropdownMenuItem(text = { Text("Español") }, onClick = { setLang("es") })
-                                androidx.compose.material3.DropdownMenuItem(text = { Text("Bahasa Indonesia") }, onClick = { setLang("id") })
+                                androidx.compose.material3.DropdownMenuItem(text = { Text(stringResource(R.string.english)) }, onClick = { setLang("en") })
+                                androidx.compose.material3.DropdownMenuItem(text = { Text(stringResource(R.string.espa_ol)) }, onClick = { setLang("es") })
+                                androidx.compose.material3.DropdownMenuItem(text = { Text(stringResource(R.string.bahasa_indonesia)) }, onClick = { setLang("id") })
                                 androidx.compose.material3.DropdownMenuItem(text = { Text("日本語") }, onClick = { setLang("ja") })
                                 androidx.compose.material3.DropdownMenuItem(text = { Text("Русский") }, onClick = { setLang("ru") })
                             }
@@ -297,7 +297,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                                 Column(modifier = Modifier.padding(12.dp)) {
                                     Icon(Icons.Default.Security, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    Text("Root Access", style = MaterialTheme.typography.bodySmall)
+                                    Text(stringResource(R.string.root_access_1), style = MaterialTheme.typography.bodySmall)
                                     Text(if (hasRoot) stringResource(R.string.yes) else stringResource(R.string.no), style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), color = if (hasRoot) Color.Green else MaterialTheme.colorScheme.error)
                                 }
                             }
@@ -309,7 +309,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                                 Column(modifier = Modifier.padding(12.dp)) {
                                     Icon(Icons.Default.SettingsInputComponent, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    Text("Mode Status", style = MaterialTheme.typography.bodySmall)
+                                    Text(stringResource(R.string.mode_status), style = MaterialTheme.typography.bodySmall)
                                     Text(if (isEndfieldEngineRunning) stringResource(R.string.endfield_engine) else stringResource(R.string.mode_manual), style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.primary)
                                 }
                             }
@@ -329,7 +329,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                                 Row {
                                     Icon(Icons.Default.Lightbulb, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Tip of the day", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.primary)
+                                    Text(stringResource(R.string.tip_of_the_day), style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.primary)
                                 }
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Box(modifier = Modifier.height(40.dp)) {

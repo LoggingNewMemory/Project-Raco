@@ -222,7 +222,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                                 Icon(Icons.Default.Upload, null)
                                 Spacer(Modifier.width(8.dp))
                             }
-                            Text("Select Image")
+                            Text(stringResource(R.string.select_image))
                         }
                         if (bannerExists) {
                             OutlinedButton(
@@ -239,7 +239,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                             ) {
                                 Icon(Icons.Default.Delete, null)
                                 Spacer(Modifier.width(8.dp))
-                                Text("Remove")
+                                Text(stringResource(R.string.remove))
                             }
                         }
                     }
@@ -360,7 +360,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                     ) {
                         Icon(Icons.Default.RestartAlt, null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Reset to Default")
+                        Text(stringResource(R.string.reset_to_default))
                     }
                 }
             }

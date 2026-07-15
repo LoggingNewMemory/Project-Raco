@@ -44,40 +44,8 @@
             android:name="com.canhub.cropper.CropImageActivity"
             android:theme="@style/Theme.AppCompat" />
 
-        <service
-            android:name=".ToastOverlayService"
-            android:exported="true" />
-
-
-
-
-
-        <service android:name=".GameOverlayService"
-            android:exported="false" />
-        <service android:name=".InGameMenuService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="In-game overlay" />
-        </service>
-        <service android:name=".FloatingInfoService"
-            android:exported="false" />
-        <service android:name=".RotationLockService"
-            android:exported="false" />
-        <service android:name=".RefreshRateService"
-            android:exported="false" />
-        <service android:name=".RacoGameTools.GameCrosshairService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse" />
-        <service android:name=".RacoGameTools.GameAuxLineService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse" />
-        <service android:name=".AutoGameMonitorService"
-            android:foregroundServiceType="specialUse"
-            android:exported="false">
-            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Game monitoring" />
-        </service>
+        
+        
 
         <service
             android:name=".QSTileService"

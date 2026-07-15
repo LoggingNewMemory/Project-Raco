@@ -157,7 +157,7 @@ fun UtilitiesScreen(onBack: () -> Unit) {
 
             if (filteredItems.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No results found.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.no_results_found_1), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             } else {
                 LazyColumn(

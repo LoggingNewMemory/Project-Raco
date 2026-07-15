@@ -1,4 +1,6 @@
 package com.kanagawa.yamada.project.raco
+import androidx.compose.ui.res.stringResource
+import com.kanagawa.yamada.project.raco.R
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -389,7 +391,7 @@ fun SettingsScreen(
                                                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color.DarkGray),
                                                     modifier = Modifier.padding(end = 8.dp)
                                                 ) {
-                                                    Text("Reset", color = Color.White)
+                                                    Text(stringResource(R.string.reset), color = Color.White)
                                                 }
                                             }
                                             androidx.compose.material3.Button(
@@ -398,7 +400,7 @@ fun SettingsScreen(
                                                 },
                                                 colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = accentColor)
                                             ) {
-                                                Text("Set", color = Color.White)
+                                                Text(stringResource(R.string.set), color = Color.White)
                                             }
                                         }
                                     } else if (key == "BLUR_RADIUS") {

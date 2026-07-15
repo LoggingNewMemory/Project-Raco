@@ -119,12 +119,12 @@ fun SystemScreen(onBack: () -> Unit) {
             if (anyaIncluded) {
                 item {
                     SystemCard(stringResource(R.string.anya_installer_title)) {
-                        Text("FlowState thermal management. Disable throttling for sustained performance.", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.flowstate_thermal_management_disable_throttling_for_sustained_performance), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Thermostat, null, tint = MaterialTheme.colorScheme.primary)
                             Spacer(Modifier.width(12.dp))
-                            Text("Enable Anya Thermal Control", Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.enable_anya_thermal_control), Modifier.weight(1f), fontWeight = FontWeight.Bold)
                             if (isBusyAnya) CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                             else Switch(checked = anyaThermalEnabled, onCheckedChange = { newVal ->
                                 isBusyAnya = true
@@ -145,13 +145,13 @@ fun SystemScreen(onBack: () -> Unit) {
             if (sandevIncluded) {
                 item {
                     SystemCard(stringResource(R.string.sandevistan_duration_title)) {
-                        Text("Duration in seconds for the Sandevistan boost. Higher = longer burst.", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.duration_in_seconds_for_the_sandevistan_boost_higher_longer_burst), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(16.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             OutlinedTextField(
                                 value = sandevDurationText,
                                 onValueChange = { sandevDurationText = it },
-                                label = { Text("Duration (seconds)") },
+                                label = { Text(stringResource(R.string.duration_seconds)) },
                                 modifier = Modifier.weight(1f),
                                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
                                 singleLine = true
@@ -194,7 +194,7 @@ fun SystemScreen(onBack: () -> Unit) {
             // Graphics Driver Card
             item {
                 SystemCard("Graphics Driver") {
-                    Text("Set the ANGLE/Vulkan graphics driver mode.", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.set_the_angle_vulkan_graphics_driver_mode), style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))
                     Text("Current: ${when(graphicsDriver) { 1 -> stringResource(R.string.graphics_driver_game); 2 -> stringResource(R.string.graphics_driver_developer); else -> stringResource(R.string.graphics_driver_default) }}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(16.dp))
@@ -220,7 +220,7 @@ fun SystemScreen(onBack: () -> Unit) {
             if (resolutionAvailable) {
                 item {
                     SystemCard("Resolution Downscale") {
-                        Text("Override display resolution and density. Use Reset to restore defaults.", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.override_display_resolution_and_density_use_reset_to_restore_defaults), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
                         Text("Physical: $originalResolution | Current: $currentResolution", style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(12.dp))
@@ -261,7 +261,7 @@ fun SystemScreen(onBack: () -> Unit) {
                             },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                        ) { Text("Reset to Default") }
+                        ) { Text(stringResource(R.string.reset_to_default)) }
                     }
                 }
             }
@@ -272,8 +272,8 @@ fun SystemScreen(onBack: () -> Unit) {
                     // FSTRIM
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text("FSTRIM", fontWeight = FontWeight.Bold)
-                            Text("Trim filesystem for storage performance.", style = MaterialTheme.typography.bodySmall)
+                            Text(stringResource(R.string.fstrim), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.trim_filesystem_for_storage_performance), style = MaterialTheme.typography.bodySmall)
                         }
                         Button(
                             onClick = {
@@ -295,7 +295,7 @@ fun SystemScreen(onBack: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(stringResource(R.string.clear_cache_title), fontWeight = FontWeight.Bold)
-                            Text("Remove system cache partition contents.", style = MaterialTheme.typography.bodySmall)
+                            Text(stringResource(R.string.remove_system_cache_partition_contents), style = MaterialTheme.typography.bodySmall)
                         }
                         Button(
                             onClick = {

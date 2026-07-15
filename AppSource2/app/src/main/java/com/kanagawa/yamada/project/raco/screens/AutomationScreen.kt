@@ -99,14 +99,14 @@ fun AutomationScreen(onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(Modifier.padding(16.dp)) {
-                        Text("Do Not Disturb", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.do_not_disturb), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(4.dp))
-                        Text("Enable DND mode during gaming to block notifications.", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.enable_dnd_mode_during_gaming_to_block_notifications), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.DoNotDisturbOn, null, tint = MaterialTheme.colorScheme.primary)
                             Spacer(Modifier.width(12.dp))
-                            Text("Enable DND", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.enable_dnd), modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
                             Switch(
                                 checked = dndEnabled,
                                 onCheckedChange = { newValue ->
@@ -130,9 +130,9 @@ fun AutomationScreen(onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(Modifier.padding(16.dp)) {
-                        Text("Game App List", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.game_app_list), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(4.dp))
-                        Text("Manage the list of apps that trigger Performance mode automatically.", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.manage_the_list_of_apps_that_trigger_performance_mode_automatically), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(16.dp))
                         Button(
                             onClick = { showAppList = true },
@@ -140,7 +140,7 @@ fun AutomationScreen(onBack: () -> Unit) {
                         ) {
                             Icon(Icons.Default.Apps, null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Open App List")
+                            Text(stringResource(R.string.open_app_list))
                         }
                     }
                 }
@@ -221,7 +221,7 @@ private fun AppListPage(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("App List") },
+                title = { Text(stringResource(R.string.app_list)) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
                 actions = {
                     IconButton(onClick = { /* trigger refresh */ }) {

@@ -1,4 +1,6 @@
 package com.kanagawa.yamada.project.raco.screens
+import androidx.compose.ui.res.stringResource
+import com.kanagawa.yamada.project.raco.R
 
 import android.content.Intent
 import android.net.Uri
@@ -102,7 +104,7 @@ private fun ShimmerBox() {
             ),
         contentAlignment = Alignment.Center
     ) {
-        Text("[ RACO L2D ]", color = Color.White.copy(alpha = 0.3f), fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
+        Text(stringResource(R.string.raco_l2d), color = Color.White.copy(alpha = 0.3f), fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
     }
 }
 
@@ -154,7 +156,7 @@ fun RacoScreen(onBack: () -> Unit) {
                         .padding(horizontal = 24.dp, vertical = 16.dp)
                 ) {
                     Column {
-                        Text("Raco", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(stringResource(R.string.raco), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         Spacer(modifier = Modifier.height(4.dp))
                         AnimatedContent(
                             targetState = dialogueIndex,
@@ -164,7 +166,7 @@ fun RacoScreen(onBack: () -> Unit) {
                             TypewriterText(text = dialogues[idx])
                         }
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("▼ Tap to read", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp, modifier = Modifier.align(Alignment.End))
+                        Text(stringResource(R.string.tap_to_read), color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp, modifier = Modifier.align(Alignment.End))
                     }
                 }
             }
@@ -183,10 +185,10 @@ fun RacoScreen(onBack: () -> Unit) {
                     Box(modifier = Modifier.width(40.dp).height(4.dp).clip(RoundedCornerShape(2.dp)).background(Color.Gray.copy(alpha = 0.5f)).align(Alignment.CenterHorizontally))
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    Text("Zefanya Raco", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.zefanya_raco), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                     Text("[ゼファニャ・ラチョ]", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.W400, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f))
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("Yamada's Neko Maid", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                    Text(stringResource(R.string.yamada_s_neko_maid), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
@@ -222,12 +224,12 @@ fun RacoScreen(onBack: () -> Unit) {
                         TextButton(onClick = {
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/ProjectRaco")))
                         }) {
-                            Text("Official Project Raco Telegram Group", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.official_project_raco_telegram_group), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                         }
                         TextButton(onClick = {
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/KanagawaYamadaCH/2543")))
                         }) {
-                            Text("Donate for Project Raco", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.donate_for_project_raco), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                         }
                     }
 
