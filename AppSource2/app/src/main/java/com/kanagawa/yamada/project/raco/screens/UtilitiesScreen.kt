@@ -165,21 +165,22 @@ fun UtilitiesScreen(onBack: () -> Unit) {
                                 .fillMaxWidth()
                                 .clickable { currentRoute = item.route }
                         ) {
-                            ListItem(
-                                leadingContent = {
-                                    Icon(item.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                },
-                                headlineContent = {
-                                    Text(item.title, fontWeight = FontWeight.Bold)
-                                },
-                                supportingContent = {
-                                    Text(item.subtitle, style = MaterialTheme.typography.bodySmall)
-                                },
-                                trailingContent = {
-                                    Icon(Icons.Default.ChevronRight, contentDescription = null)
-                                },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(item.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(item.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(item.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                         }
                     }
                 }
