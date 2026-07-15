@@ -297,7 +297,7 @@ fun SystemScreen(onBack: () -> Unit) {
                                 }
                             },
                             modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                            colors = if (graphicsDriver == value) ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                            colors = if (graphicsDriver == value) ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
                                      else ButtonDefaults.outlinedButtonColors()
                         ) { Text(label) }
                     }
@@ -333,7 +333,7 @@ fun SystemScreen(onBack: () -> Unit) {
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                                colors = if (currentResolution == res) ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                                colors = if (currentResolution == res) ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
                                          else ButtonDefaults.outlinedButtonColors()
                             ) { Text(label) }
                         }
