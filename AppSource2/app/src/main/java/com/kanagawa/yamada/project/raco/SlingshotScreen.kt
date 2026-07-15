@@ -418,31 +418,38 @@ fun EndfieldSwitch(label: String, value: Boolean, onChanged: (Boolean) -> Unit) 
     }
 }
 
+private val iconCache = android.util.LruCache<String, androidx.compose.ui.graphics.ImageBitmap>(150)
+private val nameCache = android.util.LruCache<String, String>(150)
+
 @Composable
 fun AppIcon(pkg: String, modifier: Modifier = Modifier) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    var bitmap by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    var bitmap by remember(pkg) { mutableStateOf(iconCache.get(pkg)) }
     
-    LaunchedEffect(pkg) {
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                val pm = context.packageManager
-                val icon = pm.getApplicationIcon(pkg)
-                val bmp = if (icon is android.graphics.drawable.BitmapDrawable) {
-                    icon.bitmap
-                } else {
-                    val fallbackBmp = android.graphics.Bitmap.createBitmap(
-                        icon.intrinsicWidth.takeIf { it > 0 } ?: 96,
-                        icon.intrinsicHeight.takeIf { it > 0 } ?: 96,
-                        android.graphics.Bitmap.Config.ARGB_8888
-                    )
-                    val canvas = android.graphics.Canvas(fallbackBmp)
-                    icon.setBounds(0, 0, canvas.width, canvas.height)
-                    icon.draw(canvas)
-                    fallbackBmp
-                }
-                bitmap = bmp.asImageBitmap()
-            } catch (e: Exception) {}
+    if (bitmap == null) {
+        LaunchedEffect(pkg) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                try {
+                    val pm = context.packageManager
+                    val icon = pm.getApplicationIcon(pkg)
+                    val bmp = if (icon is android.graphics.drawable.BitmapDrawable) {
+                        icon.bitmap
+                    } else {
+                        val fallbackBmp = android.graphics.Bitmap.createBitmap(
+                            icon.intrinsicWidth.takeIf { it > 0 } ?: 96,
+                            icon.intrinsicHeight.takeIf { it > 0 } ?: 96,
+                            android.graphics.Bitmap.Config.ARGB_8888
+                        )
+                        val canvas = android.graphics.Canvas(fallbackBmp)
+                        icon.setBounds(0, 0, canvas.width, canvas.height)
+                        icon.draw(canvas)
+                        fallbackBmp
+                    }
+                    val imageBitmap = bmp.asImageBitmap()
+                    iconCache.put(pkg, imageBitmap)
+                    bitmap = imageBitmap
+                } catch (e: Exception) {}
+            }
         }
     }
     
@@ -456,16 +463,19 @@ fun AppIcon(pkg: String, modifier: Modifier = Modifier) {
 @Composable
 fun AppName(pkg: String, modifier: Modifier = Modifier, style: androidx.compose.ui.text.TextStyle = androidx.compose.material3.LocalTextStyle.current, color: Color = Color.Unspecified, fontWeight: FontWeight? = null, maxLines: Int = Int.MAX_VALUE) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    var name by remember { mutableStateOf(pkg.split(".").last()) }
+    var name by remember(pkg) { mutableStateOf(nameCache.get(pkg) ?: pkg.split(".").last()) }
     
-    LaunchedEffect(pkg) {
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                val pm = context.packageManager
-                val info = pm.getApplicationInfo(pkg, 0)
-                val label = pm.getApplicationLabel(info).toString()
-                name = label
-            } catch (e: Exception) {}
+    if (nameCache.get(pkg) == null) {
+        LaunchedEffect(pkg) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                try {
+                    val pm = context.packageManager
+                    val info = pm.getApplicationInfo(pkg, 0)
+                    val label = pm.getApplicationLabel(info).toString()
+                    nameCache.put(pkg, label)
+                    name = label
+                } catch (e: Exception) {}
+            }
         }
     }
     
