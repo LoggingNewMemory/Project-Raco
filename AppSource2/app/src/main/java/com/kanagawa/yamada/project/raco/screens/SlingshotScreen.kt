@@ -61,7 +61,17 @@ fun SlingshotScreen(onBack: () -> Unit) {
                 val apps = withContext(Dispatchers.IO) {
                     val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "pm list packages -3"))
                     val reader = BufferedReader(InputStreamReader(process.inputStream))
-                    reader.readLines().map { it.replace("package:", "").trim() }.filter { it.isNotEmpty() }.sorted()
+                    val packages = reader.readLines().map { it.replace("package:", "").trim() }.filter { it.isNotEmpty() }
+                    
+                    val pm = context.packageManager
+                    packages.sortedBy { pkg ->
+                        try {
+                            val info = pm.getApplicationInfo(pkg, 0)
+                            pm.getApplicationLabel(info).toString().lowercase()
+                        } catch (e: Exception) {
+                            pkg.lowercase()
+                        }
+                    }
                 }
                 installedApps = apps
             } catch (e: Exception) {
@@ -244,7 +254,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                                     }
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(pkg.split(".").last().uppercase(), style = monoStyle.copy(color = Color.White, fontSize = 14.sp), maxLines = 1)
+                                        AppName(pkg = pkg, style = monoStyle.copy(color = Color.White, fontSize = 14.sp), maxLines = 1)
                                         Text(pkg, style = monoStyle.copy(color = Color.White.copy(alpha=0.38f), fontSize = 10.sp), maxLines = 1)
                                     }
                                     if (isSelected) {
@@ -359,7 +369,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                                     AppIcon(pkg = pkg, modifier = Modifier.size(32.dp))
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column {
-                                        Text(pkg.split(".").last().uppercase(), color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
+                                        AppName(pkg = pkg, color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
                                         Text(pkg, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     if (isSelected) {
@@ -438,4 +448,23 @@ fun AppIcon(pkg: String, modifier: Modifier = Modifier) {
     } else {
         Icon(Icons.Default.Android, contentDescription = null, modifier = modifier, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
+}
+
+@Composable
+fun AppName(pkg: String, modifier: Modifier = Modifier, style: androidx.compose.ui.text.TextStyle = androidx.compose.material3.LocalTextStyle.current, color: Color = Color.Unspecified, fontWeight: FontWeight? = null, maxLines: Int = Int.MAX_VALUE) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var name by remember { mutableStateOf(pkg.split(".").last()) }
+    
+    LaunchedEffect(pkg) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val pm = context.packageManager
+                val info = pm.getApplicationInfo(pkg, 0)
+                val label = pm.getApplicationLabel(info).toString()
+                name = label
+            } catch (e: Exception) {}
+        }
+    }
+    
+    Text(text = name, modifier = modifier, style = style, color = color, fontWeight = fontWeight, maxLines = maxLines)
 }
