@@ -131,8 +131,6 @@ fun SystemScreen(onBack: () -> Unit) {
                                 isBusyAnya = true
                                 anyaThermalEnabled = newVal
                                 scope.launch {
-                                    val script = if (newVal) "/data/adb/modules/ProjectRaco/Scripts/AnyaMelfissa.sh" else "/data/adb/modules/ProjectRaco/Scripts/AnyaKawaii.sh"
-                                    sysRunRoot(script)
                                     sysWriteKey("ANYA", if (newVal) "1" else "0")
                                     isBusyAnya = false
                                 }
