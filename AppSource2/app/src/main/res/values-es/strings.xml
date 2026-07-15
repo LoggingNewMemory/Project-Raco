@@ -96,7 +96,6 @@
     <string name="no_governor_selected">Ninguno</string>
     <string name="anya_thermal_title">Anya Melfissa Disable Thermal</string>
     <string name="anya_thermal_description">Deshabilita Thermal en Rendimiento y Gaming, Y habilita Thermal en Eficiencia, Equilibrado y Enfriamiento.</string>
-    <string name="anya_thermal_toggle_title">Activa Anya Thermal Flowstate</string>
     <string name="system_actions_title">Acciones de sistema</string>
     <string name="fstrim_title">Fstrim</string>
     <string name="fstrim_description">Recortar particiones de Android.</string>
@@ -107,7 +106,7 @@
     <string name="carlotta_cpu_description">Modificar CPU Objetivo (ADVERTENCIA: Puede Bloquear su Dispositivo)</string>
     <string name="build_version_title">Project Raco: {buildName} Compilacion</string>
     <string name="build_by_title">Compilacion por: {builderName}</string>
-    <string name="screen_modifier_title">Modificador de Pantalla</string>
+    <string name="screen_modifier_title">Ayunda Rusdi</string>
     <string name="screen_modifier_description">Ajuste la matriz de color y la saturación de la pantalla para una experiencia de visualización personalizada.</string>
     <string name="screen_modifier_red">Rojo</string>
     <string name="screen_modifier_green">Verde</string>
@@ -124,11 +123,9 @@
     <string name="legacy_notif_title">Notificación heredada</string>
     <string name="legacy_notif_description">Use la notificación heredada si la notificación no aparece en algunas ROMs</string>
     <string name="slingshot_title">Raco Slingshot</string>
-    <string name="slingshot_description">Precarga los archivos de tu aplicación antes de iniciarla, esto puede acelerar el tiempo de carga y mejorar el rendimiento</string>
     <string name="angle_title">Iniciar usando gráficos ANGLE</string>
     <string name="angle_not_supported">Los gráficos ANGLE no son compatibles con este dispositivo</string>
     <string name="skia_title">Usar SkiaVK como motor Skia predeterminado</string>
-    <string name="preload_mode">Modo de Preload</string>
     <string name="start_preload">Iniciar Slingshot</string>
     <string name="swipe_again_to_cancel">Desliza a la derecha de nuevo para cancelar</string>
     <string name="execution_cancelled">Ejecución cancelada</string>
@@ -167,10 +164,6 @@
     <string name="slingshot_search_hint">Buscar aplicaciones...</string>
     <string name="slingshot_reload_tooltip">Recargar lista de aplicaciones</string>
     <string name="slingshot_no_apps_found">No se encontraron aplicaciones</string>
-    <string name="slingshot_mode_normal">Normal (fadvise hint)</string>
-    <string name="slingshot_mode_deep">Profundo (fadvise + dlopen)</string>
-    <string name="slingshot_mode_extreme">Extremo (mmap + MAP_POPULATE)</string>
-    <string name="slingshot_mode_recursive">Recursivo (looped deep check)</string>
     <string name="silent_mode_title">Modo Silencioso</string>
     <string name="silent_mode_description">Desactiva las notificaciones, Raco aplicará los ajustes sin notificar</string>
     <string name="slingshot_graphics_warning">Algunos juegos pueden fallar, otros pueden mejorar el rendimiento, y otros pueden ni siquiera iniciar. ¡Pero no tengas miedo de probarlo primero!</string>
@@ -264,12 +257,9 @@
     <string name="yamada_s_neko_maid">Yamada\'s Neko Maid</string>
     <string name="official_project_raco_telegram_group">Official Project Raco Telegram Group</string>
     <string name="donate_for_project_raco">Donate for Project Raco</string>
-    <string name="flowstate_thermal_management_disable_throttling_for_sustained_performance">FlowState thermal management. Disable throttling for sustained performance.</string>
-    <string name="enable_anya_thermal_control">Enable Anya Thermal Control</string>
     <string name="duration_in_seconds_for_the_sandevistan_boost_higher_longer_burst">Duration in seconds for the Sandevistan boost. Higher = longer burst.</string>
     <string name="duration_seconds">Duration (seconds)</string>
     <string name="set_the_angle_vulkan_graphics_driver_mode">Set the ANGLE/Vulkan graphics driver mode.</string>
-    <string name="override_display_resolution_and_density_use_reset_to_restore_defaults">Override display resolution and density. Use Reset to restore defaults.</string>
     <string name="fstrim">FSTRIM</string>
     <string name="trim_filesystem_for_storage_performance">Trim filesystem for storage performance.</string>
     <string name="remove_system_cache_partition_contents">Remove system cache partition contents.</string>
@@ -286,7 +276,7 @@
     <string name="height">HEIGHT</string>
     <string name="empty_string"></string>
     <string name="anya_thermal">Anya Thermal</string>
-    <string name="enable_anya_thermal_flowstate">Enable Anya Thermal Flowstate</string>
+    <string name="enable_anya_thermal_flowstate">Enable Anya Flowstate</string>
     <string name="kobo_fast_charge">Kobo Fast Charge</string>
     <string name="fast_charge_module">Fast Charge Module</string>
     <string name="sandevistan_boot">Sandevistan Boot</string>
@@ -322,7 +312,6 @@
     <string name="sandevistan">Sandevistan</string>
     <string name="install_the_sandevistan_module_on_next_boot">Install the Sandevistan module on next boot.</string>
     <string name="graphics_driver">Graphics Driver</string>
-    <string name="resolution_downscale">Resolution Downscale</string>
     <string name="root_access_denied_project_raco_requires_root">Root Access Denied. Project Raco requires Root.</string>
     <string name="tap_for_menu">Tap for menu</string>
     <string name="battery_optimization">Battery optimization</string>
@@ -345,16 +334,11 @@
     <string name="loading">Loading...</string>
     <string name="settings">SETTINGS</string>
     <string name="credit">• $credit</string>
-    <string name="str_empty">\</string>
     <string name="set_a_custom_background_banner_image_for_the_app_supported_format_png">Set a custom background banner image for the app. Supported format: PNG.</string>
     <string name="controls_how_the_banner_image_appears_lower_opacity_more_transparent_higher_blur_softer">Controls how the banner image appears. Lower opacity = more transparent. Higher blur = softer.</string>
     <string name="opacity_bgopacity_100_toint">Opacity: ${(bgOpacity * 100).toInt()}%</string>
     <string name="blur_bgblur_toint_px">Blur: ${bgBlur.toInt()}px</string>
-    <string name="adjust_the_rgb_color_multipliers_applied_globally_1_0_no_change">Adjust the RGB color multipliers applied globally. 1.0 = no change.</string>
     <string name="override_screen_brightness_0_255_set_to_1_for_automatic">Override screen brightness (0-255). Set to -1 for automatic.</string>
-    <string name="str_empty_1">日本語</string>
-    <string name="str_empty_2">Русский</string>
-    <string name="str_empty_3">[ゼファニャ・ラチョ]</string>
     <string name="available_targets_filteredapps_size">AVAILABLE TARGETS: ${filteredApps.size}</string>
     <string name="current_when_graphicsdriver_1_stringresource_r_string_graphics_driver_game_2_stringresource_r_string_graphics_driver_developer_else_stringresource_r_string_graphics_driver_default">Current: ${when(graphicsDriver) { 1 -&gt; stringResource(R.string.graphics_driver_game); 2 -&gt; stringResource(R.string.graphics_driver_developer); else -&gt; stringResource(R.string.graphics_driver_default) }}</string>
     <string name="physical_originalresolution_current_currentresolution">Physical: $originalResolution | Current: $currentResolution</string>
@@ -381,7 +365,6 @@
     <string name="no_target_package">NO TARGET PACKAGE SELECTED</string>
     <string name="payload_deployed_to">PAYLOAD DEPLOYED TO %1$s</string>
     <string name="saved">Saved!</string>
-    <string name="resolution_reset">Resolution reset to default</string>
     <string name="fstrim_completed">FSTRIM completed!</string>
     <string name="cache_cleared">Cache cleared!</string>
     <string name="screen_brightness_title">Screen Brightness</string>
