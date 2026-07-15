@@ -88,11 +88,10 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
         } catch(e: Exception) { false }
     }
     
-    suspend fun getModuleVersion(): String = withContext(Dispatchers.IO) {
-        try {
-            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "grep '^version=' " + basePath + "module.prop"))
-            val text = process.inputStream.bufferedReader().readText().trim()
-            if (text.contains("=")) text.split("=")[1].trim() else "Unknown"
+    fun getAppVersion(): String {
+        return try {
+            val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            pInfo.versionName ?: "Unknown"
         } catch (e: Exception) { "Unknown" }
     }
 
@@ -122,7 +121,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
         if (hasRoot) {
             moduleInstalled = checkModule()
             if (moduleInstalled) {
-                moduleVersion = getModuleVersion()
+                moduleVersion = getAppVersion()
             }
             currentMode = fetchActiveMode()
         }
