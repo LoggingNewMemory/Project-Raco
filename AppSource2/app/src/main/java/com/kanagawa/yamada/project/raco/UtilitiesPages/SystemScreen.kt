@@ -59,6 +59,10 @@ fun SystemScreen(onBack: () -> Unit) {
     var originalDensity by remember { mutableIntStateOf(0) }
     var resolutionAvailable by remember { mutableStateOf(false) }
     var isBusyAnya by remember { mutableStateOf(false) }
+    
+    var rgbR by remember { mutableFloatStateOf(1f) }
+    var rgbG by remember { mutableFloatStateOf(1f) }
+    var rgbB by remember { mutableFloatStateOf(1f) }
 
     var isBusySandev by remember { mutableStateOf(false) }
     var isBusyGraphics by remember { mutableStateOf(false) }
@@ -93,6 +97,13 @@ fun SystemScreen(onBack: () -> Unit) {
             originalDensity = Regex("(?:Physical|Override) density:\\s*([0-9]+)").find(wmDensity)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
             resolutionAvailable = originalResolution.isNotEmpty() && originalDensity > 0
         }
+        
+        val rxR = Regex("^RGB_R=([0-9.]+)", RegexOption.MULTILINE).find(config)
+        rgbR = rxR?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
+        val rxG = Regex("^RGB_G=([0-9.]+)", RegexOption.MULTILINE).find(config)
+        rgbG = rxG?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
+        val rxB = Regex("^RGB_B=([0-9.]+)", RegexOption.MULTILINE).find(config)
+        rgbB = rxB?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
 
         isLoading = false
     }
@@ -139,6 +150,76 @@ fun SystemScreen(onBack: () -> Unit) {
                                 }
                             })
                         }
+                    }
+                }
+            }
+
+            // Screen Color Modifiers Card
+            item {
+                SystemCard(stringResource(R.string.screen_modifier_title)) {
+                    Text(stringResource(R.string.adjust_the_rgb_color_multipliers_applied_globally_1_0_no_change),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(Modifier.height(12.dp))
+
+                    listOf(
+                        Triple(stringResource(R.string.screen_modifier_red), rgbR, Color(0xFFEF5350)),
+                        Triple(stringResource(R.string.screen_modifier_green), rgbG, Color(0xFF66BB6A)),
+                        Triple(stringResource(R.string.screen_modifier_blue), rgbB, Color(0xFF42A5F5)),
+                    ).forEachIndexed { idx, (label, value, color) ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = label,
+                                color = color,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.width(50.dp)
+                            )
+                            Slider(
+                                value = value,
+                                onValueChange = { newVal ->
+                                    when (idx) {
+                                        0 -> rgbR = newVal
+                                        1 -> rgbG = newVal
+                                        2 -> rgbB = newVal
+                                    }
+                                },
+                                onValueChangeFinished = {
+                                    scope.launch {
+                                        when (idx) {
+                                            0 -> sysWriteKey("RGB_R", rgbR.toString())
+                                            1 -> sysWriteKey("RGB_G", rgbG.toString())
+                                            2 -> sysWriteKey("RGB_B", rgbB.toString())
+                                        }
+                                    }
+                                },
+                                valueRange = 0f..2f,
+                                modifier = Modifier.weight(1f),
+                                colors = SliderDefaults.colors(thumbColor = color, activeTrackColor = color)
+                            )
+                            Text(
+                                text = String.format("%.2f", value),
+                                modifier = Modifier.width(40.dp),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            rgbR = 1f; rgbG = 1f; rgbB = 1f
+                            scope.launch {
+                                sysWriteKey("RGB_R", "1.0")
+                                sysWriteKey("RGB_G", "1.0")
+                                sysWriteKey("RGB_B", "1.0")
+                                snackbarHostState.showSnackbar(context.getString(R.string.colors_reset))
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.RestartAlt, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.reset_to_default))
                     }
                 }
             }
@@ -291,7 +372,8 @@ fun SystemScreen(onBack: () -> Unit) {
                                     snackbarHostState.showSnackbar(context.getString(R.string.fstrim_completed))
                                 }
                             },
-                            enabled = !isBusyFstrim
+                            enabled = !isBusyFstrim,
+                            modifier = Modifier.width(100.dp)
                         ) {
                             if (isBusyFstrim) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color.White)
                             else Text(stringResource(R.string.plugin_run))
@@ -314,6 +396,7 @@ fun SystemScreen(onBack: () -> Unit) {
                                 }
                             },
                             enabled = !isBusyClearCache,
+                            modifier = Modifier.width(100.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                         ) {
                             if (isBusyClearCache) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color.White)

@@ -103,10 +103,6 @@ fun AppearanceScreen(onBack: () -> Unit) {
     var bgExists by remember { mutableStateOf(false) }
     var bgOpacity by remember { mutableFloatStateOf(0.3f) }
     var bgBlur by remember { mutableFloatStateOf(10f) }
-    var screenBrightness by remember { mutableFloatStateOf(-1f) }
-    var rgbR by remember { mutableFloatStateOf(1f) }
-    var rgbG by remember { mutableFloatStateOf(1f) }
-    var rgbB by remember { mutableFloatStateOf(1f) }
     var isBusy by remember { mutableStateOf(false) }
     var isInstallingBanner by remember { mutableStateOf(false) }
     var isInstallingBg by remember { mutableStateOf(false) }
@@ -192,10 +188,6 @@ fun AppearanceScreen(onBack: () -> Unit) {
             bgOpacity = config["BG_OPACITY"]?.toFloatOrNull() ?: 0.3f
             bgBlur = config["BG_BLUR"]?.toFloatOrNull() ?: 10f
             val brightnessRaw = config["SCREEN_BRIGHTNESS"]?.toFloatOrNull() ?: -1f
-            screenBrightness = brightnessRaw
-            rgbR = config["RGB_R"]?.toFloatOrNull() ?: 1f
-            rgbG = config["RGB_G"]?.toFloatOrNull() ?: 1f
-            rgbB = config["RGB_B"]?.toFloatOrNull() ?: 1f
             val sharedPrefs = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
             val path = sharedPrefs.getString("banner_image_path", "")
             bannerExists = !path.isNullOrEmpty() && File(path).exists()
@@ -422,75 +414,6 @@ fun AppearanceScreen(onBack: () -> Unit) {
                 }
             }
 
-            // Screen Color Modifiers Card
-            item {
-                AppearanceCard(stringResource(R.string.screen_modifier_title)) {
-                    Text(stringResource(R.string.adjust_the_rgb_color_multipliers_applied_globally_1_0_no_change),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Spacer(Modifier.height(12.dp))
-
-                    listOf(
-                        Triple(stringResource(R.string.screen_modifier_red), rgbR, Color(0xFFEF5350)),
-                        Triple(stringResource(R.string.screen_modifier_green), rgbG, Color(0xFF66BB6A)),
-                        Triple(stringResource(R.string.screen_modifier_blue), rgbB, Color(0xFF42A5F5)),
-                    ).forEachIndexed { idx, (label, value, color) ->
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = label,
-                                color = color,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.width(50.dp)
-                            )
-                            Slider(
-                                value = value,
-                                onValueChange = { newVal ->
-                                    when (idx) {
-                                        0 -> rgbR = newVal
-                                        1 -> rgbG = newVal
-                                        2 -> rgbB = newVal
-                                    }
-                                },
-                                onValueChangeFinished = {
-                                    scope.launch {
-                                        when (idx) {
-                                            0 -> writeAppearanceKey("RGB_R", rgbR.toString())
-                                            1 -> writeAppearanceKey("RGB_G", rgbG.toString())
-                                            2 -> writeAppearanceKey("RGB_B", rgbB.toString())
-                                        }
-                                    }
-                                },
-                                valueRange = 0f..2f,
-                                modifier = Modifier.weight(1f),
-                                colors = SliderDefaults.colors(thumbColor = color, activeTrackColor = color)
-                            )
-                            Text(
-                                text = String.format("%.2f", value),
-                                modifier = Modifier.width(40.dp),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedButton(
-                        onClick = {
-                            rgbR = 1f; rgbG = 1f; rgbB = 1f
-                            scope.launch {
-                                writeAppearanceKey("RGB_R", "1.0")
-                                writeAppearanceKey("RGB_G", "1.0")
-                                writeAppearanceKey("RGB_B", "1.0")
-                                snackbarHostState.showSnackbar(context.getString(R.string.colors_reset))
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.RestartAlt, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.reset_to_default))
-                    }
-                }
-            }
 
         }
     }
