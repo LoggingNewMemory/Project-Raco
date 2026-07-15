@@ -126,8 +126,7 @@ fun SystemScreen(onBack: () -> Unit) {
                             Icon(Icons.Default.Thermostat, null, tint = MaterialTheme.colorScheme.primary)
                             Spacer(Modifier.width(12.dp))
                             Text(stringResource(R.string.enable_anya_thermal_control), Modifier.weight(1f), fontWeight = FontWeight.Bold)
-                            if (isBusyAnya) CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                            else Switch(checked = anyaThermalEnabled, onCheckedChange = { newVal ->
+                            Switch(checked = anyaThermalEnabled, enabled = !isBusyAnya, onCheckedChange = { newVal ->
                                 isBusyAnya = true
                                 anyaThermalEnabled = newVal
                                 scope.launch {
@@ -239,8 +238,7 @@ fun SystemScreen(onBack: () -> Unit) {
                                     }
                                 }
                             ) {
-                                if (isBusySandev) CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                                else Icon(Icons.Default.Save, null, tint = MaterialTheme.colorScheme.primary)
+                                Icon(Icons.Default.Save, null, tint = MaterialTheme.colorScheme.primary)
                             }
                         }
                         // Easter egg messages
@@ -312,8 +310,7 @@ fun SystemScreen(onBack: () -> Unit) {
                             enabled = !isBusyFstrim,
                             modifier = Modifier.width(100.dp)
                         ) {
-                            if (isBusyFstrim) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color.White)
-                            else Text(stringResource(R.string.plugin_run))
+                            Text(stringResource(R.string.plugin_run))
                         }
                     }
                     Spacer(Modifier.height(16.dp))
@@ -336,8 +333,7 @@ fun SystemScreen(onBack: () -> Unit) {
                             modifier = Modifier.width(100.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                         ) {
-                            if (isBusyClearCache) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color.White)
-                            else Text(stringResource(R.string.clear))
+                            Text(stringResource(R.string.clear))
                         }
                     }
                 }

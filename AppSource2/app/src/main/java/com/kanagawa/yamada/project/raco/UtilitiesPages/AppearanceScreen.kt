@@ -260,11 +260,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                             modifier = Modifier.weight(1f),
                             enabled = !isInstallingBanner
                         ) {
-                            if (isInstallingBanner) {
-                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Color.White)
-                            } else {
                                 Icon(Icons.Default.Upload, null)
-                            }
                         }
                         if (bannerExists) {
                             OutlinedButton(
@@ -341,11 +337,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                             modifier = Modifier.weight(1f),
                             enabled = !isInstallingBg
                         ) {
-                            if (isInstallingBg) {
-                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Color.White)
-                            } else {
                                 Icon(Icons.Default.Upload, null)
-                            }
                         }
                         if (bgExists) {
                             OutlinedButton(
@@ -371,7 +363,6 @@ fun AppearanceScreen(onBack: () -> Unit) {
                         Icon(Icons.Default.Opacity, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
                         Text("${stringResource(R.string.opacity_slider_label)}: ${(bgOpacity * 100).toInt()}%", modifier = Modifier.weight(1f))
-                        if (isBusy) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                     }
                     Slider(
                         value = bgOpacity,
