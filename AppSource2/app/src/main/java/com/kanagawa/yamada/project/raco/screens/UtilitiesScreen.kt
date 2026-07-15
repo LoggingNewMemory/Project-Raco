@@ -108,7 +108,7 @@ fun UtilitiesScreen(onBack: () -> Unit) {
     ) { padding ->
         val context = androidx.compose.ui.platform.LocalContext.current
         val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
-        val endfieldCollabEnabled = sharedPrefs.getBoolean("endfield_collab_enabled", false)
+        val endfieldCollabEnabled = false
 
         Box(modifier = Modifier.fillMaxSize()) {
             if (endfieldCollabEnabled) {

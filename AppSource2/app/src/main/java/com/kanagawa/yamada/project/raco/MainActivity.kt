@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             ScaleTabletUI {
-                ProjectRacoTheme {
+                ProjectRacoTheme(darkTheme = true) {
                     var currentScreen by remember { mutableStateOf(ScreenState.CHECKING_ROOT) }
 
                 LaunchedEffect(Unit) {

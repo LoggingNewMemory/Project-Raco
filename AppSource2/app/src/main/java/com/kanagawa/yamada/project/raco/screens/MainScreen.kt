@@ -64,7 +64,7 @@ fun MainTypewriterText(
 fun MainScreen(onNavigate: (Screen) -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
-    val endfieldCollabEnabled = sharedPrefs.getBoolean("endfield_collab_enabled", false)
+    val endfieldCollabEnabled = false
     val bannerImagePath = sharedPrefs.getString("banner_image_path", "")
 
     var currentMode by remember { mutableStateOf("NONE") }

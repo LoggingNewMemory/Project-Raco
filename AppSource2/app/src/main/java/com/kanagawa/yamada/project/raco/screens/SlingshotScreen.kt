@@ -30,14 +30,15 @@ import java.io.InputStreamReader
 fun SlingshotScreen(onBack: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
-    val endfieldCollabEnabled = sharedPrefs.getBoolean("endfield_collab_enabled", false)
+    val endfieldCollabEnabled = false
 
     var installedApps by remember { mutableStateOf<List<String>>(emptyList()) }
     var selectedApp by remember { mutableStateOf<String?>(null) }
     var selectedMode by remember { mutableStateOf("n") }
-    var useAngle by remember { mutableStateOf(false) }
-    var useSkia by remember { mutableStateOf(false) }
-    var usePlayboost by remember { mutableStateOf(false) }
+    var useAngle by remember { mutableStateOf(sharedPrefs.getBoolean("use_angle", false)) }
+    var useSkia by remember { mutableStateOf(sharedPrefs.getBoolean("use_skia", false)) }
+    var usePlayboost by remember { mutableStateOf(sharedPrefs.getBoolean("use_playboost", false)) }
+
     var isLoadingApps by remember { mutableStateOf(true) }
     var isExecuting by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
@@ -45,10 +46,10 @@ fun SlingshotScreen(onBack: () -> Unit) {
     val snackbarHostState = remember { SnackbarHostState() }
     
     val modes = listOf(
-        "n" to "NORMAL MODE",
-        "d" to "DEEP MODE",
-        "x" to "EXTREME MODE",
-        "r" to "RECURSIVE MODE"
+        "n" to "Normal (fadvise hint)",
+        "d" to "Deep (fadvise + dlopen)",
+        "e" to "Extreme (mmap + MAP_POPULATE)",
+        "r" to "Recursive (looped deep check)"
     )
     val modesMap = modes.toMap()
 
@@ -198,6 +199,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
 
                     item {
                         // Search Bar
+
                         OutlinedTextField(
                             value = searchQuery,
                             onValueChange = { searchQuery = it },
@@ -262,7 +264,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                 containerColor = Color.Transparent,
                 topBar = {
                     TopAppBar(
-                        title = { Text("Slingshot") },
+                        title = { Text("Raco Slingshot") },
                         navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, titleContentColor = MaterialTheme.colorScheme.primary, navigationIconContentColor = MaterialTheme.colorScheme.primary)
                     )
@@ -273,7 +275,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                         containerColor = Color(0xFF8B4513),
                         contentColor = Color.White,
                         icon = { Icon(Icons.Default.RocketLaunch, "Launch") },
-                        text = { Text("Start Preload") }
+                        text = { Text("Start Slingshot") }
                     )
                 },
                 snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -281,9 +283,22 @@ fun SlingshotScreen(onBack: () -> Unit) {
                 LazyColumn(modifier = Modifier.fillMaxSize().padding(pd).padding(horizontal = 16.dp)) {
                     item {
                         Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)), modifier = Modifier.fillMaxWidth()) {
-                            Text("Select a package and execution mode to deploy Kasane optimizations before launching.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(16.dp))
+                            Text("Preload your app files before launching the app, this may speed up the loading time and improve performance", style = MaterialTheme.typography.bodyMedium, color = Color.White, modifier = Modifier.padding(16.dp))
                         }
                         Spacer(modifier = Modifier.height(16.dp))
+
+                        androidx.compose.material3.Card(
+                            colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFFFFA726).copy(alpha = 0.1f)),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, androidx.compose.ui.graphics.Color(0xFFFFA726).copy(alpha = 0.3f)),
+                            modifier = androidx.compose.ui.Modifier.fillMaxWidth()
+                        ) {
+                            androidx.compose.foundation.layout.Row(modifier = androidx.compose.ui.Modifier.padding(12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                                androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.Warning, contentDescription = null, tint = androidx.compose.ui.graphics.Color(0xFFFFA726))
+                                androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.width(12.dp))
+                                androidx.compose.material3.Text("Some games might broken, Some might improve performance, Some might don't even Launch. But don't be afraid to try it first!", style = androidx.compose.material3.MaterialTheme.typography.bodySmall, color = androidx.compose.ui.graphics.Color(0xFFFFB74D))
+                            }
+                        }
+                        androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
 
                         var expanded by remember { mutableStateOf(false) }
                         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
@@ -301,24 +316,25 @@ fun SlingshotScreen(onBack: () -> Unit) {
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Text("Angle Support", modifier = Modifier.weight(1f))
-                            Switch(checked = useAngle, onCheckedChange = { useAngle = it })
+                            Text("Launch using ANGLE Graphics", modifier = Modifier.weight(1f), color = Color.White)
+                            Switch(checked = useAngle, onCheckedChange = { useAngle = it; sharedPrefs.edit().putBoolean("use_angle", it).apply() })
                         }
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Text("Skia Renderer", modifier = Modifier.weight(1f))
-                            Switch(checked = useSkia, onCheckedChange = { useSkia = it })
+                            Text("Use SkiaVK as default Skia backend", modifier = Modifier.weight(1f), color = Color.White)
+                            Switch(checked = useSkia, onCheckedChange = { useSkia = it; sharedPrefs.edit().putBoolean("use_skia", it).apply() })
                         }
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Text("PlayBoost Automation", modifier = Modifier.weight(1f))
-                            Switch(checked = usePlayboost, onCheckedChange = { usePlayboost = it })
+                            Text("RiProG Playboost", modifier = Modifier.weight(1f), color = Color.White)
+                            Switch(checked = usePlayboost, onCheckedChange = { usePlayboost = it; sharedPrefs.edit().putBoolean("use_playboost", it).apply() })
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         
+
                         OutlinedTextField(
                             value = searchQuery,
                             onValueChange = { searchQuery = it },
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("Search packages...") },
+                            placeholder = { Text("Search apps...") },
                             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
                         )
                         Spacer(modifier = Modifier.height(16.dp))

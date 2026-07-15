@@ -130,8 +130,6 @@ fun AppearanceScreen(onBack: () -> Unit) {
         }
     }
 
-        var endfieldCollabEnabled by remember { mutableStateOf(false) }
-
         LaunchedEffect(Unit) {
             val config = parseAppearanceConfig()
             bgOpacity = config["BG_OPACITY"]?.toFloatOrNull() ?: 0.3f
@@ -142,7 +140,6 @@ fun AppearanceScreen(onBack: () -> Unit) {
             rgbG = config["RGB_G"]?.toFloatOrNull() ?: 1f
             rgbB = config["RGB_B"]?.toFloatOrNull() ?: 1f
             val sharedPrefs = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
-            endfieldCollabEnabled = sharedPrefs.getBoolean("endfield_collab_enabled", false)
             val path = sharedPrefs.getString("banner_image_path", "")
             bannerExists = !path.isNullOrEmpty() && File(path).exists()
             isLoading = false
@@ -179,29 +176,6 @@ fun AppearanceScreen(onBack: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
             ) {
-                // Endfield Collab Card
-                item {
-                    AppearanceCard("Endfield Collab") {
-                        Text(
-                            "Switch to Endfield Theme",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontStyle = FontStyle.Italic
-                        )
-                        Spacer(Modifier.height(12.dp))
-
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Text("Enable Endfield Theme", modifier = Modifier.weight(1f))
-                            Switch(
-                                checked = endfieldCollabEnabled,
-                                onCheckedChange = {
-                                    endfieldCollabEnabled = it
-                                    context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
-                                        .edit().putBoolean("endfield_collab_enabled", it).apply()
-                                }
-                            )
-                        }
-                    }
-                }
 
             // Banner Image Card
             item {
