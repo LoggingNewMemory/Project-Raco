@@ -256,7 +256,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Opacity, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.opacity_bgopacity_100_toint), modifier = Modifier.weight(1f))
+                        Text("${stringResource(R.string.opacity_slider_label)}: ${(bgOpacity * 100).toInt()}%", modifier = Modifier.weight(1f))
                         if (isBusy) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                     }
                     Slider(
@@ -276,7 +276,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.BlurOn, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.blur_bgblur_toint_px), modifier = Modifier.weight(1f))
+                        Text("${stringResource(R.string.blur_slider_label)}: ${bgBlur.toInt()} px", modifier = Modifier.weight(1f))
                     }
                     Slider(
                         value = bgBlur,
@@ -362,40 +362,6 @@ fun AppearanceScreen(onBack: () -> Unit) {
                 }
             }
 
-            // Screen Brightness Card
-            item {
-                AppearanceCard(stringResource(R.string.screen_brightness_title)) {
-                    Text(stringResource(R.string.override_screen_brightness_0_255_set_to_1_for_automatic),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Spacer(Modifier.height(16.dp))
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Brightness4,
-                            null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = if (screenBrightness < 0) "Auto" else "Brightness: ${screenBrightness.toInt()}",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                    Slider(
-                        value = (screenBrightness + 1f).coerceIn(0f, 256f),
-                        onValueChange = { screenBrightness = it - 1f },
-                        onValueChangeFinished = {
-                            scope.launch {
-                                writeAppearanceKey("SCREEN_BRIGHTNESS", screenBrightness.toInt().toString())
-                            }
-                        },
-                        valueRange = 0f..256f,
-                        steps = 0
-                    )
-                }
-            }
         }
     }
 }

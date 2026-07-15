@@ -197,7 +197,12 @@ fun SystemScreen(onBack: () -> Unit) {
                 SystemCard(stringResource(R.string.graphics_driver)) {
                     Text(stringResource(R.string.set_the_angle_vulkan_graphics_driver_mode), style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))
-                    Text(stringResource(R.string.current_when_graphicsdriver_1_stringresource_r_string_graphics_driver_game_2_stringresource_r_string_graphics_driver_developer_else_stringresource_r_string_graphics_driver_default), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    val currentDriverStr = when (graphicsDriver) {
+                        1 -> stringResource(R.string.graphics_driver_game)
+                        2 -> stringResource(R.string.graphics_driver_developer)
+                        else -> stringResource(R.string.graphics_driver_default)
+                    }
+                    Text("${stringResource(R.string.current_driver)} $currentDriverStr", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(16.dp))
                     listOf(stringResource(R.string.graphics_driver_default) to 0, stringResource(R.string.graphics_driver_game) to 1, stringResource(R.string.graphics_driver_developer) to 2).forEach { (label, value) ->
                         OutlinedButton(
@@ -223,7 +228,7 @@ fun SystemScreen(onBack: () -> Unit) {
                     SystemCard(stringResource(R.string.resolution_downscale)) {
                         Text(stringResource(R.string.override_display_resolution_and_density_use_reset_to_restore_defaults), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
-                        Text(stringResource(R.string.physical_originalresolution_current_currentresolution), style = MaterialTheme.typography.bodySmall)
+                        Text("Physical: $originalResolution | Current: $currentResolution", style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(12.dp))
                         val resolutionOptions = remember(originalResolution) {
                             try {
