@@ -57,13 +57,22 @@ fun SlingshotScreen(onBack: () -> Unit) {
     )
     val modesMap = modes.toMap()
 
-    fun fetchApps() {
+    fun fetchApps(forceRefresh: Boolean = false) {
         isLoadingApps = true
         coroutineScope.launch {
             try {
+                val prefs = context.getSharedPreferences("raco_slingshot", android.content.Context.MODE_PRIVATE)
+                val cached = prefs.getString("cached_apps", null)
+                
+                if (!forceRefresh && !cached.isNullOrEmpty()) {
+                    installedApps = cached.split(",")
+                    isLoadingApps = false
+                    return@launch
+                }
+                
                 val apps = withContext(Dispatchers.IO) {
                     val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "pm list packages -3"))
-                    val reader = BufferedReader(InputStreamReader(process.inputStream))
+                    val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
                     val packages = reader.readLines().map { it.replace("package:", "").trim() }.filter { it.isNotEmpty() }
                     
                     val pm = context.packageManager
@@ -76,6 +85,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                         }
                     }
                 }
+                prefs.edit().putString("cached_apps", apps.joinToString(",")).apply()
                 installedApps = apps
             } catch (e: Exception) {
             } finally {
@@ -144,7 +154,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                         },
                         title = { Text(stringResource(R.string.endfield_payload_selector), style = monoStyle.copy(color = techYellow, fontSize = 18.sp)) },
                         actions = {
-                            IconButton(onClick = { fetchApps() }) { Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White.copy(alpha=0.54f)) }
+                            IconButton(onClick = { fetchApps(true) }) { Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White.copy(alpha=0.54f)) }
                         }
                     )
                 },
@@ -280,6 +290,9 @@ fun SlingshotScreen(onBack: () -> Unit) {
                     TopAppBar(
                         title = { Text(stringResource(R.string.slingshot_title)) },
                         navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
+                        actions = {
+                            IconButton(onClick = { fetchApps(true) }) { Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = MaterialTheme.colorScheme.primary) }
+                        },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, titleContentColor = MaterialTheme.colorScheme.primary, navigationIconContentColor = MaterialTheme.colorScheme.primary)
                     )
                 },
