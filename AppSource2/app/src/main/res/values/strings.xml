@@ -124,11 +124,9 @@
     <string name="legacy_notif_title">Legacy Notification</string>
     <string name="legacy_notif_description">Use Legacy Notification In Case Notification Doesn\'t Show In Some ROMs</string>
     <string name="slingshot_title">Raco Slingshot</string>
-    <string name="slingshot_description">Preload your app files before launching the app, this may speed up the loading time and improve performance</string>
     <string name="angle_title">Launch using ANGLE Graphics</string>
     <string name="angle_not_supported">ANGLE Graphics is not supported on this device</string>
     <string name="skia_title">Use SkiaVK as default Skia backend</string>
-    <string name="preload_mode">Preload Mode</string>
     <string name="start_preload">Start Slingshot</string>
     <string name="swipe_again_to_cancel">Swipe Right Again To Cancel</string>
     <string name="execution_cancelled">Execution Cancelled</string>
@@ -167,10 +165,6 @@
     <string name="slingshot_search_hint">Search apps...</string>
     <string name="slingshot_reload_tooltip">Reload App List</string>
     <string name="slingshot_no_apps_found">No apps found</string>
-    <string name="slingshot_mode_normal">Normal (fadvise hint)</string>
-    <string name="slingshot_mode_deep">Deep (fadvise + dlopen)</string>
-    <string name="slingshot_mode_extreme">Extreme (mmap + MAP_POPULATE)</string>
-    <string name="slingshot_mode_recursive">Recursive (looped deep check)</string>
     <string name="silent_mode_title">Silent Mode</string>
     <string name="silent_mode_description">Disables Notification, Raco Will Apply Tweaks Without Notifying</string>
     <string name="slingshot_graphics_warning">Some games might broken, Some might improve performance, Some might don\'t even Launch. But don\'t be afraid to try it first!</string>

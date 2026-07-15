@@ -39,7 +39,6 @@ fun SlingshotScreen(onBack: () -> Unit) {
 
     var installedApps by remember { mutableStateOf<List<String>>(emptyList()) }
     var selectedApp by remember { mutableStateOf<String?>(null) }
-    var selectedMode by remember { mutableStateOf("n") }
     var useAngle by remember { mutableStateOf(sharedPrefs.getBoolean("use_angle", false)) }
     var useSkia by remember { mutableStateOf(sharedPrefs.getBoolean("use_skia", false)) }
     var usePlayboost by remember { mutableStateOf(sharedPrefs.getBoolean("use_playboost", false)) }
@@ -49,14 +48,6 @@ fun SlingshotScreen(onBack: () -> Unit) {
     var searchQuery by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    
-    val modes = listOf(
-        "n" to stringResource(R.string.slingshot_mode_normal),
-        "d" to stringResource(R.string.slingshot_mode_deep),
-        "e" to stringResource(R.string.slingshot_mode_extreme),
-        "r" to stringResource(R.string.slingshot_mode_recursive)
-    )
-    val modesMap = modes.toMap()
 
     fun fetchApps(forceRefresh: Boolean = false) {
         isLoadingApps = true
@@ -115,7 +106,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global angle_gl_driver_selection_pkgs $selectedApp && settings put global angle_gl_driver_selection_values angle")).waitFor()
                     }
                     
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/Binaries/kasane -a $selectedApp -m $selectedMode -l")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/Binaries/kasane -a $selectedApp -m n -l")).waitFor()
                     
                     if (usePlayboost) {
                         Thread.sleep(3000)
@@ -164,11 +155,6 @@ fun SlingshotScreen(onBack: () -> Unit) {
             )
             LazyColumn(modifier = Modifier.fillMaxSize().padding(pd).padding(horizontal = 16.dp)) {
                 item {
-                    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)), modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.slingshot_description), style = MaterialTheme.typography.bodyMedium, color = Color.White, modifier = Modifier.padding(16.dp))
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     androidx.compose.material3.Card(
                         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFFFFA726).copy(alpha = 0.1f)),
                         border = androidx.compose.foundation.BorderStroke(1.dp, androidx.compose.ui.graphics.Color(0xFFFFA726).copy(alpha = 0.3f)),
@@ -181,22 +167,6 @@ fun SlingshotScreen(onBack: () -> Unit) {
                         }
                     }
                     androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
-
-                    var expanded by remember { mutableStateOf(false) }
-                    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
-                        OutlinedTextField(
-                            value = modesMap[selectedMode] ?: "",
-                            onValueChange = {}, readOnly = true, label = { Text(stringResource(R.string.preload_mode)) },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            modifier = Modifier.fillMaxWidth().menuAnchor()
-                        )
-                        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                            modes.forEach { (key, label) ->
-                                DropdownMenuItem(text = { Text(label) }, onClick = { selectedMode = key; expanded = false })
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.angle_title), modifier = Modifier.weight(1f), color = Color.White)
                         Switch(checked = useAngle, onCheckedChange = { useAngle = it; sharedPrefs.edit().putBoolean("use_angle", it).apply() })
