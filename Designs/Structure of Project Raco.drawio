@@ -1,23 +1,23 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36">
   <diagram name="Page-1" id="RafS2GZK1M6LYWt_0SCt">
-    <mxGraphModel dx="1825" dy="670" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1762" dy="627" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-20" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="580" width="670" x="130" y="260" as="geometry" />
+        <mxCell id="wLMJtahLav3UEi4vTlQo-12" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="365" width="650" x="100" y="855" as="geometry" />
         </mxCell>
-        <mxCell id="Mku9C3x5ve99xOo_dCDD-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="375" width="670" x="-840" y="855" as="geometry" />
+        <mxCell id="Mku9C3x5ve99xOo_dCDD-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value=" " vertex="1">
+          <mxGeometry height="825" width="750" x="-840" y="855" as="geometry" />
+        </mxCell>
+        <mxCell id="wLMJtahLav3UEi4vTlQo-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="220" width="690" x="-810" y="917.5" as="geometry" />
         </mxCell>
         <mxCell id="I-TilSuo9_9ndQIc43lT-26" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value=" " vertex="1">
           <mxGeometry height="360" width="960" x="-840" y="480" as="geometry" />
         </mxCell>
         <mxCell id="I-TilSuo9_9ndQIc43lT-21" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
           <mxGeometry height="250" width="600" x="-840" y="220" as="geometry" />
-        </mxCell>
-        <mxCell id="I-TilSuo9_9ndQIc43lT-1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;b&gt;Assembly (only arm64) + C Scripts Concept&lt;/b&gt;&lt;div&gt;Do take a note that using shell is &lt;b&gt;PROHIBITED&lt;/b&gt; by any means&lt;/div&gt;" vertex="1">
-          <mxGeometry height="60" width="280" x="-670" y="20" as="geometry" />
         </mxCell>
         <mxCell id="I-TilSuo9_9ndQIc43lT-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Case if Need Permission to Set 444&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Works like this&lt;div&gt;1. Check if file exist&lt;/div&gt;&lt;div&gt;2. Change Permission to 644&lt;/div&gt;&lt;div&gt;3. Write the value&lt;/div&gt;&lt;div&gt;4. Change Permission to 444&lt;/div&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="110" width="310" x="-830" y="230" as="geometry" />
@@ -27,9 +27,6 @@
         </mxCell>
         <mxCell id="I-TilSuo9_9ndQIc43lT-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Case If No Need Permission to Set 444&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Works like this&lt;div&gt;1. Check if file exist&lt;/div&gt;&lt;div&gt;2. Change Permission to 644&lt;/div&gt;&lt;div&gt;3. Write the value&lt;/div&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="110" width="310" x="-830" y="350" as="geometry" />
-        </mxCell>
-        <mxCell id="I-TilSuo9_9ndQIc43lT-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Unless, it only can be done via shell, it is &lt;b&gt;forgiveable&lt;/b&gt;. But use it &lt;b&gt;as minimal as it can&lt;/b&gt;" vertex="1">
-          <mxGeometry height="60" width="190" x="-670" y="85" as="geometry" />
         </mxCell>
         <mxCell id="I-TilSuo9_9ndQIc43lT-19" connectable="0" parent="1" style="group" value="" vertex="1">
           <mxGeometry height="190" width="160" x="-840" y="20" as="geometry" />
@@ -65,160 +62,83 @@
           <mxGeometry height="340" width="330" x="-220" y="490" as="geometry" />
         </mxCell>
         <mxCell id="Mku9C3x5ve99xOo_dCDD-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;The Performance Preset&lt;/b&gt;" vertex="1">
-          <mxGeometry height="30" width="170" x="-590" y="870" as="geometry" />
+          <mxGeometry height="30" width="170" x="-550" y="870" as="geometry" />
         </mxCell>
-        <mxCell id="Mku9C3x5ve99xOo_dCDD-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;b&gt;Awaken&lt;/b&gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;u&gt;Max CPUFreq&amp;nbsp;&lt;/u&gt;&lt;/div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_min_freq&lt;/div&gt;&lt;div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;Max GPUFreq&lt;/div&gt;&lt;div&gt;performance misc tweaks&lt;/div&gt;&lt;div&gt;GOV is performance&lt;/div&gt;" vertex="1">
-          <mxGeometry height="150" width="210" x="-830" y="910" as="geometry" />
+        <mxCell id="Mku9C3x5ve99xOo_dCDD-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;b&gt;Performance&lt;/b&gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;u&gt;Max CPUFreq&amp;nbsp;&lt;/u&gt;&lt;/div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_min_freq&lt;/div&gt;&lt;div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;Max GPUFreq&lt;/div&gt;&lt;div&gt;performance misc tweaks&lt;/div&gt;&lt;div&gt;GOV is performance&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="210" x="-790" y="970" as="geometry" />
         </mxCell>
         <mxCell id="Mku9C3x5ve99xOo_dCDD-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;b&gt;Balanced&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;u&gt;CPU MidFreq as minfreq&lt;/u&gt;&lt;/div&gt;&lt;div&gt;cpu mid freq &amp;gt;&amp;nbsp;scaling_min_freq&lt;/div&gt;&lt;div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;GPU Midfreq as GPU minfreq&lt;/div&gt;&lt;div&gt;balanced misc tweaks&lt;/div&gt;&lt;div&gt;GOV is schedutil / Custom&lt;/div&gt;" vertex="1">
-          <mxGeometry height="150" width="210" x="-610" y="910" as="geometry" />
+          <mxGeometry height="150" width="210" x="-570" y="970" as="geometry" />
         </mxCell>
         <mxCell id="Mku9C3x5ve99xOo_dCDD-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Powersave&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;GOV set to powersave&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;GPU Set Release (No Clock Lock)&lt;/div&gt;&lt;div&gt;powersave misc tweaks&lt;br&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="150" width="210" x="-390" y="910" as="geometry" />
+          <mxGeometry height="150" width="210" x="-350" y="970" as="geometry" />
         </mxCell>
         <mxCell id="Mku9C3x5ve99xOo_dCDD-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Normal State (Neutral)&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;u&gt;Release CPU Freq&lt;/u&gt;&amp;nbsp;&lt;/div&gt;&lt;div&gt;cpuinfo_min_freq &amp;gt;&amp;nbsp;scaling_min_freq&lt;/div&gt;&lt;div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;GPU Set Release (No Clock Lock)&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;balanced misc tweaks&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;GOV is schedutil / Custom&lt;/span&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="145" width="210" x="-830" y="1072.5" as="geometry" />
-        </mxCell>
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="The App Design&lt;div&gt;The Game Monitoring Service Design&lt;/div&gt;" vertex="1">
-          <mxGeometry height="40" width="290.03" x="170" y="270" as="geometry" />
-        </mxCell>
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="The app will be acted as the run game&lt;div&gt;and also game monitor (service) this will monitor the current screen (foreground) but will not monitor background (as we don&#39;t need powerful mode when game on background)&lt;/div&gt;" vertex="1">
-          <mxGeometry height="80" width="290.03" x="470" y="270" as="geometry" />
-        </mxCell>
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-9" edge="1" parent="1" source="t5QTQC3ebWH6XtvLZvS4-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="t5QTQC3ebWH6XtvLZvS4-7">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="150" y="600" />
-              <mxPoint x="150" y="710" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="When Run Game" vertex="1">
-          <mxGeometry height="40" width="290.03" x="169.97" y="580" as="geometry" />
-        </mxCell>
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;- Run Game (And play the animation overlay)&lt;/div&gt;- Clear Background Apps&lt;div&gt;- Clear cache (echo 3 &amp;gt; /proc/sys/vm/drop_caches)&lt;/div&gt;&lt;div&gt;- Show toast &quot;Ready to game [How many cleared] Mb Cleared&quot;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Execute mode according user define (Awaken, Balanced, Powersave)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;- Start Monitoring For Game&lt;/div&gt;" vertex="1">
-          <mxGeometry height="160" width="290" x="169.97" y="630" as="geometry" />
-        </mxCell>
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="When Exit Game" vertex="1">
-          <mxGeometry height="40" width="290.03" x="470" y="580" as="geometry" />
-        </mxCell>
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;Execute Normal State Script&lt;/div&gt;&lt;div&gt;Revert or disable the &quot;Features&quot; during&amp;nbsp;&lt;/div&gt;&lt;div&gt;Exit Monitoring&lt;/div&gt;&lt;div&gt;Log time so the app can show the duration game played&lt;/div&gt;" vertex="1">
-          <mxGeometry height="120" width="290" x="470" y="630" as="geometry" />
-        </mxCell>
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-12" edge="1" parent="1" source="t5QTQC3ebWH6XtvLZvS4-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1.002;entryY=0.542;entryDx=0;entryDy=0;entryPerimeter=0;" target="t5QTQC3ebWH6XtvLZvS4-11">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="780" y="600" />
-              <mxPoint x="780" y="695" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;" value="Features when in game gamespace (During game)&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;- DND Enable (Enable DND)&lt;/div&gt;&lt;div&gt;- Show CPU Frequency&lt;/div&gt;&lt;div&gt;- Change mode (Awaken, Balanced, Powersave)&lt;/div&gt;&lt;div&gt;- (Todo: Not finished)&lt;/div&gt;" vertex="1">
-          <mxGeometry height="180" width="290.03" x="470" y="360" as="geometry" />
-        </mxCell>
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-17" edge="1" parent="1" source="t5QTQC3ebWH6XtvLZvS4-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="t5QTQC3ebWH6XtvLZvS4-6">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-18" edge="1" parent="1" source="t5QTQC3ebWH6XtvLZvS4-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="t5QTQC3ebWH6XtvLZvS4-10">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="315" y="560" />
-              <mxPoint x="615" y="560" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="t5QTQC3ebWH6XtvLZvS4-15" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;Using&lt;/div&gt;&lt;div&gt;TYPE_WINDOW_STATE_CHANGED&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Using&lt;/div&gt;&lt;div&gt;Daemon Implementation (Run on service during boot). This is&amp;nbsp;Local UNIX Socket that listen for executing either modes or normal states&lt;/div&gt;" vertex="1">
-          <mxGeometry height="120" width="290" x="170.03" y="320" as="geometry" />
+          <mxGeometry height="150" width="210" x="-790" y="1465" as="geometry" />
         </mxCell>
         <mxCell id="USiz9r6OqI96Ol3waZUV-21" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="365" width="169.97" x="-159.97" y="855" as="geometry" />
+          <mxGeometry height="485" width="169.97" x="-80" y="855" as="geometry" />
         </mxCell>
         <mxCell id="USiz9r6OqI96Ol3waZUV-22" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="Config Flags" vertex="1">
-          <mxGeometry height="30" width="149.97" x="-149.97" y="865" as="geometry" />
+          <mxGeometry height="30" width="149.97" x="-69.99999999999997" y="865" as="geometry" />
         </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-24" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;INCLUDE_KOBO 0&lt;/span&gt;&lt;/div&gt;&lt;div&gt;INCLUDE_SANDEV 0&lt;/div&gt;&lt;div&gt;INCLUDE_ZETAMIN 0&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;SOC 0&lt;/div&gt;&lt;div&gt;ANYA 1&lt;/div&gt;&lt;div&gt;DND 0&lt;/div&gt;&lt;div&gt;DEVICE_MITIGATION 0&lt;/div&gt;&lt;div&gt;LEGACY_NOTIF 0&lt;/div&gt;&lt;div&gt;SILENT_NOTIF 0&lt;/div&gt;&lt;div&gt;GOV&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;AYUNDA_RUSDI&lt;/div&gt;" vertex="1">
-          <mxGeometry height="300" width="149.97" x="-150" y="910" as="geometry" />
+        <mxCell id="USiz9r6OqI96Ol3waZUV-24" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=default;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div&gt;STATE&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;INCLUDE_KOBO 0&lt;/div&gt;&lt;div&gt;INCLUDE_SANDEV 0&lt;/div&gt;&lt;div&gt;INCLUDE_ZETAMIN 0&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;LITE_POWERSAVE 0&lt;/div&gt;&lt;div&gt;ULTRA_POWERSAVE 0&lt;/div&gt;&lt;div&gt;LITE_PERFORMANCE 0&lt;/div&gt;&lt;div&gt;ALTER_CPU_METHOD 0&lt;/div&gt;&lt;div&gt;SOC 0&lt;/div&gt;&lt;div&gt;ANYA 1&lt;/div&gt;&lt;div&gt;DEVICE_MITIGATION 0&lt;/div&gt;&lt;div&gt;LEGACY_NOTIF 0&lt;/div&gt;&lt;div&gt;SILENT_NOTIF 0&lt;/div&gt;&lt;div&gt;GOV&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;AYUNDA_RUSDI&lt;/div&gt;" vertex="1">
+          <mxGeometry height="300" width="149.97" x="-70.02999999999997" y="910" as="geometry" />
         </mxCell>
         <mxCell id="USiz9r6OqI96Ol3waZUV-25" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="345" width="560" x="20" y="970" as="geometry" />
+          <mxGeometry height="330" width="170" x="-80" y="1350" as="geometry" />
         </mxCell>
         <mxCell id="USiz9r6OqI96Ol3waZUV-26" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="Raco Script Working Logic" vertex="1">
-          <mxGeometry height="40" width="135" x="30" y="980" as="geometry" />
+          <mxGeometry height="40" width="135" x="-61.48000000000002" y="1370" as="geometry" />
         </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-31" edge="1" parent="1" source="USiz9r6OqI96Ol3waZUV-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="USiz9r6OqI96Ol3waZUV-28">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="USiz9r6OqI96Ol3waZUV-31" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="295" y="1025" as="sourcePoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-27" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="Main Script (raco_main.c)&lt;div&gt;- CPUFreq Tweaks&lt;/div&gt;&lt;div&gt;- Generic Stuffs&lt;/div&gt;" vertex="1">
-          <mxGeometry height="60" width="160" x="215" y="1080" as="geometry" />
-        </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-33" edge="1" parent="1" source="USiz9r6OqI96Ol3waZUV-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="USiz9r6OqI96Ol3waZUV-32">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-28" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="Device Script (raco_device.c)&lt;div&gt;Device Specific Tweaks&lt;/div&gt;" vertex="1">
-          <mxGeometry height="60" width="160" x="215" y="1160" as="geometry" />
+        <mxCell id="USiz9r6OqI96Ol3waZUV-33" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="295" y="1105" as="sourcePoint" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="USiz9r6OqI96Ol3waZUV-29" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="Using Header (.h)&lt;div&gt;Is allowed if needed&lt;/div&gt;" vertex="1">
-          <mxGeometry height="40" width="140" x="30" y="1025" as="geometry" />
+          <mxGeometry height="40" width="140" x="-65" y="1420" as="geometry" />
         </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-30" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="&lt;span style=&quot;font-weight: normal;&quot;&gt;All Operations Must Use&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;tweak and kakangku&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;(raco_tool.s)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;raco_tool.s is an arm64 assembly to write and read&lt;/span&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="140" width="140" x="30" y="1075" as="geometry" />
+        <mxCell id="USiz9r6OqI96Ol3waZUV-30" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="&lt;span style=&quot;font-weight: normal;&quot;&gt;All Operations Must Use&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;rawrite, rakakikomi, raread&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;(raco_tool.s)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;raco_tool.s is an arm64 assembly to write and read&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="140" width="140" x="-65" y="1470" as="geometry" />
         </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-32" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="Disable Thermal (If ANYA 1)" vertex="1">
-          <mxGeometry height="40" width="160" x="215" y="1240" as="geometry" />
+        <mxCell id="USiz9r6OqI96Ol3waZUV-37" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="294.9047619047619" y="945" as="sourcePoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-37" edge="1" parent="1" source="USiz9r6OqI96Ol3waZUV-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="USiz9r6OqI96Ol3waZUV-27">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="USiz9r6OqI96Ol3waZUV-42" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="490.0476190476188" y="965" as="sourcePoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-36" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="GameSpace Commands" vertex="1">
-          <mxGeometry height="40" width="160" x="214.94" y="1020" as="geometry" />
+        <mxCell id="USiz9r6OqI96Ol3waZUV-44" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="490.0476190476188" y="1045" as="sourcePoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-38" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Open Game Logic" vertex="1">
-          <mxGeometry height="30" width="104.97" x="239.99999999999997" y="980" as="geometry" />
-        </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-42" edge="1" parent="1" source="USiz9r6OqI96Ol3waZUV-43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="USiz9r6OqI96Ol3waZUV-45">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-43" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="Main Script (raco_main.c)&lt;div&gt;- CPUFreq Tweaks&lt;/div&gt;&lt;div&gt;- Generic Stuffs&lt;/div&gt;" vertex="1">
-          <mxGeometry height="60" width="160" x="410" y="1020" as="geometry" />
-        </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-44" edge="1" parent="1" source="USiz9r6OqI96Ol3waZUV-45" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="USiz9r6OqI96Ol3waZUV-46">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-45" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="Device Script (raco_device.c)&lt;div&gt;Device Specific Tweaks&lt;/div&gt;" vertex="1">
-          <mxGeometry height="60" width="160" x="410" y="1100" as="geometry" />
-        </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-46" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="Enable Thermal (If ANYA 1)" vertex="1">
-          <mxGeometry height="40" width="160" x="410" y="1180" as="geometry" />
-        </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-47" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Close Game Logic" vertex="1">
-          <mxGeometry height="30" width="104.97" x="437.51" y="980" as="geometry" />
-        </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-49" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="345" width="190" x="590" y="855" as="geometry" />
+        <mxCell id="USiz9r6OqI96Ol3waZUV-49" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value=" " vertex="1">
+          <mxGeometry height="325" width="190" x="100" y="1230" as="geometry" />
         </mxCell>
         <mxCell id="USiz9r6OqI96Ol3waZUV-50" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="Service.sh Logic" vertex="1">
-          <mxGeometry height="30" width="170" x="600" y="865" as="geometry" />
-        </mxCell>
-        <mxCell id="USiz9r6OqI96Ol3waZUV-51" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="&lt;div style=&quot;&quot;&gt;If&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;div&gt;ANYA 1&lt;/div&gt;&lt;div&gt;Then Run Anya&lt;/div&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="60" width="170" x="600" y="910" as="geometry" />
+          <mxGeometry height="30" width="170" x="110" y="1240" as="geometry" />
         </mxCell>
         <mxCell id="USiz9r6OqI96Ol3waZUV-53" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="&lt;div style=&quot;&quot;&gt;If&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;div style=&quot;text-align: left;&quot;&gt;INCLUDE_KOBO &lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); text-align: center;&quot;&gt;1&lt;/span&gt;&lt;/div&gt;&lt;div&gt;Then Run Kobo&lt;/div&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="60" width="170" x="600" y="980" as="geometry" />
+          <mxGeometry height="60" width="170" x="110" y="1275" as="geometry" />
         </mxCell>
         <mxCell id="USiz9r6OqI96Ol3waZUV-54" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="&lt;div style=&quot;&quot;&gt;If&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;div&gt;INCLUDE_Sandev 1&lt;/div&gt;&lt;div&gt;Then Run Sandev&lt;/div&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="60" width="170" x="600" y="1050" as="geometry" />
+          <mxGeometry height="60" width="170" x="110" y="1345" as="geometry" />
         </mxCell>
         <mxCell id="USiz9r6OqI96Ol3waZUV-55" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="&lt;div style=&quot;&quot;&gt;If&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;div&gt;INCLUDE_ZETAMIN 1&lt;/div&gt;&lt;div&gt;Then Run Zetamin&lt;/div&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="60" width="170" x="600" y="1120" as="geometry" />
+          <mxGeometry height="60" width="170" x="110" y="1415" as="geometry" />
         </mxCell>
-        <mxCell id="XmydyrQZc527x0N56Icg-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="105" width="560" x="20" y="855" as="geometry" />
-        </mxCell>
-        <mxCell id="XmydyrQZc527x0N56Icg-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="GameSpace Flag" vertex="1">
-          <mxGeometry height="30" width="149.97" x="30" y="865" as="geometry" />
-        </mxCell>
-        <mxCell id="MQ6Wz3K3cny55tXldDVf-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Structure of Script" vertex="1">
-          <mxGeometry height="45" width="120" x="-840" y="1270" as="geometry" />
+        <mxCell id="MQ6Wz3K3cny55tXldDVf-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="Structure of Script" vertex="1">
+          <mxGeometry height="45" width="120" x="110" y="870" as="geometry" />
         </mxCell>
         <mxCell id="MQ6Wz3K3cny55tXldDVf-7" edge="1" parent="1" source="MQ6Wz3K3cny55tXldDVf-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="MQ6Wz3K3cny55tXldDVf-3">
           <mxGeometry relative="1" as="geometry" />
@@ -230,19 +150,55 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="MQ6Wz3K3cny55tXldDVf-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="raco_tool.s&lt;div&gt;Contains of&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;read, write (case 444 and 644)&lt;/div&gt;" vertex="1">
-          <mxGeometry height="80" width="180" x="-840" y="1330" as="geometry" />
+          <mxGeometry height="80" width="180" x="110" y="930" as="geometry" />
         </mxCell>
         <mxCell id="MQ6Wz3K3cny55tXldDVf-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;" value="raco_main.c&lt;div&gt;- Basic Generic Tweaks&lt;/div&gt;&lt;div&gt;- The controller of everything&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;(Awaken, Balanced, Powersave, Normal)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Use example:&lt;/div&gt;&lt;div&gt;su -c raco_main 4&lt;/div&gt;" vertex="1">
-          <mxGeometry height="120" width="390" x="-600" y="1270" as="geometry" />
+          <mxGeometry height="120" width="390" x="350" y="870" as="geometry" />
         </mxCell>
-        <mxCell id="MQ6Wz3K3cny55tXldDVf-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="4 = Awaken&lt;div&gt;3 = Balanced&lt;/div&gt;&lt;div&gt;2 = Powersave&lt;/div&gt;&lt;div&gt;1 = Normal State&lt;/div&gt;" vertex="1">
-          <mxGeometry height="137.5" width="120" x="-300" y="1072.5" as="geometry" />
+        <mxCell id="MQ6Wz3K3cny55tXldDVf-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;b&gt;Script Notes&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&amp;nbsp;4 = Performance&lt;div&gt;3 = Balanced&lt;/div&gt;&lt;div&gt;&amp;nbsp;2 = Powersave&lt;/div&gt;&lt;div&gt;1 = Normal&lt;/div&gt;" vertex="1">
+          <mxGeometry height="200" width="120" x="-790" y="1180" as="geometry" />
         </mxCell>
-        <mxCell id="MQ6Wz3K3cny55tXldDVf-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;" value="raco_devices.c&lt;div&gt;- Tweaks of Device Specific (Awaken, Balanced, Powersave, Normal)&lt;/div&gt;&lt;div&gt;- It will be called on raco_main.c&lt;/div&gt;" vertex="1">
-          <mxGeometry height="60" width="390" x="-600" y="1400" as="geometry" />
+        <mxCell id="MQ6Wz3K3cny55tXldDVf-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;" value="raco_devices.c&lt;div&gt;- Tweaks of Device Specific (Performance, Balanced, Normal, etc)&lt;/div&gt;&lt;div&gt;- It will be called on raco_main.c&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="390" x="350" y="1000" as="geometry" />
         </mxCell>
         <mxCell id="MQ6Wz3K3cny55tXldDVf-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;" value="raco_tools.c&lt;div&gt;- Contains of tools of Raco (CPUFreq calculation, Notifications Post, etc)&lt;/div&gt;&lt;div&gt;- It will be called on raco_main.c&lt;/div&gt;" vertex="1">
-          <mxGeometry height="60" width="390" x="-600" y="1470" as="geometry" />
+          <mxGeometry height="60" width="390" x="350" y="1070" as="geometry" />
+        </mxCell>
+        <mxCell id="wLMJtahLav3UEi4vTlQo-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Ultra Powersave&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;cpuinfo_min_freq &amp;gt; scaling_min_freq&lt;/div&gt;&lt;div&gt;cpuinfo_min_freq &amp;gt; scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;GOV is powersave&lt;/div&gt;&lt;div&gt;powersave misc tweaks&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="210" x="-350" y="1465" as="geometry" />
+        </mxCell>
+        <mxCell id="wLMJtahLav3UEi4vTlQo-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;Game Assistant Presets&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="170" x="-550" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="wLMJtahLav3UEi4vTlQo-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div&gt;&lt;b&gt;Lite Powersave&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;cpuinfo_min_freq &amp;gt; scaling_min_freq&lt;/div&gt;&lt;div&gt;CPU MidFreq &amp;gt; scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;GOV is powersave&lt;/div&gt;&lt;div&gt;powersave misc tweaks&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="210" x="-570" y="1465" as="geometry" />
+        </mxCell>
+        <mxCell id="wLMJtahLav3UEi4vTlQo-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;All Possible Presets (For Main)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="220" x="-575" y="1180" as="geometry" />
+        </mxCell>
+        <mxCell id="wLMJtahLav3UEi4vTlQo-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;b&gt;Performance&lt;/b&gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;u&gt;Max CPUFreq&amp;nbsp;&lt;/u&gt;&lt;/div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_min_freq&lt;/div&gt;&lt;div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt;&amp;nbsp;scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;Max GPUFreq&lt;/div&gt;&lt;div&gt;performance misc tweaks&lt;/div&gt;&lt;div&gt;GOV is performance&lt;/div&gt;" vertex="1">
+          <mxGeometry height="220" width="210" x="-570" y="1230" as="geometry" />
+        </mxCell>
+        <mxCell id="wLMJtahLav3UEi4vTlQo-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;b&gt;Lite Performance&lt;/b&gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;u&gt;CPU MidFreq as minfreq&lt;/u&gt;&lt;/div&gt;&lt;div&gt;cpu mid freq &amp;gt; scaling_min_freq&lt;/div&gt;&lt;div&gt;&lt;div&gt;cpuinfo_max_freq &amp;gt; scaling_max_freq&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;GPU Midfreq as GPU minfreq&lt;/div&gt;&lt;div&gt;balanced misc tweaks&lt;/div&gt;&lt;div&gt;GOV is schedutil / Custom&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Note: This one is actually rebranding for Balanced in Game Assistant but yea, in game you know it&#39;s fcked up if I set it to normal (So set this as 4)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="220" width="210" x="-350" y="1230" as="geometry" />
+        </mxCell>
+        <mxCell id="wLMJtahLav3UEi4vTlQo-11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Note&lt;div&gt;For STATE it should be erased on service.sh for the app to reset each state after reboot&lt;/div&gt;" vertex="1">
+          <mxGeometry height="90" width="150" x="-70" y="1230" as="geometry" />
+        </mxCell>
+        <mxCell id="wLMJtahLav3UEi4vTlQo-13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="&lt;div style=&quot;&quot;&gt;STATE&lt;/div&gt;&lt;div style=&quot;&quot;&gt;Should be cleared&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="170" x="110" y="1485" as="geometry" />
+        </mxCell>
+        <mxCell id="wLMJtahLav3UEi4vTlQo-14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="460" width="450" x="300" y="1230" as="geometry" />
+        </mxCell>
+        <mxCell id="wLMJtahLav3UEi4vTlQo-16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;b&gt;Rules of Project Raco&lt;/b&gt;&lt;div&gt;-&amp;nbsp;&lt;b style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Assembly (only arm64) + C Scripts&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;Do take a note that using shell is &lt;b&gt;PROHIBITED&lt;/b&gt; by any means&lt;/div&gt;&lt;div style=&quot;&quot;&gt;-&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Unless, it only can be done via shell, it is &lt;/span&gt;&lt;b style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;forgiveable&lt;/b&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;. But use it &lt;/span&gt;&lt;b style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;as minimal as it can&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- &lt;/b&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Minimize the usage of dumpsys, cmd, etc&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;- Using UNIX socket is prohibited, please use POSIX (Direct execution)&lt;/div&gt;&lt;div style=&quot;&quot;&gt;- Calling binary uses linker64&lt;/div&gt;&lt;div style=&quot;&quot;&gt;- It is adviseable for using su -c for once only task, if loop task please warp su -c for once execution so that will not call su -c on repeat&lt;/div&gt;" vertex="1">
+          <mxGeometry height="190" width="430" x="-670" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="wLMJtahLav3UEi4vTlQo-17" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="Game Assistant Features" vertex="1">
+          <mxGeometry height="30" width="170" x="440" y="1240" as="geometry" />
+        </mxCell>
+        <mxCell id="yyM6sG23r63t6FSrpJoh-1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="- Crosshair&lt;div&gt;- Ayunda Rusdi&lt;/div&gt;&lt;div&gt;- Auxalirty Line&lt;/div&gt;&lt;div&gt;- FPS Meter (BETA)&lt;/div&gt;&lt;div&gt;- KSWAP &amp;lt;- Probably not here. This is new Project Raco 7.0 Features&lt;/div&gt;&lt;div&gt;- Standby Mode&lt;/div&gt;&lt;div&gt;- DND&lt;/div&gt;&lt;div&gt;- Screenshot (Non Native / Root Method)&lt;/div&gt;&lt;div&gt;- (And so on)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="400" width="430" x="310" y="1280" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

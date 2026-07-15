@@ -52,7 +52,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
     var liteMode by remember { mutableStateOf(false) }
     var lifeMode by remember { mutableStateOf(false) }
     var betterPowersave by remember { mutableStateOf(false) }
-    var carlottaCpu by remember { mutableStateOf(false) }
+    var alterCpuMethod by remember { mutableStateOf(false) }
     var legacyNotif by remember { mutableStateOf(false) }
     var silentNotif by remember { mutableStateOf(false) }
     var availableGovernors by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -69,7 +69,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
             liteMode = parseFlag(content, "LITE_MODE")
             lifeMode = parseFlag(content, "LIFE_MODE")
             betterPowersave = parseFlag(content, "BETTER_POWERAVE")
-            carlottaCpu = parseFlag(content, "KCPU_MITIGATE", inverted = true)
+            alterCpuMethod = parseFlag(content, "ALTER_CPU_METHOD")
             legacyNotif = parseFlag(content, "LEGACY_NOTIF")
             silentNotif = parseFlag(content, "SILENT_NOTIF", inverted = true)
             selectedGovernor = Regex("^GOV=(.*)$", RegexOption.MULTILINE).find(content)?.groupValues?.getOrNull(1)?.trim()
@@ -126,8 +126,8 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
                         TweakToggle("Better Powersave", "Cap CPU for maximum battery savings", Icons.Default.BatterySaver, betterPowersave) {
                             toggle("BETTER_POWERAVE", betterPowersave) { betterPowersave = it }
                         }
-                        TweakToggle("Carlotta CPU", "Modify CPU mitigation target", Icons.Default.Memory, carlottaCpu) {
-                            toggle("KCPU_MITIGATE", carlottaCpu, inverted = true) { carlottaCpu = it }
+                        TweakToggle("Alter CPU Method", "Use this if Scaling Frequency is Wrong for your device", Icons.Default.Memory, alterCpuMethod) {
+                            toggle("ALTER_CPU_METHOD", alterCpuMethod) { alterCpuMethod = it }
                         }
                         TweakToggle("Legacy Notification", "Fix missing notifications", Icons.Default.NotificationsActive, legacyNotif) {
                             toggle("LEGACY_NOTIF", legacyNotif) { legacyNotif = it }
