@@ -359,13 +359,15 @@ fun AppearanceScreen(onBack: () -> Unit) {
                     }
                     Slider(
                         value = bgOpacity,
-                        onValueChange = { bgOpacity = it },
+                        onValueChange = { 
+                            bgOpacity = it 
+                            context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                                .edit().putFloat("bg_opacity", it).apply()
+                        },
                         onValueChangeFinished = {
                             scope.launch {
                                 writeAppearanceKey("BG_OPACITY", bgOpacity.toString())
                             }
-                            context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
-                                .edit().putFloat("bg_opacity", bgOpacity).apply()
                         },
                         valueRange = 0f..1f,
                         steps = 9
@@ -380,13 +382,15 @@ fun AppearanceScreen(onBack: () -> Unit) {
                     }
                     Slider(
                         value = bgBlur,
-                        onValueChange = { bgBlur = it },
+                        onValueChange = { 
+                            bgBlur = it 
+                            context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                                .edit().putFloat("bg_blur", it).apply()
+                        },
                         onValueChangeFinished = {
                             scope.launch {
                                 writeAppearanceKey("BG_BLUR", bgBlur.toString())
                             }
-                            context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
-                                .edit().putFloat("bg_blur", bgBlur).apply()
                         },
                         valueRange = 0f..30f,
                         steps = 5

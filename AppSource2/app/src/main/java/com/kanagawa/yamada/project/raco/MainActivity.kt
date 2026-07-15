@@ -67,30 +67,45 @@ class MainActivity : AppCompatActivity() {
             var adaptiveColor by remember { mutableStateOf<Color?>(null) }
             var isAdaptiveEnabled by remember { mutableStateOf(false) }
             
-            LaunchedEffect(Unit) {
-                while(true) {
-                    val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
-                    bgImagePath = sharedPrefs.getString("background_image_path", "") ?: ""
-                    bgOpacity = sharedPrefs.getFloat("bg_opacity", 0.3f)
-                    bgBlur = sharedPrefs.getFloat("bg_blur", 10f)
-                    isAdaptiveEnabled = sharedPrefs.getBoolean("adaptive_color_enabled", false)
-                    val bannerPath = sharedPrefs.getString("banner_image_path", "") ?: ""
-                    
-                    if (isAdaptiveEnabled && bannerPath.isNotEmpty() && java.io.File(bannerPath).exists()) {
-                        withContext(Dispatchers.IO) {
-                            try {
-                                val bitmap = android.graphics.BitmapFactory.decodeFile(bannerPath)
-                                val scaled = android.graphics.Bitmap.createScaledBitmap(bitmap, 1, 1, true)
-                                val pixel = scaled.getPixel(0, 0)
-                                adaptiveColor = Color(pixel)
-                            } catch (e: Exception) {
-                                adaptiveColor = null
-                            }
-                        }
-                    } else {
-                        adaptiveColor = null
+            val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
+            var bannerPath by remember { mutableStateOf(sharedPrefs.getString("banner_image_path", "") ?: "") }
+            
+            DisposableEffect(Unit) {
+                bgImagePath = sharedPrefs.getString("background_image_path", "") ?: ""
+                bgOpacity = sharedPrefs.getFloat("bg_opacity", 0.3f)
+                bgBlur = sharedPrefs.getFloat("bg_blur", 10f)
+                isAdaptiveEnabled = sharedPrefs.getBoolean("adaptive_color_enabled", false)
+                bannerPath = sharedPrefs.getString("banner_image_path", "") ?: ""
+                
+                val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
+                    when (key) {
+                        "background_image_path" -> bgImagePath = prefs.getString(key, "") ?: ""
+                        "bg_opacity" -> bgOpacity = prefs.getFloat(key, 0.3f)
+                        "bg_blur" -> bgBlur = prefs.getFloat(key, 10f)
+                        "adaptive_color_enabled" -> isAdaptiveEnabled = prefs.getBoolean(key, false)
+                        "banner_image_path" -> bannerPath = prefs.getString(key, "") ?: ""
                     }
-                    kotlinx.coroutines.delay(1000) // Poll for changes
+                }
+                sharedPrefs.registerOnSharedPreferenceChangeListener(listener)
+                onDispose {
+                    sharedPrefs.unregisterOnSharedPreferenceChangeListener(listener)
+                }
+            }
+            
+            LaunchedEffect(isAdaptiveEnabled, bannerPath) {
+                if (isAdaptiveEnabled && bannerPath.isNotEmpty() && java.io.File(bannerPath).exists()) {
+                    withContext(Dispatchers.IO) {
+                        try {
+                            val bitmap = android.graphics.BitmapFactory.decodeFile(bannerPath)
+                            val scaled = android.graphics.Bitmap.createScaledBitmap(bitmap, 1, 1, true)
+                            val pixel = scaled.getPixel(0, 0)
+                            adaptiveColor = Color(pixel)
+                        } catch (e: Exception) {
+                            adaptiveColor = null
+                        }
+                    }
+                } else {
+                    adaptiveColor = null
                 }
             }
 
