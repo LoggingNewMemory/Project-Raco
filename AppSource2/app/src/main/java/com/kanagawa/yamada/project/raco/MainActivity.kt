@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContent {
-            ScaleTabletUI {
+
                 ProjectRacoTheme(darkTheme = true) {
                     var currentScreen by remember { mutableStateOf(ScreenState.CHECKING_ROOT) }
 
@@ -92,7 +92,6 @@ class MainActivity : AppCompatActivity() {
                             RacoApp()
                         }
                     }
-                }
                 }
             }
         }

@@ -111,15 +111,7 @@ fun UtilitiesScreen(onBack: () -> Unit) {
     ) { padding ->
         val context = androidx.compose.ui.platform.LocalContext.current
         val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
-        val endfieldCollabEnabled = false
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (endfieldCollabEnabled) {
-                com.kanagawa.yamada.project.raco.TopoBackground(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                    speed = 0.15f
-                )
-            }
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -194,5 +186,4 @@ fun UtilitiesScreen(onBack: () -> Unit) {
             }
         }
     }
-}
 }
