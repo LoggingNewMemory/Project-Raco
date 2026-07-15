@@ -69,7 +69,8 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
     val balTitle = stringResource(R.string.balanced)
     val perfTitle = stringResource(R.string.performance)
     val gpTitle = stringResource(R.string.gaming_pro)
-    val clrTitle = stringResource(R.string.clear)
+    val clrTitle = stringResource(R.string.reset)
+    val cdTitle = stringResource(R.string.cooldown_title)
     val context = androidx.compose.ui.platform.LocalContext.current
     val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
     val bannerImagePath = sharedPrefs.getString("banner_image_path", "")
@@ -339,20 +340,22 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                         }
                     }
 
+                    data class ControlMode(val title: String, val descRes: Int, val modeId: String, val modeName: String, val icon: ImageVector)
+
                     val controlParams = listOf(
-                        Triple(psTitle, "Battery optimization", Pair("3", "POWER_SAVE")),
-                        Triple(balTitle, "Everyday usage", Pair("2", "BALANCED")),
-                        Triple(perfTitle, "Maximized output", Pair("1", "PERFORMANCE")),
-                        Triple(gpTitle, "Maximum performance", Pair("4", "GAMING_PRO")),
-                        Triple("Cooldown", "Thermal throttle", Pair("5", "COOLDOWN")),
-                        Triple(clrTitle, "Reset state", Pair("6", "CLEAR"))
+                        ControlMode(psTitle, R.string.battery_optimization, "3", "POWER_SAVE", Icons.Default.BatterySaver),
+                        ControlMode(balTitle, R.string.everyday_usage, "2", "BALANCED", Icons.Default.Tune),
+                        ControlMode(perfTitle, R.string.maximized_output, "1", "PERFORMANCE", Icons.Default.FlashOn),
+                        ControlMode(gpTitle, R.string.maximum_performance, "4", "GAMING_PRO", Icons.Default.RocketLaunch),
+                        ControlMode(cdTitle, R.string.thermal_throttle, "5", "COOLDOWN", Icons.Default.AcUnit),
+                        ControlMode(clrTitle, R.string.reset_state, "6", "CLEAR", Icons.Default.Refresh)
                     )
 
                     items(controlParams) { p ->
-                        val isCurr = currentMode == p.third.second
-                        val isExec = executingMode == p.third.first
-                        ControlRow(p.first, p.second, if (isCurr) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant, isExec, isCurr, hasRoot) {
-                            executeScript(p.third.first, p.third.second)
+                        val isCurr = currentMode == p.modeName
+                        val isExec = executingMode == p.modeId
+                        ControlRow(p.title, stringResource(p.descRes), p.icon, if (isCurr) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant, isExec, isCurr, hasRoot) {
+                            executeScript(p.modeId, p.modeName)
                         }
                     }
 
@@ -382,14 +385,14 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
 }
 
 @Composable
-fun ControlRow(title: String, desc: String, bgColor: Color, isExecuting: Boolean, isCurrent: Boolean, enabled: Boolean, onClick: () -> Unit) {
+fun ControlRow(title: String, desc: String, icon: ImageVector, bgColor: Color, isExecuting: Boolean, isCurrent: Boolean, enabled: Boolean, onClick: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = bgColor),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth().clickable(enabled = enabled && !isExecuting) { onClick() }
     ) {
         Row(modifier = Modifier.padding(16.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Settings, contentDescription = null, tint = if (isCurrent) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(icon, contentDescription = null, tint = if (isCurrent) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal, color = if (isCurrent) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface)

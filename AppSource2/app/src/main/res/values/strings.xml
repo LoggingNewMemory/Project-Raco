@@ -334,4 +334,12 @@
     <string name="resolution_downscale">Resolution Downscale</string>
     <string name="root_access_denied_project_raco_requires_root">Root Access Denied. Project Raco requires Root.</string>
     <string name="tap_for_menu">Tap for menu</string>
+
+    <string name="battery_optimization">Battery optimization</string>
+    <string name="everyday_usage">Everyday usage</string>
+    <string name="maximized_output">Maximized output</string>
+    <string name="maximum_performance">Maximum performance</string>
+    <string name="cooldown_title">Cooldown</string>
+    <string name="thermal_throttle">Thermal throttle</string>
+    <string name="reset_state">Reset state</string>
 </resources>
