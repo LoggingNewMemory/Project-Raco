@@ -126,7 +126,10 @@ fun AppearanceScreen(onBack: () -> Unit) {
                             }
                         }
                         context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
-                            .edit().putString("banner_image_path", destFile.absolutePath).apply()
+                            .edit()
+                            .putString("banner_image_path", destFile.absolutePath)
+                            .putLong("banner_update_timestamp", System.currentTimeMillis())
+                            .apply()
                         bannerExists = true
                         snackbarHostState.showSnackbar(context.getString(R.string.banner_installed_successfully))
                     } catch (e: Exception) {

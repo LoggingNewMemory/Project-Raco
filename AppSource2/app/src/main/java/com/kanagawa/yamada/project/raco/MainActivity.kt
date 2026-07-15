@@ -69,6 +69,7 @@ class MainActivity : AppCompatActivity() {
             
             val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
             var bannerPath by remember { mutableStateOf(sharedPrefs.getString("banner_image_path", "") ?: "") }
+            var bannerUpdateTrigger by remember { mutableStateOf(sharedPrefs.getLong("banner_update_timestamp", 0L)) }
             
             DisposableEffect(Unit) {
                 bgImagePath = sharedPrefs.getString("background_image_path", "") ?: ""
@@ -76,6 +77,7 @@ class MainActivity : AppCompatActivity() {
                 bgBlur = sharedPrefs.getFloat("bg_blur", 10f)
                 isAdaptiveEnabled = sharedPrefs.getBoolean("adaptive_color_enabled", false)
                 bannerPath = sharedPrefs.getString("banner_image_path", "") ?: ""
+                bannerUpdateTrigger = sharedPrefs.getLong("banner_update_timestamp", 0L)
                 
                 val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
                     when (key) {
@@ -84,6 +86,7 @@ class MainActivity : AppCompatActivity() {
                         "bg_blur" -> bgBlur = prefs.getFloat(key, 10f)
                         "adaptive_color_enabled" -> isAdaptiveEnabled = prefs.getBoolean(key, false)
                         "banner_image_path" -> bannerPath = prefs.getString(key, "") ?: ""
+                        "banner_update_timestamp" -> bannerUpdateTrigger = prefs.getLong(key, 0L)
                     }
                 }
                 sharedPrefs.registerOnSharedPreferenceChangeListener(listener)
@@ -92,7 +95,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             
-            LaunchedEffect(isAdaptiveEnabled, bannerPath) {
+            LaunchedEffect(isAdaptiveEnabled, bannerPath, bannerUpdateTrigger) {
                 if (isAdaptiveEnabled && bannerPath.isNotEmpty() && java.io.File(bannerPath).exists()) {
                     withContext(Dispatchers.IO) {
                         try {
