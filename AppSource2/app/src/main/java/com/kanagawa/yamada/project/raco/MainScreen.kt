@@ -82,7 +82,6 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
     var executingMode by remember { mutableStateOf("") }
     var moduleInstalled by remember { mutableStateOf(false) }
     var moduleVersion by remember { mutableStateOf("Unknown") }
-    var isEndfieldEngineRunning by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -153,12 +152,6 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
         } catch (e: Exception) { "NONE" }
     }
 
-    suspend fun checkEndfieldProcess(): Boolean = withContext(Dispatchers.IO) {
-        try {
-            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "pgrep -x Endfield"))
-            process.waitFor() == 0
-        } catch(e: Exception) { false }
-    }
 
     LaunchedEffect(Unit) {
         hasRoot = checkRoot()
@@ -168,7 +161,6 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                 moduleVersion = getModuleVersion()
             }
             currentMode = fetchActiveMode()
-            isEndfieldEngineRunning = checkEndfieldProcess()
         }
         checkingRoot = false
     }
@@ -309,7 +301,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                                     Icon(Icons.Default.SettingsInputComponent, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(stringResource(R.string.mode_status), style = MaterialTheme.typography.bodySmall)
-                                    Text(if (isEndfieldEngineRunning) stringResource(R.string.endfield_engine) else stringResource(R.string.mode_manual), style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.primary)
+                                    Text(stringResource(R.string.mode_manual), style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.primary)
                                 }
                             }
                         }
