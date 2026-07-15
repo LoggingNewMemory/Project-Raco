@@ -105,7 +105,7 @@
     <string name="carlotta_cpu_description">Modifikasi Target CPU (PERINGATAN: Dapat Membuat Perangkat Crash)</string>
     <string name="build_version_title">Project Raco: Build {buildName}</string>
     <string name="build_by_title">Dibuat Oleh: {builderName}</string>
-    <string name="screen_modifier_title">Pengubah Layar</string>
+    <string name="screen_modifier_title">Ayunda Rusdi</string>
     <string name="screen_modifier_description">Sesuaikan matriks warna layar dan saturasi untuk pengalaman tampilan kustom.</string>
     <string name="screen_modifier_red">Merah</string>
     <string name="screen_modifier_green">Hijau</string>

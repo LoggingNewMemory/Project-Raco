@@ -105,7 +105,7 @@
     <string name="carlotta_cpu_description">ターゲットCPUを変更 (警告: デバイスがクラッシュする可能性があります)</string>
     <string name="build_version_title">Project Raco: {buildName} ビルド</string>
     <string name="build_by_title">作成者: {builderName}</string>
-    <string name="screen_modifier_title">スクリーンモディファイア</string>
+    <string name="screen_modifier_title">Ayunda Rusdi</string>
     <string name="screen_modifier_description">画面のカラーマトリックスと彩度を調整して、カスタム表示体験を実現します。</string>
     <string name="screen_modifier_red">赤</string>
     <string name="screen_modifier_green">緑</string>

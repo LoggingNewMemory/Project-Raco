@@ -107,7 +107,7 @@
     <string name="carlotta_cpu_description">Modify Target CPU (WARN: May Crash Your Device)</string>
     <string name="build_version_title">Project Raco: {buildName} Build</string>
     <string name="build_by_title">Build By: {builderName}</string>
-    <string name="screen_modifier_title">Screen Modifier</string>
+    <string name="screen_modifier_title">Ayunda Rusdi</string>
     <string name="screen_modifier_description">Adjust the screen color matrix and saturation for a custom display experience.</string>
     <string name="screen_modifier_red">Red</string>
     <string name="screen_modifier_green">Green</string>
@@ -344,7 +344,6 @@
     <string name="controls_how_the_banner_image_appears_lower_opacity_more_transparent_higher_blur_softer">Controls how the banner image appears. Lower opacity = more transparent. Higher blur = softer.</string>
     <string name="opacity_bgopacity_100_toint">Opacity: ${(bgOpacity * 100).toInt()}%</string>
     <string name="blur_bgblur_toint_px">Blur: ${bgBlur.toInt()}px</string>
-    <string name="adjust_the_rgb_color_multipliers_applied_globally_1_0_no_change">Adjust the RGB color multipliers applied globally. 1.0 = no change.</string>
     <string name="override_screen_brightness_0_255_set_to_1_for_automatic">Override screen brightness (0-255). Set to -1 for automatic.</string>
     <string name="str_empty_1">日本語</string>
     <string name="str_empty_2">Русский</string>

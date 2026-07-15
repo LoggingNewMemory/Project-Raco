@@ -105,7 +105,7 @@
     <string name="carlotta_cpu_description">Изменить целевой ЦП (ВНИМАНИЕ: Возможен сбой устройства)</string>
     <string name="build_version_title">Project Raco: Сборка {buildName} </string>
     <string name="build_by_title">Собрано {builderName}</string>
-    <string name="screen_modifier_title">Модификация экрана</string>
+    <string name="screen_modifier_title">Ayunda Rusdi</string>
     <string name="screen_modifier_description">Настройте цветовую матрицу и насыщенность экрана для индивидуального отображения.</string>
     <string name="screen_modifier_red">Красный</string>
     <string name="screen_modifier_green">Зеленый</string>

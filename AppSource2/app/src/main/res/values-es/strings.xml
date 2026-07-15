@@ -105,7 +105,7 @@
     <string name="carlotta_cpu_description">Modificar CPU Objetivo (ADVERTENCIA: Puede Bloquear su Dispositivo)</string>
     <string name="build_version_title">Project Raco: {buildName} Compilacion</string>
     <string name="build_by_title">Compilacion por: {builderName}</string>
-    <string name="screen_modifier_title">Modificador de Pantalla</string>
+    <string name="screen_modifier_title">Ayunda Rusdi</string>
     <string name="screen_modifier_description">Ajuste la matriz de color y la saturación de la pantalla para una experiencia de visualización personalizada.</string>
     <string name="screen_modifier_red">Rojo</string>
     <string name="screen_modifier_green">Verde</string>

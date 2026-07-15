@@ -157,7 +157,7 @@ fun SystemScreen(onBack: () -> Unit) {
             // Screen Color Modifiers Card
             item {
                 SystemCard(stringResource(R.string.screen_modifier_title)) {
-                    Text(stringResource(R.string.adjust_the_rgb_color_multipliers_applied_globally_1_0_no_change),
+                    Text(stringResource(R.string.screen_modifier_description),
                         style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(Modifier.height(12.dp))
