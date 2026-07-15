@@ -16,6 +16,10 @@ enum class Screen {
 fun RacoApp() {
     var currentScreen by remember { mutableStateOf(Screen.Main) }
 
+    androidx.activity.compose.BackHandler(enabled = currentScreen != Screen.Main) {
+        currentScreen = Screen.Main
+    }
+
     Crossfade(targetState = currentScreen, label = "ScreenTransition") { screen ->
         when (screen) {
             Screen.Main -> MainScreen(onNavigate = { currentScreen = it })

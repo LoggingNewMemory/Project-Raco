@@ -70,6 +70,9 @@ fun UtilitiesScreen(onBack: () -> Unit) {
 
     // Navigate to sub-screen
     currentRoute?.let { route ->
+        androidx.activity.compose.BackHandler(enabled = true) {
+            currentRoute = null
+        }
         when (route) {
             UtilityRoute.CoreTweaks -> CoreTweaksScreen(onBack = { currentRoute = null })
             UtilityRoute.Automation -> AutomationScreen(onBack = { currentRoute = null })
