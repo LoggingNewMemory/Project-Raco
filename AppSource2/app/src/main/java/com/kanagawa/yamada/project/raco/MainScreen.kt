@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco
 
+import androidx.compose.ui.draw.alpha
+
 import com.kanagawa.yamada.project.raco.R
 import androidx.compose.ui.res.stringResource
 
@@ -186,11 +188,16 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
     }
 
     val scaffoldContent = @Composable { padding: PaddingValues ->
+        val alpha by androidx.compose.animation.core.animateFloatAsState(
+            targetValue = if (checkingRoot) 0f else 1f,
+            animationSpec = androidx.compose.animation.core.tween(500), label = ""
+        )
         LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp)
+                    .alpha(alpha),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
@@ -236,13 +243,6 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                if (checkingRoot) {
-                    item {
-                        Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                        }
-                    }
-                } else {
                     item {
                         // Banner
                         Card(
@@ -363,7 +363,6 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
 
                     item { Spacer(modifier = Modifier.height(24.dp)) }
                 }
-            }
         }
 
     Scaffold(

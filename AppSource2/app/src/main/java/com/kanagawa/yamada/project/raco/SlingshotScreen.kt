@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco
 
+import androidx.compose.ui.draw.alpha
+
 import com.kanagawa.yamada.project.raco.R
 import androidx.compose.ui.res.stringResource
 
@@ -156,6 +158,10 @@ fun SlingshotScreen(onBack: () -> Unit) {
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { pd ->
+            val listAlpha by androidx.compose.animation.core.animateFloatAsState(
+                targetValue = if (isLoadingApps) 0f else 1f,
+                animationSpec = androidx.compose.animation.core.tween(500), label = ""
+            )
             LazyColumn(modifier = Modifier.fillMaxSize().padding(pd).padding(horizontal = 16.dp)) {
                 item {
                     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)), modifier = Modifier.fillMaxWidth()) {
@@ -216,14 +222,12 @@ fun SlingshotScreen(onBack: () -> Unit) {
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                if (isLoadingApps) {
-                    item { Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() } }
-                } else {
                     items(filteredApps) { pkg ->
                         val isSelected = selectedApp == pkg
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .alpha(listAlpha)
                                 .padding(vertical = 4.dp)
                                 .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha=0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.2f), MaterialTheme.shapes.medium)
                                 .border(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent, MaterialTheme.shapes.medium)
@@ -244,7 +248,6 @@ fun SlingshotScreen(onBack: () -> Unit) {
                             }
                         }
                     }
-                }
                 item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
