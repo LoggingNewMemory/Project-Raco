@@ -23,7 +23,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:resizeableActivity="true"
-        android:theme="@style/Theme.ProjectRaco">
+        android:theme="@style/Theme.ProjectRaco"
+        android:localeConfig="@xml/locales_config">
 
         <activity
             android:name=".MainActivity"

@@ -1,5 +1,8 @@
 package com.kanagawa.yamada.project.raco.screens
 
+import com.kanagawa.yamada.project.raco.R
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -42,11 +45,11 @@ fun UtilitiesScreen(onBack: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
 
     val categories = listOf(
-        UtilityItem("Core Tweaks", "CPU mitigations, governors, lite modes", Icons.Default.Tune, UtilityRoute.CoreTweaks, "device mitigation lite mode life mode better powersave carlotta cpu legacy notif governor"),
-        UtilityItem("Automation", "Gaming mode, DND, app lists", Icons.Default.SmartToy, UtilityRoute.Automation, "automation gaming mode dnd do not disturb app list game txt interval"),
-        UtilityItem("System", "Thermal, FSTRIM, resolution", Icons.Default.Settings, UtilityRoute.System, "anya thermal sandevistan fstrim clear cache graphics driver resolution downscale"),
-        UtilityItem("Appearance", "Background image, screen color modifiers", Icons.Default.ColorLens, UtilityRoute.Appearance, "background image wallpaper banner opacity blur screen color rgb saturation"),
-        UtilityItem("Extra Settings", "Anya, Kobo, Zetamin, Sandevistan installers", Icons.Default.BuildCircle, UtilityRoute.ExtraSettings, "anya kobo zetamin sandevistan installer config include")
+        UtilityItem(stringResource(R.string.core_tweaks_title), "CPU mitigations, governors, lite modes", Icons.Default.Tune, UtilityRoute.CoreTweaks, "device mitigation lite mode life mode better powersave carlotta cpu legacy notif governor"),
+        UtilityItem(stringResource(R.string.automation_title), "Gaming mode, DND, app lists", Icons.Default.SmartToy, UtilityRoute.Automation, "automation gaming mode dnd do not disturb app list game txt interval"),
+        UtilityItem(stringResource(R.string.system_title), "Thermal, FSTRIM, resolution", Icons.Default.Settings, UtilityRoute.System, "anya thermal sandevistan fstrim clear cache graphics driver resolution downscale"),
+        UtilityItem(stringResource(R.string.appearance_title), "Background image, screen color modifiers", Icons.Default.ColorLens, UtilityRoute.Appearance, "background image wallpaper banner opacity blur screen color rgb saturation"),
+        UtilityItem(stringResource(R.string.extra_settings_title), "Anya, Kobo, Zetamin, Sandevistan installers", Icons.Default.BuildCircle, UtilityRoute.ExtraSettings, "anya kobo zetamin sandevistan installer config include")
     )
 
     LaunchedEffect(Unit) {
@@ -90,7 +93,7 @@ fun UtilitiesScreen(onBack: () -> Unit) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Utilities")
+                    Text(stringResource(R.string.utilities_title))
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -131,7 +134,7 @@ fun UtilitiesScreen(onBack: () -> Unit) {
 
             if (!hasRoot) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Root access required.", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.error_no_root), color = MaterialTheme.colorScheme.error)
                 }
                 return@Column
             }

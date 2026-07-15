@@ -1,5 +1,8 @@
 package com.kanagawa.yamada.project.raco.screens
 
+import com.kanagawa.yamada.project.raco.R
+import androidx.compose.ui.res.stringResource
+
 import android.content.pm.PackageManager
 import android.graphics.drawable.BitmapDrawable
 import androidx.compose.foundation.Image
@@ -70,7 +73,7 @@ fun AutomationScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Automation") },
+                title = { Text(stringResource(R.string.automation_title)) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, titleContentColor = MaterialTheme.colorScheme.primary, navigationIconContentColor = MaterialTheme.colorScheme.primary)
             )
@@ -233,7 +236,7 @@ private fun AppListPage(onBack: () -> Unit) {
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("Search apps...") },
+                placeholder = { Text(stringResource(R.string.search_apps_hint)) },
                 leadingIcon = { Icon(Icons.Default.Search, null) },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(30.dp),
@@ -285,10 +288,10 @@ private fun AppListPage(onBack: () -> Unit) {
                                     Text(app.packageName, fontSize = 12.sp, color = Color.White.copy(0.5f), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                     Spacer(Modifier.height(8.dp))
                                     Row {
-                                        AppBadge(if (isEnabled) "ENABLED" else "DISABLED", if (isEnabled) Color(0xFF4CAF50) else Color(0xFFE57373))
+                                        AppBadge(if (isEnabled) stringResource(R.string.status_enabled) else stringResource(R.string.status_disabled), if (isEnabled) Color(0xFF4CAF50) else Color(0xFFE57373))
                                         if (isRecommended) {
                                             Spacer(Modifier.width(8.dp))
-                                            AppBadge("RECOMMENDED", Color(0xFFF06292))
+                                            AppBadge(stringResource(R.string.status_recommended), Color(0xFFF06292))
                                         }
                                     }
                                 }

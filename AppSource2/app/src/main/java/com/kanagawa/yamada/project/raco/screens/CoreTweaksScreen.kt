@@ -1,5 +1,8 @@
 package com.kanagawa.yamada.project.raco.screens
 
+import com.kanagawa.yamada.project.raco.R
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -99,7 +102,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Core Tweaks") },
+                title = { Text(stringResource(R.string.core_tweaks_title)) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, titleContentColor = MaterialTheme.colorScheme.primary, navigationIconContentColor = MaterialTheme.colorScheme.primary)
             )
@@ -115,7 +118,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
                     Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
                         Text("Fix & Tweaks", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
 
-                        TweakToggle("Device Mitigation", "Fix screen freeze and device stability issues", Icons.Default.SecurityUpdate, deviceMitigation) {
+                        TweakToggle(stringResource(R.string.device_mitigation_title), "Fix screen freeze and device stability issues", Icons.Default.SecurityUpdate, deviceMitigation) {
                             toggle("DEVICE_MITIGATION", deviceMitigation) { deviceMitigation = it }
                         }
                         TweakToggle("Lite Powersave", "Battery optimized lite profile", Icons.Default.EnergySavingsLeaf, litePowersave) {
@@ -130,7 +133,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
                         TweakToggle("Alter CPU Method", "Use this if Scaling Frequency is Wrong for your device", Icons.Default.Memory, alterCpuMethod) {
                             toggle("ALTER_CPU_METHOD", alterCpuMethod) { alterCpuMethod = it }
                         }
-                        TweakToggle("Legacy Notification", "Fix missing notifications", Icons.Default.NotificationsActive, legacyNotif) {
+                        TweakToggle(stringResource(R.string.legacy_notif_title), "Fix missing notifications", Icons.Default.NotificationsActive, legacyNotif) {
                             toggle("LEGACY_NOTIF", legacyNotif) { legacyNotif = it }
                         }
                         TweakToggle("Silent Notif Mode", "Suppress notification sounds during performance mode", Icons.Default.NotificationsOff, silentNotif) {
@@ -152,7 +155,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
                         } else {
                             ExposedDropdownMenuBox(expanded = governorExpanded, onExpandedChange = { governorExpanded = !governorExpanded }) {
                                 OutlinedTextField(
-                                    value = selectedGovernor ?: "None",
+                                    value = selectedGovernor ?: stringResource(R.string.no_governor_selected),
                                     onValueChange = {},
                                     readOnly = true,
                                     label = { Text("Governor") },
@@ -160,7 +163,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
                                     modifier = Modifier.fillMaxWidth().menuAnchor()
                                 )
                                 ExposedDropdownMenu(expanded = governorExpanded, onDismissRequest = { governorExpanded = false }) {
-                                    DropdownMenuItem(text = { Text("None") }, onClick = {
+                                    DropdownMenuItem(text = { Text(stringResource(R.string.no_governor_selected)) }, onClick = {
                                         selectedGovernor = null; governorExpanded = false
                                         coroutineScope.launch { withContext(Dispatchers.IO) {
                                             val p = ProcessBuilder("su", "-c", "sed -i 's|^GOV=.*|GOV=|' $RACO_CONFIG").redirectErrorStream(true).start()

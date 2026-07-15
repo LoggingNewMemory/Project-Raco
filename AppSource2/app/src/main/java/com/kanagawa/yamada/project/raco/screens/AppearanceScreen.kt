@@ -1,5 +1,8 @@
 package com.kanagawa.yamada.project.raco.screens
 
+import com.kanagawa.yamada.project.raco.R
+import androidx.compose.ui.res.stringResource
+
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
@@ -148,7 +151,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Appearance") },
+                    title = { Text(stringResource(R.string.appearance_title)) },
                     navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
@@ -301,9 +304,9 @@ fun AppearanceScreen(onBack: () -> Unit) {
                     Spacer(Modifier.height(12.dp))
 
                     listOf(
-                        Triple("Red", rgbR, Color(0xFFEF5350)),
-                        Triple("Green", rgbG, Color(0xFF66BB6A)),
-                        Triple("Blue", rgbB, Color(0xFF42A5F5)),
+                        Triple(stringResource(R.string.screen_modifier_red), rgbR, Color(0xFFEF5350)),
+                        Triple(stringResource(R.string.screen_modifier_green), rgbG, Color(0xFF66BB6A)),
+                        Triple(stringResource(R.string.screen_modifier_blue), rgbB, Color(0xFF42A5F5)),
                     ).forEachIndexed { idx, (label, value, color) ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(

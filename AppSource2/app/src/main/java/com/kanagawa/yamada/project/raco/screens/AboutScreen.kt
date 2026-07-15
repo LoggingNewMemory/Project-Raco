@@ -1,5 +1,8 @@
 package com.kanagawa.yamada.project.raco.screens
 
+import com.kanagawa.yamada.project.raco.R
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -36,7 +39,7 @@ fun AboutScreen(onBack: () -> Unit) {
         "HoyoSlave", "Koneko_dev", "Not_ValentineSTCV",
         "Andreyka4_45", "Zexshia", "kaminarich",
         "fuckyoustan", "Xyanz_25", "hirauki", "KanaDev_IS",
-        "And All Testers That I Can't Mentioned One by One"
+        stringResource(R.string.credits_11)
     )
 
     LaunchedEffect(Unit) {
@@ -130,15 +133,15 @@ fun AboutScreen(onBack: () -> Unit) {
             ) {
                 Column(horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxWidth()) {
                     DeviceInfoRow(deviceModel, "Device Name")
-                    DeviceInfoRow(cpuInfo, "Processor")
-                    DeviceInfoRow(ramInfo, "RAM")
+                    DeviceInfoRow(cpuInfo, stringResource(R.string.processor))
+                    DeviceInfoRow(ramInfo, stringResource(R.string.ram))
                     DeviceInfoRow(storageInfo, "Storage")
                     DeviceInfoRow(batteryInfo, "Battery")
                 }
 
                 Spacer(modifier = Modifier.height(40.dp))
                 Text(
-                    "Thank you for the great people who helped improve Project Raco:",
+                    stringResource(R.string.about_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
@@ -151,7 +154,7 @@ fun AboutScreen(onBack: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    "Project Raco Is Always Free, Open Source, and Open For Improvement",
+                    stringResource(R.string.about_note),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 

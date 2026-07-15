@@ -1,5 +1,8 @@
 package com.kanagawa.yamada.project.raco.screens
 
+import com.kanagawa.yamada.project.raco.R
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -94,7 +97,7 @@ fun SystemScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("System") },
+                title = { Text(stringResource(R.string.system_title)) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, titleContentColor = MaterialTheme.colorScheme.primary, navigationIconContentColor = MaterialTheme.colorScheme.primary)
             )
@@ -115,7 +118,7 @@ fun SystemScreen(onBack: () -> Unit) {
             // Anya Thermal Card
             if (anyaIncluded) {
                 item {
-                    SystemCard("Anya Thermal") {
+                    SystemCard(stringResource(R.string.anya_installer_title)) {
                         Text("FlowState thermal management. Disable throttling for sustained performance.", style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -141,7 +144,7 @@ fun SystemScreen(onBack: () -> Unit) {
             // Sandevistan Duration Card
             if (sandevIncluded) {
                 item {
-                    SystemCard("Sandevistan Duration") {
+                    SystemCard(stringResource(R.string.sandevistan_duration_title)) {
                         Text("Duration in seconds for the Sandevistan boost. Higher = longer burst.", style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(16.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -193,9 +196,9 @@ fun SystemScreen(onBack: () -> Unit) {
                 SystemCard("Graphics Driver") {
                     Text("Set the ANGLE/Vulkan graphics driver mode.", style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))
-                    Text("Current: ${when(graphicsDriver) { 1 -> "Game Driver"; 2 -> "Developer Driver"; else -> "Default" }}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    Text("Current: ${when(graphicsDriver) { 1 -> stringResource(R.string.graphics_driver_game); 2 -> stringResource(R.string.graphics_driver_developer); else -> stringResource(R.string.graphics_driver_default) }}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(16.dp))
-                    listOf("Default" to 0, "Game Driver" to 1, "Developer Driver" to 2).forEach { (label, value) ->
+                    listOf(stringResource(R.string.graphics_driver_default) to 0, stringResource(R.string.graphics_driver_game) to 1, stringResource(R.string.graphics_driver_developer) to 2).forEach { (label, value) ->
                         OutlinedButton(
                             onClick = {
                                 isBusyGraphics = true
@@ -265,7 +268,7 @@ fun SystemScreen(onBack: () -> Unit) {
 
             // System Actions Card
             item {
-                SystemCard("System Actions") {
+                SystemCard(stringResource(R.string.system_actions_title)) {
                     // FSTRIM
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
@@ -284,14 +287,14 @@ fun SystemScreen(onBack: () -> Unit) {
                             enabled = !isBusyFstrim
                         ) {
                             if (isBusyFstrim) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color.White)
-                            else Text("Run")
+                            else Text(stringResource(R.string.plugin_run))
                         }
                     }
                     Spacer(Modifier.height(16.dp))
                     // Clear Cache
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text("Clear Cache", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.clear_cache_title), fontWeight = FontWeight.Bold)
                             Text("Remove system cache partition contents.", style = MaterialTheme.typography.bodySmall)
                         }
                         Button(
@@ -307,7 +310,7 @@ fun SystemScreen(onBack: () -> Unit) {
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                         ) {
                             if (isBusyClearCache) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color.White)
-                            else Text("Clear")
+                            else Text(stringResource(R.string.clear))
                         }
                     }
                 }

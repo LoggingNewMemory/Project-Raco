@@ -1,5 +1,8 @@
 package com.kanagawa.yamada.project.raco.screens
 
+import com.kanagawa.yamada.project.raco.R
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -47,10 +50,10 @@ fun SlingshotScreen(onBack: () -> Unit) {
     val snackbarHostState = remember { SnackbarHostState() }
     
     val modes = listOf(
-        "n" to "Normal (fadvise hint)",
-        "d" to "Deep (fadvise + dlopen)",
-        "e" to "Extreme (mmap + MAP_POPULATE)",
-        "r" to "Recursive (looped deep check)"
+        "n" to stringResource(R.string.slingshot_mode_normal),
+        "d" to stringResource(R.string.slingshot_mode_deep),
+        "e" to stringResource(R.string.slingshot_mode_extreme),
+        "r" to stringResource(R.string.slingshot_mode_recursive)
     )
     val modesMap = modes.toMap()
 
@@ -139,7 +142,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                         navigationIcon = {
                             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = techBlue) }
                         },
-                        title = { Text("PAYLOAD // SELECTOR", style = monoStyle.copy(color = techYellow, fontSize = 18.sp)) },
+                        title = { Text(stringResource(R.string.endfield_payload_selector), style = monoStyle.copy(color = techYellow, fontSize = 18.sp)) },
                         actions = {
                             IconButton(onClick = { fetchApps() }) { Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White.copy(alpha=0.54f)) }
                         }
@@ -156,7 +159,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.RocketLaunch, contentDescription = null, tint = Color.Black, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("INITIATE SEQUENCE", style = monoStyle.copy(color = Color.Black, fontWeight = FontWeight.Black))
+                            Text(stringResource(R.string.endfield_initiate_sequence), style = monoStyle.copy(color = Color.Black, fontWeight = FontWeight.Black))
                         }
                     }
                 },
@@ -172,17 +175,17 @@ fun SlingshotScreen(onBack: () -> Unit) {
                                 .background(Color.Black.copy(alpha=0.6f))
                                 .padding(12.dp)
                         ) {
-                            Text("// SYSTEM OVERRIDES", style = monoStyle.copy(color = techBlue, fontSize = 10.sp))
+                            Text(stringResource(R.string.endfield_system_overrides), style = monoStyle.copy(color = techBlue, fontSize = 10.sp))
                             Spacer(modifier = Modifier.height(8.dp))
                             
                             EndfieldSwitch("ANGLE_DRIVER", useAngle) { useAngle = it }
                             Spacer(modifier = Modifier.height(8.dp))
                             EndfieldSwitch("SKIA_RENDERER", useSkia) { useSkia = it }
                             Spacer(modifier = Modifier.height(8.dp))
-                            EndfieldSwitch("P-BOOST", usePlayboost) { usePlayboost = it }
+                            EndfieldSwitch(stringResource(R.string.endfield_p_boost), usePlayboost) { usePlayboost = it }
                             
                             Spacer(modifier = Modifier.height(12.dp))
-                            Text("// EXECUTION MODE", style = monoStyle.copy(color = techBlue, fontSize = 10.sp))
+                            Text(stringResource(R.string.endfield_execution_mode), style = monoStyle.copy(color = techBlue, fontSize = 10.sp))
                             Spacer(modifier = Modifier.height(4.dp))
                             
                             var expanded by remember { mutableStateOf(false) }
@@ -217,7 +220,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                             textStyle = monoStyle.copy(color = Color.White),
                             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = techYellow) },
-                            placeholder = { Text("SEARCH_TARGET_PACKAGE...", style = monoStyle.copy(color = Color.White.copy(alpha=0.24f), fontSize = 12.sp)) },
+                            placeholder = { Text(stringResource(R.string.endfield_search_target), style = monoStyle.copy(color = Color.White.copy(alpha=0.24f), fontSize = 12.sp)) },
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = Color.Black.copy(alpha=0.54f),
                                 unfocusedContainerColor = Color.Black.copy(alpha=0.54f),
@@ -259,7 +262,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                                     }
                                     if (isSelected) {
                                         Box(modifier = Modifier.background(techYellow).padding(horizontal = 8.dp, vertical = 2.dp)) {
-                                            Text("LOCKED", style = monoStyle.copy(color = Color.Black, fontSize = 10.sp, fontWeight = FontWeight.Bold))
+                                            Text(stringResource(R.string.endfield_locked), style = monoStyle.copy(color = Color.Black, fontSize = 10.sp, fontWeight = FontWeight.Bold))
                                         }
                                     }
                                 }
@@ -275,7 +278,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                 containerColor = Color.Transparent,
                 topBar = {
                     TopAppBar(
-                        title = { Text("Raco Slingshot") },
+                        title = { Text(stringResource(R.string.slingshot_title)) },
                         navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, titleContentColor = MaterialTheme.colorScheme.primary, navigationIconContentColor = MaterialTheme.colorScheme.primary)
                     )
@@ -286,7 +289,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                         containerColor = Color(0xFF8B4513),
                         contentColor = Color.White,
                         icon = { Icon(Icons.Default.RocketLaunch, "Launch") },
-                        text = { Text("Start Slingshot") }
+                        text = { Text(stringResource(R.string.start_preload)) }
                     )
                 },
                 snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -294,7 +297,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                 LazyColumn(modifier = Modifier.fillMaxSize().padding(pd).padding(horizontal = 16.dp)) {
                     item {
                         Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)), modifier = Modifier.fillMaxWidth()) {
-                            Text("Preload your app files before launching the app, this may speed up the loading time and improve performance", style = MaterialTheme.typography.bodyMedium, color = Color.White, modifier = Modifier.padding(16.dp))
+                            Text(stringResource(R.string.slingshot_description), style = MaterialTheme.typography.bodyMedium, color = Color.White, modifier = Modifier.padding(16.dp))
                         }
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -306,7 +309,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                             androidx.compose.foundation.layout.Row(modifier = androidx.compose.ui.Modifier.padding(12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                                 androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.Warning, contentDescription = null, tint = androidx.compose.ui.graphics.Color(0xFFFFA726))
                                 androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.width(12.dp))
-                                androidx.compose.material3.Text("Some games might broken, Some might improve performance, Some might don't even Launch. But don't be afraid to try it first!", style = androidx.compose.material3.MaterialTheme.typography.bodySmall, color = androidx.compose.ui.graphics.Color(0xFFFFB74D))
+                                androidx.compose.material3.Text(stringResource(R.string.slingshot_graphics_warning), style = androidx.compose.material3.MaterialTheme.typography.bodySmall, color = androidx.compose.ui.graphics.Color(0xFFFFB74D))
                             }
                         }
                         androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
@@ -315,7 +318,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
                             OutlinedTextField(
                                 value = modesMap[selectedMode] ?: "",
-                                onValueChange = {}, readOnly = true, label = { Text("Preload Mode") },
+                                onValueChange = {}, readOnly = true, label = { Text(stringResource(R.string.preload_mode)) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                                 modifier = Modifier.fillMaxWidth().menuAnchor()
                             )
@@ -327,15 +330,15 @@ fun SlingshotScreen(onBack: () -> Unit) {
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Text("Launch using ANGLE Graphics", modifier = Modifier.weight(1f), color = Color.White)
+                            Text(stringResource(R.string.angle_title), modifier = Modifier.weight(1f), color = Color.White)
                             Switch(checked = useAngle, onCheckedChange = { useAngle = it; sharedPrefs.edit().putBoolean("use_angle", it).apply() })
                         }
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Text("Use SkiaVK as default Skia backend", modifier = Modifier.weight(1f), color = Color.White)
+                            Text(stringResource(R.string.skia_title), modifier = Modifier.weight(1f), color = Color.White)
                             Switch(checked = useSkia, onCheckedChange = { useSkia = it; sharedPrefs.edit().putBoolean("use_skia", it).apply() })
                         }
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Text("RiProG Playboost", modifier = Modifier.weight(1f), color = Color.White)
+                            Text(stringResource(R.string.playboost_title), modifier = Modifier.weight(1f), color = Color.White)
                             Switch(checked = usePlayboost, onCheckedChange = { usePlayboost = it; sharedPrefs.edit().putBoolean("use_playboost", it).apply() })
                         }
                         Spacer(modifier = Modifier.height(16.dp))
@@ -345,7 +348,7 @@ fun SlingshotScreen(onBack: () -> Unit) {
                             value = searchQuery,
                             onValueChange = { searchQuery = it },
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("Search apps...") },
+                            placeholder = { Text(stringResource(R.string.search_apps_hint)) },
                             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
                         )
                         Spacer(modifier = Modifier.height(16.dp))
