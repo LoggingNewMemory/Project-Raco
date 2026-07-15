@@ -96,7 +96,7 @@
     <string name="no_governor_selected">None</string>
     <string name="anya_thermal_title">Anya Melfissa Disable Thermal</string>
     <string name="anya_thermal_description">Disable Thermal on Performance and Gaming, Enable Thermal on Powersave, Balanced, Cool Down.</string>
-    <string name="anya_thermal_toggle_title">Enable Anya Thermal Flowstate</string>
+
     <string name="system_actions_title">System Actions</string>
     <string name="fstrim_title">Fstrim</string>
     <string name="fstrim_description">Trim Android partitions.</string>
@@ -258,8 +258,6 @@
     <string name="yamada_s_neko_maid">Yamada\'s Neko Maid</string>
     <string name="official_project_raco_telegram_group">Official Project Raco Telegram Group</string>
     <string name="donate_for_project_raco">Donate for Project Raco</string>
-    <string name="flowstate_thermal_management_disable_throttling_for_sustained_performance">FlowState thermal management. Disable throttling for sustained performance.</string>
-    <string name="enable_anya_thermal_control">Enable Anya Thermal Control</string>
     <string name="duration_in_seconds_for_the_sandevistan_boost_higher_longer_burst">Duration in seconds for the Sandevistan boost. Higher = longer burst.</string>
     <string name="duration_seconds">Duration (seconds)</string>
     <string name="set_the_angle_vulkan_graphics_driver_mode">Set the ANGLE/Vulkan graphics driver mode.</string>
@@ -279,7 +277,7 @@
     <string name="height">HEIGHT</string>
     <string name="empty_string" />
     <string name="anya_thermal">Anya Thermal</string>
-    <string name="enable_anya_thermal_flowstate">Enable Anya Thermal Flowstate</string>
+    <string name="enable_anya_thermal_flowstate">Enable Anya Flowstate</string>
     <string name="kobo_fast_charge">Kobo Fast Charge</string>
     <string name="fast_charge_module">Fast Charge Module</string>
     <string name="sandevistan_boot">Sandevistan Boot</string>

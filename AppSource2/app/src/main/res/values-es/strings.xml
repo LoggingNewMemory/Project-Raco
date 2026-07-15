@@ -94,7 +94,7 @@
     <string name="no_governor_selected">Ninguno</string>
     <string name="anya_thermal_title">Anya Melfissa Disable Thermal</string>
     <string name="anya_thermal_description">Deshabilita Thermal en Rendimiento y Gaming, Y habilita Thermal en Eficiencia, Equilibrado y Enfriamiento.</string>
-    <string name="enable_anya_thermal_flowstate">Activa Anya Thermal Flowstate</string>
+    <string name="enable_anya_thermal_flowstate">Activa Anya Flowstate</string>
     <string name="system_actions_title">Acciones de sistema</string>
     <string name="fstrim">Fstrim</string>
     <string name="fstrim_description">Recortar particiones de Android.</string>

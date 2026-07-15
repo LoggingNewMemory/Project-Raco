@@ -120,12 +120,12 @@ fun SystemScreen(onBack: () -> Unit) {
             if (anyaIncluded) {
                 item {
                     SystemCard(stringResource(R.string.anya_installer_title)) {
-                        Text(stringResource(R.string.flowstate_thermal_management_disable_throttling_for_sustained_performance), style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.anya_installer_desc), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Thermostat, null, tint = MaterialTheme.colorScheme.primary)
                             Spacer(Modifier.width(12.dp))
-                            Text(stringResource(R.string.enable_anya_thermal_control), Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.enable_anya_thermal_flowstate), Modifier.weight(1f), fontWeight = FontWeight.Bold)
                             Switch(checked = anyaThermalEnabled, enabled = !isBusyAnya, onCheckedChange = { newVal ->
                                 isBusyAnya = true
                                 anyaThermalEnabled = newVal
