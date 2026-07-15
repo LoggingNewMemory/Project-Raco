@@ -189,14 +189,6 @@
     <string name="sandev_boot_desc">An Attempt to Make Boot Faster</string>
     <string name="reboot_to_take_effect">Please Reboot to take effects</string>
     <string name="please_restart_app">Please Restart The App</string>
-    <string name="tips_title">Did You Know?</string>
-    <string name="tip_1">Swipe 3 times on the left somewhere and you can access the hidden terminal</string>
-    <string name="tip_2">Swipe 3 times on the left and you can cancel the execution</string>
-    <string name="tip_3">Official Telegram Channel of Project Raco is on Raco\'s Page</string>
-    <string name="tip_4">Tap the Raco image! You will greeted by Raco</string>
-    <string name="tip_5">Project Raco can\'t make a potato phone into a gaming phone</string>
-    <string name="tip_6">Project Raco? GACOR KANG!</string>
-    <string name="tip_7">Welcome to Project Raco app. Have a nice day!</string>
     <string name="error_launch_url">Could not launch {url}</string>
     <string name="root_required">Root Required</string>
     <string name="status_online">ONLINE</string>
@@ -266,7 +258,6 @@
     <string name="bahasa_indonesia">Bahasa Indonesia</string>
     <string name="root_access_1">Root Access</string>
     <string name="mode_status">Mode Status</string>
-    <string name="tip_of_the_day">Tip of the day</string>
     <string name="raco_l2d">[ RACO L2D ]</string>
     <string name="tap_to_read">▼ Tap to read</string>
     <string name="zefanya_raco">Zefanya Raco</string>
@@ -369,13 +360,6 @@
     <string name="physical_originalresolution_current_currentresolution">Physical: $originalResolution | Current: $currentResolution</string>
     <string name="search_utilities_1">Search utilities...</string>
     <string name="by_kanagawa_yamada">By Kanagawa Yamada</string>
-    <string name="main_tip_1">Ensure Project Raco module is flashed correctly.</string>
-    <string name="main_tip_2">Performance mode drains battery faster.</string>
-    <string name="main_tip_3">Power Save limits background processes.</string>
-    <string name="main_tip_4">Use Cooldown if the device is overheating.</string>
-    <string name="main_tip_5">Slingshot speeds up app launching.</string>
-    <string name="main_tip_6">Endfield Collab enables industrial UI.</string>
-    <string name="main_tip_7">Join Telegram for official support.</string>
     <string name="project_raco_not_installed">Project Raco Not Installed</string>
     <string name="root_access_required">Root Access Required</string>
     <string name="project_raco_version">Project Raco %1$s</string>
