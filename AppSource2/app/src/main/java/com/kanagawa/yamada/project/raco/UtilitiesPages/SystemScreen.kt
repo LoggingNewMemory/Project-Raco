@@ -54,10 +54,7 @@ fun SystemScreen(onBack: () -> Unit) {
     var sandevDurationText by remember { mutableStateOf("10") }
 
     var graphicsDriver by remember { mutableIntStateOf(0) }
-    var originalResolution by remember { mutableStateOf("") }
-    var currentResolution by remember { mutableStateOf("") }
-    var originalDensity by remember { mutableIntStateOf(0) }
-    var resolutionAvailable by remember { mutableStateOf(false) }
+
     var isBusyAnya by remember { mutableStateOf(false) }
     
     var rgbR by remember { mutableFloatStateOf(1f) }
@@ -87,16 +84,7 @@ fun SystemScreen(onBack: () -> Unit) {
         val driverOut = sysRunRoot("settings get global updatable_driver_all_apps")
         graphicsDriver = driverOut.trim().toIntOrNull() ?: 0
 
-        // Resolution
-        val wmSize = sysRunRoot("wm size")
-        val wmDensity = sysRunRoot("wm density")
-        if (wmSize.contains("Physical size:")) {
-            originalResolution = Regex("Physical size:\\s*([0-9]+x[0-9]+)").find(wmSize)?.groupValues?.getOrNull(1) ?: ""
-            val overrideMatch = Regex("Override size:\\s*([0-9]+x[0-9]+)").find(wmSize)
-            currentResolution = overrideMatch?.groupValues?.getOrNull(1) ?: originalResolution
-            originalDensity = Regex("(?:Physical|Override) density:\\s*([0-9]+)").find(wmDensity)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
-            resolutionAvailable = originalResolution.isNotEmpty() && originalDensity > 0
-        }
+
         
         val rxR = Regex("^RGB_R=([0-9.]+)", RegexOption.MULTILINE).find(config)
         rgbR = rxR?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
@@ -304,55 +292,6 @@ fun SystemScreen(onBack: () -> Unit) {
                 }
             }
 
-            // Resolution Downscale Card
-            if (resolutionAvailable) {
-                item {
-                    SystemCard(stringResource(R.string.resolution_downscale)) {
-                        Text(stringResource(R.string.override_display_resolution_and_density_use_reset_to_restore_defaults), style = MaterialTheme.typography.bodySmall)
-                        Spacer(Modifier.height(8.dp))
-                        Text("Physical: $originalResolution | Current: $currentResolution", style = MaterialTheme.typography.bodySmall)
-                        Spacer(Modifier.height(12.dp))
-                        val resolutionOptions = remember(originalResolution) {
-                            try {
-                                val parts = originalResolution.split("x")
-                                val w = parts[0].toInt(); val h = parts[1].toInt()
-                                listOf(
-                                    "100% (${w}x${h})" to "${w}x${h}",
-                                    "90% (${(w * 0.9).toInt()}x${(h * 0.9).toInt()})" to "${(w * 0.9).toInt()}x${(h * 0.9).toInt()}",
-                                    "80% (${(w * 0.8).toInt()}x${(h * 0.8).toInt()})" to "${(w * 0.8).toInt()}x${(h * 0.8).toInt()}",
-                                    "70% (${(w * 0.7).toInt()}x${(h * 0.7).toInt()})" to "${(w * 0.7).toInt()}x${(h * 0.7).toInt()}",
-                                )
-                            } catch (e: Exception) { emptyList() }
-                        }
-                        resolutionOptions.forEach { (label, res) ->
-                            OutlinedButton(
-                                onClick = {
-                                    scope.launch {
-                                        sysRunRoot("wm size $res")
-                                        currentResolution = res
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                                colors = if (currentResolution == res) ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
-                                         else ButtonDefaults.outlinedButtonColors()
-                            ) { Text(label) }
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    sysRunRoot("wm size reset")
-                                    sysRunRoot("wm density reset")
-                                    currentResolution = originalResolution
-                                    snackbarHostState.showSnackbar(context.getString(R.string.resolution_reset))
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                        ) { Text(stringResource(R.string.reset_to_default)) }
-                    }
-                }
-            }
 
             // System Actions Card
             item {

@@ -263,7 +263,6 @@
     <string name="duration_in_seconds_for_the_sandevistan_boost_higher_longer_burst">Duration in seconds for the Sandevistan boost. Higher = longer burst.</string>
     <string name="duration_seconds">Duration (seconds)</string>
     <string name="set_the_angle_vulkan_graphics_driver_mode">Set the ANGLE/Vulkan graphics driver mode.</string>
-    <string name="override_display_resolution_and_density_use_reset_to_restore_defaults">Override display resolution and density. Use Reset to restore defaults.</string>
     <string name="fstrim">FSTRIM</string>
     <string name="trim_filesystem_for_storage_performance">Trim filesystem for storage performance.</string>
     <string name="remove_system_cache_partition_contents">Remove system cache partition contents.</string>
@@ -316,7 +315,6 @@
     <string name="sandevistan">Sandevistan</string>
     <string name="install_the_sandevistan_module_on_next_boot">Install the Sandevistan module on next boot.</string>
     <string name="graphics_driver">Graphics Driver</string>
-    <string name="resolution_downscale">Resolution Downscale</string>
     <string name="root_access_denied_project_raco_requires_root">Root Access Denied. Project Raco requires Root.</string>
     <string name="tap_for_menu">Tap for menu</string>
     <string name="battery_optimization">Battery optimization</string>
@@ -375,7 +373,6 @@
     <string name="no_target_package">NO TARGET PACKAGE SELECTED</string>
     <string name="payload_deployed_to">PAYLOAD DEPLOYED TO %1$s</string>
     <string name="saved">Saved!</string>
-    <string name="resolution_reset">Resolution reset to default</string>
     <string name="fstrim_completed">FSTRIM completed!</string>
     <string name="cache_cleared">Cache cleared!</string>
     <string name="screen_brightness_title">Screen Brightness</string>
