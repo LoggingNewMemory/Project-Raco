@@ -112,29 +112,50 @@ fun AppearanceScreen(onBack: () -> Unit) {
     var isInstallingBg by remember { mutableStateOf(false) }
     var adaptiveColorBg by remember { mutableStateOf(false) }
 
-    // Image picker launcher
+    val bannerCropLauncher = rememberLauncherForActivityResult(com.canhub.cropper.CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            val uriContent = result.uriContent
+            if (uriContent != null) {
+                isInstallingBanner = true
+                scope.launch {
+                    try {
+                        val destFile = File(context.filesDir, "custom_banner.png")
+                        withContext(Dispatchers.IO) {
+                            context.contentResolver.openInputStream(uriContent)?.use { input ->
+                                destFile.outputStream().use { output -> input.copyTo(output) }
+                            }
+                        }
+                        context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                            .edit().putString("banner_image_path", destFile.absolutePath).apply()
+                        bannerExists = true
+                        snackbarHostState.showSnackbar(context.getString(R.string.banner_installed_successfully))
+                    } catch (e: Exception) {
+                        snackbarHostState.showSnackbar(context.getString(R.string.failed_to_install_banner))
+                    }
+                    isInstallingBanner = false
+                }
+            }
+        }
+    }
+
     val bannerPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         uri?.let {
-            isInstallingBanner = true
-            scope.launch {
-                try {
-                    val destFile = File(context.filesDir, "custom_banner.png")
-                    withContext(Dispatchers.IO) {
-                        context.contentResolver.openInputStream(uri)?.use { input ->
-                            destFile.outputStream().use { output -> input.copyTo(output) }
-                        }
-                    }
-                    context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
-                        .edit().putString("banner_image_path", destFile.absolutePath).apply()
-                    bannerExists = true
-                    snackbarHostState.showSnackbar(context.getString(R.string.banner_installed_successfully))
-                } catch (e: Exception) {
-                    snackbarHostState.showSnackbar(context.getString(R.string.failed_to_install_banner))
-                }
-                isInstallingBanner = false
-            }
+            bannerCropLauncher.launch(
+                com.canhub.cropper.CropImageContractOptions(
+                    uri = it,
+                    cropImageOptions = com.canhub.cropper.CropImageOptions(
+                        aspectRatioX = 16,
+                        aspectRatioY = 9,
+                        fixAspectRatio = true,
+                        activityBackgroundColor = android.graphics.Color.BLACK,
+                        toolbarColor = android.graphics.Color.parseColor("#111111"),
+                        activityMenuIconColor = android.graphics.Color.WHITE,
+                        toolbarTitleColor = android.graphics.Color.WHITE
+                    )
+                )
+            )
         }
     }
 
@@ -240,7 +261,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
-                            onClick = { bannerPickerLauncher.launch("image/png") },
+                            onClick = { bannerPickerLauncher.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                             modifier = Modifier.weight(1f),
                             enabled = !isInstallingBanner
                         ) {
