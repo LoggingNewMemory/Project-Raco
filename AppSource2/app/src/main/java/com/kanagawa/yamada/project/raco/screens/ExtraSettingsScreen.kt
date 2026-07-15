@@ -110,7 +110,7 @@ fun ExtraSettingsScreen(onBack: () -> Unit) {
                             Spacer(modifier = Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(item.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                                Text(item.subtitle, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(item.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Switch(

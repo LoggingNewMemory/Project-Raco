@@ -145,7 +145,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text("Custom CPU Governor", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("Select the CPU scaling governor. Takes effect after applying a profile.", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                        Text("Select the CPU scaling governor. Takes effect after applying a profile.", style = MaterialTheme.typography.bodySmall)
                         Spacer(modifier = Modifier.height(16.dp))
                         if (availableGovernors.isEmpty()) {
                             Text("No governors found or root access denied.", color = MaterialTheme.colorScheme.error)
@@ -199,7 +199,7 @@ private fun TweakToggle(title: String, description: String, icon: androidx.compo
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
-            Text(description, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Spacer(modifier = Modifier.width(16.dp))
         Switch(checked = checked, onCheckedChange = { onToggle() })

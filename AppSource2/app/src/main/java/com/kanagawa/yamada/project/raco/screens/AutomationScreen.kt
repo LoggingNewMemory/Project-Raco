@@ -98,7 +98,7 @@ fun AutomationScreen(onBack: () -> Unit) {
                     Column(Modifier.padding(16.dp)) {
                         Text("Do Not Disturb", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(4.dp))
-                        Text("Enable DND mode during gaming to block notifications.", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                        Text("Enable DND mode during gaming to block notifications.", style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.DoNotDisturbOn, null, tint = MaterialTheme.colorScheme.primary)
@@ -129,7 +129,7 @@ fun AutomationScreen(onBack: () -> Unit) {
                     Column(Modifier.padding(16.dp)) {
                         Text("Game App List", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(4.dp))
-                        Text("Manage the list of apps that trigger Performance mode automatically.", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                        Text("Manage the list of apps that trigger Performance mode automatically.", style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(16.dp))
                         Button(
                             onClick = { showAppList = true },

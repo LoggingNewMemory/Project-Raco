@@ -116,7 +116,7 @@ fun SystemScreen(onBack: () -> Unit) {
             if (anyaIncluded) {
                 item {
                     SystemCard("Anya Thermal") {
-                        Text("FlowState thermal management. Disable throttling for sustained performance.", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                        Text("FlowState thermal management. Disable throttling for sustained performance.", style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Thermostat, null, tint = MaterialTheme.colorScheme.primary)
@@ -142,7 +142,7 @@ fun SystemScreen(onBack: () -> Unit) {
             if (sandevIncluded) {
                 item {
                     SystemCard("Sandevistan Duration") {
-                        Text("Duration in seconds for the Sandevistan boost. Higher = longer burst.", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                        Text("Duration in seconds for the Sandevistan boost. Higher = longer burst.", style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(16.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             OutlinedTextField(
@@ -191,7 +191,7 @@ fun SystemScreen(onBack: () -> Unit) {
             // Graphics Driver Card
             item {
                 SystemCard("Graphics Driver") {
-                    Text("Set the ANGLE/Vulkan graphics driver mode.", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                    Text("Set the ANGLE/Vulkan graphics driver mode.", style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))
                     Text("Current: ${when(graphicsDriver) { 1 -> "Game Driver"; 2 -> "Developer Driver"; else -> "Default" }}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(16.dp))
@@ -217,7 +217,7 @@ fun SystemScreen(onBack: () -> Unit) {
             if (resolutionAvailable) {
                 item {
                     SystemCard("Resolution Downscale") {
-                        Text("Override display resolution and density. Use Reset to restore defaults.", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                        Text("Override display resolution and density. Use Reset to restore defaults.", style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
                         Text("Physical: $originalResolution | Current: $currentResolution", style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(12.dp))
@@ -270,7 +270,7 @@ fun SystemScreen(onBack: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("FSTRIM", fontWeight = FontWeight.Bold)
-                            Text("Trim filesystem for storage performance.", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                            Text("Trim filesystem for storage performance.", style = MaterialTheme.typography.bodySmall)
                         }
                         Button(
                             onClick = {
@@ -292,7 +292,7 @@ fun SystemScreen(onBack: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("Clear Cache", fontWeight = FontWeight.Bold)
-                            Text("Remove system cache partition contents.", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                            Text("Remove system cache partition contents.", style = MaterialTheme.typography.bodySmall)
                         }
                         Button(
                             onClick = {

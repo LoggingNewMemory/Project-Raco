@@ -144,7 +144,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
-                Text("Thanks to the open source community.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontStyle = FontStyle.Italic)
+                Text("Thanks to the open source community.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }

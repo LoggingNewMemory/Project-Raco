@@ -182,8 +182,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                 AppearanceCard("Background Banner") {
                     Text(
                         "Set a custom background banner image for the app. Supported format: PNG.",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontStyle = FontStyle.Italic
+                        style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(Modifier.height(12.dp))
 
@@ -249,8 +248,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                 AppearanceCard("Background Opacity & Blur") {
                     Text(
                         "Controls how the banner image appears. Lower opacity = more transparent. Higher blur = softer.",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontStyle = FontStyle.Italic
+                        style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(Modifier.height(16.dp))
 
@@ -298,8 +296,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                 AppearanceCard("Screen Color Modifiers") {
                     Text(
                         "Adjust the RGB color multipliers applied globally. 1.0 = no change.",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontStyle = FontStyle.Italic
+                        style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(Modifier.height(12.dp))
 
@@ -370,8 +367,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                 AppearanceCard("Screen Brightness") {
                     Text(
                         "Override screen brightness (0-255). Set to -1 for automatic.",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontStyle = FontStyle.Italic
+                        style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(Modifier.height(16.dp))
 
