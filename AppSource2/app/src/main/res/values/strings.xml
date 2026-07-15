@@ -342,4 +342,14 @@
     <string name="cooldown_title">Cooldown</string>
     <string name="thermal_throttle">Thermal throttle</string>
     <string name="reset_state">Reset state</string>
+    <string name="lite_powersave">Lite Powersave</string>
+    <string name="lite_powersave_desc">Battery optimized lite profile</string>
+    <string name="ultra_powersave">Ultra Powersave</string>
+    <string name="ultra_powersave_desc">Maximum battery savings</string>
+    <string name="lite_performance">Lite Performance</string>
+    <string name="lite_performance_desc">Balanced performance for light usage</string>
+    <string name="alter_cpu_method">Alter CPU Method</string>
+    <string name="alter_cpu_method_desc">Use this if Scaling Frequency is Wrong for your device</string>
+    <string name="silent_notif_mode">Silent Notif Mode</string>
+    <string name="silent_notif_mode_desc">Suppress notification sounds during performance mode</string>
 </resources>

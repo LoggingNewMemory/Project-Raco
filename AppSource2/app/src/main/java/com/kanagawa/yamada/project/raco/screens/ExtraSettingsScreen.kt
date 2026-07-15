@@ -34,10 +34,10 @@ private data class ExtraToggleItem(
 )
 
 private val EXTRA_TOGGLE_ITEMS = listOf(
-    ExtraToggleItem("INCLUDE_ANYA", R.string.anya_thermal, R.string.install_the_anya_thermal_engine_on_next_boot, Icons.Filled.Thermostat),
-    ExtraToggleItem("INCLUDE_KOBO", R.string.kobo_fast_charge, R.string.install_the_kobo_fast_charging_module_on_next_boot, Icons.Filled.BatteryChargingFull),
-    ExtraToggleItem("INCLUDE_ZETAMIN", R.string.zetamin_game_optimizer, R.string.install_zetamin_optimization_services_on_next_boot, Icons.Filled.DisplaySettings),
-    ExtraToggleItem("INCLUDE_SANDEV", R.string.sandevistan, R.string.install_the_sandevistan_module_on_next_boot, Icons.Filled.RocketLaunch)
+    ExtraToggleItem("INCLUDE_ANYA", R.string.anya_installer_title, R.string.anya_installer_desc, Icons.Filled.Thermostat),
+    ExtraToggleItem("INCLUDE_KOBO", R.string.kobo_title, R.string.kobo_desc, Icons.Filled.BatteryChargingFull),
+    ExtraToggleItem("INCLUDE_ZETAMIN", R.string.zetamin_title, R.string.zetamin_desc, Icons.Filled.DisplaySettings),
+    ExtraToggleItem("INCLUDE_SANDEV", R.string.sandev_boot_title, R.string.sandev_boot_desc, Icons.Filled.RocketLaunch)
 )
 
 private fun readExtraConfig(): String? = runCatching {

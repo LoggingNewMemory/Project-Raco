@@ -118,25 +118,25 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
                     Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
                         Text(stringResource(R.string.fix_tweaks), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
 
-                        TweakToggle(stringResource(R.string.device_mitigation_title), "Fix screen freeze and device stability issues", Icons.Default.SecurityUpdate, deviceMitigation) {
+                        TweakToggle(stringResource(R.string.device_mitigation_title), stringResource(R.string.device_mitigation_description), Icons.Default.SecurityUpdate, deviceMitigation) {
                             toggle("DEVICE_MITIGATION", deviceMitigation) { deviceMitigation = it }
                         }
-                        TweakToggle("Lite Powersave", "Battery optimized lite profile", Icons.Default.EnergySavingsLeaf, litePowersave) {
+                        TweakToggle(stringResource(R.string.lite_powersave), stringResource(R.string.lite_powersave_desc), Icons.Default.EnergySavingsLeaf, litePowersave) {
                             toggle("LITE_POWERSAVE", litePowersave) { litePowersave = it }
                         }
-                        TweakToggle("Ultra Powersave", "Maximum battery savings", Icons.Default.BatterySaver, ultraPowersave) {
+                        TweakToggle(stringResource(R.string.ultra_powersave), stringResource(R.string.ultra_powersave_desc), Icons.Default.BatterySaver, ultraPowersave) {
                             toggle("ULTRA_POWERSAVE", ultraPowersave) { ultraPowersave = it }
                         }
-                        TweakToggle("Lite Performance", "Balanced performance for light usage", Icons.Default.MonitorHeart, litePerformance) {
+                        TweakToggle(stringResource(R.string.lite_performance), stringResource(R.string.lite_performance_desc), Icons.Default.MonitorHeart, litePerformance) {
                             toggle("LITE_PERFORMANCE", litePerformance) { litePerformance = it }
                         }
-                        TweakToggle("Alter CPU Method", "Use this if Scaling Frequency is Wrong for your device", Icons.Default.Memory, alterCpuMethod) {
+                        TweakToggle(stringResource(R.string.alter_cpu_method), stringResource(R.string.alter_cpu_method_desc), Icons.Default.Memory, alterCpuMethod) {
                             toggle("ALTER_CPU_METHOD", alterCpuMethod) { alterCpuMethod = it }
                         }
-                        TweakToggle(stringResource(R.string.legacy_notif_title), "Fix missing notifications", Icons.Default.NotificationsActive, legacyNotif) {
+                        TweakToggle(stringResource(R.string.legacy_notif_title), stringResource(R.string.legacy_notif_description), Icons.Default.NotificationsActive, legacyNotif) {
                             toggle("LEGACY_NOTIF", legacyNotif) { legacyNotif = it }
                         }
-                        TweakToggle("Silent Notif Mode", "Suppress notification sounds during performance mode", Icons.Default.NotificationsOff, silentNotif) {
+                        TweakToggle(stringResource(R.string.silent_notif_mode), stringResource(R.string.silent_notif_mode_desc), Icons.Default.NotificationsOff, silentNotif) {
                             toggle("SILENT_NOTIF", silentNotif, inverted = true) { silentNotif = it }
                         }
                     }
