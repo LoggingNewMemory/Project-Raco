@@ -195,7 +195,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                                 }
                                 androidx.compose.material3.DropdownMenuItem(text = { Text(stringResource(R.string.english)) }, onClick = { setLang("en") })
                                 androidx.compose.material3.DropdownMenuItem(text = { Text(stringResource(R.string.espa_ol)) }, onClick = { setLang("es") })
-                                androidx.compose.material3.DropdownMenuItem(text = { Text(stringResource(R.string.bahasa_indonesia)) }, onClick = { setLang("id") })
+                                androidx.compose.material3.DropdownMenuItem(text = { Text(stringResource(R.string.bahasa_indonesia)) }, onClick = { setLang("in") })
                                 androidx.compose.material3.DropdownMenuItem(text = { Text("日本語") }, onClick = { setLang("ja") })
                                 androidx.compose.material3.DropdownMenuItem(text = { Text("Русский") }, onClick = { setLang("ru") })
                             }
