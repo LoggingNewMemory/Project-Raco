@@ -363,48 +363,61 @@ fun SystemScreen(onBack: () -> Unit) {
             // System Actions Card
             item {
                 SystemCard(stringResource(R.string.system_actions_title)) {
-                    // FSTRIM
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.fstrim), fontWeight = FontWeight.Bold)
-                            Text(stringResource(R.string.trim_filesystem_for_storage_performance), style = MaterialTheme.typography.bodySmall)
-                        }
-                        Button(
-                            onClick = {
-                                isBusyFstrim = true
-                                scope.launch {
-                                    fstrimResult = sysRunRoot("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco fstrim")
-                                    isBusyFstrim = false
-                                    snackbarHostState.showSnackbar(context.getString(R.string.fstrim_completed))
-                                }
-                            },
-                            enabled = !isBusyFstrim,
-                            modifier = Modifier.width(100.dp)
-                        ) {
-                            Text(stringResource(R.string.button_run))
+                    var cacheProgress by remember { mutableFloatStateOf(0f) }
+
+                    com.kanagawa.yamada.project.raco.ControlRow(
+                        title = stringResource(R.string.fstrim_title),
+                        desc = stringResource(R.string.trim_filesystem_for_storage_performance),
+                        icon = Icons.Default.Storage,
+                        bgColor = MaterialTheme.colorScheme.surfaceVariant,
+                        isExecuting = isBusyFstrim,
+                        progress = if(isBusyFstrim) 1f else 0f,
+                        isCurrent = false,
+                        enabled = !isBusyFstrim && !isBusyClearCache
+                    ) {
+                        isBusyFstrim = true
+                        scope.launch(Dispatchers.IO) {
+                            try {
+                                sysRunRoot("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco fstrim")
+                            } catch (e: Exception) { e.printStackTrace() }
+                            withContext(Dispatchers.Main) {
+                                isBusyFstrim = false
+                                snackbarHostState.showSnackbar(context.getString(R.string.fstrim_completed))
+                            }
                         }
                     }
+
                     Spacer(Modifier.height(16.dp))
-                    // Clear Cache
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.clear_cache_title), fontWeight = FontWeight.Bold)
-                            Text(stringResource(R.string.remove_system_cache_partition_contents), style = MaterialTheme.typography.bodySmall)
-                        }
-                        Button(
-                            onClick = {
-                                isBusyClearCache = true
-                                scope.launch {
-                                    sysRunRoot("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco clearcache")
-                                    isBusyClearCache = false
-                                    snackbarHostState.showSnackbar(context.getString(R.string.cache_cleared))
+
+                    com.kanagawa.yamada.project.raco.ControlRow(
+                        title = stringResource(R.string.clear_cache_title),
+                        desc = stringResource(R.string.remove_system_cache_partition_contents),
+                        icon = Icons.Default.DeleteSweep,
+                        bgColor = MaterialTheme.colorScheme.surfaceVariant,
+                        isExecuting = isBusyClearCache,
+                        progress = cacheProgress,
+                        isCurrent = false,
+                        enabled = !isBusyFstrim && !isBusyClearCache
+                    ) {
+                        isBusyClearCache = true
+                        cacheProgress = 0f
+                        scope.launch(Dispatchers.IO) {
+                            try {
+                                val p = ProcessBuilder("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco clearcache").redirectErrorStream(true).start()
+                                p.outputStream.close()
+                                p.inputStream.bufferedReader().forEachLine { line ->
+                                    if (line.startsWith("PROGRESS:")) {
+                                        cacheProgress = line.substringAfter("PROGRESS:").trim().toFloatOrNull()?.div(100f) ?: cacheProgress
+                                        if (cacheProgress >= 1f) return@forEachLine
+                                    }
                                 }
-                            },
-                            enabled = !isBusyClearCache,
-                            modifier = Modifier.width(100.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                        ) {
-                            Text(stringResource(R.string.clear))
+                                p.waitFor()
+                            } catch (e: Exception) { e.printStackTrace() }
+                            withContext(Dispatchers.Main) {
+                                isBusyClearCache = false
+                                cacheProgress = 0f
+                                snackbarHostState.showSnackbar(context.getString(R.string.cache_cleared))
+                            }
                         }
                     }
                 }

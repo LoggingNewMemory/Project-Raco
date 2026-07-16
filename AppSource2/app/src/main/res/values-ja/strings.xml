@@ -95,7 +95,7 @@
     <string name="anya_thermal_title">アーニャ・メルフィッサ サーマル無効化</string>
     <string name="anya_thermal_description">パフォーマンスとゲーミングモードではサーマルを無効化し、省電力、バランス、冷却モードではサーマルを有効化します。</string>
     <string name="enable_anya_thermal_flowstate">アーニャフローステートを有効にする</string>
-    <string name="system_actions_title">システムアクション</string>
+    <string name="system_actions_title">システムクリーンアップ</string>
     <string name="fstrim">Fstrim</string>
     <string name="fstrim_description">Androidパーティションをトリムします。</string>
     <string name="clear_cache_title">キャッシュをクリア</string>

@@ -249,27 +249,33 @@ void run_fstrim() {
 }
 
 void clear_cache() {
-    system("for DIR in /data/data/*; do if [ -d \"${DIR}\" ]; then rm -rf ${DIR}/cache/* ${DIR}/no_backup/* ${DIR}/app_webview/* ${DIR}/code_cache/*; fi; done >/dev/null 2>&1; "
-           "find /data/data/*/cache/* -delete 2>/dev/null; "
+    printf("PROGRESS: 10\n"); fflush(stdout);
+    system("for DIR in /data/data/*; do if [ -d \"${DIR}\" ]; then rm -rf ${DIR}/cache/* ${DIR}/no_backup/* ${DIR}/app_webview/* ${DIR}/code_cache/*; fi; done >/dev/null 2>&1");
+    printf("PROGRESS: 30\n"); fflush(stdout);
+    system("find /data/data/*/cache/* -delete 2>/dev/null; "
            "find /data/data/*/code_cache/* -delete 2>/dev/null; "
            "find /data/user_de/*/*/cache/* -delete 2>/dev/null; "
            "find /data/user_de/*/*/code_cache/* -delete 2>/dev/null; "
-           "find /sdcard/Android/data/*/cache/* -delete 2>/dev/null; "
-           "pm trim-caches 1024G >/dev/null 2>&1; "
-           "cmd stats clear-puller-cache >/dev/null 2>&1; "
+           "find /sdcard/Android/data/*/cache/* -delete 2>/dev/null");
+    printf("PROGRESS: 50\n"); fflush(stdout);
+    system("pm trim-caches 1024G >/dev/null 2>&1");
+    printf("PROGRESS: 70\n"); fflush(stdout);
+    system("cmd stats clear-puller-cache >/dev/null 2>&1; "
            "cmd activity clear-debug-app >/dev/null 2>&1; "
            "cmd activity clear-watch-heap -a >/dev/null 2>&1; "
            "cmd activity clear-exit-info >/dev/null 2>&1; "
            "cmd content reset-today-stats >/dev/null 2>&1; "
-           "cmd companiondevice refresh-cache >/dev/null 2>&1; "
-           "cmd companiondevice remove-inactive-associations >/dev/null 2>&1; "
+           "cmd companiondevice refresh-cache >/dev/null 2>&1");
+    printf("PROGRESS: 85\n"); fflush(stdout);
+    system("cmd companiondevice remove-inactive-associations >/dev/null 2>&1; "
            "cmd blob_store clear-all-blobs >/dev/null 2>&1; "
            "cmd blob_store clear-all-sessions >/dev/null 2>&1; "
            "cmd device_policy clear-freeze-period-record >/dev/null 2>&1; "
            "wm tracing size 0 >/dev/null 2>&1; "
            "cmd font clear >/dev/null 2>&1; "
-           "cmd location_time_zone_manager clear_recorded_provider_states >/dev/null 2>&1; "
-           "cmd lock_settings remove-cache >/dev/null 2>&1; "
+           "cmd location_time_zone_manager clear_recorded_provider_states >/dev/null 2>&1");
+    printf("PROGRESS: 95\n"); fflush(stdout);
+    system("cmd lock_settings remove-cache >/dev/null 2>&1; "
            "cmd media.camera clear-stream-use-case-override >/dev/null 2>&1; "
            "cmd media.camera watch clear >/dev/null 2>&1; "
            "cmd safety_center clear-data >/dev/null 2>&1; "
@@ -277,6 +283,7 @@ void clear_cache() {
            "cmd time_detector clear_system_clock_network_time >/dev/null 2>&1; "
            "dumpsys procstats --clear >/dev/null 2>&1; "
            "cmd package art cleanup >/dev/null 2>&1");
+    printf("PROGRESS: 100\n"); fflush(stdout);
 }
 
 // Frequency Control (Devfreq)

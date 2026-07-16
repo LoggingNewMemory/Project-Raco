@@ -97,7 +97,7 @@
     <string name="anya_thermal_title">Anya Melfissa Disable Thermal</string>
     <string name="anya_thermal_description">Disable Thermal on Performance and Gaming, Enable Thermal on Powersave, Balanced, Cool Down.</string>
 
-    <string name="system_actions_title">System Actions</string>
+    <string name="system_actions_title">System Cleanup</string>
     <string name="fstrim_title">Fstrim</string>
     <string name="fstrim_description">Trim Android partitions.</string>
     <string name="clear_cache_title">Clear Cache</string>

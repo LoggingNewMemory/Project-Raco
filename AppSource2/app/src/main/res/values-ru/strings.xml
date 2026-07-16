@@ -95,7 +95,7 @@
     <string name="anya_thermal_title">Отключение тротлинга Anya Melfissa</string>
     <string name="anya_thermal_description">Отключать тротлинг в Игровом режиме и режиме Производительность, включать в режимах Энергосбережение, Баланс, Охлаждение.</string>
     <string name="enable_anya_thermal_flowstate">Включить Anya Flowstate</string>
-    <string name="system_actions_title">Системные действия</string>
+    <string name="system_actions_title">Очистка системы</string>
     <string name="fstrim">fstrim</string>
     <string name="fstrim_description">Оптимизация разделов.</string>
     <string name="clear_cache_title">Отчистка кэша</string>
