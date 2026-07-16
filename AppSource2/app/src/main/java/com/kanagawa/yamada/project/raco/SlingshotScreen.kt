@@ -30,16 +30,28 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SlingshotScreen(onBack: () -> Unit) {
     var configApp by remember { mutableStateOf<String?>(null) }
     
-    if (configApp != null) {
-        SlingshotConfigScreen(pkg = configApp!!, onBack = { configApp = null })
-    } else {
-        SlingshotMainScreen(onBack = onBack, onOpenConfig = { configApp = it })
+    BackHandler(enabled = configApp != null) {
+        configApp = null
+    }
+
+    Crossfade(
+        targetState = configApp,
+        label = "SlingshotTransition"
+    ) { currentConfigApp ->
+        if (currentConfigApp != null) {
+            SlingshotConfigScreen(pkg = currentConfigApp, onBack = { configApp = null })
+        } else {
+            SlingshotMainScreen(onBack = onBack, onOpenConfig = { configApp = it })
+        }
     }
 }
 
