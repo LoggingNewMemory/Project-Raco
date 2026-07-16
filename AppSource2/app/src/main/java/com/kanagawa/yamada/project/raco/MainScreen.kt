@@ -1,6 +1,7 @@
 package com.kanagawa.yamada.project.raco
 
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
 
 import com.kanagawa.yamada.project.raco.R
 import androidx.compose.ui.res.stringResource
@@ -62,6 +63,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
     var checkingRoot by remember { mutableStateOf(true) }
     var isExecuting by remember { mutableStateOf(false) }
     var executingMode by remember { mutableStateOf("") }
+    var executionProgress by remember { mutableFloatStateOf(0f) }
     var moduleInstalled by remember { mutableStateOf(false) }
     var moduleVersion by remember { mutableStateOf("Unknown") }
     val coroutineScope = rememberCoroutineScope()
@@ -132,11 +134,20 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
         if (!hasRoot || isExecuting) return
         isExecuting = true
         executingMode = modeArg
+        executionProgress = 0f
         coroutineScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco " + modeArg + " > /dev/null 2>&1"))
+                    val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco " + modeArg))
+                    process.inputStream.bufferedReader().forEachLine { line ->
+                        if (line.startsWith("PROGRESS:")) {
+                            line.substringAfter("PROGRESS:").trim().toFloatOrNull()?.let {
+                                executionProgress = it / 100f
+                            }
+                        }
+                    }
                     process.waitFor()
+                    executionProgress = 1f
                     if (modeName != "CLEAR") {
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "grep -q '^STATE' $configPath && sed -i 's|^STATE.*|STATE $modeArg|' $configPath || echo 'STATE $modeArg' >> $configPath")).waitFor()
                     }
@@ -144,8 +155,10 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                 currentMode = if (modeName == "CLEAR") "NONE" else modeName
             } catch (e: Exception) {
             } finally {
+                delay(300)
                 isExecuting = false
                 executingMode = ""
+                executionProgress = 0f
                 currentMode = fetchActiveMode()
             }
         }
@@ -285,7 +298,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                     items(controlParams) { p ->
                         val isCurr = currentMode == p.modeName
                         val isExec = executingMode == p.modeId
-                        ControlRow(p.title, stringResource(p.descRes), p.icon, if (isCurr) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, isExec, isCurr, hasRoot) {
+                        ControlRow(p.title, stringResource(p.descRes), p.icon, if (isCurr) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, isExec, if(isExec) executionProgress else 0f, isCurr, hasRoot) {
                             executeScript(p.modeId, p.modeName)
                         }
                     }
@@ -314,20 +327,48 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
 }
 
 @Composable
-fun ControlRow(title: String, desc: String, icon: ImageVector, bgColor: Color, isExecuting: Boolean, isCurrent: Boolean, enabled: Boolean, onClick: () -> Unit) {
+fun ControlRow(title: String, desc: String, icon: ImageVector, bgColor: Color, isExecuting: Boolean, progress: Float, isCurrent: Boolean, enabled: Boolean, onClick: () -> Unit) {
+    val fillColor = if (isCurrent) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+
+    // Smooth animation for progress updates
+    val animatedProgress by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = progress,
+        animationSpec = androidx.compose.animation.core.tween(300),
+        label = "progressAnim"
+    )
+
     Card(
         colors = CardDefaults.cardColors(containerColor = bgColor),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth().clickable(enabled = enabled && !isExecuting) { onClick() }
     ) {
-        Row(modifier = Modifier.padding(16.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .drawBehind {
+                    if (isExecuting) {
+                        drawRect(
+                            color = fillColor,
+                            size = androidx.compose.ui.geometry.Size(size.width * animatedProgress, size.height)
+                        )
+                    }
+                }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(icon, contentDescription = null, tint = if (isCurrent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal, color = if (isCurrent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface)
                 Text(desc, style = MaterialTheme.typography.bodySmall, color = if (isCurrent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            if (isCurrent) {
+            if (isExecuting) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                    color = if (isCurrent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
+                )
+            } else if (isCurrent) {
                 Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
             } else {
                 Icon(Icons.Default.ChevronRight, contentDescription = null)

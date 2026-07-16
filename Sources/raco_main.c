@@ -145,13 +145,16 @@ void corin_storage(const char *sched, const char *rq) {
 
 // Master Profiles
 void mode_awaken() {
+    printf("PROGRESS: 10\n"); fflush(stdout);
     sync();
     rawrite("3", "/proc/sys/vm/drop_caches");
 
+    printf("PROGRESS: 30\n"); fflush(stdout);
     apply_io_tweaks("0", "0", "32", "32", 1);
     apply_net_tweaks("1", "1", "3", "0", 1);
     rawrite("0", "/proc/sys/vm/page-cluster");
     rawrite("80", "/proc/sys/vm/vfs_cache_pressure");
+    printf("PROGRESS: 50\n"); fflush(stdout);
     carlotta_cpu(80);
 
     corin_storage("deadline", "1");
@@ -178,25 +181,31 @@ void mode_awaken() {
            "cmd display dmd-logging-disable >/dev/null 2>&1; "
            "logcat -G 64K >/dev/null 2>&1; logcat -c >/dev/null 2>&1 &");
 
+    printf("PROGRESS: 70\n"); fflush(stdout);
+
     // CPU SETTINGS: Order matters. Set Gov, Safety Wait, Then Apply Profile
     if (config.lite_performance == 1) {
         change_cpu_gov(config.default_gov);
     } else {
         change_cpu_gov("performance");
     }
+    printf("PROGRESS: 90\n"); fflush(stdout);
     sleep(1);
     cpufreq_awaken();
     route_soc(4);
 
     clear_slingshot();
     anyamelfissa();
+    printf("PROGRESS: 100\n"); fflush(stdout);
     notification("Performance Mode Activated");
 }
 
 void mode_balanced() {
+    printf("PROGRESS: 10\n"); fflush(stdout);
     sync();
     rawrite("3", "/proc/sys/vm/drop_caches");
 
+    printf("PROGRESS: 40\n"); fflush(stdout);
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);
 
@@ -229,23 +238,23 @@ void mode_balanced() {
 
     system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
 
+    printf("PROGRESS: 80\n"); fflush(stdout);
     // CPU SETTINGS
-    // 1. First, reset frequencies to hardware defaults (Unlock)
-    // This prevents the "max < min" write errors if coming from powersave/perf
-    cpufreq_balanced();
-    // 2. Then set the balanced governor
     change_cpu_gov(config.default_gov);
     route_soc(3);
 
     clear_slingshot();
     anyakawaii();
+    printf("PROGRESS: 100\n"); fflush(stdout);
     notification("Balanced Mode Activated");
 }
 
 void mode_powersave() {
+    printf("PROGRESS: 10\n"); fflush(stdout);
     sync();
     rawrite("3", "/proc/sys/vm/drop_caches");
 
+    printf("PROGRESS: 30\n"); fflush(stdout);
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);
 
@@ -278,9 +287,11 @@ void mode_powersave() {
 
     system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
     
+    printf("PROGRESS: 70\n"); fflush(stdout);
     // CPU SETTINGS
     // 1. Set powersave gov
     change_cpu_gov("powersave");
+    printf("PROGRESS: 90\n"); fflush(stdout);
     sleep(1);
     // 2. Apply limits
     cpufreq_powersave();
@@ -288,12 +299,15 @@ void mode_powersave() {
 
     clear_slingshot();
     anyakawaii();
+    printf("PROGRESS: 100\n"); fflush(stdout);
     notification("Powersave Mode Activated");
 }
 
 void mode_normal() {
+    printf("PROGRESS: 20\n"); fflush(stdout);
     sync();
 
+    printf("PROGRESS: 50\n"); fflush(stdout);
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);
 
@@ -326,19 +340,23 @@ void mode_normal() {
 
     system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
 
-    // CPU SETTINGS: Unlock first, then set governor
-    cpufreq_normal();
+    printf("PROGRESS: 80\n"); fflush(stdout);
+    // CPU SETTINGS: set governor
     change_cpu_gov(config.default_gov);
     route_soc(1);
 
     clear_slingshot();
     anyakawaii();
+    printf("PROGRESS: 100\n"); fflush(stdout);
     notification("Balanced Mode Activated");
 }
 
 void mode_gaming_pro() {
+    printf("PROGRESS: 10\n"); fflush(stdout);
     mode_awaken();
+    printf("PROGRESS: 80\n"); fflush(stdout);
     kill_all();
+    printf("PROGRESS: 100\n"); fflush(stdout);
     notification("Gaming Pro Mode Activated");
 }
 
@@ -351,7 +369,9 @@ void mode_cooldown() {
 }
 
 void mode_reset() {
+    printf("PROGRESS: 20\n"); fflush(stdout);
     kill_all();
+    printf("PROGRESS: 100\n"); fflush(stdout);
     notification("All background applications cleared.");
 }
 
