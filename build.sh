@@ -325,7 +325,7 @@ build_modules() {
 
     ZIP_NAME="${MODULE_ID}-${VERSION}-${BUILD_TYPE}.zip"
     ZIP_PATH="../$BUILD_DIR/$ZIP_NAME"
-    zip -q -r "$ZIP_PATH" ./*
+    zip -q -r "$ZIP_PATH" ./* -x "*.gitkeep"
     echo "Created: $ZIP_NAME"
 
     cd ..

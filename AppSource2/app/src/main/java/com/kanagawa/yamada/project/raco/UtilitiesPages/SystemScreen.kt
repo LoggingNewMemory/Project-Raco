@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.*
 
 private const val SYS_CONFIG = "/data/ProjectRaco/raco.txt"
 
@@ -74,10 +75,12 @@ fun SystemScreen(onBack: () -> Unit) {
 
     var isBusyAnya by remember { mutableStateOf(false) }
     
-    var rgbR by remember { mutableFloatStateOf(1f) }
-    var rgbG by remember { mutableFloatStateOf(1f) }
-    var rgbB by remember { mutableFloatStateOf(1f) }
-    var rgbS by remember { mutableFloatStateOf(1f) }
+    val prefs = context.getSharedPreferences("raco_ui_prefs", android.content.Context.MODE_PRIVATE)
+
+    var rgbR by remember { mutableFloatStateOf(prefs.getFloat("RGB_R", 1f)) }
+    var rgbG by remember { mutableFloatStateOf(prefs.getFloat("RGB_G", 1f)) }
+    var rgbB by remember { mutableFloatStateOf(prefs.getFloat("RGB_B", 1f)) }
+    var rgbS by remember { mutableFloatStateOf(prefs.getFloat("RGB_S", 1f)) }
 
     var isBusySandev by remember { mutableStateOf(false) }
     var isBusyGraphics by remember { mutableStateOf(false) }
@@ -103,17 +106,19 @@ fun SystemScreen(onBack: () -> Unit) {
         graphicsDriver = driverOut.trim().toIntOrNull() ?: 0
 
 
-        
-        val rxR = Regex("^RGB_R[ \\t]+([0-9.]+)", RegexOption.MULTILINE).find(config)
-        rgbR = rxR?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
-        val rxG = Regex("^RGB_G[ \\t]+([0-9.]+)", RegexOption.MULTILINE).find(config)
-        rgbG = rxG?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
-        val rxB = Regex("^RGB_B[ \\t]+([0-9.]+)", RegexOption.MULTILINE).find(config)
-        rgbB = rxB?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
-        val rxS = Regex("^RGB_S[ \\t]+([0-9.]+)", RegexOption.MULTILINE).find(config)
-        rgbS = rxS?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
+        // RGB values are now loaded from SharedPreferences directly in state initialization
 
         isLoading = false
+    }
+
+    LaunchedEffect(Unit) {
+        androidx.compose.runtime.snapshotFlow { listOf(rgbR, rgbG, rgbB, rgbS) }
+            .conflate()
+            .collect { values ->
+                if (!isLoading) {
+                    sysRunRoot("service call SurfaceFlinger 1015 i32 1 f ${values[0]} f 0 f 0 f 0 f 0 f ${values[1]} f 0 f 0 f 0 f 0 f ${values[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${values[3]}")
+                }
+            }
     }
 
     Scaffold(
@@ -192,14 +197,13 @@ fun SystemScreen(onBack: () -> Unit) {
                                 },
                                 onValueChangeFinished = {
                                     scope.launch {
-                                        when (idx) {
-                                            0 -> sysWriteKey("RGB_R", rgbR.toString())
-                                            1 -> sysWriteKey("RGB_G", rgbG.toString())
-                                            2 -> sysWriteKey("RGB_B", rgbB.toString())
-                                            3 -> sysWriteKey("RGB_S", rgbS.toString())
+                                        prefs.edit().apply {
+                                            putFloat("RGB_R", rgbR)
+                                            putFloat("RGB_G", rgbG)
+                                            putFloat("RGB_B", rgbB)
+                                            putFloat("RGB_S", rgbS)
+                                            apply()
                                         }
-                                        sysRunRoot("service call SurfaceFlinger 1015 i32 1 f $rgbR f 0 f 0 f 0 f 0 f $rgbG f 0 f 0 f 0 f 0 f $rgbB f 0 f 0 f 0 f 0 f 1")
-                                        sysRunRoot("service call SurfaceFlinger 1022 f $rgbS")
                                         sysUpdateAyundaScript(rgbR, rgbG, rgbB, rgbS)
                                         sysSetAyundaRusdiEnabled(true)
                                     }
@@ -221,10 +225,13 @@ fun SystemScreen(onBack: () -> Unit) {
                         onClick = {
                             rgbR = 1f; rgbG = 1f; rgbB = 1f; rgbS = 1f
                             scope.launch {
-                                sysWriteKey("RGB_R", "1.0")
-                                sysWriteKey("RGB_G", "1.0")
-                                sysWriteKey("RGB_B", "1.0")
-                                sysWriteKey("RGB_S", "1.0")
+                                prefs.edit().apply {
+                                    putFloat("RGB_R", 1f)
+                                    putFloat("RGB_G", 1f)
+                                    putFloat("RGB_B", 1f)
+                                    putFloat("RGB_S", 1f)
+                                    apply()
+                                }
                                 sysRunRoot("service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1")
                                 sysRunRoot("service call SurfaceFlinger 1022 f 1.0")
                                 sysUpdateAyundaScript(1f, 1f, 1f, 1f)
