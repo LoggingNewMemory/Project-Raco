@@ -90,13 +90,13 @@ fun SystemScreen(onBack: () -> Unit) {
 
     LaunchedEffect(Unit) {
         val config = sysRunRoot("cat $SYS_CONFIG")
-        fun parseFlag(key: String) = Regex("^$key\\s+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
+        fun parseFlag(key: String) = Regex("^$key[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
 
         dndEnabled = parseFlag("DND")
         anyaThermalEnabled = parseFlag("ANYA")
-        anyaIncluded = Regex("^INCLUDE_ANYA\\s+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) != "0"
+        anyaIncluded = Regex("^INCLUDE_ANYA[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) != "0"
         sandevIncluded = parseFlag("INCLUDE_SANDEV")
-        sandevDurationText = Regex("^SANDEV_DUR\\s+(\\d+)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) ?: "10"
+        sandevDurationText = Regex("^SANDEV_DUR[ \\t]+(\\d+)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) ?: "10"
 
         // Graphics driver
         val driverOut = sysRunRoot("settings get global updatable_driver_all_apps")
@@ -104,13 +104,13 @@ fun SystemScreen(onBack: () -> Unit) {
 
 
         
-        val rxR = Regex("^RGB_R\\s+([0-9.]+)", RegexOption.MULTILINE).find(config)
+        val rxR = Regex("^RGB_R[ \\t]+([0-9.]+)", RegexOption.MULTILINE).find(config)
         rgbR = rxR?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
-        val rxG = Regex("^RGB_G\\s+([0-9.]+)", RegexOption.MULTILINE).find(config)
+        val rxG = Regex("^RGB_G[ \\t]+([0-9.]+)", RegexOption.MULTILINE).find(config)
         rgbG = rxG?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
-        val rxB = Regex("^RGB_B\\s+([0-9.]+)", RegexOption.MULTILINE).find(config)
+        val rxB = Regex("^RGB_B[ \\t]+([0-9.]+)", RegexOption.MULTILINE).find(config)
         rgbB = rxB?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
-        val rxS = Regex("^RGB_S\\s+([0-9.]+)", RegexOption.MULTILINE).find(config)
+        val rxS = Regex("^RGB_S[ \\t]+([0-9.]+)", RegexOption.MULTILINE).find(config)
         rgbS = rxS?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
 
         isLoading = false

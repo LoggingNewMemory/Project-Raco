@@ -35,7 +35,7 @@ private suspend fun readConfig(): String = withContext(Dispatchers.IO) {
 }
 
 private fun parseFlag(content: String, key: String, inverted: Boolean = false): Boolean {
-    val match = Regex("^$key\\s+(\\d)", RegexOption.MULTILINE).find(content)
+    val match = Regex("^$key[ \\t]+(\\d)", RegexOption.MULTILINE).find(content)
     val value = match?.groupValues?.getOrNull(1)
     return if (inverted) value == "0" else value == "1"
 }
@@ -80,7 +80,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
             alterCpuMethod = parseFlag(content, "ALTER_CPU_METHOD")
             legacyNotif = parseFlag(content, "LEGACY_NOTIF")
             silentNotif = parseFlag(content, "SILENT_NOTIF")
-            selectedGovernor = Regex("^GOV\\s+(.*)$", RegexOption.MULTILINE).find(content)?.groupValues?.getOrNull(1)?.trim()
+            selectedGovernor = Regex("^GOV(?:[ \t]+(.*))?$", RegexOption.MULTILINE).find(content)?.groupValues?.getOrNull(1)?.trim()?.takeIf { it.isNotEmpty() }
             availableGovernors = withContext(Dispatchers.IO) {
                 try {
                     val p = ProcessBuilder("su", "-c", "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors").redirectErrorStream(true).start()
@@ -179,7 +179,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
                                     DropdownMenuItem(text = { Text(stringResource(R.string.no_governor_selected)) }, onClick = {
                                         selectedGovernor = null; governorExpanded = false
                                         coroutineScope.launch { withContext(Dispatchers.IO) {
-                                            val cmd = "grep -q '^GOV ' $RACO_CONFIG && sed -i 's|^GOV .*|GOV |' $RACO_CONFIG || echo 'GOV ' >> $RACO_CONFIG"
+                                            val cmd = "grep -q '^GOV' $RACO_CONFIG && sed -i 's|^GOV.*|GOV|' $RACO_CONFIG || echo 'GOV' >> $RACO_CONFIG"
                                             val p = ProcessBuilder("su", "-c", cmd).redirectErrorStream(true).start()
                                             p.outputStream.close(); p.inputStream.bufferedReader().use { it.readText() }; p.waitFor()
                                         }}
@@ -188,7 +188,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
                                         DropdownMenuItem(text = { Text(gov) }, onClick = {
                                             selectedGovernor = gov; governorExpanded = false
                                             coroutineScope.launch { withContext(Dispatchers.IO) {
-                                                val cmd = "grep -q '^GOV ' $RACO_CONFIG && sed -i 's|^GOV .*|GOV $gov|' $RACO_CONFIG || echo 'GOV $gov' >> $RACO_CONFIG"
+                                                val cmd = "grep -q '^GOV' $RACO_CONFIG && sed -i 's|^GOV.*|GOV $gov|' $RACO_CONFIG || echo 'GOV $gov' >> $RACO_CONFIG"
                                                 val p = ProcessBuilder("su", "-c", cmd).redirectErrorStream(true).start()
                                                 p.outputStream.close(); p.inputStream.bufferedReader().use { it.readText() }; p.waitFor()
                                             }}

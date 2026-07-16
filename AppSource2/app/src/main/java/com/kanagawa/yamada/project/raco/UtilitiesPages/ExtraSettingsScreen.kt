@@ -49,7 +49,7 @@ private fun readExtraConfig(): String? = runCatching {
 }.getOrNull()
 
 private fun parseExtraFlag(content: String, key: String): Boolean {
-    val match = Regex("^$key\\s+(.*)$", RegexOption.MULTILINE).find(content) ?: return false
+    val match = Regex("^$key[ \\t]+(.*)$", RegexOption.MULTILINE).find(content) ?: return false
     return match.groupValues.getOrNull(1)?.trim() == "1"
 }
 

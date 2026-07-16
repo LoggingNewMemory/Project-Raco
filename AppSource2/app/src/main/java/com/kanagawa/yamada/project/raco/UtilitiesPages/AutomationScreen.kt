@@ -68,7 +68,7 @@ fun AutomationScreen(onBack: () -> Unit) {
 
     LaunchedEffect(Unit) {
         val config = runRoot("cat $AUTOMATION_CONFIG_PATH")
-        dndEnabled = Regex("^DND\\s+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
+        dndEnabled = Regex("^DND[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
         isLoading = false
     }
 
