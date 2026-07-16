@@ -79,7 +79,9 @@ fun SlingshotMainScreen(onBack: () -> Unit, onOpenConfig: (String) -> Unit) {
                     val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
                     val packages = reader.readLines().map { it.replace("package:", "").trim() }.filter { it.isNotEmpty() }
                     
-                    val pm = context.packageManager
+                    val sysConfig = android.content.res.Configuration(android.content.res.Resources.getSystem().configuration)
+                    val sysContext = context.createConfigurationContext(sysConfig)
+                    val pm = sysContext.packageManager
                     packages.sortedBy { pkg ->
                         try {
                             val info = pm.getApplicationInfo(pkg, 0)
@@ -96,6 +98,7 @@ fun SlingshotMainScreen(onBack: () -> Unit, onOpenConfig: (String) -> Unit) {
             }
         }
     }
+
 
     fun addGame(pkg: String) {
         if (!addedGames.contains(pkg)) {
@@ -412,7 +415,9 @@ fun AppName(pkg: String, modifier: Modifier = Modifier, style: androidx.compose.
         LaunchedEffect(pkg) {
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                 try {
-                    val pm = context.packageManager
+                    val sysConfig = android.content.res.Configuration(android.content.res.Resources.getSystem().configuration)
+                    val sysContext = context.createConfigurationContext(sysConfig)
+                    val pm = sysContext.packageManager
                     val info = pm.getApplicationInfo(pkg, 0)
                     val label = pm.getApplicationLabel(info).toString()
                     nameCache.put(pkg, label)
