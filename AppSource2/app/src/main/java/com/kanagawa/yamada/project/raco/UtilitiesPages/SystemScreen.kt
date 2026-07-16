@@ -280,54 +280,7 @@ fun SystemScreen(onBack: () -> Unit) {
                 }
             }
 
-            // Sandevistan Duration Card
-            if (sandevIncluded) {
-                item {
-                    SystemCard(stringResource(R.string.sandevistan_duration_title)) {
-                        Text(stringResource(R.string.duration_in_seconds_for_the_sandevistan_boost_higher_longer_burst), style = MaterialTheme.typography.bodySmall)
-                        Spacer(Modifier.height(16.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            OutlinedTextField(
-                                value = sandevDurationText,
-                                onValueChange = { sandevDurationText = it },
-                                label = { Text(stringResource(R.string.duration_seconds)) },
-                                modifier = Modifier.weight(1f),
-                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
-                                singleLine = true
-                            )
-                            Spacer(Modifier.width(16.dp))
-                            IconButton(
-                                onClick = {
-                                    val newDur = sandevDurationText.toIntOrNull()
-                                    if (newDur != null && newDur >= 0) {
-                                        isBusySandev = true
-                                        scope.launch {
-                                            sysRunRoot("grep -q '^SANDEV_DUR ' $SYS_CONFIG && sed -i 's|^SANDEV_DUR .*|SANDEV_DUR $newDur|' $SYS_CONFIG || echo 'SANDEV_DUR $newDur' >> $SYS_CONFIG")
-                                            isBusySandev = false
-                                            snackbarHostState.showSnackbar(context.getString(R.string.saved))
-                                        }
-                                    }
-                                }
-                            ) {
-                                Icon(Icons.Default.Save, null, tint = MaterialTheme.colorScheme.primary)
-                            }
-                        }
-                        // Easter egg messages
-                        val dur = sandevDurationText.toIntOrNull()
-                        if (dur != null) {
-                            val msg = when {
-                                dur < 10 -> "Too short... completely useless."
-                                dur == 10 -> "Original duration. Classic."
-                                dur <= 30 -> "Better. You're doing great."
-                                dur <= 60 -> "David Martinez would be proud."
-                                else -> "You're a full-on Smasher now."
-                            }
-                            Spacer(Modifier.height(8.dp))
-                            Text(msg, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
-                        }
-                    }
-                }
-            }
+
 
             // Graphics Driver Card
             item {
