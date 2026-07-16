@@ -105,9 +105,6 @@ fun SlingshotScreen(onBack: () -> Unit) {
                     if (useAngle) {
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global angle_gl_driver_selection_pkgs $selectedApp && settings put global angle_gl_driver_selection_values angle")).waitFor()
                     }
-                    
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/data/adb/modules/ProjectRaco/Binaries/kasane -a $selectedApp -m n -l")).waitFor()
-                    
                     if (usePlayboost) {
                         Thread.sleep(3000)
                         val script = "pid=\$(pgrep -f $selectedApp | head -n 1); if [ -n \"\$pid\" ]; then for task in /proc/\$pid/task/*; do tid=\$(basename \$task); taskset -p ffffffff \$tid; done; fi"

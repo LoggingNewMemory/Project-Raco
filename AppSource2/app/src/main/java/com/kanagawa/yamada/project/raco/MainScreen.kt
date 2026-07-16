@@ -135,7 +135,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
         coroutineScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "sh " + basePath + "Scripts/Raco.sh " + modeArg + " > /dev/null 2>&1"))
+                    val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco " + modeArg + " > /dev/null 2>&1"))
                     process.waitFor()
                 }
                 currentMode = if (modeName == "CLEAR") "NONE" else modeName
