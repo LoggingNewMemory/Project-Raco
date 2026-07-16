@@ -142,20 +142,23 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                     process.inputStream.bufferedReader().forEachLine { line ->
                         if (line.startsWith("PROGRESS:")) {
                             line.substringAfter("PROGRESS:").trim().toFloatOrNull()?.let {
-                                executionProgress = it / 100f
+                                val progressVal = it / 100f
+                                // Keep it at 95% until all background tasks and state saving are completely finished
+                                executionProgress = if (progressVal >= 1f) 0.95f else progressVal
                             }
                         }
                     }
                     process.waitFor()
-                    executionProgress = 1f
+                    
                     if (modeName != "CLEAR") {
+                        // Safely wait for state save so UI correctly updates
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "grep -q '^STATE' $configPath && sed -i 's|^STATE.*|STATE $modeArg|' $configPath || echo 'STATE $modeArg' >> $configPath")).waitFor()
                     }
+                    executionProgress = 1f
                 }
                 currentMode = if (modeName == "CLEAR") "NONE" else modeName
             } catch (e: Exception) {
             } finally {
-                delay(300)
                 isExecuting = false
                 executingMode = ""
                 executionProgress = 0f
