@@ -276,9 +276,20 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                     if (useAngle) {
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global angle_gl_driver_selection_pkgs $pkg && settings put global angle_gl_driver_selection_values angle")).waitFor()
                     }
+                }
+                
+                val intent = context.packageManager.getLaunchIntentForPackage(pkg)
+                if (intent != null) {
+                    intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(intent)
+                } else {
+                    snackbarHostState.showSnackbar("Could not launch app")
+                }
+                
+                withContext(Dispatchers.IO) {
                     if (usePlayboost) {
                         Thread.sleep(3000)
-                        val script = "pid=\\$(pgrep -f $pkg | head -n 1); if [ -n \"\$pid\" ]; then for task in /proc/\$pid/task/*; do tid=\\$(basename \$task); taskset -p ffffffff \$tid; done; fi"
+                        val script = "pid=\$(pgrep -f $pkg | head -n 1); if [ -n \"\$pid\" ]; then for task in /proc/\$pid/task/*; do tid=\$(basename \$task); taskset -p ffffffff \$tid; done; fi"
                         Runtime.getRuntime().exec(arrayOf("su", "-c", script)).waitFor()
                     }
                 }
