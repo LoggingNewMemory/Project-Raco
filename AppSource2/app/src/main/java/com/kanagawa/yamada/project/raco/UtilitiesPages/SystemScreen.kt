@@ -302,7 +302,7 @@ fun SystemScreen(onBack: () -> Unit) {
                             onClick = {
                                 isBusyFstrim = true
                                 scope.launch {
-                                    fstrimResult = sysRunRoot("fstrim -v /data /cache /system")
+                                    fstrimResult = sysRunRoot("raco fstrim")
                                     isBusyFstrim = false
                                     snackbarHostState.showSnackbar(context.getString(R.string.fstrim_completed))
                                 }
@@ -324,7 +324,7 @@ fun SystemScreen(onBack: () -> Unit) {
                             onClick = {
                                 isBusyClearCache = true
                                 scope.launch {
-                                    sysRunRoot("rm -rf /cache/*")
+                                    sysRunRoot("raco clearcache")
                                     isBusyClearCache = false
                                     snackbarHostState.showSnackbar(context.getString(R.string.cache_cleared))
                                 }

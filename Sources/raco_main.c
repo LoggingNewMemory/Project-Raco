@@ -362,6 +362,16 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    if (strcmp(argv[1], "fstrim") == 0) {
+        run_fstrim();
+        return 0;
+    }
+
+    if (strcmp(argv[1], "clearcache") == 0) {
+        clear_cache();
+        return 0;
+    }
+
     int mode = atoi(argv[1]);
 
     load_config("/data/ProjectRaco/raco.txt");

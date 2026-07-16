@@ -238,6 +238,43 @@ void kill_all() {
     system("logcat -b all -c");
 }
 
+void run_fstrim() {
+    system("busybox fstrim -v /data >/dev/null 2>&1");
+    usleep(100000);
+    system("busybox fstrim -v /cache >/dev/null 2>&1");
+}
+
+void clear_cache() {
+    system("for DIR in /data/data/*; do if [ -d \"${DIR}\" ]; then rm -rf ${DIR}/cache/* ${DIR}/no_backup/* ${DIR}/app_webview/* ${DIR}/code_cache/*; fi; done >/dev/null 2>&1");
+    system("find /data/data/*/cache/* -delete 2>/dev/null");
+    system("find /data/data/*/code_cache/* -delete 2>/dev/null");
+    system("find /data/user_de/*/*/cache/* -delete 2>/dev/null");
+    system("find /data/user_de/*/*/code_cache/* -delete 2>/dev/null");
+    system("find /sdcard/Android/data/*/cache/* -delete 2>/dev/null");
+    system("pm trim-caches 1024G >/dev/null 2>&1");
+    system("cmd stats clear-puller-cache >/dev/null 2>&1");
+    system("cmd activity clear-debug-app >/dev/null 2>&1");
+    system("cmd activity clear-watch-heap -a >/dev/null 2>&1");
+    system("cmd activity clear-exit-info >/dev/null 2>&1");
+    system("cmd content reset-today-stats >/dev/null 2>&1");
+    system("cmd companiondevice refresh-cache >/dev/null 2>&1");
+    system("cmd companiondevice remove-inactive-associations >/dev/null 2>&1");
+    system("cmd blob_store clear-all-blobs >/dev/null 2>&1");
+    system("cmd blob_store clear-all-sessions >/dev/null 2>&1");
+    system("cmd device_policy clear-freeze-period-record >/dev/null 2>&1");
+    system("wm tracing size 0 >/dev/null 2>&1");
+    system("cmd font clear >/dev/null 2>&1");
+    system("cmd location_time_zone_manager clear_recorded_provider_states >/dev/null 2>&1");
+    system("cmd lock_settings remove-cache >/dev/null 2>&1");
+    system("cmd media.camera clear-stream-use-case-override >/dev/null 2>&1");
+    system("cmd media.camera watch clear >/dev/null 2>&1");
+    system("cmd safety_center clear-data >/dev/null 2>&1");
+    system("cmd time_detector clear_network_time >/dev/null 2>&1");
+    system("cmd time_detector clear_system_clock_network_time >/dev/null 2>&1");
+    system("dumpsys procstats --clear >/dev/null 2>&1");
+    system("cmd package art cleanup >/dev/null 2>&1");
+}
+
 // Frequency Control (Devfreq)
 
 void set_devfreq(const char *path, const char *mode) {

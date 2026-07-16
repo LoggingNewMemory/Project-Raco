@@ -62,6 +62,8 @@ void load_config(const char *config_path);
 void notification(const char *message);
 void clear_slingshot();
 void kill_all();
+void run_fstrim();
+void clear_cache();
 void anyamelfissa();
 void anyakawaii();
 int get_universal_fps(const char *pkg);
