@@ -419,9 +419,33 @@ void cpufreq_balanced() {
     }
 }
 
-// Normal mode uses the same unlock behavior as balanced
 void cpufreq_normal() {
-    cpufreq_balanced();
+    if (config.alter_cpu_method == 1) return;
+    
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strncmp(ent->d_name, "policy", 6) == 0) {
+                const char *cpu_idx = ent->d_name + 6;
+                char path[256], min_info[256], max_info[256], min_path[256], max_path[256];
+                snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpufreq/%s", ent->d_name);
+                snprintf(min_info, sizeof(min_info), "/sys/devices/system/cpu/cpu%s/cpufreq/cpuinfo_min_freq", cpu_idx);
+                snprintf(max_info, sizeof(max_info), "/sys/devices/system/cpu/cpu%s/cpufreq/cpuinfo_max_freq", cpu_idx);
+                snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", path);
+                snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", path);
+
+                char hw_min_buf[32] = {0};
+                char hw_max_buf[32] = {0};
+
+                if (raread(min_info, hw_min_buf, sizeof(hw_min_buf)) > 0 && raread(max_info, hw_max_buf, sizeof(hw_max_buf)) > 0) {
+                    rakakikomi(hw_min_buf, min_path);
+                    rakakikomi(hw_max_buf, max_path);
+                }
+            }
+        }
+        closedir(dir);
+    }
 }
 
 void cpufreq_powersave() {

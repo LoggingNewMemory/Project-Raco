@@ -98,18 +98,18 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
     suspend fun fetchActiveMode(): String = withContext(Dispatchers.IO) {
         try {
             val output = withTimeoutOrNull(3000L) {
-                val process = ProcessBuilder("su", "-c", "grep '^STATE=' " + configPath + " | cut -d= -f2").redirectErrorStream(true).start()
+                val process = ProcessBuilder("su", "-c", "awk '/^STATE/ {print $2}' " + configPath).redirectErrorStream(true).start()
                 val text = process.inputStream.bufferedReader().use { it.readText().trim() }
                 process.waitFor()
                 text
             } ?: "NONE"
             when (output) {
-                "1" -> "PERFORMANCE"
-                "2" -> "BALANCED"
-                "3" -> "POWER_SAVE"
-                "4" -> "GAMING_PRO"
-                "5" -> "COOLDOWN"
-                "6" -> "NONE" // CLEAR
+                "4" -> "PERFORMANCE"
+                "1" -> "BALANCED"
+                "2" -> "POWER_SAVE"
+                "5" -> "GAMING_PRO"
+                "6" -> "COOLDOWN"
+                "7" -> "NONE"
                 else -> "NONE"
             }
         } catch (e: Exception) { "NONE" }
@@ -137,6 +137,9 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                 withContext(Dispatchers.IO) {
                     val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco " + modeArg + " > /dev/null 2>&1"))
                     process.waitFor()
+                    if (modeName != "CLEAR") {
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "sed -i 's|^STATE.*|STATE $modeArg|' $configPath")).waitFor()
+                    }
                 }
                 currentMode = if (modeName == "CLEAR") "NONE" else modeName
             } catch (e: Exception) {
@@ -271,12 +274,12 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                     data class ControlMode(val title: String, val descRes: Int, val modeId: String, val modeName: String, val icon: ImageVector)
 
                     val controlParams = listOf(
-                        ControlMode(psTitle, R.string.power_save_desc, "3", "POWER_SAVE", Icons.Default.BatterySaver),
-                        ControlMode(balTitle, R.string.balanced_desc, "2", "BALANCED", Icons.Default.Tune),
-                        ControlMode(perfTitle, R.string.performance_desc, "1", "PERFORMANCE", Icons.Default.FlashOn),
-                        ControlMode(gpTitle, R.string.gaming_desc, "4", "GAMING_PRO", Icons.Default.RocketLaunch),
-                        ControlMode(cdTitle, R.string.cooldown_desc, "5", "COOLDOWN", Icons.Default.AcUnit),
-                        ControlMode(clrTitle, R.string.clear_desc, "6", "CLEAR", Icons.Default.Refresh)
+                        ControlMode(psTitle, R.string.power_save_desc, "2", "POWER_SAVE", Icons.Default.BatterySaver),
+                        ControlMode(balTitle, R.string.balanced_desc, "1", "BALANCED", Icons.Default.Tune),
+                        ControlMode(perfTitle, R.string.performance_desc, "4", "PERFORMANCE", Icons.Default.FlashOn),
+                        ControlMode(gpTitle, R.string.gaming_desc, "5", "GAMING_PRO", Icons.Default.RocketLaunch),
+                        ControlMode(cdTitle, R.string.cooldown_desc, "6", "COOLDOWN", Icons.Default.AcUnit),
+                        ControlMode(clrTitle, R.string.clear_desc, "7", "CLEAR", Icons.Default.Refresh)
                     )
 
                     items(controlParams) { p ->
