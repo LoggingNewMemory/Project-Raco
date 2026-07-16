@@ -190,6 +190,7 @@ void mode_awaken() {
 
     clear_slingshot();
     anyamelfissa();
+    notification("Performance Mode Activated 🔥");
 }
 
 void mode_balanced() {
@@ -238,6 +239,7 @@ void mode_balanced() {
 
     clear_slingshot();
     anyakawaii();
+    notification("Balanced Mode Activated ⚖️");
 }
 
 void mode_powersave() {
@@ -286,6 +288,7 @@ void mode_powersave() {
 
     clear_slingshot();
     anyakawaii();
+    notification("Powersave Mode Activated 🔋");
 }
 
 void mode_normal() {
@@ -330,6 +333,26 @@ void mode_normal() {
 
     clear_slingshot();
     anyakawaii();
+    notification("Normal Mode Activated 🧊");
+}
+
+void mode_gaming_pro() {
+    mode_awaken();
+    kill_all();
+    notification("Gaming Pro Mode Activated 🚀");
+}
+
+void mode_cooldown() {
+    mode_powersave();
+    notification("Cool Down initiated for 2 minutes... ❄️");
+    sleep(120);
+    mode_balanced();
+    notification("Cool Down finished. Switched to Balanced Mode.");
+}
+
+void mode_reset() {
+    kill_all();
+    notification("All background applications cleared. ✅");
 }
 
 // Main Execution
@@ -345,6 +368,9 @@ int main(int argc, char *argv[]) {
 
     // Yamada: PLEASE REMEMBER THIS.
     /*
+    7 = Reset -> Kills all apps and clears background without changing tuning
+    6 = Cooldown -> Drops to powersave for 2 mins to cool, then balanced
+    5 = Gaming Pro -> Awaken + Kills all apps
     4 = Awaken
     3 = Balanced -> Keep in mind "Balanced" here is term of balanced performance, so half them minfreq
     2 = Powersave
@@ -363,6 +389,15 @@ int main(int argc, char *argv[]) {
             break;
         case 1:
             mode_normal();
+            break;
+        case 5:
+            mode_gaming_pro();
+            break;
+        case 6:
+            mode_cooldown();
+            break;
+        case 7:
+            mode_reset();
             break;
         default:
             printf("Error: Invalid mode '%d'. Mission aborted.\n", mode);
