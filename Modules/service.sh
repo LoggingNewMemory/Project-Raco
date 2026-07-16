@@ -24,9 +24,12 @@ su -lp 2000 -c "am start-foreground-service -n com.kanagawa.yamada.project.raco/
 sleep 2
 
 # Send Startup Notification
-LEGACY_NOTIF=$(grep '^LEGACY_NOTIF ' /data/ProjectRaco/raco.txt | awk '{print $2}')
-if [ "$LEGACY_NOTIF" = "1" ]; then
-    su -lp 2000 -c "cmd notification post -S bigtext -t 'Project Raco' 'TagRaco' 'Project Raco - オンライン'" &
-else
-    su -lp 2000 -c "cmd notification post -S bigtext -t 'Project Raco' -i file:///data/local/tmp/logo.png -I file:///data/local/tmp/logo.png 'TagRaco' 'Project Raco - オンライン'" &
+SILENT_NOTIF=$(grep '^SILENT_NOTIF ' /data/ProjectRaco/raco.txt | awk '{print $2}')
+if [ "$SILENT_NOTIF" = "0" ]; then
+    LEGACY_NOTIF=$(grep '^LEGACY_NOTIF ' /data/ProjectRaco/raco.txt | awk '{print $2}')
+    if [ "$LEGACY_NOTIF" = "1" ]; then
+        su -lp 2000 -c "cmd notification post -S bigtext -t 'Project Raco' 'TagRaco' 'Project Raco - オンライン'" &
+    else
+        su -lp 2000 -c "cmd notification post -S bigtext -t 'Project Raco' -i file:///data/local/tmp/logo.png -I file:///data/local/tmp/logo.png 'TagRaco' 'Project Raco - オンライン'" &
+    fi
 fi

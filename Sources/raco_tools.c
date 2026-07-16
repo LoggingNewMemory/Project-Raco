@@ -194,12 +194,12 @@ void load_config(const char *config_path) {
 
 // Basic Utilities
 void notification(const char *message) {
-    if (config.silent_notif == 1) {
+    if (config.silent_notif == 0) {
         char cmd[1024];
         if (config.legacy_notif == 1) {
-            snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' TagRaco '%s'\" &", message);
+            snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' 'TagRaco' '%s'\" &", message);
         } else {
-            snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' -i file:///data/local/tmp/logo.png -I file:///data/local/tmp/logo.png TagRaco '%s'\" &", message);
+            snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' -i file:///data/local/tmp/logo.png -I file:///data/local/tmp/logo.png 'TagRaco' '%s'\" &", message);
         }
         system(cmd);
     }
