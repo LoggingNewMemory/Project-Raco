@@ -139,16 +139,20 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
             try {
                 withContext(Dispatchers.IO) {
                     val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco " + modeArg))
-                    process.inputStream.bufferedReader().forEachLine { line ->
+                    val reader = process.inputStream.bufferedReader()
+                    while (true) {
+                        val line = reader.readLine() ?: break
                         if (line.startsWith("PROGRESS:")) {
                             line.substringAfter("PROGRESS:").trim().toFloatOrNull()?.let {
                                 val progressVal = it / 100f
                                 // Keep it at 95% until all background tasks and state saving are completely finished
                                 executionProgress = if (progressVal >= 1f) 0.95f else progressVal
                             }
+                            if (line.contains("PROGRESS: 100")) {
+                                break
+                            }
                         }
                     }
-                    process.waitFor()
                     
                     if (modeName != "CLEAR") {
                         // Safely wait for state save so UI correctly updates
