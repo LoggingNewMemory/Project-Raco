@@ -286,14 +286,15 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                     snackbarHostState.showSnackbar("Could not launch app")
                 }
                 
-                withContext(Dispatchers.IO) {
-                    if (usePlayboost) {
+                snackbarHostState.showSnackbar(context.getString(R.string.payload_deployed_to, pkg))
+                
+                if (usePlayboost) {
+                    coroutineScope.launch(Dispatchers.IO) {
                         Thread.sleep(3000)
                         val script = "pid=\$(pgrep -f $pkg | head -n 1); if [ -n \"\$pid\" ]; then for task in /proc/\$pid/task/*; do tid=\$(basename \$task); taskset -p ffffffff \$tid; done; fi"
                         Runtime.getRuntime().exec(arrayOf("su", "-c", script)).waitFor()
                     }
                 }
-                snackbarHostState.showSnackbar(context.getString(R.string.payload_deployed_to, pkg))
             } catch (e: Exception) {
             } finally {
                 isExecuting = false

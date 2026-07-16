@@ -226,16 +226,20 @@ void anyakawaii() {
 #endif
 
 void kill_all() {
-    system("sync; "
-           "cmd activity kill-all > /dev/null 2>&1; "
-           "for pkg in $(pm list packages -3 | cut -f 2 -d ':'); do "
-           "if [ \"$pkg\" != \"com.google.android.inputmethod.latin\" ]; then "
-           "am force-stop \"$pkg\" > /dev/null 2>&1 & "
-           "fi; done; wait; "
-           "pm trim-caches 100G > /dev/null 2>&1; "
-           "logcat -c; "
-           "logcat -b all -c");
-    rawrite("3", "/proc/sys/vm/drop_caches");
+    pid_t pid = fork();
+    if (pid == 0) {
+        system("sync; "
+               "cmd activity kill-all > /dev/null 2>&1; "
+               "for pkg in $(pm list packages -3 | cut -f 2 -d ':'); do "
+               "if [ \"$pkg\" != \"com.google.android.inputmethod.latin\" ]; then "
+               "am force-stop \"$pkg\" > /dev/null 2>&1 & "
+               "fi; done; wait; "
+               "pm trim-caches 100G > /dev/null 2>&1; "
+               "logcat -c; "
+               "logcat -b all -c");
+        rawrite("3", "/proc/sys/vm/drop_caches");
+        exit(0);
+    }
 }
 
 void run_fstrim() {

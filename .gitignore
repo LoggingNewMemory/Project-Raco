@@ -7,3 +7,7 @@ Modules/ProjectRaco.apk
 *.apk
 *.dm
 Designs/Exported
+Modules/Compiled/*
+!Modules/Compiled/.gitkeep
+Modules/CoreSys/*
+!Modules/CoreSys/.gitkeep

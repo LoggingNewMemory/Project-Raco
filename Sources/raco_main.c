@@ -345,9 +345,14 @@ void mode_gaming_pro() {
 void mode_cooldown() {
     mode_powersave();
     notification("Cool Down initiated for 2 minutes...");
-    sleep(120);
-    mode_balanced();
-    notification("Cool Down finished. Switched to Balanced Mode.");
+    
+    pid_t pid = fork();
+    if (pid == 0) {
+        sleep(120);
+        mode_balanced();
+        notification("Cool Down finished. Switched to Balanced Mode.");
+        exit(0);
+    }
 }
 
 void mode_reset() {
