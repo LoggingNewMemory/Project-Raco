@@ -8,6 +8,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -167,10 +172,25 @@ fun SystemScreen(onBack: () -> Unit) {
             // Screen Color Modifiers Card
             item {
                 SystemCard(stringResource(R.string.screen_modifier_title)) {
-                    Text(stringResource(R.string.screen_modifier_description),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.rusdi),
+                            contentDescription = "Ayunda Rusdi",
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(Modifier.width(16.dp))
+                        Text(
+                            text = stringResource(R.string.screen_modifier_description),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
 
                     listOf(
                         Triple(stringResource(R.string.screen_modifier_red), rgbR, Color(0xFFEF5350)),
@@ -178,13 +198,29 @@ fun SystemScreen(onBack: () -> Unit) {
                         Triple(stringResource(R.string.screen_modifier_blue), rgbB, Color(0xFF42A5F5)),
                         Triple(stringResource(R.string.screen_modifier_saturation), rgbS, Color(0xFFAB47BC)),
                     ).forEachIndexed { idx, (label, value, color) ->
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = label,
-                                color = color,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.width(50.dp)
-                            )
+                        Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(modifier = Modifier.size(10.dp).background(color, shape = androidx.compose.foundation.shape.CircleShape))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = label,
+                                        fontWeight = FontWeight.SemiBold,
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                Text(
+                                    text = String.format("%.2f", value),
+                                    fontWeight = FontWeight.Bold,
+                                    color = color,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
                             Slider(
                                 value = value,
                                 onValueChange = { newVal ->
@@ -209,41 +245,37 @@ fun SystemScreen(onBack: () -> Unit) {
                                     }
                                 },
                                 valueRange = 0f..2f,
-                                modifier = Modifier.weight(1f),
-                                colors = SliderDefaults.colors(thumbColor = color, activeTrackColor = color)
-                            )
-                            Text(
-                                text = String.format("%.2f", value),
-                                modifier = Modifier.width(40.dp),
-                                style = MaterialTheme.typography.bodySmall
+                                modifier = Modifier.fillMaxWidth().height(36.dp),
+                                colors = SliderDefaults.colors(thumbColor = color, activeTrackColor = color.copy(alpha = 0.8f), inactiveTrackColor = color.copy(alpha = 0.2f))
                             )
                         }
                     }
 
                     Spacer(Modifier.height(8.dp))
-                    OutlinedButton(
-                        onClick = {
-                            rgbR = 1f; rgbG = 1f; rgbB = 1f; rgbS = 1f
-                            scope.launch {
-                                prefs.edit().apply {
-                                    putFloat("RGB_R", 1f)
-                                    putFloat("RGB_G", 1f)
-                                    putFloat("RGB_B", 1f)
-                                    putFloat("RGB_S", 1f)
-                                    apply()
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(
+                            onClick = {
+                                rgbR = 1f; rgbG = 1f; rgbB = 1f; rgbS = 1f
+                                scope.launch {
+                                    prefs.edit().apply {
+                                        putFloat("RGB_R", 1f)
+                                        putFloat("RGB_G", 1f)
+                                        putFloat("RGB_B", 1f)
+                                        putFloat("RGB_S", 1f)
+                                        apply()
+                                    }
+                                    sysRunRoot("service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1")
+                                    sysRunRoot("service call SurfaceFlinger 1022 f 1.0")
+                                    sysUpdateAyundaScript(1f, 1f, 1f, 1f)
+                                    sysSetAyundaRusdiEnabled(false)
+                                    snackbarHostState.showSnackbar(context.getString(R.string.colors_reset))
                                 }
-                                sysRunRoot("service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1")
-                                sysRunRoot("service call SurfaceFlinger 1022 f 1.0")
-                                sysUpdateAyundaScript(1f, 1f, 1f, 1f)
-                                sysSetAyundaRusdiEnabled(false)
-                                snackbarHostState.showSnackbar(context.getString(R.string.colors_reset))
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.RestartAlt, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.reset_to_default))
+                        ) {
+                            Icon(Icons.Default.RestartAlt, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.reset_to_default))
+                        }
                     }
                 }
             }
