@@ -138,7 +138,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                     val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco " + modeArg + " > /dev/null 2>&1"))
                     process.waitFor()
                     if (modeName != "CLEAR") {
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "sed -i 's|^STATE.*|STATE $modeArg|' $configPath")).waitFor()
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "grep -q '^STATE' $configPath && sed -i 's|^STATE.*|STATE $modeArg|' $configPath || echo 'STATE $modeArg' >> $configPath")).waitFor()
                     }
                 }
                 currentMode = if (modeName == "CLEAR") "NONE" else modeName

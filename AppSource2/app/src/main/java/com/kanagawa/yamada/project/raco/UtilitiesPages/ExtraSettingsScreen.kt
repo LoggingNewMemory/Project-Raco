@@ -49,13 +49,14 @@ private fun readExtraConfig(): String? = runCatching {
 }.getOrNull()
 
 private fun parseExtraFlag(content: String, key: String): Boolean {
-    val match = Regex("^$key=(.*)$", RegexOption.MULTILINE).find(content) ?: return false
+    val match = Regex("^$key\\s+(.*)$", RegexOption.MULTILINE).find(content) ?: return false
     return match.groupValues.getOrNull(1)?.trim() == "1"
 }
 
 private fun writeExtraFlag(key: String, value: Boolean) {
     val intVal = if (value) 1 else 0
-    val p = ProcessBuilder("su", "-c", "sed -i 's/^$key=.*/$key=$intVal/' $EXTRA_CONFIG_PATH").redirectErrorStream(true).start()
+    val cmd = "grep -q '^$key ' $EXTRA_CONFIG_PATH && sed -i 's/^$key .*/$key $intVal/' $EXTRA_CONFIG_PATH || echo '$key $intVal' >> $EXTRA_CONFIG_PATH"
+    val p = ProcessBuilder("su", "-c", cmd).redirectErrorStream(true).start()
     p.outputStream.close(); p.inputStream.bufferedReader().use { it.readText() }; p.waitFor()
 }
 

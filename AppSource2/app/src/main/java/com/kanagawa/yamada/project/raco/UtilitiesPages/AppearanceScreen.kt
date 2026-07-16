@@ -52,7 +52,7 @@ private suspend fun parseAppearanceConfig(): Map<String, String> = withContext(D
 
     val map = mutableMapOf<String, String>()
     content.lines().forEach { line ->
-        val idx = line.indexOf('=')
+        val idx = line.indexOf(' ')
         if (idx > 0) {
             map[line.substring(0, idx).trim()] = line.substring(idx + 1).trim()
         }
@@ -62,7 +62,8 @@ private suspend fun parseAppearanceConfig(): Map<String, String> = withContext(D
 
 private suspend fun writeAppearanceKey(key: String, value: String) = withContext(Dispatchers.IO) {
     try {
-        val p = ProcessBuilder("su", "-c", "sed -i 's|^$key=.*|$key=$value|' $APPEARANCE_CONFIG_PATH").redirectErrorStream(true).start()
+        val cmd = "grep -q '^$key ' $APPEARANCE_CONFIG_PATH && sed -i 's|^$key .*|$key $value|' $APPEARANCE_CONFIG_PATH || echo '$key $value' >> $APPEARANCE_CONFIG_PATH"
+        val p = ProcessBuilder("su", "-c", cmd).redirectErrorStream(true).start()
         p.outputStream.close(); p.inputStream.bufferedReader().use { it.readText() }; p.waitFor()
     } catch (e: Exception) {}
 }

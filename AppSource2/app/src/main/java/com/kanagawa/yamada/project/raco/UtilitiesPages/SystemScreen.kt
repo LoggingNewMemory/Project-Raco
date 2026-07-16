@@ -37,12 +37,12 @@ private suspend fun sysRunRoot(cmd: String): String = withContext(Dispatchers.IO
 }
 
 private suspend fun sysWriteKey(key: String, value: String) {
-    sysRunRoot("sed -i 's|^$key=.*|$key=$value|' $SYS_CONFIG")
+    sysRunRoot("grep -q '^$key ' $SYS_CONFIG && sed -i 's|^$key .*|$key $value|' $SYS_CONFIG || echo '$key $value' >> $SYS_CONFIG")
 }
 
 private suspend fun sysSetAyundaRusdiEnabled(enabled: Boolean) {
     val v = if (enabled) "1" else "0"
-    sysRunRoot("sed -i 's|^AYUNDA_RUSDI.*|AYUNDA_RUSDI $v|' $SYS_CONFIG")
+    sysRunRoot("grep -q '^AYUNDA_RUSDI ' $SYS_CONFIG && sed -i 's|^AYUNDA_RUSDI.*|AYUNDA_RUSDI $v|' $SYS_CONFIG || echo 'AYUNDA_RUSDI $v' >> $SYS_CONFIG")
 }
 
 private suspend fun sysUpdateAyundaScript(r: Float, g: Float, b: Float, s: Float) {
@@ -90,13 +90,13 @@ fun SystemScreen(onBack: () -> Unit) {
 
     LaunchedEffect(Unit) {
         val config = sysRunRoot("cat $SYS_CONFIG")
-        fun parseFlag(key: String) = Regex("^$key=(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
+        fun parseFlag(key: String) = Regex("^$key\\s+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
 
         dndEnabled = parseFlag("DND")
         anyaThermalEnabled = parseFlag("ANYA")
-        anyaIncluded = Regex("^INCLUDE_ANYA=(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) != "0"
+        anyaIncluded = Regex("^INCLUDE_ANYA\\s+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) != "0"
         sandevIncluded = parseFlag("INCLUDE_SANDEV")
-        sandevDurationText = Regex("^SANDEV_DUR=(\\d+)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) ?: "10"
+        sandevDurationText = Regex("^SANDEV_DUR\\s+(\\d+)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) ?: "10"
 
         // Graphics driver
         val driverOut = sysRunRoot("settings get global updatable_driver_all_apps")
@@ -104,13 +104,13 @@ fun SystemScreen(onBack: () -> Unit) {
 
 
         
-        val rxR = Regex("^RGB_R=([0-9.]+)", RegexOption.MULTILINE).find(config)
+        val rxR = Regex("^RGB_R\\s+([0-9.]+)", RegexOption.MULTILINE).find(config)
         rgbR = rxR?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
-        val rxG = Regex("^RGB_G=([0-9.]+)", RegexOption.MULTILINE).find(config)
+        val rxG = Regex("^RGB_G\\s+([0-9.]+)", RegexOption.MULTILINE).find(config)
         rgbG = rxG?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
-        val rxB = Regex("^RGB_B=([0-9.]+)", RegexOption.MULTILINE).find(config)
+        val rxB = Regex("^RGB_B\\s+([0-9.]+)", RegexOption.MULTILINE).find(config)
         rgbB = rxB?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
-        val rxS = Regex("^RGB_S=([0-9.]+)", RegexOption.MULTILINE).find(config)
+        val rxS = Regex("^RGB_S\\s+([0-9.]+)", RegexOption.MULTILINE).find(config)
         rgbS = rxS?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 1f
 
         isLoading = false
@@ -263,7 +263,7 @@ fun SystemScreen(onBack: () -> Unit) {
                                     if (newDur != null && newDur >= 0) {
                                         isBusySandev = true
                                         scope.launch {
-                                            sysRunRoot("grep -q '^SANDEV_DUR=' $SYS_CONFIG && sed -i 's|^SANDEV_DUR=.*|SANDEV_DUR=$newDur|' $SYS_CONFIG || echo 'SANDEV_DUR=$newDur' >> $SYS_CONFIG")
+                                            sysRunRoot("grep -q '^SANDEV_DUR ' $SYS_CONFIG && sed -i 's|^SANDEV_DUR .*|SANDEV_DUR $newDur|' $SYS_CONFIG || echo 'SANDEV_DUR $newDur' >> $SYS_CONFIG")
                                             isBusySandev = false
                                             snackbarHostState.showSnackbar(context.getString(R.string.saved))
                                         }

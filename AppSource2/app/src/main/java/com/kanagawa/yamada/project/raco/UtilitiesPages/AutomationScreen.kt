@@ -68,7 +68,7 @@ fun AutomationScreen(onBack: () -> Unit) {
 
     LaunchedEffect(Unit) {
         val config = runRoot("cat $AUTOMATION_CONFIG_PATH")
-        dndEnabled = Regex("^DND=(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
+        dndEnabled = Regex("^DND\\s+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
         isLoading = false
     }
 
@@ -114,7 +114,7 @@ fun AutomationScreen(onBack: () -> Unit) {
                                     dndEnabled = newValue
                                     scope.launch {
                                         val v = if (newValue) "1" else "0"
-                                        runRoot("sed -i 's|^DND=.*|DND=$v|' $AUTOMATION_CONFIG_PATH")
+                                        runRoot("grep -q '^DND ' $AUTOMATION_CONFIG_PATH && sed -i 's|^DND .*|DND $v|' $AUTOMATION_CONFIG_PATH || echo 'DND $v' >> $AUTOMATION_CONFIG_PATH")
                                     }
                                 }
                             )
