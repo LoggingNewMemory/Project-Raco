@@ -179,7 +179,11 @@ void mode_awaken() {
            "logcat -G 64K >/dev/null 2>&1; logcat -c >/dev/null 2>&1 &");
 
     // CPU SETTINGS: Order matters. Set Gov, Safety Wait, Then Apply Profile
-    change_cpu_gov("performance");
+    if (config.lite_performance == 1) {
+        change_cpu_gov(config.default_gov);
+    } else {
+        change_cpu_gov("performance");
+    }
     sleep(1);
     cpufreq_awaken();
     route_soc(4);

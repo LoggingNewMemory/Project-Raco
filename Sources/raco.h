@@ -31,6 +31,9 @@ typedef struct {
     int inc_zeta;
     int inc_sandev;
     int sandev_dur;
+    int lite_powersave;
+    int ultra_powersave;
+    int lite_performance;
     char default_gov[32];
     int alter_cpu_method;
 } RacoConfig;
