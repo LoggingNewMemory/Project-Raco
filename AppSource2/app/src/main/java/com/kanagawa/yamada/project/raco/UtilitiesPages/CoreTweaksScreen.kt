@@ -128,10 +128,16 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
                             toggle("DEVICE_MITIGATION", deviceMitigation) { deviceMitigation = it }
                         }
                         TweakToggle(stringResource(R.string.lite_powersave), stringResource(R.string.lite_powersave_desc), Icons.Default.EnergySavingsLeaf, litePowersave) {
-                            toggle("LITE_POWERSAVE", litePowersave) { litePowersave = it }
+                            toggle("LITE_POWERSAVE", litePowersave) { 
+                                litePowersave = it
+                                if (it && ultraPowersave) toggle("ULTRA_POWERSAVE", ultraPowersave) { ultraPowersave = it }
+                            }
                         }
                         TweakToggle(stringResource(R.string.ultra_powersave), stringResource(R.string.ultra_powersave_desc), Icons.Default.BatterySaver, ultraPowersave) {
-                            toggle("ULTRA_POWERSAVE", ultraPowersave) { ultraPowersave = it }
+                            toggle("ULTRA_POWERSAVE", ultraPowersave) { 
+                                ultraPowersave = it
+                                if (it && litePowersave) toggle("LITE_POWERSAVE", litePowersave) { litePowersave = it }
+                            }
                         }
                         TweakToggle(stringResource(R.string.lite_performance), stringResource(R.string.lite_performance_desc), Icons.Default.MonitorHeart, litePerformance) {
                             toggle("LITE_PERFORMANCE", litePerformance) { litePerformance = it }

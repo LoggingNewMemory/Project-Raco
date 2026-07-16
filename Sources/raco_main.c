@@ -190,7 +190,7 @@ void mode_awaken() {
 
     clear_slingshot();
     anyamelfissa();
-    notification("Performance Mode Activated 🔥");
+    notification("Performance Mode Activated");
 }
 
 void mode_balanced() {
@@ -239,7 +239,7 @@ void mode_balanced() {
 
     clear_slingshot();
     anyakawaii();
-    notification("Balanced Mode Activated ⚖️");
+    notification("Balanced Mode Activated");
 }
 
 void mode_powersave() {
@@ -288,7 +288,7 @@ void mode_powersave() {
 
     clear_slingshot();
     anyakawaii();
-    notification("Powersave Mode Activated 🔋");
+    notification("Powersave Mode Activated");
 }
 
 void mode_normal() {
@@ -333,18 +333,18 @@ void mode_normal() {
 
     clear_slingshot();
     anyakawaii();
-    notification("Normal Mode Activated 🧊");
+    notification("Balanced Mode Activated");
 }
 
 void mode_gaming_pro() {
     mode_awaken();
     kill_all();
-    notification("Gaming Pro Mode Activated 🚀");
+    notification("Gaming Pro Mode Activated");
 }
 
 void mode_cooldown() {
     mode_powersave();
-    notification("Cool Down initiated for 2 minutes... ❄️");
+    notification("Cool Down initiated for 2 minutes...");
     sleep(120);
     mode_balanced();
     notification("Cool Down finished. Switched to Balanced Mode.");
@@ -352,7 +352,7 @@ void mode_cooldown() {
 
 void mode_reset() {
     kill_all();
-    notification("All background applications cleared. ✅");
+    notification("All background applications cleared.");
 }
 
 // Main Execution
