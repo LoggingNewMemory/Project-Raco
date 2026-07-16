@@ -226,16 +226,16 @@ void anyakawaii() {
 #endif
 
 void kill_all() {
-    system("sync");
-    system("cmd activity kill-all > /dev/null 2>&1");
-    system("for pkg in $(pm list packages -3 | cut -f 2 -d ':'); do "
+    system("sync; "
+           "cmd activity kill-all > /dev/null 2>&1; "
+           "for pkg in $(pm list packages -3 | cut -f 2 -d ':'); do "
            "if [ \"$pkg\" != \"com.google.android.inputmethod.latin\" ]; then "
            "am force-stop \"$pkg\" > /dev/null 2>&1 & "
-           "fi; done; wait");
-    system("pm trim-caches 100G > /dev/null 2>&1");
+           "fi; done; wait; "
+           "pm trim-caches 100G > /dev/null 2>&1; "
+           "logcat -c; "
+           "logcat -b all -c");
     rawrite("3", "/proc/sys/vm/drop_caches");
-    system("logcat -c");
-    system("logcat -b all -c");
 }
 
 void run_fstrim() {
@@ -245,34 +245,34 @@ void run_fstrim() {
 }
 
 void clear_cache() {
-    system("for DIR in /data/data/*; do if [ -d \"${DIR}\" ]; then rm -rf ${DIR}/cache/* ${DIR}/no_backup/* ${DIR}/app_webview/* ${DIR}/code_cache/*; fi; done >/dev/null 2>&1");
-    system("find /data/data/*/cache/* -delete 2>/dev/null");
-    system("find /data/data/*/code_cache/* -delete 2>/dev/null");
-    system("find /data/user_de/*/*/cache/* -delete 2>/dev/null");
-    system("find /data/user_de/*/*/code_cache/* -delete 2>/dev/null");
-    system("find /sdcard/Android/data/*/cache/* -delete 2>/dev/null");
-    system("pm trim-caches 1024G >/dev/null 2>&1");
-    system("cmd stats clear-puller-cache >/dev/null 2>&1");
-    system("cmd activity clear-debug-app >/dev/null 2>&1");
-    system("cmd activity clear-watch-heap -a >/dev/null 2>&1");
-    system("cmd activity clear-exit-info >/dev/null 2>&1");
-    system("cmd content reset-today-stats >/dev/null 2>&1");
-    system("cmd companiondevice refresh-cache >/dev/null 2>&1");
-    system("cmd companiondevice remove-inactive-associations >/dev/null 2>&1");
-    system("cmd blob_store clear-all-blobs >/dev/null 2>&1");
-    system("cmd blob_store clear-all-sessions >/dev/null 2>&1");
-    system("cmd device_policy clear-freeze-period-record >/dev/null 2>&1");
-    system("wm tracing size 0 >/dev/null 2>&1");
-    system("cmd font clear >/dev/null 2>&1");
-    system("cmd location_time_zone_manager clear_recorded_provider_states >/dev/null 2>&1");
-    system("cmd lock_settings remove-cache >/dev/null 2>&1");
-    system("cmd media.camera clear-stream-use-case-override >/dev/null 2>&1");
-    system("cmd media.camera watch clear >/dev/null 2>&1");
-    system("cmd safety_center clear-data >/dev/null 2>&1");
-    system("cmd time_detector clear_network_time >/dev/null 2>&1");
-    system("cmd time_detector clear_system_clock_network_time >/dev/null 2>&1");
-    system("dumpsys procstats --clear >/dev/null 2>&1");
-    system("cmd package art cleanup >/dev/null 2>&1");
+    system("for DIR in /data/data/*; do if [ -d \"${DIR}\" ]; then rm -rf ${DIR}/cache/* ${DIR}/no_backup/* ${DIR}/app_webview/* ${DIR}/code_cache/*; fi; done >/dev/null 2>&1; "
+           "find /data/data/*/cache/* -delete 2>/dev/null; "
+           "find /data/data/*/code_cache/* -delete 2>/dev/null; "
+           "find /data/user_de/*/*/cache/* -delete 2>/dev/null; "
+           "find /data/user_de/*/*/code_cache/* -delete 2>/dev/null; "
+           "find /sdcard/Android/data/*/cache/* -delete 2>/dev/null; "
+           "pm trim-caches 1024G >/dev/null 2>&1; "
+           "cmd stats clear-puller-cache >/dev/null 2>&1; "
+           "cmd activity clear-debug-app >/dev/null 2>&1; "
+           "cmd activity clear-watch-heap -a >/dev/null 2>&1; "
+           "cmd activity clear-exit-info >/dev/null 2>&1; "
+           "cmd content reset-today-stats >/dev/null 2>&1; "
+           "cmd companiondevice refresh-cache >/dev/null 2>&1; "
+           "cmd companiondevice remove-inactive-associations >/dev/null 2>&1; "
+           "cmd blob_store clear-all-blobs >/dev/null 2>&1; "
+           "cmd blob_store clear-all-sessions >/dev/null 2>&1; "
+           "cmd device_policy clear-freeze-period-record >/dev/null 2>&1; "
+           "wm tracing size 0 >/dev/null 2>&1; "
+           "cmd font clear >/dev/null 2>&1; "
+           "cmd location_time_zone_manager clear_recorded_provider_states >/dev/null 2>&1; "
+           "cmd lock_settings remove-cache >/dev/null 2>&1; "
+           "cmd media.camera clear-stream-use-case-override >/dev/null 2>&1; "
+           "cmd media.camera watch clear >/dev/null 2>&1; "
+           "cmd safety_center clear-data >/dev/null 2>&1; "
+           "cmd time_detector clear_network_time >/dev/null 2>&1; "
+           "cmd time_detector clear_system_clock_network_time >/dev/null 2>&1; "
+           "dumpsys procstats --clear >/dev/null 2>&1; "
+           "cmd package art cleanup >/dev/null 2>&1");
 }
 
 // Frequency Control (Devfreq)

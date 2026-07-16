@@ -162,21 +162,18 @@ void mode_awaken() {
            "cmd power set-adaptive-power-saver-enabled false; "
            "cmd power set-fixed-performance-mode-enabled false; "
            "cmd looper_stats disable; "
-           "cmd power set-mode 0 &");
-    
-    system("atrace --async_stop >/dev/null 2>&1; "
+           "cmd power set-mode 0 & "
+           "atrace --async_stop >/dev/null 2>&1; "
            "cmd looper_stats reset >/dev/null 2>&1; "
            "setprop debug.debuggerd.wait_for_debugger false; "
            "setprop debug.debuggerd.wait_for_gdb false; "
-           "setprop debug.debuggerd.disable 1 &");
-
-    system("dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
+           "setprop debug.debuggerd.disable 1 & "
+           "dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable-detailed-tracking >/dev/null 2>&1; "
            "dumpsys procstats --clear >/dev/null 2>&1; "
-           "dumpsys procstats --stop-testing >/dev/null 2>&1 &");
-
-    system("cmd display ab-logging-disable >/dev/null 2>&1; "
+           "dumpsys procstats --stop-testing >/dev/null 2>&1 & "
+           "cmd display ab-logging-disable >/dev/null 2>&1; "
            "cmd display dwb-logging-disable >/dev/null 2>&1; "
            "cmd display dmd-logging-disable >/dev/null 2>&1; "
            "logcat -G 64K >/dev/null 2>&1; logcat -c >/dev/null 2>&1 &");
@@ -190,7 +187,7 @@ void mode_awaken() {
         change_cpu_gov("performance");
     }
     printf("PROGRESS: 90\n"); fflush(stdout);
-    sleep(1);
+    usleep(150000);
     cpufreq_awaken();
     route_soc(4);
 
@@ -218,25 +215,20 @@ void mode_balanced() {
            "cmd power set-adaptive-power-saver-enabled false; "
            "cmd power set-fixed-performance-mode-enabled false; "
            "cmd looper_stats enable; "
-           "cmd power set-mode 0 &");
-
-    system("atrace --async_stop >/dev/null 2>&1; "
+           "cmd power set-mode 0 & "
+           "atrace --async_stop >/dev/null 2>&1; "
            "cmd looper_stats reset >/dev/null 2>&1; "
-           "cmd looper_stats disable >/dev/null 2>&1 &");
-
-    system("for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 &");
-
-    system("dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
+           "cmd looper_stats disable >/dev/null 2>&1 & "
+           "for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 & "
+           "dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable-detailed-tracking >/dev/null 2>&1; "
            "dumpsys procstats --clear >/dev/null 2>&1; "
-           "dumpsys procstats --stop-testing >/dev/null 2>&1 &");
-
-    system("cmd display ab-logging-disable >/dev/null 2>&1; "
+           "dumpsys procstats --stop-testing >/dev/null 2>&1 & "
+           "cmd display ab-logging-disable >/dev/null 2>&1; "
            "cmd display dwb-logging-disable >/dev/null 2>&1; "
-           "cmd display dmd-logging-disable >/dev/null 2>&1 &");
-
-    system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
+           "cmd display dmd-logging-disable >/dev/null 2>&1 & "
+           "for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
 
     printf("PROGRESS: 80\n"); fflush(stdout);
     // CPU SETTINGS
@@ -267,32 +259,27 @@ void mode_powersave() {
            "cmd power set-adaptive-power-saver-enabled true; "
            "cmd power set-fixed-performance-mode-enabled false; "
            "cmd looper_stats enable; "
-           "cmd power set-mode 0 &");
-
-    system("atrace --async_stop >/dev/null 2>&1; "
+           "cmd power set-mode 0 & "
+           "atrace --async_stop >/dev/null 2>&1; "
            "cmd looper_stats reset >/dev/null 2>&1; "
-           "cmd looper_stats disable >/dev/null 2>&1 &");
-
-    system("for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 &");
-
-    system("dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
+           "cmd looper_stats disable >/dev/null 2>&1 & "
+           "for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 & "
+           "dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable-detailed-tracking >/dev/null 2>&1; "
            "dumpsys procstats --clear >/dev/null 2>&1; "
-           "dumpsys procstats --stop-testing >/dev/null 2>&1 &");
-
-    system("cmd display ab-logging-disable >/dev/null 2>&1; "
+           "dumpsys procstats --stop-testing >/dev/null 2>&1 & "
+           "cmd display ab-logging-disable >/dev/null 2>&1; "
            "cmd display dwb-logging-disable >/dev/null 2>&1; "
-           "cmd display dmd-logging-disable >/dev/null 2>&1 &");
-
-    system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
+           "cmd display dmd-logging-disable >/dev/null 2>&1 & "
+           "for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
     
     printf("PROGRESS: 70\n"); fflush(stdout);
     // CPU SETTINGS
     // 1. Set powersave gov
     change_cpu_gov("powersave");
     printf("PROGRESS: 90\n"); fflush(stdout);
-    sleep(1);
+    usleep(150000);
     // 2. Apply limits
     cpufreq_powersave();
     route_soc(2);
@@ -320,25 +307,20 @@ void mode_normal() {
            "cmd power set-adaptive-power-saver-enabled false; "
            "cmd power set-fixed-performance-mode-enabled false; "
            "cmd looper_stats enable; "
-           "cmd power set-mode 0 &");
-
-    system("atrace --async_stop >/dev/null 2>&1; "
+           "cmd power set-mode 0 & "
+           "atrace --async_stop >/dev/null 2>&1; "
            "cmd looper_stats reset >/dev/null 2>&1; "
-           "cmd looper_stats disable >/dev/null 2>&1 &");
-
-    system("for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 &");
-
-    system("dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
+           "cmd looper_stats disable >/dev/null 2>&1 & "
+           "for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 & "
+           "dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable-detailed-tracking >/dev/null 2>&1; "
            "dumpsys procstats --clear >/dev/null 2>&1; "
-           "dumpsys procstats --stop-testing >/dev/null 2>&1 &");
-
-    system("cmd display ab-logging-disable >/dev/null 2>&1; "
+           "dumpsys procstats --stop-testing >/dev/null 2>&1 & "
+           "cmd display ab-logging-disable >/dev/null 2>&1; "
            "cmd display dwb-logging-disable >/dev/null 2>&1; "
-           "cmd display dmd-logging-disable >/dev/null 2>&1 &");
-
-    system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
+           "cmd display dmd-logging-disable >/dev/null 2>&1 & "
+           "for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
 
     printf("PROGRESS: 80\n"); fflush(stdout);
     // CPU SETTINGS: set governor
