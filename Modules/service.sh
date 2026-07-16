@@ -10,7 +10,11 @@ MODDIR=${0%/*}
 # Execute the Raco core service in the background
 /system/bin/linker64 $MODDIR/CoreSys/raco_service $MODDIR &
 
-
+# Execute Ayunda Rusdi (Screen Modifiers) if configured
+AYUNDA_RUSDI=$(grep '^AYUNDA_RUSDI ' /data/ProjectRaco/raco.txt | awk '{print $2}')
+if [ "$AYUNDA_RUSDI" = "1" ]; then
+    sh "$MODDIR/CoreSys/AyundaRusdi.sh" &
+fi
 
 # Forcefully start the companion app's AutoGameMonitorService
 # Bypasses Android 14+ background FGS restrictions and OEM Autostart blocks
