@@ -181,4 +181,10 @@
     <string name="cache_cleared">Cache cleared!</string>
     <string name="banner_installed">Banner installed</string>
     <string name="no_banner_set">No banner set</string>
+    <string name="kill_all_whitelist">Белый список Kill All</string>
+    <string name="add_app_to_whitelist">Добавить в белый список</string>
+    <string name="no_apps_whitelisted">Список пуст</string>
+    <string name="whitelist_empty_desc">Нажмите на значок + в правом верхнем углу, чтобы добавить приложения, которые не должны быть закрыты во время Kill All.</string>
+    <string name="close">Закрыть</string>
+    <string name="add_app">Добавить</string>
 </resources>

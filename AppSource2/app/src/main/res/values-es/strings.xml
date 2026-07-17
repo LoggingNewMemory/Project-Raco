@@ -107,14 +107,11 @@
     <string name="trim_filesystem_for_storage_performance">Trim filesystem for storage performance.</string>
     <string name="remove_system_cache_partition_contents">Remove system cache partition contents.</string>
     <string name="no_results_found_1">No results found.</string>
-    <string name="empty_string"></string>
+    <string name="empty_string" />
     <string name="anya_thermal">Anya Thermal</string>
     <string name="enable_anya_thermal_flowstate">Enable Anya Flowstate</string>
-    <string name="kobo_fast_charge">Kobo Fast Charge</string>
     <string name="fast_charge_module">Fast Charge Module</string>
-    <string name="sandevistan_boot">Sandevistan Boot</string>
     <string name="make_init_boot_faster">Make init boot faster</string>
-    <string name="zetamin">Zetamin</string>
     <string name="all_in_one_screen_tweaks">All in one Screen Tweaks</string>
     <string name="device_mitigation">Device Mitigation</string>
     <string name="enable_device_mitigation">Enable Device Mitigation</string>
@@ -133,7 +130,6 @@
     <string name="dim_background">Dim Background</string>
     <string name="dim_opacity">Dim Opacity</string>
     <string name="modules">Modules</string>
-    <string name="system">System</string>
     <string name="notifications">Notifications</string>
     <string name="customization">Customization</string>
     <string name="custom_background_set">Custom Background Set!</string>
@@ -181,4 +177,10 @@
     <string name="cache_cleared">Cache cleared!</string>
     <string name="banner_installed">Banner installed</string>
     <string name="no_banner_set">No banner set</string>
+    <string name="kill_all_whitelist">Lista Blanca Kill All</string>
+    <string name="add_app_to_whitelist">Añadir a la Lista Blanca</string>
+    <string name="no_apps_whitelisted">Lista Vacía</string>
+    <string name="whitelist_empty_desc">Toca el ícono + arriba para añadir apps que no deben cerrarse con Kill All.</string>
+    <string name="close">Cerrar</string>
+    <string name="add_app">Añadir App</string>
 </resources>

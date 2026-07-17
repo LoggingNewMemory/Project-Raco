@@ -181,4 +181,10 @@
     <string name="cache_cleared">Cache cleared!</string>
     <string name="banner_installed">Banner installed</string>
     <string name="no_banner_set">No banner set</string>
+    <string name="kill_all_whitelist">Kill All Whitelist</string>
+    <string name="add_app_to_whitelist">Add App to Whitelist</string>
+    <string name="no_apps_whitelisted">No Apps Whitelisted</string>
+    <string name="whitelist_empty_desc">Tap the + icon in the top right to add apps that should not be killed during Kill All.</string>
+    <string name="close">Close</string>
+    <string name="add_app">Add App</string>
 </resources>

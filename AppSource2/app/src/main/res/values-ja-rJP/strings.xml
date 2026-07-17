@@ -181,4 +181,10 @@
     <string name="cache_cleared">Cache cleared!</string>
     <string name="banner_installed">Banner installed</string>
     <string name="no_banner_set">No banner set</string>
+    <string name="kill_all_whitelist">ホワイトリスト (Kill All)</string>
+    <string name="add_app_to_whitelist">ホワイトリストに追加</string>
+    <string name="no_apps_whitelisted">アプリがありません</string>
+    <string name="whitelist_empty_desc">右上の＋アイコンをタップして、Kill All 中に終了させないアプリを追加します。</string>
+    <string name="close">閉じる</string>
+    <string name="add_app">追加</string>
 </resources>

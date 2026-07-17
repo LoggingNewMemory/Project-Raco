@@ -114,7 +114,7 @@ fun WhitelistScreen(onBack: () -> Unit) {
         }
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
-            title = { Text("Add App to Whitelist") },
+            title = { Text(stringResource(R.string.add_app_to_whitelist)) },
             text = {
                 if (isLoadingAllApps) {
                     Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
@@ -156,7 +156,7 @@ fun WhitelistScreen(onBack: () -> Unit) {
             },
             confirmButton = {
                 TextButton(onClick = { showAddDialog = false }) {
-                    Text("Close")
+                    Text(stringResource(R.string.close))
                 }
             }
         )
@@ -166,7 +166,7 @@ fun WhitelistScreen(onBack: () -> Unit) {
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Kill All Whitelist") },
+                title = { Text(stringResource(R.string.kill_all_whitelist)) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
                 actions = {
                     IconButton(onClick = { showAddDialog = true }) { Icon(Icons.Default.Add, contentDescription = "Add App", tint = MaterialTheme.colorScheme.primary) }
@@ -193,14 +193,14 @@ fun WhitelistScreen(onBack: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
-                            text = "No Apps Whitelisted",
+                            text = stringResource(R.string.no_apps_whitelisted),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Tap the + icon in the top right to add apps that should not be killed during Kill All.",
+                            text = stringResource(R.string.whitelist_empty_desc),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -213,7 +213,7 @@ fun WhitelistScreen(onBack: () -> Unit) {
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Add App")
+                            Text(stringResource(R.string.add_app))
                         }
                     }
                 }
