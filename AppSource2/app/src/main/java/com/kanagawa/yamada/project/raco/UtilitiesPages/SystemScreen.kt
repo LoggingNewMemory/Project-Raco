@@ -70,7 +70,6 @@ fun SystemScreen(onBack: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
 
     // State
-    var dndEnabled by remember { mutableStateOf(false) }
     var anyaThermalEnabled by remember { mutableStateOf(false) }
     var anyaIncluded by remember { mutableStateOf(false) }
     var sandevIncluded by remember { mutableStateOf(false) }
@@ -100,7 +99,6 @@ fun SystemScreen(onBack: () -> Unit) {
         val config = sysRunRoot("cat $SYS_CONFIG")
         fun parseFlag(key: String) = Regex("^$key[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
 
-        dndEnabled = parseFlag("DND")
         anyaThermalEnabled = parseFlag("ANYA")
         anyaIncluded = Regex("^INCLUDE_ANYA[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) != "0"
         sandevIncluded = parseFlag("INCLUDE_SANDEV")

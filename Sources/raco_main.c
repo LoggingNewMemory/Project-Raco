@@ -193,6 +193,7 @@ void mode_awaken() {
 
     clear_slingshot();
     anyamelfissa();
+    dnd_on();
     printf("PROGRESS: 100\n"); fflush(stdout);
     notification("Performance Mode Activated");
 }
@@ -237,6 +238,7 @@ void mode_balanced() {
 
     clear_slingshot();
     anyakawaii();
+    dnd_off();
     printf("PROGRESS: 100\n"); fflush(stdout);
     notification("Balanced Mode Activated");
 }
@@ -286,6 +288,7 @@ void mode_powersave() {
 
     clear_slingshot();
     anyakawaii();
+    dnd_off();
     printf("PROGRESS: 100\n"); fflush(stdout);
     notification("Powersave Mode Activated");
 }
@@ -329,6 +332,7 @@ void mode_normal() {
 
     clear_slingshot();
     anyakawaii();
+    dnd_off();
     printf("PROGRESS: 100\n"); fflush(stdout);
     notification("Balanced Mode Activated");
 }

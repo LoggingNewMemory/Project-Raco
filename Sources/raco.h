@@ -36,6 +36,7 @@ typedef struct {
     int lite_performance;
     char default_gov[32];
     int alter_cpu_method;
+    int dnd;
 } RacoConfig;
 
 extern RacoConfig config;
@@ -67,6 +68,8 @@ void clear_cache();
 void anyamelfissa();
 void anyakawaii();
 int get_universal_fps(const char *pkg);
+void dnd_off();
+void dnd_on();
 
 // Tool of Frequency
 FreqData get_target_freq(const char *path, int mode); // 0=Max 1=Min 2=Mid

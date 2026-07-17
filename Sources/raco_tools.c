@@ -150,6 +150,7 @@ void load_config(const char *config_path) {
     config.ultra_powersave = 0;
     config.lite_performance = 0;
     config.alter_cpu_method = 0;
+    config.dnd = 0;
     strcpy(config.default_gov, "schedutil");
 
     char file_content[4096];
@@ -182,6 +183,7 @@ void load_config(const char *config_path) {
             else if (strcmp(key, "LITE_PERFORMANCE") == 0 && parsed == 2) config.lite_performance = atoi(value);
             else if (strcmp(key, "GOV") == 0 && parsed == 2) strcpy(config.default_gov, value);
             else if (strcmp(key, "ALTER_CPU_METHOD") == 0 && parsed == 2) config.alter_cpu_method = atoi(value);
+            else if (strcmp(key, "DND") == 0 && parsed == 2) config.dnd = atoi(value);
         }
         line = strtok_r(NULL, "\n", &saveptr_line);
     }
@@ -209,6 +211,18 @@ void clear_slingshot() {
     system("settings delete global angle_debug_package");
     system("settings delete global angle_gl_driver_all_angle");
     system("setprop debug.hwui.renderer \"\"");
+}
+
+void dnd_off() {
+    if (config.dnd == 1) {
+        system("cmd notification set_dnd off > /dev/null 2>&1 &");
+    }
+}
+
+void dnd_on() {
+    if (config.dnd == 1) {
+        system("cmd notification set_dnd priority > /dev/null 2>&1 &");
+    }
 }
 
 #ifndef STANDALONE
