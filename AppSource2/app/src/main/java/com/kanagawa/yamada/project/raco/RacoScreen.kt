@@ -234,7 +234,13 @@ fun RacoScreen(onBack: () -> Unit) {
                         .padding(start = 20.dp, end = 20.dp, top = 30.dp, bottom = overlapAmount + 5.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .background(Color.Black.copy(alpha = 0.75f))
-                        .clickable { dialogueIndex = (dialogueIndex + 1) % dialogues.size }
+                        .clickable { 
+                            var next = dialogueIndex
+                            while (next == dialogueIndex) {
+                                next = kotlin.random.Random.nextInt(1, dialogues.size)
+                            }
+                            dialogueIndex = next
+                        }
                         .padding(horizontal = 24.dp, vertical = 16.dp)
                 ) {
                     Column {
