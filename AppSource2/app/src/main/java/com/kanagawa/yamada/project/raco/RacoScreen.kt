@@ -35,6 +35,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.activity.compose.BackHandler
+import android.media.MediaPlayer
 
 private val dialogues = listOf(
     "Welcome. Please scroll down to read more.",
@@ -117,6 +120,50 @@ fun RacoScreen(onBack: () -> Unit) {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val videoHeightDp = configuration.screenWidthDp.dp * (1280f / 720f)
     val overlapAmount = 25.dp + (videoHeightDp * 0.05f)
+
+    val bgmPlayer = remember { MediaPlayer.create(context, R.raw.so_cute).apply { isLooping = true } }
+    val scope = rememberCoroutineScope()
+    var isClosing by remember { mutableStateOf(false) }
+
+    val closeWithFade = {
+        if (!isClosing) {
+            isClosing = true
+            onBack() // Navigate back instantly without delay
+            Thread {
+                try {
+                    for (i in 20 downTo 0) {
+                        val volume = i / 20f
+                        bgmPlayer.setVolume(volume, volume)
+                        Thread.sleep(40) // 800ms fade out
+                    }
+                    bgmPlayer.stop()
+                    bgmPlayer.release()
+                } catch (e: Exception) {}
+            }.start()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        bgmPlayer.setVolume(0f, 0f)
+        bgmPlayer.start()
+        for (i in 1..20) {
+            val volume = i / 20f
+            bgmPlayer.setVolume(volume, volume)
+            delay(50)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            if (!isClosing) {
+                bgmPlayer.release()
+            }
+        }
+    }
+
+    BackHandler(enabled = !isClosing) {
+        closeWithFade()
+    }
 
     Scaffold(
         containerColor = Color.Transparent
@@ -212,7 +259,7 @@ fun RacoScreen(onBack: () -> Unit) {
                         .clip(androidx.compose.foundation.shape.CircleShape)
                         .background(Color.Black.copy(alpha = 0.5f))
                 ) {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { closeWithFade() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 }
