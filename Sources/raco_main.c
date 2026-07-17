@@ -156,7 +156,6 @@ void mode_awaken() {
     corin_storage("deadline", "1");
     pid_t sys_pid_awaken = fork();
     if (sys_pid_awaken == 0) {
-        sync();
         rawrite("3", "/proc/sys/vm/drop_caches");
         system("settings put secure high_priority 1; settings put secure low_priority 0; "
                "cmd power set-adaptive-power-saver-enabled false; "
@@ -212,7 +211,6 @@ void mode_balanced() {
     corin_storage("deadline", "1");
     pid_t sys_pid_balanced = fork();
     if (sys_pid_balanced == 0) {
-        sync();
         rawrite("3", "/proc/sys/vm/drop_caches");
         system("settings put secure high_priority 1; settings put secure low_priority 0; "
                "cmd power set-adaptive-power-saver-enabled false; "
@@ -261,7 +259,6 @@ void mode_powersave() {
     corin_storage("deadline", "2");
     pid_t sys_pid_powersave = fork();
     if (sys_pid_powersave == 0) {
-        sync();
         rawrite("3", "/proc/sys/vm/drop_caches");
         system("settings put secure high_priority 0; settings put secure low_priority 1; "
                "cmd power set-adaptive-power-saver-enabled true; "
@@ -303,8 +300,6 @@ void mode_powersave() {
 
 void mode_normal() {
     printf("PROGRESS: 20\n"); fflush(stdout);
-    sync();
-
     printf("PROGRESS: 50\n"); fflush(stdout);
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);

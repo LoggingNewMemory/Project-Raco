@@ -114,42 +114,77 @@ fun RacoScreen(onBack: () -> Unit) {
     var dialogueIndex by remember { mutableIntStateOf(0) }
     val context = LocalContext.current
 
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val videoHeightDp = configuration.screenWidthDp.dp * (1280f / 720f)
+    val overlapAmount = 25.dp + (videoHeightDp * 0.05f)
+
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { },
-                navigationIcon = {
-                    Box(modifier = Modifier.padding(8.dp).clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha = 0.3f))) {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
-        },
         containerColor = Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = padding.calculateTopPadding())
                 .verticalScroll(rememberScrollState())
         ) {
             // Video section (image placeholder)
             Box(modifier = Modifier.fillMaxWidth().background(Color.Black)) {
-                androidx.compose.foundation.Image(
-                    painter = androidx.compose.ui.res.painterResource(id = com.kanagawa.yamada.project.raco.R.drawable.raco_upscale),
-                    contentDescription = "Raco Image",
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                    modifier = Modifier.fillMaxWidth().height(300.dp)
+                val videoIds = listOf(R.raw.y1, R.raw.y2, R.raw.y3)
+                val randomVideoId = remember { videoIds.random() }
+                
+                androidx.compose.ui.viewinterop.AndroidView(
+                    factory = { ctx ->
+                        android.view.TextureView(ctx).apply {
+                            var mediaPlayer: android.media.MediaPlayer? = null
+                            
+                            surfaceTextureListener = object : android.view.TextureView.SurfaceTextureListener {
+                                override fun onSurfaceTextureAvailable(surface: android.graphics.SurfaceTexture, width: Int, height: Int) {
+                                    mediaPlayer = android.media.MediaPlayer.create(ctx, randomVideoId)?.apply {
+                                        setSurface(android.view.Surface(surface))
+                                        isLooping = true
+                                        
+                                        val vw = 720f
+                                        val vh = 1280f
+                                        val viewWidth = width.toFloat()
+                                        val viewHeight = height.toFloat()
+                                        val sx = viewWidth / vw
+                                        val sy = viewHeight / vh
+                                        val s = maxOf(sx, sy)
+                                        val matrix = android.graphics.Matrix()
+                                        matrix.setScale(s / sx, s / sy, viewWidth / 2f, viewHeight / 2f)
+                                        setTransform(matrix)
+                                        
+                                        start()
+                                    }
+                                }
+                                override fun onSurfaceTextureSizeChanged(surface: android.graphics.SurfaceTexture, width: Int, height: Int) {
+                                    val vw = 720f
+                                    val vh = 1280f
+                                    val viewWidth = width.toFloat()
+                                    val viewHeight = height.toFloat()
+                                    val sx = viewWidth / vw
+                                    val sy = viewHeight / vh
+                                    val s = maxOf(sx, sy)
+                                    val matrix = android.graphics.Matrix()
+                                    matrix.setScale(s / sx, s / sy, viewWidth / 2f, viewHeight / 2f)
+                                    setTransform(matrix)
+                                }
+                                override fun onSurfaceTextureDestroyed(surface: android.graphics.SurfaceTexture): Boolean {
+                                    mediaPlayer?.release()
+                                    mediaPlayer = null
+                                    return true
+                                }
+                                override fun onSurfaceTextureUpdated(surface: android.graphics.SurfaceTexture) {}
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().aspectRatio(720f / 1280f)
                 )
                 // VN dialogue box
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 30.dp)
+                        .padding(start = 20.dp, end = 20.dp, top = 30.dp, bottom = overlapAmount + 5.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .background(Color.Black.copy(alpha = 0.75f))
                         .clickable { dialogueIndex = (dialogueIndex + 1) % dialogues.size }
@@ -169,13 +204,25 @@ fun RacoScreen(onBack: () -> Unit) {
                         Text(stringResource(R.string.tap_to_read), color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp, modifier = Modifier.align(Alignment.End))
                     }
                 }
+                
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(top = padding.calculateTopPadding() + 8.dp, start = 16.dp)
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(Color.Black.copy(alpha = 0.5f))
+                ) {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    }
+                }
             }
 
             // Info card section
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .offset(y = (-25).dp)
+                    .offset(y = -overlapAmount)
                     .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(24.dp)

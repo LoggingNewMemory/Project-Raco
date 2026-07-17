@@ -176,7 +176,6 @@ void zetamin_unlock_fps() {
 
 // Executions
 void zetamin_optimize() {
-    system("sync");
     
     optimize_gpu_misc();
     optimize_adreno();
