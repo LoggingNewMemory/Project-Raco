@@ -210,6 +210,10 @@ private fun AppListPage(onBack: () -> Unit) {
                 p.outputStream.close(); val out = p.inputStream.bufferedReader().use { it.readText() }; p.waitFor(); out
             } catch (e: Exception) { "" }
             enabledPackages = gameTxt.lines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }.toSet()
+            
+            // Sync to SharedPreferences for GameAssistantService
+            val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
+            sharedPrefs.edit().putStringSet("automation_games", enabledPackages).apply()
 
             // Load recommended
             val dbTxt = try {
@@ -243,6 +247,10 @@ private fun AppListPage(onBack: () -> Unit) {
     fun toggleApp(pkg: String) {
         val isEnable = !enabledPackages.contains(pkg)
         enabledPackages = if (isEnable) enabledPackages + pkg else enabledPackages - pkg
+        
+        val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
+        sharedPrefs.edit().putStringSet("automation_games", enabledPackages).apply()
+
         scope.launch {
             if (isEnable) {
                 runRoot("echo '$pkg' >> $GAME_TXT_PATH")

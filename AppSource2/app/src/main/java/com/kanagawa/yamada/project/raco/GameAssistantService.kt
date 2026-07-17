@@ -53,7 +53,7 @@ class GameAssistantService : AccessibilityService() {
         currentForegroundPackage = packageName
         
         val sharedPrefs = getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
-        val addedGames = sharedPrefs.getStringSet("added_games", emptySet()) ?: emptySet()
+        val addedGames = sharedPrefs.getStringSet("automation_games", emptySet()) ?: emptySet()
         val isGame = addedGames.contains(packageName)
         
         if (isGame && !isCurrentlyInGame) {
