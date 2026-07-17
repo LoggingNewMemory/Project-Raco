@@ -274,6 +274,9 @@
         <mxCell id="eyppIntXDMKMuIVPNFLS-31" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="Note:&lt;div&gt;- After 48 Hours, it will auto unload the game, so RSWAP will NOT run out of spaces&lt;/div&gt;&lt;div&gt;- User can do manual flush (so that RSWAP will be cleared manually)&lt;/div&gt;" vertex="1">
           <mxGeometry height="100" width="295" x="-555" y="2190" as="geometry" />
         </mxCell>
+        <mxCell id="eyppIntXDMKMuIVPNFLS-34" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="Game Assistant Design" vertex="1">
+          <mxGeometry height="50" width="170" x="220" y="1600" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
