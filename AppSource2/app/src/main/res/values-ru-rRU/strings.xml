@@ -186,5 +186,8 @@
     <string name="no_apps_whitelisted">Список пуст</string>
     <string name="whitelist_empty_desc">Нажмите на значок + в правом верхнем углу, чтобы добавить приложения, которые не должны быть закрыты во время Kill All.</string>
     <string name="close">Закрыть</string>
-    <string name="add_app">Добавить</string>
+    <string name="add_app">Добавить приложение</string>
+    <string name="game_assistant">Игровой ассистент</string>
+    <string name="game_assistant_desc">Автоматическое применение профилей производительности при входе и выходе из игр.</string>
+    <string name="enable_service">Включить службу</string>
 </resources>

@@ -16,9 +16,9 @@ if [ "$AYUNDA_RUSDI" = "1" ]; then
     sh "$MODDIR/CoreSys/AyundaRusdi.sh" &
 fi
 
-# Forcefully start the companion app's AutoGameMonitorService
-# Bypasses Android 14+ background FGS restrictions and OEM Autostart blocks
-su -lp 2000 -c "am start-foreground-service -n com.kanagawa.yamada.project.raco/.AutoGameMonitorService" &
+# Forcefully auto-grant and enable the Game Assistant Accessibility Service
+su -c "settings put secure enabled_accessibility_services com.kanagawa.yamada.project.raco/.GameAssistantService"
+su -c "settings put secure accessibility_enabled 1" &
 
 # Wait briefly to ensure services are started
 sleep 2

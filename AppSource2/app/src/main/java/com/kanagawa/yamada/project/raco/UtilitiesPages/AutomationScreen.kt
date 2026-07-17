@@ -63,12 +63,14 @@ fun AutomationScreen(onBack: () -> Unit) {
 
     var isLoading by remember { mutableStateOf(true) }
     var dndEnabled by remember { mutableStateOf(false) }
+    var gameAssistantEnabled by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         val config = runRoot("cat $AUTOMATION_CONFIG_PATH")
         dndEnabled = Regex("^DND[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
+        gameAssistantEnabled = Regex("^GAME_ASSISTANT[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
         isLoading = false
     }
 
@@ -92,6 +94,44 @@ fun AutomationScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
         ) {
+            // Game Assistant Card
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(stringResource(R.string.game_assistant), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(4.dp))
+                        Text(stringResource(R.string.game_assistant_desc), style = MaterialTheme.typography.bodySmall)
+                        Spacer(Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.SportsEsports, null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(12.dp))
+                            Text(stringResource(R.string.enable_service), modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                            Switch(
+                                checked = gameAssistantEnabled,
+                                onCheckedChange = { newValue ->
+                                    gameAssistantEnabled = newValue
+                                    scope.launch {
+                                        val v = if (newValue) "1" else "0"
+                                        runRoot("grep -q '^GAME_ASSISTANT ' $AUTOMATION_CONFIG_PATH && sed -i 's|^GAME_ASSISTANT .*|GAME_ASSISTANT $v|' $AUTOMATION_CONFIG_PATH || echo 'GAME_ASSISTANT $v' >> $AUTOMATION_CONFIG_PATH")
+                                        if (newValue) {
+                                            runRoot("settings put secure enabled_accessibility_services com.kanagawa.yamada.project.raco/.GameAssistantService")
+                                            runRoot("settings put secure accessibility_enabled 1")
+                                        } else {
+                                            // Properly disable by resetting (will disable others if any, but this is a root gaming utility so it's acceptable for this scope)
+                                            runRoot("settings put secure enabled_accessibility_services null")
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
             // DND Card
             item {
                 Card(

@@ -182,5 +182,8 @@
     <string name="no_apps_whitelisted">Lista Vacía</string>
     <string name="whitelist_empty_desc">Toca el ícono + arriba para añadir apps que no deben cerrarse con Kill All.</string>
     <string name="close">Cerrar</string>
-    <string name="add_app">Añadir App</string>
+    <string name="add_app">Agregar aplicación</string>
+    <string name="game_assistant">Asistente de Juegos</string>
+    <string name="game_assistant_desc">Aplica automáticamente perfiles de rendimiento al entrar y salir de los juegos.</string>
+    <string name="enable_service">Habilitar servicio</string>
 </resources>

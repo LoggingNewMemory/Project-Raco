@@ -375,6 +375,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    load_config("/data/ProjectRaco/raco.txt");
+
     if (strcmp(argv[1], "fstrim") == 0) {
         run_fstrim();
         return 0;
@@ -385,9 +387,23 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    int mode = atoi(argv[1]);
+    if (strcmp(argv[1], "load") == 0) {
+        if (argc >= 3) {
+            printf("Game Assistant Loaded for: %s\n", argv[2]);
+            // Apply gaming profile automatically when a game is loaded
+            mode_awaken();
+        }
+        return 0;
+    }
 
-    load_config("/data/ProjectRaco/raco.txt");
+    if (strcmp(argv[1], "unload") == 0) {
+        printf("Game Assistant Unloaded\n");
+        // Restore to normal mode when exiting a game
+        mode_normal();
+        return 0;
+    }
+
+    int mode = atoi(argv[1]);
 
     // Yamada: PLEASE REMEMBER THIS.
     /*

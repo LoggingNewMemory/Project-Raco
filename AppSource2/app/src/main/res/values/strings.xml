@@ -187,4 +187,7 @@
     <string name="whitelist_empty_desc">Tap the + icon in the top right to add apps that should not be killed during Kill All.</string>
     <string name="close">Close</string>
     <string name="add_app">Add App</string>
+    <string name="game_assistant">Game Assistant</string>
+    <string name="game_assistant_desc">Automatically apply performance profiles when entering and exiting games.</string>
+    <string name="enable_service">Enable Service</string>
 </resources>

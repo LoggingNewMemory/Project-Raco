@@ -186,5 +186,8 @@
     <string name="no_apps_whitelisted">Kosong</string>
     <string name="whitelist_empty_desc">Ketuk ikon + di kanan atas untuk menambahkan aplikasi yang tidak boleh dimatikan saat Kill All.</string>
     <string name="close">Tutup</string>
-    <string name="add_app">Tambah App</string>
+    <string name="add_app">Tambah Aplikasi</string>
+    <string name="game_assistant">Asisten Game</string>
+    <string name="game_assistant_desc">Secara otomatis menerapkan profil performa saat masuk dan keluar dari game.</string>
+    <string name="enable_service">Aktifkan Layanan</string>
 </resources>

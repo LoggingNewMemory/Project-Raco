@@ -186,5 +186,8 @@
     <string name="no_apps_whitelisted">アプリがありません</string>
     <string name="whitelist_empty_desc">右上の＋アイコンをタップして、Kill All 中に終了させないアプリを追加します。</string>
     <string name="close">閉じる</string>
-    <string name="add_app">追加</string>
+    <string name="add_app">アプリを追加</string>
+    <string name="game_assistant">ゲームアシスタント</string>
+    <string name="game_assistant_desc">ゲーム起動時および終了時に自動的にパフォーマンスプロファイルを適用します。</string>
+    <string name="enable_service">サービスを有効にする</string>
 </resources>
