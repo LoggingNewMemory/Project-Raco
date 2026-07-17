@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36">
   <diagram name="Page-1" id="RafS2GZK1M6LYWt_0SCt">
-    <mxGraphModel dx="1762" dy="627" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1707" dy="589" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -189,7 +189,7 @@
           <mxGeometry height="60" width="170" x="110" y="1485" as="geometry" />
         </mxCell>
         <mxCell id="wLMJtahLav3UEi4vTlQo-14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="460" width="450" x="300" y="1230" as="geometry" />
+          <mxGeometry height="330" width="450" x="300" y="1230" as="geometry" />
         </mxCell>
         <mxCell id="wLMJtahLav3UEi4vTlQo-16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;b&gt;Rules of Project Raco&lt;/b&gt;&lt;div&gt;-&amp;nbsp;&lt;b style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Assembly (only arm64) + C Scripts&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;Do take a note that using shell is &lt;b&gt;PROHIBITED&lt;/b&gt; by any means&lt;/div&gt;&lt;div style=&quot;&quot;&gt;-&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Unless, it only can be done via shell, it is &lt;/span&gt;&lt;b style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;forgiveable&lt;/b&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;. But use it &lt;/span&gt;&lt;b style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;as minimal as it can&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- &lt;/b&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Minimize the usage of dumpsys, cmd, etc&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;- Using UNIX socket is prohibited, please use POSIX (Direct execution)&lt;/div&gt;&lt;div style=&quot;&quot;&gt;- Calling binary uses linker64&lt;/div&gt;&lt;div style=&quot;&quot;&gt;- It is adviseable for using su -c for once only task, if loop task please warp su -c for once execution so that will not call su -c on repeat&lt;/div&gt;" vertex="1">
           <mxGeometry height="190" width="430" x="-670" y="20" as="geometry" />
@@ -198,7 +198,7 @@
           <mxGeometry height="30" width="170" x="440" y="1240" as="geometry" />
         </mxCell>
         <mxCell id="yyM6sG23r63t6FSrpJoh-1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="- Crosshair&lt;div&gt;- Ayunda Rusdi&lt;/div&gt;&lt;div&gt;- Auxalirty Line&lt;/div&gt;&lt;div&gt;- FPS Meter (BETA)&lt;/div&gt;&lt;div&gt;- KSWAP &amp;lt;- Probably not here. This is new Project Raco 7.0 Features&lt;/div&gt;&lt;div&gt;- Standby Mode&lt;/div&gt;&lt;div&gt;- DND&lt;/div&gt;&lt;div&gt;- Screenshot (Non Native / Root Method)&lt;/div&gt;&lt;div&gt;- (And so on)&lt;/div&gt;" vertex="1">
-          <mxGeometry height="400" width="430" x="310" y="1280" as="geometry" />
+          <mxGeometry height="170" width="430" x="310" y="1280" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
