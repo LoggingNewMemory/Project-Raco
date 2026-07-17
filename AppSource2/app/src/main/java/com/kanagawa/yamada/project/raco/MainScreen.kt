@@ -192,7 +192,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
     val scaffoldContent = @Composable { padding: PaddingValues ->
         val alpha by androidx.compose.animation.core.animateFloatAsState(
             targetValue = if (checkingRoot) 0f else 1f,
-            animationSpec = androidx.compose.animation.core.tween(500), label = ""
+            animationSpec = androidx.compose.animation.core.tween(150), label = ""
         )
         LazyColumn(
                 modifier = Modifier
@@ -365,7 +365,7 @@ fun ControlRow(title: String, desc: String, icon: ImageVector, bgColor: Color, i
     // Smooth animation for progress updates
     val animatedProgress by androidx.compose.animation.core.animateFloatAsState(
         targetValue = progress,
-        animationSpec = androidx.compose.animation.core.tween(300),
+        animationSpec = androidx.compose.animation.core.tween(150),
         label = "progressAnim"
     )
 

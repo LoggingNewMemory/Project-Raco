@@ -215,7 +215,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
         ) { padding ->
             val alpha by androidx.compose.animation.core.animateFloatAsState(
                 targetValue = if (isLoading) 0f else 1f,
-                animationSpec = androidx.compose.animation.core.tween(500), label = ""
+                animationSpec = androidx.compose.animation.core.tween(150), label = ""
             )
             LazyColumn(
                 modifier = Modifier

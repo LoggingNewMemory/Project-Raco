@@ -21,7 +21,11 @@ fun RacoApp() {
         currentScreen = Screen.Main
     }
 
-    Crossfade(targetState = currentScreen, label = "ScreenTransition") { screen ->
+    Crossfade(
+        targetState = currentScreen,
+        label = "ScreenTransition",
+        animationSpec = androidx.compose.animation.core.tween(150)
+    ) { screen ->
         when (screen) {
             Screen.Main -> MainScreen(onNavigate = { currentScreen = it })
             Screen.Utilities -> UtilitiesScreen(onBack = { currentScreen = Screen.Main })

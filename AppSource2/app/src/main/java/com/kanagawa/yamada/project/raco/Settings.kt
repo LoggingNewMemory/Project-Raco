@@ -294,12 +294,12 @@ fun SettingsScreen(
                             val isSelected = selectedCategory == cat
                             val animatedColor by androidx.compose.animation.animateColorAsState(
                                 targetValue = if (isSelected) accentColor else Color.White,
-                                animationSpec = androidx.compose.animation.core.tween(300),
+                                animationSpec = androidx.compose.animation.core.tween(150),
                                 label = "CatColor"
                             )
                             val animatedOffsetX by androidx.compose.animation.core.animateDpAsState(
                                 targetValue = if (isSelected) 12.dp else 0.dp,
-                                animationSpec = androidx.compose.animation.core.tween(300),
+                                animationSpec = androidx.compose.animation.core.tween(150),
                                 label = "CatOffset"
                             )
                             Text(
@@ -330,8 +330,8 @@ fun SettingsScreen(
                         androidx.compose.animation.AnimatedContent(
                             targetState = selectedCategory,
                             transitionSpec = {
-                                (androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(300)) + androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(300)) { 40 }).togetherWith(
-                                    androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(300)) + androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(300)) { -40 }
+                                (androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(150)) + androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(150)) { 40 }).togetherWith(
+                                    androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(150)) + androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(150)) { -40 }
                                 ).using(androidx.compose.animation.SizeTransform(clip = false))
                             },
                             label = "CategoryTransition"
