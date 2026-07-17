@@ -60,6 +60,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
 
     var currentMode by remember { mutableStateOf("NONE") }
     var hasRoot by remember { mutableStateOf(false) }
+    var gameAssistantEnabled by remember { mutableStateOf(false) }
     var checkingRoot by remember { mutableStateOf(true) }
     var isExecuting by remember { mutableStateOf(false) }
     var executingMode by remember { mutableStateOf("") }
@@ -117,6 +118,16 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
         } catch (e: Exception) { "NONE" }
     }
 
+    suspend fun checkGameAssistant(): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val output = withTimeoutOrNull(3000L) {
+                val process = ProcessBuilder("su", "-c", "grep -q '^GAME_ASSISTANT 1' /data/ProjectRaco/raco.txt").redirectErrorStream(true).start()
+                process.waitFor()
+            } ?: -1
+            output == 0
+        } catch (e: Exception) { false }
+    }
+
 
     LaunchedEffect(Unit) {
         hasRoot = checkRoot()
@@ -132,6 +143,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                 moduleVersion = getAppVersion()
             }
             currentMode = fetchActiveMode()
+            gameAssistantEnabled = checkGameAssistant()
         }
         checkingRoot = false
     }
@@ -276,10 +288,12 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
                                 Column(modifier = Modifier.padding(12.dp)) {
-                                    Icon(Icons.Default.Security, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                    Icon(Icons.Default.VideogameAsset, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    Text(stringResource(R.string.root_access_1), style = MaterialTheme.typography.bodySmall)
-                                    Text(if (hasRoot) stringResource(R.string.yes) else stringResource(R.string.no), style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), color = if (hasRoot) Color.Green else MaterialTheme.colorScheme.error)
+                                    Text(stringResource(R.string.game_assistant), style = MaterialTheme.typography.bodySmall)
+                                    val gaStatusStr = if (gameAssistantEnabled) stringResource(R.string.status_enabled) else stringResource(R.string.status_disabled)
+                                    val gaStatusColor = if (gameAssistantEnabled) Color.Green else MaterialTheme.colorScheme.error
+                                    Text(gaStatusStr, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), color = gaStatusColor)
                                 }
                             }
                             Spacer(modifier = Modifier.width(10.dp))
@@ -291,7 +305,9 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                                     Icon(Icons.Default.SettingsInputComponent, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(stringResource(R.string.mode_status), style = MaterialTheme.typography.bodySmall)
-                                    Text(stringResource(R.string.mode_manual), style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.primary)
+                                    val manualText = stringResource(R.string.mode_manual)
+                                    val modeText = if (gameAssistantEnabled) "$manualText + GameServ" else manualText
+                                    Text(modeText, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.primary)
                                 }
                             }
                         }
