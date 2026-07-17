@@ -121,6 +121,12 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
     LaunchedEffect(Unit) {
         hasRoot = checkRoot()
         if (hasRoot) {
+            // Auto-grant notifications permission via root for Android 13+
+            withContext(Dispatchers.IO) {
+                try {
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "pm grant com.kanagawa.yamada.project.raco android.permission.POST_NOTIFICATIONS")).waitFor()
+                } catch (e: Exception) {}
+            }
             moduleInstalled = checkModule()
             if (moduleInstalled) {
                 moduleVersion = getAppVersion()
