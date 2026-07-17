@@ -8,6 +8,7 @@ enum class Screen {
     Main,
     Utilities,
     Slingshot,
+    Whitelist,
     About,
     Raco
 }
@@ -25,6 +26,7 @@ fun RacoApp() {
             Screen.Main -> MainScreen(onNavigate = { currentScreen = it })
             Screen.Utilities -> UtilitiesScreen(onBack = { currentScreen = Screen.Main })
             Screen.Slingshot -> SlingshotScreen(onBack = { currentScreen = Screen.Main })
+            Screen.Whitelist -> WhitelistScreen(onBack = { currentScreen = Screen.Main })
             Screen.About -> AboutScreen(onBack = { currentScreen = Screen.Main })
             Screen.Raco -> RacoScreen(onBack = { currentScreen = Screen.Main })
         }

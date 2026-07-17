@@ -231,7 +231,7 @@ void kill_all() {
         system("sync; "
                "cmd activity kill-all > /dev/null 2>&1; "
                "for pkg in $(pm list packages -3 | cut -f 2 -d ':'); do "
-               "if [ \"$pkg\" != \"com.google.android.inputmethod.latin\" ]; then "
+               "if ! grep -q \"^$pkg$\" /data/ProjectRaco/WhitelistKillAll.txt 2>/dev/null; then "
                "am force-stop \"$pkg\" > /dev/null 2>&1 & "
                "fi; done; wait; "
                "pm trim-caches 100G > /dev/null 2>&1; "

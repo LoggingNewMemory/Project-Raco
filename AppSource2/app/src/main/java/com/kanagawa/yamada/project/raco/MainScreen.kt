@@ -316,6 +316,9 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                         FeatureCard(stringResource(R.string.slingshot_title), Icons.Default.RocketLaunch) { onNavigate(Screen.Slingshot) }
                     }
                     item {
+                        FeatureCard("Kill All Whitelist", Icons.Default.List) { onNavigate(Screen.Whitelist) }
+                    }
+                    item {
                         FeatureCard(stringResource(R.string.utilities_title), Icons.Default.Build) { onNavigate(Screen.Utilities) }
                     }
                     item {
