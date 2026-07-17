@@ -135,6 +135,7 @@ unzip -o "$ZIPFILE" 'Compiled/*' -d $MODPATH >&2
 unzip -o "$ZIPFILE" 'CoreSys/*' -d $MODPATH >&2
 unzip -o "$ZIPFILE" 'Binaries/*' -d $MODPATH >&2
 unzip -o "$ZIPFILE" 'raco.txt' -d $MODPATH >&2
+unzip -o "$ZIPFILE" 'WhitelistKillAll.txt' -d $MODPATH >&2
 
 # File copy operations
 rm -f "/data/local/tmp/logo.png" >/dev/null 2>&1
@@ -173,8 +174,14 @@ fi
 ui_print "- Finalizing SOC Code ($SOC) in config"
 sed -i "s/^SOC .*/SOC $SOC/" "$RACO_PERSIST_CONFIG"
 
+if [ ! -f "/data/ProjectRaco/WhitelistKillAll.txt" ]; then
+  ui_print "- Creating default WhitelistKillAll..."
+  cp "$MODPATH/WhitelistKillAll.txt" "/data/ProjectRaco/WhitelistKillAll.txt"
+fi
+
 # Clean up the template file from the module directory.
 rm -f "$RACO_MODULE_TEMPLATE"
+rm -f "$MODPATH/WhitelistKillAll.txt"
 
 ui_print " "
 ui_print "   INSTALLING/UPDATING Project Raco App   "
