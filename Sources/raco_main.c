@@ -234,6 +234,7 @@ void mode_balanced() {
     printf("PROGRESS: 80\n"); fflush(stdout);
     // CPU SETTINGS
     change_cpu_gov(config.default_gov);
+    cpufreq_balanced();
     route_soc(3);
 
     clear_slingshot();
@@ -328,6 +329,7 @@ void mode_normal() {
     printf("PROGRESS: 80\n"); fflush(stdout);
     // CPU SETTINGS: set governor
     change_cpu_gov(config.default_gov);
+    cpufreq_normal();
     route_soc(1);
 
     clear_slingshot();
