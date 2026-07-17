@@ -53,6 +53,16 @@ class GameAssistantService : AccessibilityService() {
         if (event == null || event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         
         val packageName = event.packageName?.toString() ?: return
+        
+        // Ignore System UI (notification bar, volume panel, etc) and Android system dialogs
+        if (packageName == "com.android.systemui" || packageName == "android") return
+        
+        // Ignore keyboards
+        if (packageName.contains("inputmethod") || packageName.contains("keyboard")) return
+        
+        // Ignore floating windows and overlays (only process full-screen app changes)
+        if (!event.isFullScreen) return
+
         if (packageName == currentForegroundPackage) return
         currentForegroundPackage = packageName
         
