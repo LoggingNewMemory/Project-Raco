@@ -6,9 +6,6 @@ Copyright (C) 2026 Kanagawa Yamada
 #ifndef RACO_H
 #define RACO_H
 
-// Game Monitoring Service
-#define GAMESERVICE_SOCKET "@raco_gameservice"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,8 +31,12 @@ typedef struct {
     int inc_zeta;
     int inc_sandev;
     int sandev_dur;
+    int lite_powersave;
+    int ultra_powersave;
+    int lite_performance;
     char default_gov[32];
     int alter_cpu_method;
+    int dnd;
 } RacoConfig;
 
 extern RacoConfig config;
@@ -62,9 +63,13 @@ void load_config(const char *config_path);
 void notification(const char *message);
 void clear_slingshot();
 void kill_all();
+void run_fstrim();
+void clear_cache();
 void anyamelfissa();
 void anyakawaii();
 int get_universal_fps(const char *pkg);
+void dnd_off();
+void dnd_on();
 
 // Tool of Frequency
 FreqData get_target_freq(const char *path, int mode); // 0=Max 1=Min 2=Mid

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">Project Raco</string>
     <string name="app_title">Project Raco</string>
@@ -21,7 +21,7 @@
     <string name="utilities_title">Utilidades</string>
     <string name="core_tweaks_title">Tweaks principales</string>
     <string name="automation_title">Automatización</string>
-    <string name="system_title">Sistema</string>
+    <string name="system">Sistema</string>
     <string name="appearance_title">Apariencia</string>
     <string name="device_mitigation_title">Mitigación del dispositivo</string>
     <string name="device_mitigation_description">Enciendelo si experimentas congelado de pantalla</string>
@@ -64,11 +64,11 @@
     <string name="extra_settings_title">Ajustes Extra</string>
     <string name="anya_installer_title">Anya Thermal</string>
     <string name="anya_installer_desc">Desactivar / Activar Thermal | Anya Flowstate</string>
-    <string name="kobo_title">Kobo Carga Rápida</string>
+    <string name="kobo_fast_charge">Kobo Carga Rápida</string>
     <string name="kobo_desc">Complemento de carga rápida</string>
-    <string name="zetamin_title">Zetamin</string>
+    <string name="zetamin">Zetamin</string>
     <string name="zetamin_desc">Ajustes de pantalla Todo en Uno</string>
-    <string name="sandev_boot_title">Arranque Sandevistan</string>
+    <string name="sandevistan_boot">Arranque Sandevistan</string>
     <string name="sandev_boot_desc">Un intento de hacer el arranque más rápido</string>
     <string name="reboot_to_take_effect">Por favor reinicie para aplicar los cambios</string>
     <string name="search_apps_hint">Buscar aplicaciones...</string>

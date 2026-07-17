@@ -145,13 +145,16 @@ void corin_storage(const char *sched, const char *rq) {
 
 // Master Profiles
 void mode_awaken() {
+    printf("PROGRESS: 10\n"); fflush(stdout);
     sync();
     rawrite("3", "/proc/sys/vm/drop_caches");
 
+    printf("PROGRESS: 30\n"); fflush(stdout);
     apply_io_tweaks("0", "0", "32", "32", 1);
     apply_net_tweaks("1", "1", "3", "0", 1);
     rawrite("0", "/proc/sys/vm/page-cluster");
     rawrite("80", "/proc/sys/vm/vfs_cache_pressure");
+    printf("PROGRESS: 50\n"); fflush(stdout);
     carlotta_cpu(80);
 
     corin_storage("deadline", "1");
@@ -159,39 +162,48 @@ void mode_awaken() {
            "cmd power set-adaptive-power-saver-enabled false; "
            "cmd power set-fixed-performance-mode-enabled false; "
            "cmd looper_stats disable; "
-           "cmd power set-mode 0 &");
-    
-    system("atrace --async_stop >/dev/null 2>&1; "
+           "cmd power set-mode 0 & "
+           "atrace --async_stop >/dev/null 2>&1; "
            "cmd looper_stats reset >/dev/null 2>&1; "
            "setprop debug.debuggerd.wait_for_debugger false; "
            "setprop debug.debuggerd.wait_for_gdb false; "
-           "setprop debug.debuggerd.disable 1 &");
-
-    system("dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
+           "setprop debug.debuggerd.disable 1 & "
+           "dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable-detailed-tracking >/dev/null 2>&1; "
            "dumpsys procstats --clear >/dev/null 2>&1; "
-           "dumpsys procstats --stop-testing >/dev/null 2>&1 &");
-
-    system("cmd display ab-logging-disable >/dev/null 2>&1; "
+           "dumpsys procstats --stop-testing >/dev/null 2>&1 & "
+           "cmd display ab-logging-disable >/dev/null 2>&1; "
            "cmd display dwb-logging-disable >/dev/null 2>&1; "
            "cmd display dmd-logging-disable >/dev/null 2>&1; "
            "logcat -G 64K >/dev/null 2>&1; logcat -c >/dev/null 2>&1 &");
 
+    printf("PROGRESS: 70\n"); fflush(stdout);
+
     // CPU SETTINGS: Order matters. Set Gov, Safety Wait, Then Apply Profile
-    change_cpu_gov("performance");
-    sleep(1);
+    if (config.lite_performance == 1) {
+        change_cpu_gov(config.default_gov);
+    } else {
+        change_cpu_gov("performance");
+    }
+    printf("PROGRESS: 90\n"); fflush(stdout);
+    usleep(150000);
     cpufreq_awaken();
     route_soc(4);
 
     clear_slingshot();
     anyamelfissa();
+    dnd_on();
+    printf("PROGRESS: 100\n"); fflush(stdout);
+    notification("Performance Mode Activated");
 }
 
 void mode_balanced() {
+    printf("PROGRESS: 10\n"); fflush(stdout);
     sync();
     rawrite("3", "/proc/sys/vm/drop_caches");
 
+    printf("PROGRESS: 40\n"); fflush(stdout);
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);
 
@@ -204,42 +216,40 @@ void mode_balanced() {
            "cmd power set-adaptive-power-saver-enabled false; "
            "cmd power set-fixed-performance-mode-enabled false; "
            "cmd looper_stats enable; "
-           "cmd power set-mode 0 &");
-
-    system("atrace --async_stop >/dev/null 2>&1; "
+           "cmd power set-mode 0 & "
+           "atrace --async_stop >/dev/null 2>&1; "
            "cmd looper_stats reset >/dev/null 2>&1; "
-           "cmd looper_stats disable >/dev/null 2>&1 &");
-
-    system("for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 &");
-
-    system("dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
+           "cmd looper_stats disable >/dev/null 2>&1 & "
+           "for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 & "
+           "dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable-detailed-tracking >/dev/null 2>&1; "
            "dumpsys procstats --clear >/dev/null 2>&1; "
-           "dumpsys procstats --stop-testing >/dev/null 2>&1 &");
-
-    system("cmd display ab-logging-disable >/dev/null 2>&1; "
+           "dumpsys procstats --stop-testing >/dev/null 2>&1 & "
+           "cmd display ab-logging-disable >/dev/null 2>&1; "
            "cmd display dwb-logging-disable >/dev/null 2>&1; "
-           "cmd display dmd-logging-disable >/dev/null 2>&1 &");
+           "cmd display dmd-logging-disable >/dev/null 2>&1 & "
+           "for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
 
-    system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
-
+    printf("PROGRESS: 80\n"); fflush(stdout);
     // CPU SETTINGS
-    // 1. First, reset frequencies to hardware defaults (Unlock)
-    // This prevents the "max < min" write errors if coming from powersave/perf
-    cpufreq_balanced();
-    // 2. Then set the balanced governor
     change_cpu_gov(config.default_gov);
+    cpufreq_balanced();
     route_soc(3);
 
     clear_slingshot();
     anyakawaii();
+    dnd_off();
+    printf("PROGRESS: 100\n"); fflush(stdout);
+    notification("Balanced Mode Activated");
 }
 
 void mode_powersave() {
+    printf("PROGRESS: 10\n"); fflush(stdout);
     sync();
     rawrite("3", "/proc/sys/vm/drop_caches");
 
+    printf("PROGRESS: 30\n"); fflush(stdout);
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);
 
@@ -252,41 +262,43 @@ void mode_powersave() {
            "cmd power set-adaptive-power-saver-enabled true; "
            "cmd power set-fixed-performance-mode-enabled false; "
            "cmd looper_stats enable; "
-           "cmd power set-mode 0 &");
-
-    system("atrace --async_stop >/dev/null 2>&1; "
+           "cmd power set-mode 0 & "
+           "atrace --async_stop >/dev/null 2>&1; "
            "cmd looper_stats reset >/dev/null 2>&1; "
-           "cmd looper_stats disable >/dev/null 2>&1 &");
-
-    system("for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 &");
-
-    system("dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
+           "cmd looper_stats disable >/dev/null 2>&1 & "
+           "for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 & "
+           "dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable-detailed-tracking >/dev/null 2>&1; "
            "dumpsys procstats --clear >/dev/null 2>&1; "
-           "dumpsys procstats --stop-testing >/dev/null 2>&1 &");
-
-    system("cmd display ab-logging-disable >/dev/null 2>&1; "
+           "dumpsys procstats --stop-testing >/dev/null 2>&1 & "
+           "cmd display ab-logging-disable >/dev/null 2>&1; "
            "cmd display dwb-logging-disable >/dev/null 2>&1; "
-           "cmd display dmd-logging-disable >/dev/null 2>&1 &");
-
-    system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
+           "cmd display dmd-logging-disable >/dev/null 2>&1 & "
+           "for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
     
+    printf("PROGRESS: 70\n"); fflush(stdout);
     // CPU SETTINGS
     // 1. Set powersave gov
     change_cpu_gov("powersave");
-    sleep(1);
+    printf("PROGRESS: 90\n"); fflush(stdout);
+    usleep(150000);
     // 2. Apply limits
     cpufreq_powersave();
     route_soc(2);
 
     clear_slingshot();
     anyakawaii();
+    dnd_off();
+    printf("PROGRESS: 100\n"); fflush(stdout);
+    notification("Powersave Mode Activated");
 }
 
 void mode_normal() {
+    printf("PROGRESS: 20\n"); fflush(stdout);
     sync();
 
+    printf("PROGRESS: 50\n"); fflush(stdout);
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);
 
@@ -299,33 +311,61 @@ void mode_normal() {
            "cmd power set-adaptive-power-saver-enabled false; "
            "cmd power set-fixed-performance-mode-enabled false; "
            "cmd looper_stats enable; "
-           "cmd power set-mode 0 &");
-
-    system("atrace --async_stop >/dev/null 2>&1; "
+           "cmd power set-mode 0 & "
+           "atrace --async_stop >/dev/null 2>&1; "
            "cmd looper_stats reset >/dev/null 2>&1; "
-           "cmd looper_stats disable >/dev/null 2>&1 &");
-
-    system("for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 &");
-
-    system("dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
+           "cmd looper_stats disable >/dev/null 2>&1 & "
+           "for app in $(pm list packages | cut -d: -f2); do pm log-visibility --disable $app; done >/dev/null 2>&1 & "
+           "dumpsys binder_calls_stats --reset >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable >/dev/null 2>&1; "
            "dumpsys binder_calls_stats --disable-detailed-tracking >/dev/null 2>&1; "
            "dumpsys procstats --clear >/dev/null 2>&1; "
-           "dumpsys procstats --stop-testing >/dev/null 2>&1 &");
-
-    system("cmd display ab-logging-disable >/dev/null 2>&1; "
+           "dumpsys procstats --stop-testing >/dev/null 2>&1 & "
+           "cmd display ab-logging-disable >/dev/null 2>&1; "
            "cmd display dwb-logging-disable >/dev/null 2>&1; "
-           "cmd display dmd-logging-disable >/dev/null 2>&1 &");
+           "cmd display dmd-logging-disable >/dev/null 2>&1 & "
+           "for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
 
-    system("for f in $(dumpsys window | grep \"^  Proto:\" | sed 's/^  Proto: //' | tr ' ' '\\n'; dumpsys window | grep \"^  Logcat:\" | sed 's/^  Logcat: //' | tr ' ' '\\n'); do wm logging disable \"$f\"; wm logging disable-text \"$f\"; done >/dev/null 2>&1 &");
-
-    // CPU SETTINGS: Unlock first, then set governor
-    cpufreq_normal();
+    printf("PROGRESS: 80\n"); fflush(stdout);
+    // CPU SETTINGS: set governor
     change_cpu_gov(config.default_gov);
+    cpufreq_normal();
     route_soc(1);
 
     clear_slingshot();
     anyakawaii();
+    dnd_off();
+    printf("PROGRESS: 100\n"); fflush(stdout);
+    notification("Balanced Mode Activated");
+}
+
+void mode_gaming_pro() {
+    printf("PROGRESS: 10\n"); fflush(stdout);
+    mode_awaken();
+    printf("PROGRESS: 80\n"); fflush(stdout);
+    kill_all();
+    printf("PROGRESS: 100\n"); fflush(stdout);
+    notification("Gaming Pro Mode Activated");
+}
+
+void mode_cooldown() {
+    mode_powersave();
+    notification("Cool Down initiated for 2 minutes...");
+    
+    pid_t pid = fork();
+    if (pid == 0) {
+        sleep(120);
+        mode_balanced();
+        notification("Cool Down finished. Switched to Balanced Mode.");
+        exit(0);
+    }
+}
+
+void mode_reset() {
+    printf("PROGRESS: 20\n"); fflush(stdout);
+    kill_all();
+    printf("PROGRESS: 100\n"); fflush(stdout);
+    notification("All background applications cleared.");
 }
 
 // Main Execution
@@ -335,12 +375,25 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    if (strcmp(argv[1], "fstrim") == 0) {
+        run_fstrim();
+        return 0;
+    }
+
+    if (strcmp(argv[1], "clearcache") == 0) {
+        clear_cache();
+        return 0;
+    }
+
     int mode = atoi(argv[1]);
 
     load_config("/data/ProjectRaco/raco.txt");
 
     // Yamada: PLEASE REMEMBER THIS.
     /*
+    7 = Reset -> Kills all apps and clears background without changing tuning
+    6 = Cooldown -> Drops to powersave for 2 mins to cool, then balanced
+    5 = Gaming Pro -> Awaken + Kills all apps
     4 = Awaken
     3 = Balanced -> Keep in mind "Balanced" here is term of balanced performance, so half them minfreq
     2 = Powersave
@@ -359,6 +412,15 @@ int main(int argc, char *argv[]) {
             break;
         case 1:
             mode_normal();
+            break;
+        case 5:
+            mode_gaming_pro();
+            break;
+        case 6:
+            mode_cooldown();
+            break;
+        case 7:
+            mode_reset();
             break;
         default:
             printf("Error: Invalid mode '%d'. Mission aborted.\n", mode);

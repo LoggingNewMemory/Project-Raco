@@ -197,18 +197,6 @@ build_modules() {
         exit 1
     fi
 
-    echo "[3/6] Building Raco Game Service (Monitor Daemon)..."
-    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
-        -o "$MODULES_DIR/CoreSys/raco_gameservice" \
-        "$SRC_DIR/raco_gameservice.c" \
-        "$SRC_DIR/raco_perfinfo.c" \
-        "$SRC_DIR/anya.c" \
-        "$SRC_DIR/raco_tools.c" \
-        "$SRC_DIR/raco_tool.s"; then
-        echo "❌ ERROR: Compilation of Raco Game Service failed!"
-        exit 1
-    fi
-
     echo "[4/6] Building Anya Standalone..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" -DSTANDALONE \
         -o "$MODULES_DIR/Compiled/anya" \
@@ -243,7 +231,7 @@ build_modules() {
     echo "🗜️ Stripping Binaries..."
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/raco"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/CoreSys/raco_service"
-    $TOOLCHAIN/llvm-strip "$MODULES_DIR/CoreSys/raco_gameservice"
+
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/anya"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/zetamin"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/kobo"
@@ -337,7 +325,7 @@ build_modules() {
 
     ZIP_NAME="${MODULE_ID}-${VERSION}-${BUILD_TYPE}.zip"
     ZIP_PATH="../$BUILD_DIR/$ZIP_NAME"
-    zip -q -r "$ZIP_PATH" ./*
+    zip -q -r "$ZIP_PATH" ./* -x "*.gitkeep"
     echo "Created: $ZIP_NAME"
 
     cd ..

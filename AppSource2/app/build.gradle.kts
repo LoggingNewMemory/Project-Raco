@@ -60,4 +60,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.palette:palette-ktx:1.0.0")
 }

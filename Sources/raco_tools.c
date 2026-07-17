@@ -146,7 +146,11 @@ void load_config(const char *config_path) {
     config.inc_zeta = 0;
     config.inc_sandev = 0;
     config.sandev_dur = 300;
+    config.lite_powersave = 0;
+    config.ultra_powersave = 0;
+    config.lite_performance = 0;
     config.alter_cpu_method = 0;
+    config.dnd = 0;
     strcpy(config.default_gov, "schedutil");
 
     char file_content[4096];
@@ -174,8 +178,12 @@ void load_config(const char *config_path) {
             else if (strcmp(key, "INCLUDE_ZETAMIN") == 0 && parsed == 2) config.inc_zeta = atoi(value);
             else if (strcmp(key, "INCLUDE_SANDEV") == 0 && parsed == 2) config.inc_sandev = atoi(value);
             else if (strcmp(key, "SANDEV_DUR") == 0 && parsed == 2) config.sandev_dur = atoi(value);
+            else if (strcmp(key, "LITE_POWERSAVE") == 0 && parsed == 2) config.lite_powersave = atoi(value);
+            else if (strcmp(key, "ULTRA_POWERSAVE") == 0 && parsed == 2) config.ultra_powersave = atoi(value);
+            else if (strcmp(key, "LITE_PERFORMANCE") == 0 && parsed == 2) config.lite_performance = atoi(value);
             else if (strcmp(key, "GOV") == 0 && parsed == 2) strcpy(config.default_gov, value);
             else if (strcmp(key, "ALTER_CPU_METHOD") == 0 && parsed == 2) config.alter_cpu_method = atoi(value);
+            else if (strcmp(key, "DND") == 0 && parsed == 2) config.dnd = atoi(value);
         }
         line = strtok_r(NULL, "\n", &saveptr_line);
     }
@@ -188,9 +196,13 @@ void load_config(const char *config_path) {
 
 // Basic Utilities
 void notification(const char *message) {
-    if (config.silent_notif == 1) {
-        char cmd[512];
-        snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"am startservice -n com.kanagawa.yamada.project.raco/.ToastOverlayService --es msg '%s'\" >/dev/null 2>&1 &", message);
+    if (config.silent_notif == 0) {
+        char cmd[1024];
+        if (config.legacy_notif == 1) {
+            snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' 'TagRaco' '%s'\" &", message);
+        } else {
+            snprintf(cmd, sizeof(cmd), "su -lp 2000 -c \"cmd notification post -S bigtext -t 'Project Raco' -i file:///data/local/tmp/logo.png -I file:///data/local/tmp/logo.png 'TagRaco' '%s'\" &", message);
+        }
         system(cmd);
     }
 }
@@ -199,6 +211,18 @@ void clear_slingshot() {
     system("settings delete global angle_debug_package");
     system("settings delete global angle_gl_driver_all_angle");
     system("setprop debug.hwui.renderer \"\"");
+}
+
+void dnd_off() {
+    if (config.dnd == 1) {
+        system("cmd notification set_dnd off > /dev/null 2>&1 &");
+    }
+}
+
+void dnd_on() {
+    if (config.dnd == 1) {
+        system("cmd notification set_dnd priority > /dev/null 2>&1 &");
+    }
 }
 
 #ifndef STANDALONE
@@ -216,11 +240,64 @@ void anyakawaii() {
 #endif
 
 void kill_all() {
-    system("sync");
-    system("cmd activity kill-all > /dev/null 2>&1");
-    system("pm trim-caches 100G > /dev/null 2>&1");
-    rawrite("3", "/proc/sys/vm/drop_caches");
-    system("logcat -b all -c");
+    pid_t pid = fork();
+    if (pid == 0) {
+        system("sync; "
+               "cmd activity kill-all > /dev/null 2>&1; "
+               "for pkg in $(pm list packages -3 | cut -f 2 -d ':'); do "
+               "if ! grep -q \"^$pkg$\" /data/ProjectRaco/WhitelistKillAll.txt 2>/dev/null; then "
+               "am force-stop \"$pkg\" > /dev/null 2>&1 & "
+               "fi; done; wait; "
+               "pm trim-caches 100G > /dev/null 2>&1; "
+               "logcat -c; "
+               "logcat -b all -c");
+        rawrite("3", "/proc/sys/vm/drop_caches");
+        exit(0);
+    }
+}
+
+void run_fstrim() {
+    system("busybox fstrim -v /data >/dev/null 2>&1");
+    usleep(100000);
+    system("busybox fstrim -v /cache >/dev/null 2>&1");
+}
+
+void clear_cache() {
+    printf("PROGRESS: 10\n"); fflush(stdout);
+    system("for DIR in /data/data/*; do if [ -d \"${DIR}\" ]; then rm -rf ${DIR}/cache/* ${DIR}/no_backup/* ${DIR}/app_webview/* ${DIR}/code_cache/*; fi; done >/dev/null 2>&1");
+    printf("PROGRESS: 30\n"); fflush(stdout);
+    system("find /data/data/*/cache/* -delete 2>/dev/null; "
+           "find /data/data/*/code_cache/* -delete 2>/dev/null; "
+           "find /data/user_de/*/*/cache/* -delete 2>/dev/null; "
+           "find /data/user_de/*/*/code_cache/* -delete 2>/dev/null; "
+           "find /sdcard/Android/data/*/cache/* -delete 2>/dev/null");
+    printf("PROGRESS: 50\n"); fflush(stdout);
+    system("pm trim-caches 1024G >/dev/null 2>&1");
+    printf("PROGRESS: 70\n"); fflush(stdout);
+    system("cmd stats clear-puller-cache >/dev/null 2>&1; "
+           "cmd activity clear-debug-app >/dev/null 2>&1; "
+           "cmd activity clear-watch-heap -a >/dev/null 2>&1; "
+           "cmd activity clear-exit-info >/dev/null 2>&1; "
+           "cmd content reset-today-stats >/dev/null 2>&1; "
+           "cmd companiondevice refresh-cache >/dev/null 2>&1");
+    printf("PROGRESS: 85\n"); fflush(stdout);
+    system("cmd companiondevice remove-inactive-associations >/dev/null 2>&1; "
+           "cmd blob_store clear-all-blobs >/dev/null 2>&1; "
+           "cmd blob_store clear-all-sessions >/dev/null 2>&1; "
+           "cmd device_policy clear-freeze-period-record >/dev/null 2>&1; "
+           "wm tracing size 0 >/dev/null 2>&1; "
+           "cmd font clear >/dev/null 2>&1; "
+           "cmd location_time_zone_manager clear_recorded_provider_states >/dev/null 2>&1");
+    printf("PROGRESS: 95\n"); fflush(stdout);
+    system("cmd lock_settings remove-cache >/dev/null 2>&1; "
+           "cmd media.camera clear-stream-use-case-override >/dev/null 2>&1; "
+           "cmd media.camera watch clear >/dev/null 2>&1; "
+           "cmd safety_center clear-data >/dev/null 2>&1; "
+           "cmd time_detector clear_network_time >/dev/null 2>&1; "
+           "cmd time_detector clear_system_clock_network_time >/dev/null 2>&1; "
+           "dumpsys procstats --clear >/dev/null 2>&1; "
+           "cmd package art cleanup >/dev/null 2>&1");
+    printf("PROGRESS: 100\n"); fflush(stdout);
 }
 
 // Frequency Control (Devfreq)
@@ -254,7 +331,10 @@ void set_devfreq(const char *path, const char *mode) {
     }
 }
 
-void devfreq_max(const char *path) { set_devfreq(path, "max"); }
+void devfreq_max(const char *path) { 
+    if (config.lite_performance == 1) set_devfreq(path, "mid");
+    else set_devfreq(path, "max"); 
+}
 void devfreq_balanced(const char *path) { set_devfreq(path, "mid"); }
 void devfreq_mid_perf(const char *path) { set_devfreq(path, "mid"); }
 void devfreq_normal(const char *path) { set_devfreq(path, "normal"); }
@@ -299,18 +379,32 @@ void cpufreq_awaken() {
         while ((ent = readdir(dir)) != NULL) {
             if (strncmp(ent->d_name, "policy", 6) == 0) {
                 const char *cpu_idx = ent->d_name + 6;
-                char path[256], min_path[256], max_path[256], info_path[256];
+                char path[256], min_path[256], max_path[256], info_path[256], avail_path[256];
                 snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpufreq/%s", ent->d_name);
                 snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", path);
                 snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", path);
+                snprintf(avail_path, sizeof(avail_path), "/sys/devices/system/cpu/cpu%s/cpufreq/scaling_available_frequencies", cpu_idx);
 
                 char hw_max_buf[32] = {0};
 
                 snprintf(info_path, sizeof(info_path), "/sys/devices/system/cpu/cpu%s/cpufreq/cpuinfo_max_freq", cpu_idx);
                 if (raread(info_path, hw_max_buf, sizeof(hw_max_buf)) <= 0) continue;
 
-                rawrite(hw_max_buf, max_path);
-                rawrite(hw_max_buf, min_path);
+                if (config.lite_performance == 1) {
+                    FreqData mid_f = get_target_freq(avail_path, 2);
+                    if (mid_f.freq != -1) {
+                        char mid_val[32];
+                        snprintf(mid_val, sizeof(mid_val), "%ld", mid_f.freq);
+                        rawrite(hw_max_buf, max_path);
+                        rawrite(mid_val, min_path);
+                    } else {
+                        rawrite(hw_max_buf, max_path);
+                        rawrite(hw_max_buf, min_path);
+                    }
+                } else {
+                    rawrite(hw_max_buf, max_path);
+                    rawrite(hw_max_buf, min_path);
+                }
             }
         }
         closedir(dir);
@@ -350,9 +444,33 @@ void cpufreq_balanced() {
     }
 }
 
-// Normal mode uses the same unlock behavior as balanced
 void cpufreq_normal() {
-    cpufreq_balanced();
+    if (config.alter_cpu_method == 1) return;
+    
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strncmp(ent->d_name, "policy", 6) == 0) {
+                const char *cpu_idx = ent->d_name + 6;
+                char path[256], min_info[256], max_info[256], min_path[256], max_path[256];
+                snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpufreq/%s", ent->d_name);
+                snprintf(min_info, sizeof(min_info), "/sys/devices/system/cpu/cpu%s/cpufreq/cpuinfo_min_freq", cpu_idx);
+                snprintf(max_info, sizeof(max_info), "/sys/devices/system/cpu/cpu%s/cpufreq/cpuinfo_max_freq", cpu_idx);
+                snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", path);
+                snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", path);
+
+                char hw_min_buf[32] = {0};
+                char hw_max_buf[32] = {0};
+
+                if (raread(min_info, hw_min_buf, sizeof(hw_min_buf)) > 0 && raread(max_info, hw_max_buf, sizeof(hw_max_buf)) > 0) {
+                    rakakikomi(hw_min_buf, min_path);
+                    rakakikomi(hw_max_buf, max_path);
+                }
+            }
+        }
+        closedir(dir);
+    }
 }
 
 void cpufreq_powersave() {
@@ -372,16 +490,29 @@ void cpufreq_powersave() {
                 snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", path);
                 snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", path);
 
-                FreqData mid_f = get_target_freq(avail_path, 3);
-
                 char hw_min_buf[32] = {0};
 
-                if (mid_f.freq != -1 && raread(info_path, hw_min_buf, sizeof(hw_min_buf)) > 0) {
-                    char mid_val[32];
-                    snprintf(mid_val, sizeof(mid_val), "%ld", mid_f.freq);
-
-                    rawrite(hw_min_buf, min_path);
-                    rawrite(mid_val, max_path);
+                if (config.ultra_powersave == 1) {
+                    if (raread(info_path, hw_min_buf, sizeof(hw_min_buf)) > 0) {
+                        rawrite(hw_min_buf, min_path);
+                        rawrite(hw_min_buf, max_path);
+                    }
+                } else if (config.lite_powersave == 1) {
+                    FreqData mid_f = get_target_freq(avail_path, 2);
+                    if (mid_f.freq != -1 && raread(info_path, hw_min_buf, sizeof(hw_min_buf)) > 0) {
+                        char mid_val[32];
+                        snprintf(mid_val, sizeof(mid_val), "%ld", mid_f.freq);
+                        rawrite(hw_min_buf, min_path);
+                        rawrite(mid_val, max_path);
+                    }
+                } else {
+                    FreqData mid_f = get_target_freq(avail_path, 3);
+                    if (mid_f.freq != -1 && raread(info_path, hw_min_buf, sizeof(hw_min_buf)) > 0) {
+                        char mid_val[32];
+                        snprintf(mid_val, sizeof(mid_val), "%ld", mid_f.freq);
+                        rawrite(hw_min_buf, min_path);
+                        rawrite(mid_val, max_path);
+                    }
                 }
             }
         }
