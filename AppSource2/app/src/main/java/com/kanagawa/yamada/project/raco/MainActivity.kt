@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.MaterialTheme
 import androidx.core.view.WindowCompat
@@ -158,6 +159,7 @@ class MainActivity : AppCompatActivity() {
                         ScreenState.NO_ROOT -> {
                             Text(stringResource(R.string.root_access_denied_project_raco_requires_root),
                                 color = Color.Red,
+                                textAlign = TextAlign.Center,
                                 modifier = Modifier.align(Alignment.Center)
                             )
                         }

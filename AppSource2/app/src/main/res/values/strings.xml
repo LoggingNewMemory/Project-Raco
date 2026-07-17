@@ -139,7 +139,7 @@
     <string name="custom_background_set">Custom Background Set!</string>
     <string name="background_reset">Background Reset!</string>
     <string name="graphics_driver">Graphics Driver</string>
-    <string name="root_access_denied_project_raco_requires_root">Root Access Denied. Project Raco requires Root.</string>
+    <string name="root_access_denied_project_raco_requires_root">Root Access Denied\nProject Raco Requires Root</string>
     <string name="tap_for_menu">Tap for menu</string>
     <string name="cooldown_title">Cooldown</string>
     <string name="lite_powersave">Lite Powersave</string>
