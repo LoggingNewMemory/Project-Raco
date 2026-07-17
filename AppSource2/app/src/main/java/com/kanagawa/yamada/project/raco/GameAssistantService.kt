@@ -36,14 +36,14 @@ class GameAssistantService : AccessibilityService() {
             isCurrentlyInGame = true
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", "raco_main load $packageName"))
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load $packageName"))
                 } catch (e: Exception) {}
             }
         } else if (!isGame && isCurrentlyInGame) {
             isCurrentlyInGame = false
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", "raco_main unload"))
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload"))
                 } catch (e: Exception) {}
             }
         }
