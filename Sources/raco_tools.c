@@ -208,9 +208,13 @@ void notification(const char *message) {
 }
 
 void clear_slingshot() {
-    system("settings delete global angle_debug_package");
-    system("settings delete global angle_gl_driver_all_angle");
-    system("setprop debug.hwui.renderer \"\"");
+    pid_t pid = fork();
+    if (pid == 0) {
+        system("settings delete global angle_debug_package; "
+               "settings delete global angle_gl_driver_all_angle; "
+               "setprop debug.hwui.renderer \"\"");
+        exit(0);
+    }
 }
 
 void dnd_off() {
