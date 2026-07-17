@@ -79,9 +79,7 @@ fun SlingshotMainScreen(onBack: () -> Unit, onOpenConfig: (String) -> Unit) {
                     val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
                     val packages = reader.readLines().map { it.replace("package:", "").trim() }.filter { it.isNotEmpty() }
                     
-                    val sysConfig = android.content.res.Configuration(android.content.res.Resources.getSystem().configuration)
-                    val sysContext = context.createConfigurationContext(sysConfig)
-                    val pm = sysContext.packageManager
+                    val pm = context.packageManager
                     packages.sortedBy { pkg ->
                         try {
                             val info = pm.getApplicationInfo(pkg, 0)
@@ -409,18 +407,18 @@ fun AppIcon(pkg: String, modifier: Modifier = Modifier) {
 @Composable
 fun AppName(pkg: String, modifier: Modifier = Modifier, style: androidx.compose.ui.text.TextStyle = androidx.compose.material3.LocalTextStyle.current, color: Color = Color.Unspecified, fontWeight: FontWeight? = null, maxLines: Int = Int.MAX_VALUE) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    var name by remember(pkg) { mutableStateOf(nameCache.get(pkg) ?: pkg.split(".").last()) }
+    val localeTag = context.resources.configuration.locales[0].toLanguageTag()
+    val cacheKey = "${pkg}_$localeTag"
+    var name by remember(cacheKey) { mutableStateOf(nameCache.get(cacheKey) ?: pkg.split(".").last()) }
     
-    if (nameCache.get(pkg) == null) {
-        LaunchedEffect(pkg) {
+    if (nameCache.get(cacheKey) == null) {
+        LaunchedEffect(cacheKey) {
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                 try {
-                    val sysConfig = android.content.res.Configuration(android.content.res.Resources.getSystem().configuration)
-                    val sysContext = context.createConfigurationContext(sysConfig)
-                    val pm = sysContext.packageManager
+                    val pm = context.packageManager
                     val info = pm.getApplicationInfo(pkg, 0)
                     val label = pm.getApplicationLabel(info).toString()
-                    nameCache.put(pkg, label)
+                    nameCache.put(cacheKey, label)
                     name = label
                 } catch (e: Exception) {}
             }

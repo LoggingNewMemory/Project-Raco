@@ -76,9 +76,7 @@ fun WhitelistScreen(onBack: () -> Unit) {
                     val reader = BufferedReader(InputStreamReader(process.inputStream))
                     val packages = reader.readLines().map { it.replace("package:", "").trim() }.filter { it.isNotEmpty() }
                     
-                    val sysConfig = android.content.res.Configuration(android.content.res.Resources.getSystem().configuration)
-                    val sysContext = context.createConfigurationContext(sysConfig)
-                    val pm = sysContext.packageManager
+                    val pm = context.packageManager
                     packages.sortedBy { pkg ->
                         try {
                             val info = pm.getApplicationInfo(pkg, 0)
