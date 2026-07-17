@@ -23,15 +23,20 @@ class GameAssistantService : AccessibilityService() {
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
         info.notificationTimeout = 100
         serviceInfo = info
-
         createNotificationChannel()
+    }
+
+    private fun showForegroundNotification() {
         val notification = Notification.Builder(this, "raco_game_assistant")
             .setContentTitle("Project Raco Game Assistant is Running")
             .setSmallIcon(android.R.drawable.ic_menu_manage)
             .setOngoing(true)
             .build()
-            
         startForeground(1, notification)
+    }
+
+    private fun hideForegroundNotification() {
+        stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
     private fun createNotificationChannel() {
@@ -72,6 +77,7 @@ class GameAssistantService : AccessibilityService() {
         
         if (isGame && !isCurrentlyInGame) {
             isCurrentlyInGame = true
+            showForegroundNotification()
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load $packageName"))
@@ -79,6 +85,7 @@ class GameAssistantService : AccessibilityService() {
             }
         } else if (!isGame && isCurrentlyInGame) {
             isCurrentlyInGame = false
+            hideForegroundNotification()
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload"))
