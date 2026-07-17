@@ -109,7 +109,7 @@ fun AutomationScreen(onBack: () -> Unit) {
                                     gameAssistantEnabled = newValue
                                     scope.launch {
                                         val v = if (newValue) "1" else "0"
-                                        runRoot("grep -q '^GAME_ASSISTANT ' $AUTOMATION_CONFIG_PATH && sed -i 's|^GAME_ASSISTANT .*|GAME_ASSISTANT $v|' $AUTOMATION_CONFIG_PATH || echo 'GAME_ASSISTANT $v' >> $AUTOMATION_CONFIG_PATH")
+                                        runRoot("grep -q '^GAME_ASSISTANT' $AUTOMATION_CONFIG_PATH && sed -i 's/^GAME_ASSISTANT.*/GAME_ASSISTANT $v/' $AUTOMATION_CONFIG_PATH || echo 'GAME_ASSISTANT $v' >> $AUTOMATION_CONFIG_PATH")
                                         if (newValue) {
                                             runRoot("settings put secure enabled_accessibility_services com.kanagawa.yamada.project.raco/.GameAssistantService")
                                             runRoot("settings put secure accessibility_enabled 1")
@@ -146,7 +146,7 @@ fun AutomationScreen(onBack: () -> Unit) {
                                     dndEnabled = newValue
                                     scope.launch {
                                         val v = if (newValue) "1" else "0"
-                                        runRoot("grep -q '^DND ' $AUTOMATION_CONFIG_PATH && sed -i 's|^DND .*|DND $v|' $AUTOMATION_CONFIG_PATH || echo 'DND $v' >> $AUTOMATION_CONFIG_PATH")
+                                        runRoot("grep -q '^DND' $AUTOMATION_CONFIG_PATH && sed -i 's/^DND.*/DND $v/' $AUTOMATION_CONFIG_PATH || echo 'DND $v' >> $AUTOMATION_CONFIG_PATH")
                                     }
                                 }
                             )
