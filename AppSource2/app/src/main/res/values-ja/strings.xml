@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_title">Project Raco</string>
     <string name="power_save_desc">バッテリーを優先（パフォーマンス最小）</string>
     <string name="balanced_desc">バッテリーとパフォーマンスのバランス</string>
     <string name="performance_desc">パフォーマンスを優先（バッテリー最小）</string>
@@ -15,8 +14,6 @@
     <string name="about_quote">\"偉大なコラボレーションは偉大なイノベーションにつながる\"\n~ 神奈川山田 (メイン開発者)</string>
     <string name="about_note">Project Racoは常に無料、オープンソース、そして改善に開かれています</string>
     <string name="credits_11">名前を挙げられなかったすべてのテスター</string>
-    <string name="yes">はい</string>
-    <string name="no">いいえ</string>
     <string name="utilities_title">ユーティリティ</string>
     <string name="core_tweaks_title">コア調整</string>
     <string name="automation_title">自動化</string>
@@ -33,14 +30,12 @@
     <string name="banner_settings_title">バナー設定</string>
     <string name="device_name">デバイス名</string>
     <string name="processor">プロセッサ</string>
-    <string name="ram">RAM</string>
     <string name="phone_storage">ストレージ</string>
     <string name="battery_capacity">バッテリー容量</string>
     <string name="no_governor_selected">なし</string>
     <string name="enable_anya_thermal_flowstate">アーニャフローステートを有効にする</string>
     <string name="system_actions_title">システムクリーンアップ</string>
     <string name="clear_cache_title">キャッシュをクリア</string>
-    <string name="screen_modifier_title">Ayunda Rusdi</string>
     <string name="screen_modifier_description">画面のカラーマトリックスと彩度を調整して、カスタム表示体験を実現します。</string>
     <string name="screen_modifier_red">赤</string>
     <string name="screen_modifier_green">緑</string>
@@ -58,20 +53,35 @@
     <string name="start_preload">Slingshot 開始</string>
     <string name="search_apps_hint">アプリを検索...</string>
     <string name="slingshot_graphics_warning">一部のゲームは動作しない、パフォーマンスが向上する、あるいは起動しない可能性があります。ですが、恐れずにまずは試してみてください！</string>
-    <string name="playboost_title">RiProG Playboost</string>
-    <string name="added_to_gamelist">{package} をゲームリストに追加しました</string>
-    <string name="removed_from_gamelist">{package} をゲームリストから削除しました</string>
     <string name="extra_settings_title">追加設定</string>
-    <string name="anya_thermal">Anya Thermal</string>
     <string name="anya_installer_desc">サーマル無効化 / 有効化 | Anya Flowstate</string>
     <string name="kobo_fast_charge">Kobo 急速充電</string>
     <string name="kobo_desc">急速充電アドオン</string>
-    <string name="zetamin">Zetamin</string>
     <string name="zetamin_desc">オールインワンディスプレイ調整</string>
     <string name="sandevistan_boot">サンデヴィスタンブート</string>
     <string name="sandev_boot_desc">起動を高速化する試み</string>
     <string name="reboot_to_take_effect">変更を適用するには再起動してください</string>
     <string name="status_enabled">有効</string>
     <string name="status_disabled">無効</string>
-    <string name="status_recommended">推奨</string>
-<string name="util_desc_core_tweaks">CPU、ガバナー、プロファイル</string><string name="util_desc_automation">DNDとアプリトリガー</string><string name="util_desc_system">サーマル、ディスプレイ、ドライバー</string><string name="util_desc_appearance">バナーと背景</string><string name="util_desc_extra_settings">Project Raco アドオン</string><string name="lite_powersave">ライト パワーセーブ</string><string name="ultra_powersave">ウルトラ パワーセーブ</string><string name="lite_performance">ライト パフォーマンス</string><string name="lite_powersave_desc">バッテリーを節約するために半分のCPUコアを使用します</string><string name="ultra_powersave_desc">バッテリー寿命を最大化するために最小限のCPUコアを使用します</string><string name="lite_performance_desc">すべてのCPUコアを使用しますが、周波数を制限します</string><string name="alter_cpu_method">代替CPUメソッド</string><string name="alter_cpu_method_desc">ガバナーのみを設定し、cpufreqは変更しません。CPUが周波数を正しく設定できない場合は有効にしてください。</string><string name="custom_cpu_governor">カスタムCPUガバナー</string><string name="fix_tweaks">修正と調整</string></resources>
+    <string name="util_desc_core_tweaks">CPU、ガバナー、プロファイル</string>
+    <string name="util_desc_automation">DNDとアプリトリガー</string>
+    <string name="util_desc_system">サーマル、ディスプレイ、ドライバー</string>
+    <string name="util_desc_appearance">バナーと背景</string>
+    <string name="util_desc_extra_settings">Project Raco アドオン</string>
+    <string name="lite_powersave">ライト パワーセーブ</string>
+    <string name="ultra_powersave">ウルトラ パワーセーブ</string>
+    <string name="lite_performance">ライト パフォーマンス</string>
+    <string name="lite_powersave_desc">バッテリーを節約するために半分のCPUコアを使用します</string>
+    <string name="ultra_powersave_desc">バッテリー寿命を最大化するために最小限のCPUコアを使用します</string>
+    <string name="lite_performance_desc">すべてのCPUコアを使用しますが、周波数を制限します</string>
+    <string name="alter_cpu_method">代替CPUメソッド</string>
+    <string name="alter_cpu_method_desc">ガバナーのみを設定し、cpufreqは変更しません。CPUが周波数を正しく設定できない場合は有効にしてください。</string>
+    <string name="custom_cpu_governor">カスタムCPUガバナー</string>
+    <string name="fix_tweaks">修正と調整</string>
+    <string name="mode_status">モード状態</string>
+    <string name="root_access_denied_project_raco_requires_root">Rootアクセスが拒否されました
+Project RacoにはRoot権限が必要です</string>
+    <string name="game_assistant">ゲームアシスタント</string>
+    <string name="game_assistant_desc">ゲームへの出入り時に自動的にパフォーマンスプロファイルを適用します。</string>
+    <string name="enable_service">サービスを有効にする</string>
+</resources>

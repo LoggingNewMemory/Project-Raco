@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_title">Project Raco</string>
     <string name="power_save_desc">Приоритет батареи над производительностью</string>
     <string name="balanced_desc">Баланс батареи и производительности</string>
     <string name="performance_desc">Приоритет производительности над батареей</string>
@@ -15,8 +14,6 @@
     <string name="about_quote">\"Отличное сотрудничество приводит к отличным инновациям\"\n~ Kanagawa Yamada (главный разработчик)</string>
     <string name="about_note">Project Raco всегда будет бесплатным, с открытым исходным кодом, и открытым для улучшений</string>
     <string name="credits_11">И все тестеры, которых я не могу упомянуть</string>
-    <string name="yes">Да</string>
-    <string name="no">Нет</string>
     <string name="utilities_title">Утилиты</string>
     <string name="core_tweaks_title">Основные твики</string>
     <string name="automation_title">Автоматизация</string>
@@ -40,7 +37,6 @@
     <string name="enable_anya_thermal_flowstate">Включить Anya Flowstate</string>
     <string name="system_actions_title">Очистка системы</string>
     <string name="clear_cache_title">Отчистка кэша</string>
-    <string name="screen_modifier_title">Ayunda Rusdi</string>
     <string name="screen_modifier_description">Настройте цветовую матрицу и насыщенность экрана для индивидуального отображения.</string>
     <string name="screen_modifier_red">Красный</string>
     <string name="screen_modifier_green">Зеленый</string>
@@ -52,26 +48,40 @@
     <string name="current_driver">Текущий:</string>
     <string name="legacy_notif_title">Старые уведомления</string>
     <string name="legacy_notif_description">Включите, если уведомления не отображаются</string>
-    <string name="slingshot_title">Raco Slingshot</string>
     <string name="angle_title">Запуск с графикой ANGLE</string>
     <string name="skia_title">Использовать SkiaVK как Skia бэкенд по умолчанию</string>
     <string name="start_preload">Начать Slingshot</string>
     <string name="search_apps_hint">Поиск приложений...</string>
     <string name="slingshot_graphics_warning">Некоторые игры могут сломаться, некоторые могут улучшить производительность, а некоторые могут даже не запуститься. Но не бойтесь попробовать!</string>
-    <string name="playboost_title">RiProG Playboost</string>
-    <string name="added_to_gamelist">Добавлено {package} в список игр</string>
-    <string name="removed_from_gamelist">Удалено {package} из списка игр</string>
     <string name="extra_settings_title">Дополнительные настройки</string>
-    <string name="anya_thermal">Anya Thermal</string>
     <string name="anya_installer_desc">Отключить / Включить тротлинг | Anya Flowstate</string>
     <string name="kobo_fast_charge">Быстрая зарядка Kobo</string>
     <string name="kobo_desc">Дополнение для быстрой зарядки</string>
-    <string name="zetamin">Zetamin</string>
     <string name="zetamin_desc">Все настройки дисплея в одном</string>
     <string name="sandevistan_boot">Загрузка Sandevistan</string>
     <string name="sandev_boot_desc">Попытка ускорить загрузку</string>
     <string name="reboot_to_take_effect">Пожалуйста, перезагрузите устройство для применения изменений</string>
     <string name="status_enabled">ВКЛЮЧЕНО</string>
     <string name="status_disabled">ОТКЛЮЧЕНО</string>
-    <string name="status_recommended">РЕКОМЕНДУЕТСЯ</string>
-<string name="util_desc_core_tweaks">CPU, Говерноры &amp; Профили</string><string name="util_desc_automation">DND &amp; Триггеры Приложений</string><string name="util_desc_system">Термал, Дисплей &amp; Драйверы</string><string name="util_desc_appearance">Баннеры &amp; Фоны</string><string name="util_desc_extra_settings">Дополнения Project Raco</string><string name="lite_powersave">Лайт Энергосбережение</string><string name="ultra_powersave">Ультра Энергосбережение</string><string name="lite_performance">Лайт Производительность</string><string name="lite_powersave_desc">Использовать половину ядер CPU для экономии батареи</string><string name="ultra_powersave_desc">Использовать минимум ядер CPU для максимальной жизни батареи</string><string name="lite_performance_desc">Использовать все ядра CPU, но ограничить частоту</string><string name="alter_cpu_method">Альтернативный метод CPU</string><string name="alter_cpu_method_desc">Установить только говернор, не трогать cpufreq. Включите, если ваш CPU не может правильно установить частоту.</string><string name="custom_cpu_governor">Пользовательский говернор CPU</string><string name="fix_tweaks">Исправления и настройки</string></resources>
+    <string name="util_desc_core_tweaks">CPU, Говерноры &amp; Профили</string>
+    <string name="util_desc_automation">DND &amp; Триггеры Приложений</string>
+    <string name="util_desc_system">Термал, Дисплей &amp; Драйверы</string>
+    <string name="util_desc_appearance">Баннеры &amp; Фоны</string>
+    <string name="util_desc_extra_settings">Дополнения Project Raco</string>
+    <string name="lite_powersave">Лайт Энергосбережение</string>
+    <string name="ultra_powersave">Ультра Энергосбережение</string>
+    <string name="lite_performance">Лайт Производительность</string>
+    <string name="lite_powersave_desc">Использовать половину ядер CPU для экономии батареи</string>
+    <string name="ultra_powersave_desc">Использовать минимум ядер CPU для максимальной жизни батареи</string>
+    <string name="lite_performance_desc">Использовать все ядра CPU, но ограничить частоту</string>
+    <string name="alter_cpu_method">Альтернативный метод CPU</string>
+    <string name="alter_cpu_method_desc">Установить только говернор, не трогать cpufreq. Включите, если ваш CPU не может правильно установить частоту.</string>
+    <string name="custom_cpu_governor">Пользовательский говернор CPU</string>
+    <string name="fix_tweaks">Исправления и настройки</string>
+    <string name="mode_status">Статус режима</string>
+    <string name="root_access_denied_project_raco_requires_root">Доступ Root запрещен
+Project Raco требует Root</string>
+    <string name="game_assistant">Игровой помощник</string>
+    <string name="game_assistant_desc">Автоматически применяет профили производительности при входе и выходе из игр.</string>
+    <string name="enable_service">Включить службу</string>
+</resources>
