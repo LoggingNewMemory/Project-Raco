@@ -140,7 +140,7 @@ fun SlingshotMainScreen(onBack: () -> Unit, onOpenConfig: (String) -> Unit) {
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
-                            items(allInstalledApps.filter { it.contains(dialogSearchQuery, ignoreCase = true) }) { pkg ->
+                            items(allInstalledApps.filter { it.contains(dialogSearchQuery, ignoreCase = true) && !addedGames.contains(it) }) { pkg ->
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()

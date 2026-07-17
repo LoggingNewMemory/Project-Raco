@@ -132,7 +132,7 @@ fun WhitelistScreen(onBack: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
-                            items(allInstalledApps.filter { it.contains(dialogSearchQuery, ignoreCase = true) }) { pkg ->
+                            items(allInstalledApps.filter { it.contains(dialogSearchQuery, ignoreCase = true) && !addedApps.contains(it) }) { pkg ->
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
