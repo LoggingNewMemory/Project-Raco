@@ -145,10 +145,6 @@ void corin_storage(const char *sched, const char *rq) {
 
 // Master Profiles
 void mode_awaken() {
-    printf("PROGRESS: 10\n"); fflush(stdout);
-    sync();
-    rawrite("3", "/proc/sys/vm/drop_caches");
-
     printf("PROGRESS: 30\n"); fflush(stdout);
     apply_io_tweaks("0", "0", "32", "32", 1);
     apply_net_tweaks("1", "1", "3", "0", 1);
@@ -160,6 +156,8 @@ void mode_awaken() {
     corin_storage("deadline", "1");
     pid_t sys_pid_awaken = fork();
     if (sys_pid_awaken == 0) {
+        sync();
+        rawrite("3", "/proc/sys/vm/drop_caches");
         system("settings put secure high_priority 1; settings put secure low_priority 0; "
                "cmd power set-adaptive-power-saver-enabled false; "
                "cmd power set-fixed-performance-mode-enabled false; "
@@ -203,10 +201,6 @@ void mode_awaken() {
 }
 
 void mode_balanced() {
-    printf("PROGRESS: 10\n"); fflush(stdout);
-    sync();
-    rawrite("3", "/proc/sys/vm/drop_caches");
-
     printf("PROGRESS: 40\n"); fflush(stdout);
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);
@@ -218,6 +212,8 @@ void mode_balanced() {
     corin_storage("deadline", "1");
     pid_t sys_pid_balanced = fork();
     if (sys_pid_balanced == 0) {
+        sync();
+        rawrite("3", "/proc/sys/vm/drop_caches");
         system("settings put secure high_priority 1; settings put secure low_priority 0; "
                "cmd power set-adaptive-power-saver-enabled false; "
                "cmd power set-fixed-performance-mode-enabled false; "
@@ -254,9 +250,6 @@ void mode_balanced() {
 
 void mode_powersave() {
     printf("PROGRESS: 10\n"); fflush(stdout);
-    sync();
-    rawrite("3", "/proc/sys/vm/drop_caches");
-
     printf("PROGRESS: 30\n"); fflush(stdout);
     apply_io_tweaks("1", "1", "128", "128", 0);
     apply_net_tweaks("0", "2", "1", "1", 0);
@@ -268,6 +261,8 @@ void mode_powersave() {
     corin_storage("deadline", "2");
     pid_t sys_pid_powersave = fork();
     if (sys_pid_powersave == 0) {
+        sync();
+        rawrite("3", "/proc/sys/vm/drop_caches");
         system("settings put secure high_priority 0; settings put secure low_priority 1; "
                "cmd power set-adaptive-power-saver-enabled true; "
                "cmd power set-fixed-performance-mode-enabled false; "
