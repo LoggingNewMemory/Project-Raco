@@ -174,4 +174,7 @@ Project Raco Memerlukan Root</string>
     <string name="whitelist_empty_desc">Ketuk ikon + di kanan atas untuk menambahkan aplikasi yang tidak boleh dimatikan selama Kill All.</string>
     <string name="close">Tutup</string>
     <string name="add_app">Tambah Aplikasi</string>
+    <string name="cancel_execution_title">Batalkan Eksekusi</string>
+    <string name="cancel_execution_desc">Geser ke kanan 3 kali pada mode apa saja untuk membatalkan</string>
+    <string name="execution_canceled">Eksekusi Dibatalkan</string>
 </resources>

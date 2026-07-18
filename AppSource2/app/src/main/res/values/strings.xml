@@ -183,4 +183,7 @@
     <string name="game_assistant">Game Assistant</string>
     <string name="game_assistant_desc">Automatically apply performance profiles when entering and exiting games.</string>
     <string name="enable_service">Enable Service</string>
+    <string name="cancel_execution_title">Cancel Execution</string>
+    <string name="cancel_execution_desc">Swipe right 3 times on any mode to cancel</string>
+    <string name="execution_canceled">Execution Canceled</string>
 </resources>

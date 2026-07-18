@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,6 +55,8 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
     val gpTitle = stringResource(R.string.gaming_pro)
     val clrTitle = stringResource(R.string.reset)
     val cdTitle = stringResource(R.string.cooldown_title)
+    val cancelTitle = stringResource(R.string.cancel_execution_title)
+    val executionCanceledStr = stringResource(R.string.execution_canceled)
     val context = androidx.compose.ui.platform.LocalContext.current
     val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
     val bannerImagePath = sharedPrefs.getString("banner_image_path", "")
@@ -67,6 +70,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
     var executionProgress by remember { mutableFloatStateOf(0f) }
     var moduleInstalled by remember { mutableStateOf(false) }
     var moduleVersion by remember { mutableStateOf("Unknown") }
+    var swipeCount by remember { mutableIntStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -186,6 +190,22 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                 executionProgress = 0f
                 currentMode = fetchActiveMode()
             }
+        }
+    }
+
+    fun cancelExecution(canceledText: String) {
+        if (!hasRoot) return
+        coroutineScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "killall raco")).waitFor()
+                } catch (e: Exception) {}
+            }
+            isExecuting = false
+            executingMode = ""
+            executionProgress = 0f
+            currentMode = fetchActiveMode()
+            snackbarHostState.showSnackbar(canceledText)
         }
     }
 
@@ -324,10 +344,27 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                         ControlMode(clrTitle, R.string.clear_desc, "7", "CLEAR", Icons.Default.Refresh)
                     )
 
+                    item {
+                        androidx.compose.material3.Text(
+                            text = stringResource(R.string.cancel_execution_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = androidx.compose.ui.graphics.Color(0xFFFFB74D),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp, top = 8.dp)
+                        )
+                    }
+
                     items(controlParams) { p ->
                         val isCurr = currentMode == p.modeName
                         val isExec = executingMode == p.modeId
-                        ControlRow(p.title, stringResource(p.descRes), p.icon, if (isCurr) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, isExec, if(isExec) executionProgress else 0f, isCurr, hasRoot) {
+                        val bgColor = if (isCurr) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                        ControlRow(p.title, stringResource(p.descRes), p.icon, bgColor, isExec, if(isExec) executionProgress else 0f, isCurr, hasRoot && !isExecuting, onSwipeRight = {
+                            swipeCount++
+                            if (swipeCount >= 3) {
+                                cancelExecution(executionCanceledStr)
+                                swipeCount = 0
+                            }
+                        }) {
                             executeScript(p.modeId, p.modeName)
                         }
                     }
@@ -359,7 +396,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
 }
 
 @Composable
-fun ControlRow(title: String, desc: String, icon: ImageVector, bgColor: Color, isExecuting: Boolean, progress: Float, isCurrent: Boolean, enabled: Boolean, onClick: () -> Unit) {
+fun ControlRow(title: String, desc: String, icon: ImageVector, bgColor: Color, isExecuting: Boolean, progress: Float, isCurrent: Boolean, enabled: Boolean, onSwipeRight: () -> Unit = {}, onClick: () -> Unit) {
     val fillColor = if (isCurrent) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
 
     // Smooth animation for progress updates
@@ -372,7 +409,20 @@ fun ControlRow(title: String, desc: String, icon: ImageVector, bgColor: Color, i
     Card(
         colors = CardDefaults.cardColors(containerColor = bgColor),
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth().clickable(enabled = enabled && !isExecuting) { onClick() }
+        modifier = Modifier.fillMaxWidth().pointerInput(Unit) {
+            var totalDrag = 0f
+            detectHorizontalDragGestures(
+                onDragStart = { totalDrag = 0f },
+                onDragEnd = {
+                    if (totalDrag > 100f) {
+                        onSwipeRight()
+                    }
+                }
+            ) { change, dragAmount ->
+                totalDrag += dragAmount
+                change.consume()
+            }
+        }.clickable(enabled = enabled) { onClick() }
     ) {
         Row(
             modifier = Modifier

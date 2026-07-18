@@ -177,4 +177,7 @@ Project Raco требует Root</string>
     <string name="whitelist_empty_desc">Нажмите на значок +, чтобы добавить приложения, которые не должны закрываться.</string>
     <string name="close">Закрыть</string>
     <string name="add_app">Добавить приложение</string>
+    <string name="cancel_execution_title">Отменить выполнение</string>
+    <string name="cancel_execution_desc">Смахните вправо 3 раза на любом режиме для отмены</string>
+    <string name="execution_canceled">Выполнение отменено</string>
 </resources>

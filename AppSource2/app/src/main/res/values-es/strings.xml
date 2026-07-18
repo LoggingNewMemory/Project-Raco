@@ -155,4 +155,7 @@
     <string name="cache_cleared">¡Caché borrado!</string>
     <string name="banner_installed">Banner instalado</string>
     <string name="no_banner_set">Sin banner configurado</string>
+    <string name="cancel_execution_title">Cancelar Ejecución</string>
+    <string name="cancel_execution_desc">Desliza a la derecha 3 veces en cualquier modo para cancelar</string>
+    <string name="execution_canceled">Ejecución Cancelada</string>
 </resources>
