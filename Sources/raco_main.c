@@ -374,6 +374,64 @@ void mode_reset() {
     notification("All background applications cleared.");
 }
 
+void rswap_resume(const char *pkg) {
+    if (config.rswap == 1) {
+        char cmd[256];
+        snprintf(cmd, sizeof(cmd), "pidof %s", pkg);
+        FILE *fp = popen(cmd, "r");
+        if (fp) {
+            char pids[256];
+            if (fgets(pids, sizeof(pids), fp) != NULL) {
+                char *saveptr;
+                char *pid_str = strtok_r(pids, " \n", &saveptr);
+                while (pid_str != NULL) {
+                    char oom_path[256];
+                    snprintf(oom_path, sizeof(oom_path), "/proc/%s/oom_score_adj", pid_str);
+                    rawrite("-1000", oom_path);
+                    
+                    char kill_cmd[128];
+                    snprintf(kill_cmd, sizeof(kill_cmd), "kill -CONT %s", pid_str);
+                    system(kill_cmd);
+                    
+                    pid_str = strtok_r(NULL, " \n", &saveptr);
+                }
+            }
+            pclose(fp);
+        }
+        
+        char rm_cmd[256];
+        snprintf(rm_cmd, sizeof(rm_cmd), "rm -f /data/ProjectRaco/RSWAPTrack/rswap_stop_%s", pkg);
+        system(rm_cmd);
+    }
+}
+
+void rswap_suspend(const char *pkg) {
+    if (config.rswap == 1 && pkg != NULL && strlen(pkg) > 0) {
+        char cmd[256];
+        snprintf(cmd, sizeof(cmd), "pidof %s", pkg);
+        FILE *fp = popen(cmd, "r");
+        if (fp) {
+            char pids[256];
+            if (fgets(pids, sizeof(pids), fp) != NULL) {
+                char *saveptr;
+                char *pid_str = strtok_r(pids, " \n", &saveptr);
+                while (pid_str != NULL) {
+                    char kill_cmd[128];
+                    snprintf(kill_cmd, sizeof(kill_cmd), "kill -STOP %s", pid_str);
+                    system(kill_cmd);
+                    
+                    pid_str = strtok_r(NULL, " \n", &saveptr);
+                }
+            }
+            pclose(fp);
+        }
+        
+        char nohup_cmd[512];
+        snprintf(nohup_cmd, sizeof(nohup_cmd), "mkdir -p /data/ProjectRaco/RSWAPTrack; touch /data/ProjectRaco/RSWAPTrack/rswap_stop_%s; nohup sh -c 'sleep 172800; if [ -f /data/ProjectRaco/RSWAPTrack/rswap_stop_%s ]; then for p in $(pidof %s); do kill -9 $p; done; rm -f /data/ProjectRaco/RSWAPTrack/rswap_stop_%s; fi' >/dev/null 2>&1 &", pkg, pkg, pkg, pkg);
+        system(nohup_cmd);
+    }
+}
+
 // Main Execution
 
 int main(int argc, char *argv[]) {
@@ -398,6 +456,7 @@ int main(int argc, char *argv[]) {
             printf("Game Assistant Loaded for: %s\n", argv[2]);
             // Apply gaming profile automatically when a game is loaded
             mode_awaken();
+            rswap_resume(argv[2]);
         }
         return 0;
     }
@@ -406,6 +465,9 @@ int main(int argc, char *argv[]) {
         printf("Game Assistant Unloaded\n");
         // Restore to normal mode when exiting a game
         mode_normal();
+        if (argc >= 3) {
+            rswap_suspend(argv[2]);
+        }
         return 0;
     }
 

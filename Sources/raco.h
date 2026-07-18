@@ -37,6 +37,8 @@ typedef struct {
     char default_gov[32];
     int alter_cpu_method;
     int dnd;
+    int rswap;
+    int rswap_size;
 } RacoConfig;
 
 extern RacoConfig config;

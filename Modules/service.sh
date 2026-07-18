@@ -20,6 +20,22 @@ fi
 su -c "settings put secure enabled_accessibility_services com.kanagawa.yamada.project.raco/.GameAssistantService"
 su -c "settings put secure accessibility_enabled 1" &
 
+# RSWAP Boot Initialization
+RSWAP_ENABLED=$(grep '^RSWAP ' /data/ProjectRaco/raco.txt | awk '{print $2}')
+if [ "$RSWAP_ENABLED" = "1" ]; then
+    if [ ! -f /data/ProjectRaco/RSWAP ]; then
+        RSWAP_SIZE=$(grep '^RSWAP_SIZE ' /data/ProjectRaco/raco.txt | awk '{print $2}')
+        if [ -z "$RSWAP_SIZE" ]; then RSWAP_SIZE="4"; fi
+        fallocate -l ${RSWAP_SIZE}G /data/ProjectRaco/RSWAP
+    fi
+    if [ -f /data/ProjectRaco/RSWAP ]; then
+        mkswap /data/ProjectRaco/RSWAP
+        swapon -p 32767 /data/ProjectRaco/RSWAP
+        echo 100 > /proc/sys/vm/swappiness
+        echo $(( $(cat /proc/sys/vm/min_free_kbytes) * 12 / 10 )) > /proc/sys/vm/min_free_kbytes
+    fi
+fi
+
 # Wait briefly to ensure services are started
 sleep 2
 

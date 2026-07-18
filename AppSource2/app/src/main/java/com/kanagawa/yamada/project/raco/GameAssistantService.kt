@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 class GameAssistantService : AccessibilityService() {
     private var currentForegroundPackage: String? = null
     private var isCurrentlyInGame = false
+    private var lastGamePackage: String? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -77,6 +78,7 @@ class GameAssistantService : AccessibilityService() {
         
         if (isGame && !isCurrentlyInGame) {
             isCurrentlyInGame = true
+            lastGamePackage = packageName
             showForegroundNotification()
             CoroutineScope(Dispatchers.IO).launch {
                 try {
@@ -84,7 +86,7 @@ class GameAssistantService : AccessibilityService() {
                     if (gameMode != "none") {
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd game mode $gameMode $packageName")).waitFor()
                     }
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load $packageName"))
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load $packageName")).waitFor()
                 } catch (e: Exception) {}
             }
         } else if (!isGame && isCurrentlyInGame) {
@@ -92,7 +94,26 @@ class GameAssistantService : AccessibilityService() {
             hideForegroundNotification()
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload"))
+                    val unloadCmd = if (lastGamePackage != null) {
+                        "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload $lastGamePackage"
+                    } else {
+                        "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload"
+                    }
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", unloadCmd)).waitFor()
+                } catch (e: Exception) {}
+            }
+        } else if (isGame && isCurrentlyInGame && packageName != lastGamePackage) {
+            val oldGame = lastGamePackage
+            lastGamePackage = packageName
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val unloadCmd = if (oldGame != null) {
+                        "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload $oldGame"
+                    } else {
+                        "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload"
+                    }
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", unloadCmd)).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load $packageName")).waitFor()
                 } catch (e: Exception) {}
             }
         }

@@ -151,6 +151,8 @@ void load_config(const char *config_path) {
     config.lite_performance = 0;
     config.alter_cpu_method = 0;
     config.dnd = 0;
+    config.rswap = 0;
+    config.rswap_size = 4;
     strcpy(config.default_gov, "schedutil");
 
     char file_content[4096];
@@ -184,6 +186,8 @@ void load_config(const char *config_path) {
             else if (strcmp(key, "GOV") == 0 && parsed == 2) strcpy(config.default_gov, value);
             else if (strcmp(key, "ALTER_CPU_METHOD") == 0 && parsed == 2) config.alter_cpu_method = atoi(value);
             else if (strcmp(key, "DND") == 0 && parsed == 2) config.dnd = atoi(value);
+            else if (strcmp(key, "RSWAP") == 0 && parsed == 2) config.rswap = atoi(value);
+            else if (strcmp(key, "RSWAP_SIZE") == 0 && parsed == 2) config.rswap_size = atoi(value);
         }
         line = strtok_r(NULL, "\n", &saveptr_line);
     }

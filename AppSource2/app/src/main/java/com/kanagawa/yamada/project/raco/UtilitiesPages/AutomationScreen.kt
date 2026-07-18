@@ -154,6 +154,166 @@ fun AutomationScreen(onBack: () -> Unit) {
                     }
                 }
             }
+
+            // RSWAP Card
+            item {
+                var rswapEnabled by remember { mutableStateOf(false) }
+                var rswapSize by remember { mutableStateOf("4") }
+                var expandedRswapSize by remember { mutableStateOf(false) }
+                val rswapSizeOptions = listOf("4" to "4 GB", "6" to "6 GB", "8" to "8 GB", "12" to "12 GB")
+
+                LaunchedEffect(Unit) {
+                    val config = runRoot("cat $AUTOMATION_CONFIG_PATH")
+                    rswapEnabled = Regex("^RSWAP[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
+                    rswapSize = Regex("^RSWAP_SIZE[ \\t]+(\\d+)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) ?: "4"
+                }
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(stringResource(R.string.rswap_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(4.dp))
+                        Text(stringResource(R.string.rswap_desc), style = MaterialTheme.typography.bodySmall)
+                        Spacer(Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Memory, null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(12.dp))
+                            Text(stringResource(R.string.enable_rswap), modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                            Switch(
+                                checked = rswapEnabled,
+                                onCheckedChange = { newValue ->
+                                    rswapEnabled = newValue
+                                    scope.launch {
+                                        val v = if (newValue) "1" else "0"
+                                        runRoot("grep -q '^RSWAP' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP.*/RSWAP $v/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP $v' >> $AUTOMATION_CONFIG_PATH")
+                                        if (newValue) {
+                                            runRoot("mkdir -p /data/ProjectRaco")
+                                            runRoot("fallocate -l ${rswapSize}G /data/ProjectRaco/RSWAP")
+                                            runRoot("mkswap /data/ProjectRaco/RSWAP; swapon -p 32767 /data/ProjectRaco/RSWAP")
+                                            runRoot("echo 100 > /proc/sys/vm/swappiness")
+                                            runRoot("echo \$(( \$(cat /proc/sys/vm/min_free_kbytes) * 12 / 10 )) > /proc/sys/vm/min_free_kbytes")
+                                        } else {
+                                            runRoot("swapoff /data/ProjectRaco/RSWAP; rm -f /data/ProjectRaco/RSWAP")
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                        if (rswapEnabled) {
+                            var rswapGameLoaded by remember { mutableStateOf<String?>(null) }
+                            var rswapUsagePercent by remember { mutableStateOf(0) }
+                            var rswapUsedMB by remember { mutableStateOf(0) }
+                            var rswapTotalMB by remember { mutableStateOf(0) }
+
+                            LaunchedEffect(Unit) {
+                                while(true) {
+                                    val stopFile = runRoot("ls /data/ProjectRaco/RSWAPTrack/rswap_stop_* 2>/dev/null").trim()
+                                    if (stopFile.isNotEmpty()) {
+                                        val firstFile = stopFile.lines().firstOrNull()
+                                        if (firstFile != null) {
+                                            rswapGameLoaded = firstFile.substringAfterLast("rswap_stop_")
+                                        }
+                                    } else {
+                                        rswapGameLoaded = null
+                                    }
+                                    
+                                    val swaps = runRoot("cat /proc/swaps | grep /data/ProjectRaco/RSWAP").trim()
+                                    if (swaps.isNotEmpty()) {
+                                        val parts = swaps.split("\\s+".toRegex())
+                                        if (parts.size >= 4) {
+                                            val size = parts[2].toIntOrNull() ?: 0
+                                            val used = parts[3].toIntOrNull() ?: 0
+                                            rswapTotalMB = size / 1024
+                                            rswapUsedMB = used / 1024
+                                            if (size > 0) {
+                                                rswapUsagePercent = (used * 100) / size
+                                            } else {
+                                                rswapUsagePercent = 0
+                                            }
+                                        }
+                                    } else {
+                                        rswapTotalMB = 0
+                                        rswapUsedMB = 0
+                                        rswapUsagePercent = 0
+                                    }
+                                    kotlinx.coroutines.delay(3000)
+                                }
+                            }
+
+                            Spacer(Modifier.height(12.dp))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
+                            Spacer(Modifier.height(12.dp))
+
+                            Text("Status", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                            Spacer(Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Loaded Game:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                                Text(rswapGameLoaded ?: "None", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = if (rswapGameLoaded != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Capacity:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                                Text("$rswapUsedMB MB / $rswapTotalMB MB ($rswapUsagePercent%)", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                            }
+                            Spacer(Modifier.height(4.dp))
+                            LinearProgressIndicator(
+                                progress = { rswapUsagePercent / 100f },
+                                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                            )
+                            
+                            Spacer(Modifier.height(16.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                                Text(stringResource(R.string.rswap_size), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                                Box {
+                                    TextButton(onClick = { expandedRswapSize = true }) {
+                                        Text(rswapSizeOptions.find { it.first == rswapSize }?.second ?: "4 GB")
+                                    }
+                                    DropdownMenu(
+                                        expanded = expandedRswapSize,
+                                        onDismissRequest = { expandedRswapSize = false }
+                                    ) {
+                                        rswapSizeOptions.forEach { (value, label) ->
+                                            DropdownMenuItem(
+                                                text = { Text(label) },
+                                                onClick = {
+                                                    rswapSize = value
+                                                    expandedRswapSize = false
+                                                    scope.launch {
+                                                        runRoot("grep -q '^RSWAP_SIZE' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP_SIZE.*/RSWAP_SIZE $value/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP_SIZE $value' >> $AUTOMATION_CONFIG_PATH")
+                                                        runRoot("for file in /data/ProjectRaco/RSWAPTrack/rswap_stop_*; do if [ -f \"\$file\" ]; then pkg=\${file##*_}; for p in \$(pidof \$pkg); do kill -9 \$p; done; rm -f \"\$file\"; fi; done")
+                                                        runRoot("swapoff /data/ProjectRaco/RSWAP; rm -f /data/ProjectRaco/RSWAP")
+                                                        runRoot("fallocate -l ${value}G /data/ProjectRaco/RSWAP")
+                                                        runRoot("mkswap /data/ProjectRaco/RSWAP; swapon -p 32767 /data/ProjectRaco/RSWAP")
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            Button(
+                                onClick = { 
+                                    scope.launch { 
+                                        runRoot("for file in /data/ProjectRaco/RSWAPTrack/rswap_stop_*; do if [ -f \"\$file\" ]; then pkg=\${file##*_}; for p in \$(pidof \$pkg); do kill -9 \$p; done; rm -f \"\$file\"; fi; done")
+                                        runRoot("swapoff /data/ProjectRaco/RSWAP; swapon -p 32767 /data/ProjectRaco/RSWAP")
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(Icons.Default.DeleteSweep, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Manually Clean & Unload RSWAP")
+                            }
+                        }
+                    }
+                }
+            }
             
             // App List Card
             item {

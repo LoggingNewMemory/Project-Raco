@@ -191,4 +191,9 @@
     <string name="game_mode_standard">Standard</string>
     <string name="game_mode_performance">Performance</string>
     <string name="game_mode_battery">Battery</string>
+    <string name="rswap_title">RSWAP (Raco SWAP)</string>
+    <string name="rswap_desc">Put the game on dedicated SWAP space so that it will launch faster next time.</string>
+    <string name="enable_rswap">Enable RSWAP</string>
+    <string name="rswap_size">RSWAP Size</string>
+    <string name="manual_flush">Manual Flush</string>
 </resources>
