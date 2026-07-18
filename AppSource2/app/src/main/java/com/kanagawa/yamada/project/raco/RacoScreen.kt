@@ -26,6 +26,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -173,11 +174,18 @@ fun RacoScreen(onBack: () -> Unit) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // Video section (image placeholder)
-            Box(modifier = Modifier.fillMaxWidth().background(Color.Black)) {
-                val videoIds = listOf(R.raw.y1, R.raw.y2, R.raw.y3)
-                val randomVideoId = remember { videoIds.random() }
-                
+            // Video section
+            var isVideoReady by remember { mutableStateOf(false) }
+            val videoIds = listOf(R.raw.y1, R.raw.y2, R.raw.y3)
+            val randomVideoId = remember { videoIds.random() }
+
+            Box(modifier = Modifier.fillMaxWidth().aspectRatio(720f / 1280f)) {
+                val videoAlpha by androidx.compose.animation.core.animateFloatAsState(
+                    targetValue = if (isVideoReady) 1f else 0f,
+                    animationSpec = androidx.compose.animation.core.tween(300),
+                    label = "videoAlpha"
+                )
+
                 androidx.compose.ui.viewinterop.AndroidView(
                     factory = { ctx ->
                         android.view.TextureView(ctx).apply {
@@ -185,22 +193,40 @@ fun RacoScreen(onBack: () -> Unit) {
                             
                             surfaceTextureListener = object : android.view.TextureView.SurfaceTextureListener {
                                 override fun onSurfaceTextureAvailable(surface: android.graphics.SurfaceTexture, width: Int, height: Int) {
-                                    mediaPlayer = android.media.MediaPlayer.create(ctx, randomVideoId)?.apply {
-                                        setSurface(android.view.Surface(surface))
-                                        isLooping = true
-                                        
-                                        val vw = 720f
-                                        val vh = 1280f
-                                        val viewWidth = width.toFloat()
-                                        val viewHeight = height.toFloat()
-                                        val sx = viewWidth / vw
-                                        val sy = viewHeight / vh
-                                        val s = maxOf(sx, sy)
-                                        val matrix = android.graphics.Matrix()
-                                        matrix.setScale(s / sx, s / sy, viewWidth / 2f, viewHeight / 2f)
-                                        setTransform(matrix)
-                                        
-                                        start()
+                                    mediaPlayer = android.media.MediaPlayer().apply {
+                                        try {
+                                            val afd = ctx.resources.openRawResourceFd(randomVideoId)
+                                            setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                                            afd.close()
+                                            setSurface(android.view.Surface(surface))
+                                            isLooping = true
+                                            
+                                            setOnPreparedListener { mp ->
+                                                val vw = 720f
+                                                val vh = 1280f
+                                                val viewWidth = width.toFloat()
+                                                val viewHeight = height.toFloat()
+                                                val sx = viewWidth / vw
+                                                val sy = viewHeight / vh
+                                                val s = maxOf(sx, sy)
+                                                val matrix = android.graphics.Matrix()
+                                                matrix.setScale(s / sx, s / sy, viewWidth / 2f, viewHeight / 2f)
+                                                setTransform(matrix)
+                                                
+                                                mp.start()
+                                            }
+                                            
+                                            setOnInfoListener { _, what, _ ->
+                                                if (what == android.media.MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) {
+                                                    isVideoReady = true
+                                                }
+                                                true
+                                            }
+                                            
+                                            prepareAsync()
+                                        } catch (e: Exception) {
+                                            e.printStackTrace()
+                                        }
                                     }
                                 }
                                 override fun onSurfaceTextureSizeChanged(surface: android.graphics.SurfaceTexture, width: Int, height: Int) {
@@ -224,7 +250,7 @@ fun RacoScreen(onBack: () -> Unit) {
                             }
                         }
                     },
-                    modifier = Modifier.fillMaxWidth().aspectRatio(720f / 1280f)
+                    modifier = Modifier.fillMaxSize().alpha(videoAlpha)
                 )
                 // VN dialogue box
                 Box(
