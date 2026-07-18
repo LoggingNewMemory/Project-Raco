@@ -29,6 +29,7 @@ if [ "$RSWAP_ENABLED" = "1" ]; then
         fallocate -l ${RSWAP_SIZE}G /data/ProjectRaco/RSWAP
     fi
     if [ -f /data/ProjectRaco/RSWAP ]; then
+        chmod 0600 /data/ProjectRaco/RSWAP
         mkswap /data/ProjectRaco/RSWAP
         swapon -p 32767 /data/ProjectRaco/RSWAP
         echo 100 > /proc/sys/vm/swappiness
