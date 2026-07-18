@@ -197,6 +197,10 @@
     <string name="rswap_size">RSWAP Size</string>
     <string name="rswap_configuration">RSWAP Configuration</string>
     <string name="rswap_applying_changes">Applying changes...</string>
+    <string name="rswap_removing_old">Removing old swap...</string>
+    <string name="rswap_allocating">Allocating new swapfile (This may take a while)...</string>
+    <string name="rswap_activating">Activating RSWAP...</string>
+    <string name="rswap_warning_do_not_close">WARNING: Do Not Close The App During RSWAP Resize!</string>
     <string name="rswap_status">RSWAP Status</string>
     <string name="rswap_loaded_games">Loaded Games</string>
     <string name="rswap_no_games">No Games Loaded</string>

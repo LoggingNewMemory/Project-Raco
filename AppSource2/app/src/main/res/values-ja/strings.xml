@@ -12,6 +12,10 @@
     <string name="rswap_size">RSWAPサイズ</string>
     <string name="rswap_configuration">RSWAP設定</string>
     <string name="rswap_applying_changes">変更を適用中...</string>
+    <string name="rswap_removing_old">古いスワップを削除中...</string>
+    <string name="rswap_allocating">新しいスワップファイルを割り当て中（時間がかかる場合があります）...</string>
+    <string name="rswap_activating">RSWAPを有効化中...</string>
+    <string name="rswap_warning_do_not_close">警告：RSWAPのサイズ変更中はアプリを閉じないでください！</string>
     <string name="rswap_status">RSWAPステータス</string>
     <string name="rswap_loaded_games">ロードされたゲーム</string>
     <string name="rswap_no_games">ゲームがロードされていません</string>

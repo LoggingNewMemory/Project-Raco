@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -39,11 +40,13 @@ private suspend fun runRootCommand(cmd: String): String = withContext(Dispatcher
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RSwapScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var rswapEnabled by remember { mutableStateOf(false) }
     var rswapSize by remember { mutableStateOf("4") }
     var expandedRswapSize by remember { mutableStateOf(false) }
     var isConfiguring by remember { mutableStateOf(false) }
+    var configProgressText by remember { mutableStateOf("") }
     
     val rswapSizeOptions = listOf("4" to "4 GB", "6" to "6 GB", "8" to "8 GB", "12" to "12 GB")
     
@@ -152,16 +155,20 @@ fun RSwapScreen(onBack: () -> Unit) {
                                 onCheckedChange = { newValue ->
                                     rswapEnabled = newValue
                                     isConfiguring = true
+                                    configProgressText = context.getString(R.string.rswap_applying_changes)
                                     scope.launch {
                                         val v = if (newValue) "1" else "0"
                                         runRootCommand("grep -q '^RSWAP' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP.*/RSWAP $v/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP $v' >> $AUTOMATION_CONFIG_PATH")
                                         if (newValue) {
                                             runRootCommand("mkdir -p /data/ProjectRaco/RSWAPTrack")
+                                            configProgressText = context.getString(R.string.rswap_allocating)
                                             runRootCommand("fallocate -l ${rswapSize}G /data/ProjectRaco/RSWAP")
+                                            configProgressText = context.getString(R.string.rswap_activating)
                                             runRootCommand("mkswap /data/ProjectRaco/RSWAP; swapon -p 32767 /data/ProjectRaco/RSWAP")
                                             runRootCommand("echo 100 > /proc/sys/vm/swappiness")
                                             runRootCommand("echo \$(( \$(cat /proc/sys/vm/min_free_kbytes) * 12 / 10 )) > /proc/sys/vm/min_free_kbytes")
                                         } else {
+                                            configProgressText = context.getString(R.string.rswap_removing_old)
                                             runRootCommand("swapoff /data/ProjectRaco/RSWAP; rm -f /data/ProjectRaco/RSWAP")
                                         }
                                         isConfiguring = false
@@ -190,11 +197,14 @@ fun RSwapScreen(onBack: () -> Unit) {
                                                     rswapSize = value
                                                     expandedRswapSize = false
                                                     isConfiguring = true
+                                                    configProgressText = context.getString(R.string.rswap_removing_old)
                                                     scope.launch {
                                                         runRootCommand("grep -q '^RSWAP_SIZE' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP_SIZE.*/RSWAP_SIZE $value/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP_SIZE $value' >> $AUTOMATION_CONFIG_PATH")
                                                         runRootCommand("for file in /data/ProjectRaco/RSWAPTrack/rswap_stop_*; do if [ -f \"\$file\" ]; then pkg=\${file##*_}; for p in \$(pidof \$pkg); do kill -9 \$p; done; rm -f \"\$file\"; fi; done")
                                                         runRootCommand("swapoff /data/ProjectRaco/RSWAP; rm -f /data/ProjectRaco/RSWAP")
+                                                        configProgressText = context.getString(R.string.rswap_allocating)
                                                         runRootCommand("fallocate -l ${value}G /data/ProjectRaco/RSWAP")
+                                                        configProgressText = context.getString(R.string.rswap_activating)
                                                         runRootCommand("mkswap /data/ProjectRaco/RSWAP; swapon -p 32767 /data/ProjectRaco/RSWAP")
                                                         isConfiguring = false
                                                     }
@@ -206,11 +216,15 @@ fun RSwapScreen(onBack: () -> Unit) {
                             }
                             
                             if (isConfiguring) {
-                                Spacer(Modifier.height(8.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                                    Spacer(Modifier.width(12.dp))
-                                    Text(stringResource(R.string.rswap_applying_changes), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                                Spacer(Modifier.height(16.dp))
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                                        Spacer(Modifier.width(12.dp))
+                                        Text(configProgressText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                                    }
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(stringResource(R.string.rswap_warning_do_not_close), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }

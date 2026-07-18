@@ -188,6 +188,10 @@ Project Raco Memerlukan Root</string>
     <string name="rswap_size">Ukuran RSWAP</string>
     <string name="rswap_configuration">Konfigurasi RSWAP</string>
     <string name="rswap_applying_changes">Menerapkan perubahan...</string>
+    <string name="rswap_removing_old">Menghapus swap lama...</string>
+    <string name="rswap_allocating">Mengalokasikan file swap baru (Ini mungkin butuh waktu lama)...</string>
+    <string name="rswap_activating">Mengaktifkan RSWAP...</string>
+    <string name="rswap_warning_do_not_close">PERINGATAN: Jangan Tutup Aplikasi Selama Proses Ubah Ukuran RSWAP!</string>
     <string name="rswap_status">Status RSWAP</string>
     <string name="rswap_loaded_games">Game yang Dimuat</string>
     <string name="rswap_no_games">Tidak Ada Game yang Dimuat</string>

@@ -169,6 +169,10 @@
     <string name="rswap_size">Tamaño de RSWAP</string>
     <string name="rswap_configuration">Configuración de RSWAP</string>
     <string name="rswap_applying_changes">Aplicando cambios...</string>
+    <string name="rswap_removing_old">Eliminando swap antiguo...</string>
+    <string name="rswap_allocating">Asignando nuevo archivo swap (Esto puede tomar un tiempo)...</string>
+    <string name="rswap_activating">Activando RSWAP...</string>
+    <string name="rswap_warning_do_not_close">ADVERTENCIA: ¡No cierres la aplicación durante el redimensionamiento de RSWAP!</string>
     <string name="rswap_status">Estado de RSWAP</string>
     <string name="rswap_loaded_games">Juegos Cargados</string>
     <string name="rswap_no_games">No hay juegos cargados</string>
