@@ -58,19 +58,31 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
     override val savedStateRegistry: SavedStateRegistry get() = savedStateRegistryController.savedStateRegistry
 
     private var isExpanded by mutableStateOf(false)
-    private var buttonX = 0
-    private var buttonY = 300 // default y
+    private val sharedPrefs = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+    private var buttonX = sharedPrefs.getInt("overlay_x", 0)
+    private var buttonY = sharedPrefs.getInt("overlay_y", 300)
+
+    init {
+        val metrics = android.util.DisplayMetrics()
+        windowManager.defaultDisplay.getRealMetrics(metrics)
+        val buttonSizePx = (52 * metrics.density).toInt()
+        buttonX = buttonX.coerceIn(0, Math.max(0, metrics.widthPixels - buttonSizePx))
+        buttonY = buttonY.coerceIn(0, Math.max(0, metrics.heightPixels - buttonSizePx))
+    }
 
     private val params = WindowManager.LayoutParams(
         WindowManager.LayoutParams.WRAP_CONTENT,
         WindowManager.LayoutParams.WRAP_CONTENT,
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE,
-        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
         PixelFormat.TRANSLUCENT
     ).apply {
         gravity = Gravity.TOP or Gravity.START
         x = buttonX
         y = buttonY
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+        }
     }
 
     init {
@@ -101,9 +113,17 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
                         onDrag = { dx, dy ->
                             buttonX += dx.toInt()
                             buttonY += dy.toInt()
+                            
+                            val metrics = android.util.DisplayMetrics()
+                            windowManager.defaultDisplay.getRealMetrics(metrics)
+                            val buttonSizePx = (52 * metrics.density).toInt()
+                            buttonX = buttonX.coerceIn(0, Math.max(0, metrics.widthPixels - buttonSizePx))
+                            buttonY = buttonY.coerceIn(0, Math.max(0, metrics.heightPixels - buttonSizePx))
+
                             params.x = buttonX
                             params.y = buttonY
                             windowManager.updateViewLayout(this, params)
+                            sharedPrefs.edit().putInt("overlay_x", buttonX).putInt("overlay_y", buttonY).apply()
                         },
                         context = context,
                         selectedModeState = selectedModeState,
