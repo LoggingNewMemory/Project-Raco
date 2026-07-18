@@ -167,7 +167,7 @@ fun RSwapScreen(onBack: () -> Unit) {
                                         kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
                                             RSwapLock.mutex.withLock {
                                                 val v = if (newValue) "1" else "0"
-                                                runRootCommand("grep -q '^RSWAP' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP.*/RSWAP $v/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP $v' >> $AUTOMATION_CONFIG_PATH")
+                                                runRootCommand("grep -q '^RSWAP ' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP .*/RSWAP $v/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP $v' >> $AUTOMATION_CONFIG_PATH")
                                                 if (newValue) {
                                                     runRootCommand("mkdir -p /data/ProjectRaco/RSWAPTrack")
                                                     configProgressText = context.getString(R.string.rswap_allocating)
@@ -212,7 +212,7 @@ fun RSwapScreen(onBack: () -> Unit) {
                                                     scope.launch {
                                                         kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
                                                             RSwapLock.mutex.withLock {
-                                                                runRootCommand("grep -q '^RSWAP_SIZE' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP_SIZE.*/RSWAP_SIZE $value/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP_SIZE $value' >> $AUTOMATION_CONFIG_PATH")
+                                                                runRootCommand("grep -q '^RSWAP_SIZE ' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP_SIZE .*/RSWAP_SIZE $value/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP_SIZE $value' >> $AUTOMATION_CONFIG_PATH")
                                                                 runRootCommand("for file in /data/ProjectRaco/RSWAPTrack/rswap_stop_*; do if [ -f \"\$file\" ]; then pkg=\${file##*_}; for p in \$(pidof \$pkg); do kill -9 \$p; done; rm -f \"\$file\"; fi; done")
                                                                 runRootCommand("swapoff /data/ProjectRaco/RSWAP; rm -f /data/ProjectRaco/RSWAP")
                                                                 configProgressText = context.getString(R.string.rswap_allocating)

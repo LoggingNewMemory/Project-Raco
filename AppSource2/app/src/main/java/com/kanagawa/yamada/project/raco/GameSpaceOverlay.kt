@@ -279,12 +279,22 @@ fun PerformanceTab(context: Context) {
 
             while (isActive) {
                 try {
-                    val freqStr = java.io.File("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq").readText().trim()
-                    if (freqStr.isNotBlank()) {
-                        try {
-                            val freqMhz = freqStr.toLong() / 1000
-                            cpuUsage = freqMhz.toString()
-                        } catch(e: Exception){}
+                    val cpufreqDir = java.io.File("/sys/devices/system/cpu/cpufreq")
+                    val highestPolicy = cpufreqDir.listFiles { file -> 
+                        file.isDirectory && file.name.startsWith("policy") 
+                    }?.maxByOrNull { it.name.removePrefix("policy").toIntOrNull() ?: -1 }
+                    
+                    if (highestPolicy != null) {
+                        val freqFile = java.io.File(highestPolicy, "scaling_cur_freq")
+                        if (freqFile.exists()) {
+                            val freqStr = freqFile.readText().trim()
+                            if (freqStr.isNotBlank()) {
+                                try {
+                                    val freqMhz = freqStr.toLong() / 1000
+                                    cpuUsage = freqMhz.toString()
+                                } catch(e: Exception){}
+                            }
+                        }
                     }
                 } catch(e: Exception){}
                 
