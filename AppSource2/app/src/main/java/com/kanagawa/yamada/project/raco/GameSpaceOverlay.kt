@@ -336,25 +336,27 @@ fun PerformanceTab(context: Context) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(40.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFF2A2A2A))
-                .horizontalScroll(rememberScrollState()),
+                .height(44.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .background(Color(0xFF2A2A2A)),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val modes = listOf(
                 "Powersave" to "2",
-                "Balanced" to "3",
+                "Balanced" to "1",
                 "Awaken" to "4"
             )
             modes.forEach { (modeLabel, cmdMode) ->
                 val isSelected = selectedMode == modeLabel
+                val bgColor by androidx.compose.animation.animateColorAsState(if (isSelected) Color(0xFFFF5722) else Color.Transparent)
+                val textColor by androidx.compose.animation.animateColorAsState(if (isSelected) Color.White else Color.LightGray)
+
                 Box(
                     modifier = Modifier
+                        .weight(1f)
                         .fillMaxHeight()
-                        .padding(horizontal = 16.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(if (isSelected) Color(0xFFFF5722) else Color.Transparent)
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(bgColor)
                         .clickable { 
                             selectedMode = modeLabel
                             kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
@@ -367,7 +369,7 @@ fun PerformanceTab(context: Context) {
                 ) {
                     Text(
                         text = modeLabel,
-                        color = if (isSelected) Color.White else Color.LightGray,
+                        color = textColor,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
