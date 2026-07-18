@@ -79,7 +79,7 @@
     <string name="enable_dnd_mode_during_gaming_to_block_notifications">Enable DND mode during gaming to block notifications.</string>
     <string name="enable_dnd">Enable DND</string>
     <string name="game_app_list">Game App List</string>
-    <string name="manage_the_list_of_apps_that_trigger_performance_mode_automatically">Manage the list of apps that trigger Performance mode automatically.</string>
+    <string name="manage_the_list_of_apps_that_trigger_performance_mode_automatically">Manage the list of apps that trigger Performance, Battery, etc (CMD Game Mode) automatically.</string>
     <string name="open_app_list">Open App List</string>
     <string name="fix_tweaks">Fix &amp; Tweaks</string>
     <string name="custom_cpu_governor">Custom CPU Governor</string>
@@ -186,4 +186,9 @@
     <string name="cancel_execution_title">Cancel Execution</string>
     <string name="cancel_execution_desc">Swipe right 3 times on any mode to cancel</string>
     <string name="execution_canceled">Execution Canceled</string>
+    <string name="game_mode_title">CMD Game Mode</string>
+    <string name="game_mode_none">None</string>
+    <string name="game_mode_standard">Standard</string>
+    <string name="game_mode_performance">Performance</string>
+    <string name="game_mode_battery">Battery</string>
 </resources>

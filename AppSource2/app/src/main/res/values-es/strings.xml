@@ -158,4 +158,9 @@
     <string name="cancel_execution_title">Cancelar Ejecución</string>
     <string name="cancel_execution_desc">Desliza a la derecha 3 veces en cualquier modo para cancelar</string>
     <string name="execution_canceled">Ejecución Cancelada</string>
+    <string name="game_mode_title">Modo de Juego de Android</string>
+    <string name="game_mode_none">Ninguno</string>
+    <string name="game_mode_standard">Estándar</string>
+    <string name="game_mode_performance">Rendimiento</string>
+    <string name="game_mode_battery">Batería</string>
 </resources>

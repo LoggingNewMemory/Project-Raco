@@ -180,4 +180,9 @@ Project Raco требует Root</string>
     <string name="cancel_execution_title">Отменить выполнение</string>
     <string name="cancel_execution_desc">Смахните вправо 3 раза на любом режиме для отмены</string>
     <string name="execution_canceled">Выполнение отменено</string>
+    <string name="game_mode_title">Игровой режим Android</string>
+    <string name="game_mode_none">Нет</string>
+    <string name="game_mode_standard">Стандартный</string>
+    <string name="game_mode_performance">Производительность</string>
+    <string name="game_mode_battery">Батарея</string>
 </resources>

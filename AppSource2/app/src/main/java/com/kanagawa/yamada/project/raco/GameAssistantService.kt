@@ -80,6 +80,10 @@ class GameAssistantService : AccessibilityService() {
             showForegroundNotification()
             CoroutineScope(Dispatchers.IO).launch {
                 try {
+                    val gameMode = sharedPrefs.getString("game_mode_$packageName", "none") ?: "none"
+                    if (gameMode != "none") {
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd game mode $gameMode $packageName")).waitFor()
+                    }
                     Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load $packageName"))
                 } catch (e: Exception) {}
             }

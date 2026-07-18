@@ -180,4 +180,9 @@ Project RacoにはRoot権限が必要です</string>
     <string name="cancel_execution_title">実行をキャンセル</string>
     <string name="cancel_execution_desc">モードを右に3回スワイプしてキャンセル</string>
     <string name="execution_canceled">実行がキャンセルされました</string>
+    <string name="game_mode_title">Android ゲームモード</string>
+    <string name="game_mode_none">なし</string>
+    <string name="game_mode_standard">標準</string>
+    <string name="game_mode_performance">パフォーマンス</string>
+    <string name="game_mode_battery">バッテリー</string>
 </resources>

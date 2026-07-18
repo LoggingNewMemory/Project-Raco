@@ -200,6 +200,10 @@ private fun AppListPage(onBack: () -> Unit) {
     var isMounted by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { isMounted = true }
     
+    androidx.activity.compose.BackHandler(enabled = !showAddDialog) {
+        onBack()
+    }
+    
     fun fetchAllApps() {
         isLoadingAllApps = true
         scope.launch {
@@ -366,14 +370,55 @@ private fun AppListPage(onBack: () -> Unit) {
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.2f), MaterialTheme.shapes.medium)
                             .padding(16.dp)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            AppIcon(pkg = pkg, modifier = Modifier.size(32.dp))
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                AppName(pkg = pkg, color = MaterialTheme.colorScheme.onSurface)
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                AppIcon(pkg = pkg, modifier = Modifier.size(32.dp))
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    AppName(pkg = pkg, color = MaterialTheme.colorScheme.onSurface)
+                                }
+                                IconButton(onClick = { toggleApp(pkg, false) }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
+                                }
                             }
-                            IconButton(onClick = { toggleApp(pkg, false) }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
+                            
+                            var gameMode by remember { mutableStateOf(sharedPrefs.getString("game_mode_$pkg", "none") ?: "none") }
+                            var expandedGameMode by remember { mutableStateOf(false) }
+                            val gameModeOptions = listOf(
+                                "none" to stringResource(R.string.game_mode_none),
+                                "standard" to stringResource(R.string.game_mode_standard),
+                                "performance" to stringResource(R.string.game_mode_performance),
+                                "battery" to stringResource(R.string.game_mode_battery)
+                            )
+                            
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                                Text("CMD Game Mode", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                                Box {
+                                    TextButton(onClick = { expandedGameMode = true }) {
+                                        Text(gameModeOptions.find { it.first == gameMode }?.second ?: "None")
+                                    }
+                                    DropdownMenu(
+                                        expanded = expandedGameMode,
+                                        onDismissRequest = { expandedGameMode = false }
+                                    ) {
+                                        gameModeOptions.forEach { (value, label) ->
+                                            DropdownMenuItem(
+                                                text = { Text(label) },
+                                                onClick = {
+                                                    gameMode = value
+                                                    sharedPrefs.edit().putString("game_mode_$pkg", value).apply()
+                                                    expandedGameMode = false
+                                                    scope.launch(Dispatchers.IO) {
+                                                        if (value != "none") {
+                                                            Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd game mode $value $pkg")).waitFor()
+                                                        }
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

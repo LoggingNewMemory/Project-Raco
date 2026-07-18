@@ -177,4 +177,9 @@ Project Raco Memerlukan Root</string>
     <string name="cancel_execution_title">Batalkan Eksekusi</string>
     <string name="cancel_execution_desc">Geser ke kanan 3 kali pada mode apa saja untuk membatalkan</string>
     <string name="execution_canceled">Eksekusi Dibatalkan</string>
+    <string name="game_mode_title">Mode Game Android</string>
+    <string name="game_mode_none">Tidak Ada</string>
+    <string name="game_mode_standard">Standar</string>
+    <string name="game_mode_performance">Performa</string>
+    <string name="game_mode_battery">Baterai</string>
 </resources>
