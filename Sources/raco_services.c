@@ -279,5 +279,85 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    // RSWAP Native Auto-Eviction Daemon
+    // We fork this into the background so it monitors continuously
+    pid_t rswap_pid = fork();
+    if (rswap_pid == 0) {
+        while (1) {
+            // Re-read config dynamically so it respects toggles
+            load_config("/data/ProjectRaco/raco.txt");
+            if (config.rswap == 1) {
+                FILE *fp = fopen("/proc/swaps", "r");
+                if (fp) {
+                    char buffer[1024];
+                    while (fgets(buffer, sizeof(buffer), fp) != NULL) {
+                        if (strstr(buffer, "/data/ProjectRaco/RSWAP") != NULL) {
+                            char name[256], type[256];
+                            long long size = 0, used = 0, prio = 0;
+                            if (sscanf(buffer, "%255s %255s %lld %lld %lld", name, type, &size, &used, &prio) >= 4) {
+                                if (size > 0) {
+                                    int usage = (int)((used * 100) / size);
+                                    if (usage > 90) {
+                                        // Find oldest tracker
+                                        DIR *dir = opendir("/data/ProjectRaco/RSWAPTrack");
+                                        if (dir) {
+                                            struct dirent *ent;
+                                            char oldest_file[256] = "";
+                                            time_t oldest_time = 0;
+                                            while ((ent = readdir(dir)) != NULL) {
+                                                if (strncmp(ent->d_name, "rswap_stop_", 11) == 0) {
+                                                    char path[512];
+                                                    snprintf(path, sizeof(path), "/data/ProjectRaco/RSWAPTrack/%s", ent->d_name);
+                                                    struct stat st;
+                                                    if (stat(path, &st) == 0) {
+                                                        if (oldest_time == 0 || st.st_mtime < oldest_time) {
+                                                            oldest_time = st.st_mtime;
+                                                            strncpy(oldest_file, ent->d_name, sizeof(oldest_file));
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            closedir(dir);
+                                            
+                                            // Kill oldest game and clean tracker
+                                            if (strlen(oldest_file) > 0) {
+                                                char pkg[256];
+                                                strcpy(pkg, oldest_file + 11);
+                                                char pidof_cmd[256];
+                                                snprintf(pidof_cmd, sizeof(pidof_cmd), "pidof %s", pkg);
+                                                FILE *p_fp = popen(pidof_cmd, "r");
+                                                if (p_fp) {
+                                                    char pids[256];
+                                                    if (fgets(pids, sizeof(pids), p_fp) != NULL) {
+                                                        char *saveptr;
+                                                        char *pid_str = strtok_r(pids, " \n", &saveptr);
+                                                        while (pid_str != NULL) {
+                                                            char kill_cmd[128];
+                                                            snprintf(kill_cmd, sizeof(kill_cmd), "kill -9 %s", pid_str);
+                                                            system(kill_cmd);
+                                                            pid_str = strtok_r(NULL, " \n", &saveptr);
+                                                        }
+                                                    }
+                                                    pclose(p_fp);
+                                                }
+                                                char rm_cmd[512];
+                                                snprintf(rm_cmd, sizeof(rm_cmd), "rm -f /data/ProjectRaco/RSWAPTrack/%s", oldest_file);
+                                                system(rm_cmd);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            break; // found our swap
+                        }
+                    }
+                    fclose(fp);
+                }
+            }
+            sleep(60);
+        }
+        exit(0);
+    }
+
     return 0;
 }
