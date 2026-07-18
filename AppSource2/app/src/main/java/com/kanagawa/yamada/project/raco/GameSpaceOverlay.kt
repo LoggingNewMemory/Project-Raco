@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import androidx.compose.animation.core.*
+import androidx.compose.ui.geometry.Offset
 
 class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -393,77 +394,122 @@ fun PerformanceTab(context: Context, selectedModeState: MutableState<String>, is
         Spacer(modifier = Modifier.height(16.dp))
         
         // Mode Selector
-        Row(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(44.dp)
                 .clip(RoundedCornerShape(22.dp))
                 .background(Color(0xFF222222))
-                .padding(4.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(4.dp)
         ) {
             val modes = listOf(
                 Triple("Powersave", "2", Color(0xFF4CAF50)),
                 Triple("Balanced", "1", Color(0xFF2196F3)),
                 Triple("Awaken", "4", Color(0xFFFF5722))
             )
-            modes.forEach { (modeLabel, cmdMode, modeColor) ->
-                val isSelected = selectedModeState.value == modeLabel
-                val isExecutingThis = isExecutingState.value && executingModeState.value == modeLabel
-                
-                val infiniteTransition = rememberInfiniteTransition()
-                val pulseAlpha by infiniteTransition.animateFloat(
-                    initialValue = 1f,
-                    targetValue = if (isExecutingThis) 0.3f else 1f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(400),
-                        repeatMode = RepeatMode.Reverse
-                    ), label = "pulse"
-                )
+            
+            val oldIndex = modes.indexOfFirst { it.first == selectedModeState.value }.coerceAtLeast(0)
+            val newIndex = if (isExecutingState.value) {
+                modes.indexOfFirst { it.first == executingModeState.value }.coerceAtLeast(0)
+            } else {
+                oldIndex
+            }
 
-                val bgColorTarget = if (isSelected || isExecutingThis) modeColor else Color.Transparent
-                val bgColor by androidx.compose.animation.animateColorAsState(bgColorTarget)
-                val textColor by androidx.compose.animation.animateColorAsState(if (isSelected || isExecutingThis) Color(0xFF121212) else Color.Gray)
+            val leftIndex = minOf(oldIndex, newIndex)
+            val rightIndex = maxOf(oldIndex, newIndex)
 
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(22.dp))
-                        .background(if (isExecutingThis) bgColor.copy(alpha = pulseAlpha) else bgColor)
-                        .clickable(enabled = !isExecutingState.value) { 
-                            if (selectedModeState.value == modeLabel) return@clickable
-                            executingModeState.value = modeLabel
-                            isExecutingState.value = true
-                            kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
-                                try {
-                                    val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $cmdMode"))
-                                    val reader = process.inputStream.bufferedReader()
-                                    while (isActive) {
-                                        val line = reader.readLine() ?: break
-                                        if (line.contains("PROGRESS: 100")) {
-                                            break
-                                        }
-                                    }
-                                    process.waitFor()
-                                } catch(e: Exception){}
-                                finally {
-                                    withContext(Dispatchers.Main) {
-                                        selectedModeState.value = modeLabel
-                                        executingModeState.value = ""
-                                        isExecutingState.value = false
-                                    }
-                                }
-                            }
-                        },
-                    contentAlignment = Alignment.Center
+            val blockWidth = maxWidth / modes.size
+            val targetOffset = blockWidth * leftIndex
+            val targetWidth = blockWidth * (rightIndex - leftIndex + 1)
+
+            val animatedOffset by animateDpAsState(
+                targetValue = targetOffset,
+                animationSpec = tween(400, easing = FastOutSlowInEasing),
+                label = "sliderOffset"
+            )
+            val animatedWidth by animateDpAsState(
+                targetValue = targetWidth,
+                animationSpec = tween(400, easing = FastOutSlowInEasing),
+                label = "sliderWidth"
+            )
+
+            val currentBrush = Brush.horizontalGradient(
+                colors = listOf(modes[leftIndex].third, modes[rightIndex].third)
+            )
+
+            // The sliding block background
+            Box(
+                modifier = Modifier
+                    .offset(x = animatedOffset)
+                    .width(animatedWidth)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(currentBrush),
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = isExecutingState.value,
+                    enter = androidx.compose.animation.fadeIn(tween(300)),
+                    exit = androidx.compose.animation.fadeOut(tween(300))
                 ) {
                     Text(
-                        text = modeLabel,
-                        color = textColor.copy(alpha = if (isExecutingThis) pulseAlpha else 1f),
-                        fontSize = 12.sp,
-                        fontWeight = if (isSelected || isExecutingThis) FontWeight.Bold else FontWeight.Normal
+                        text = "Switching Profiles...",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
                     )
+                }
+            }
+
+            // The texts on top
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                modes.forEachIndexed { index, (modeLabel, cmdMode, _) ->
+                    val isHidden = isExecutingState.value && index in leftIndex..rightIndex
+                    val textAlpha by animateFloatAsState(if (isHidden) 0f else 1f, animationSpec = tween(300), label = "textAlpha")
+                    val isSelected = !isExecutingState.value && selectedModeState.value == modeLabel
+                    val textColor by androidx.compose.animation.animateColorAsState(if (isSelected) Color.White else Color.LightGray)
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable(enabled = !isExecutingState.value) { 
+                                if (selectedModeState.value == modeLabel) return@clickable
+                                executingModeState.value = modeLabel
+                                isExecutingState.value = true
+                                kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+                                    try {
+                                        val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $cmdMode"))
+                                        val reader = process.inputStream.bufferedReader()
+                                        while (isActive) {
+                                            val line = reader.readLine() ?: break
+                                            if (line.contains("PROGRESS: 100")) {
+                                                break
+                                            }
+                                        }
+                                        process.waitFor()
+                                    } catch(e: Exception){}
+                                    finally {
+                                        withContext(Dispatchers.Main) {
+                                            selectedModeState.value = modeLabel
+                                            executingModeState.value = ""
+                                            isExecutingState.value = false
+                                        }
+                                    }
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = modeLabel,
+                            color = textColor.copy(alpha = textAlpha),
+                            fontSize = 13.sp,
+                            fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
+                        )
+                    }
                 }
             }
         }
