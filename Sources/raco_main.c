@@ -311,7 +311,8 @@ void mode_normal() {
     corin_storage("deadline", "1");
     pid_t sys_pid_normal = fork();
     if (sys_pid_normal == 0) {
-        system("settings put secure high_priority 1; settings put secure low_priority 0; "
+        system("settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec; "
+               "settings put secure high_priority 1; settings put secure low_priority 0; "
                "cmd power set-adaptive-power-saver-enabled false; "
                "cmd power set-fixed-performance-mode-enabled false; "
                "cmd looper_stats enable; "

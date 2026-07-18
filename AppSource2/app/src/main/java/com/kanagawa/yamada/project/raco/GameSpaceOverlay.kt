@@ -528,6 +528,8 @@ fun PerformanceTab(context: Context, selectedModeState: MutableState<String>, is
             fontSize = 10.sp
         )
         Spacer(modifier = Modifier.height(8.dp))
+        var isUltraTouch by remember { mutableStateOf(false) }
+        
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -537,21 +539,40 @@ fun PerformanceTab(context: Context, selectedModeState: MutableState<String>, is
                     .weight(1f)
                     .height(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF2A2A2A)),
+                    .border(if (!isUltraTouch) 1.dp else 0.dp, if (!isUltraTouch) themeColor else Color.Transparent, RoundedCornerShape(12.dp))
+                    .background(if (!isUltraTouch) Color(0xFF1E1E1E) else Color(0xFF2A2A2A))
+                    .clickable { 
+                        if (!isUltraTouch) return@clickable
+                        isUltraTouch = false
+                        kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                Runtime.getRuntime().exec(arrayOf("su", "-c", "settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec")).waitFor()
+                            } catch(e: Exception){}
+                        }
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                Text("Standard", color = Color.Gray, fontSize = 12.sp)
+                Text("Standard", color = if (!isUltraTouch) themeColor else Color.Gray, fontSize = 12.sp)
             }
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .height(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, themeColor, RoundedCornerShape(12.dp))
-                    .background(Color(0xFF1E1E1E)),
+                    .border(if (isUltraTouch) 1.dp else 0.dp, if (isUltraTouch) themeColor else Color.Transparent, RoundedCornerShape(12.dp))
+                    .background(if (isUltraTouch) Color(0xFF1E1E1E) else Color(0xFF2A2A2A))
+                    .clickable { 
+                        if (isUltraTouch) return@clickable
+                        isUltraTouch = true
+                        kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system pointer_speed 7; setprop windowsmgr.max_events_per_sec 300")).waitFor()
+                            } catch(e: Exception){}
+                        }
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                Text("Ultra touch response", color = themeColor, fontSize = 12.sp)
+                Text("Enhanced", color = if (isUltraTouch) themeColor else Color.Gray, fontSize = 12.sp)
             }
         }
     }
