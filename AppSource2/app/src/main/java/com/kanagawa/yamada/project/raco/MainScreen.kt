@@ -43,6 +43,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import com.kanagawa.yamada.project.raco.Screen
 import java.io.File
 import kotlin.random.Random
@@ -71,6 +73,8 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
     var moduleInstalled by remember { mutableStateOf(false) }
     var moduleVersion by remember { mutableStateOf("Unknown") }
     var swipeCount by remember { mutableIntStateOf(0) }
+    var executionJob: Job? by remember { mutableStateOf(null) }
+    var cooldownTimeRemaining by remember { mutableIntStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -157,44 +161,68 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
         isExecuting = true
         executingMode = modeArg
         executionProgress = 0f
-        coroutineScope.launch {
+        executionJob = coroutineScope.launch {
+            var wasCancelled = false
             try {
-                withContext(Dispatchers.IO) {
-                    val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco " + modeArg))
-                    val reader = process.inputStream.bufferedReader()
-                    while (true) {
-                        val line = reader.readLine() ?: break
-                        if (line.startsWith("PROGRESS:")) {
-                            line.substringAfter("PROGRESS:").trim().toFloatOrNull()?.let {
-                                val progressVal = it / 100f
-                                // Keep it at 95% until all background tasks and state saving are completely finished
-                                executionProgress = if (progressVal >= 1f) 0.95f else progressVal
-                            }
-                            if (line.contains("PROGRESS: 100")) {
-                                break
-                            }
-                        }
-                    }
-                    
-                    if (modeName != "CLEAR") {
-                        // Safely wait for state save so UI correctly updates
+                if (modeName == "COOLDOWN") {
+                    withContext(Dispatchers.IO) {
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco " + modeArg)).waitFor()
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "grep -q '^STATE' $configPath && sed -i 's|^STATE.*|STATE $modeArg|' $configPath || echo 'STATE $modeArg' >> $configPath")).waitFor()
                     }
+                    
+                    for (i in 120 downTo 1) {
+                        cooldownTimeRemaining = i
+                        executionProgress = (120 - i) / 120f
+                        delay(1000)
+                    }
+                    cooldownTimeRemaining = 0
                     executionProgress = 1f
+                } else {
+                    withContext(Dispatchers.IO) {
+                        val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco " + modeArg))
+                        val reader = process.inputStream.bufferedReader()
+                        while (true) {
+                            val line = reader.readLine() ?: break
+                            if (line.startsWith("PROGRESS:")) {
+                                line.substringAfter("PROGRESS:").trim().toFloatOrNull()?.let {
+                                    val progressVal = it / 100f
+                                    // Keep it at 95% until all background tasks and state saving are completely finished
+                                    executionProgress = if (progressVal >= 1f) 0.95f else progressVal
+                                }
+                                if (line.contains("PROGRESS: 100")) {
+                                    break
+                                }
+                            }
+                        }
+                        
+                        if (modeName != "CLEAR") {
+                            // Safely wait for state save so UI correctly updates
+                            Runtime.getRuntime().exec(arrayOf("su", "-c", "grep -q '^STATE' $configPath && sed -i 's|^STATE.*|STATE $modeArg|' $configPath || echo 'STATE $modeArg' >> $configPath")).waitFor()
+                        }
+                        executionProgress = 1f
+                    }
                 }
                 currentMode = if (modeName == "CLEAR") "NONE" else modeName
+            } catch (e: CancellationException) {
+                wasCancelled = true
             } catch (e: Exception) {
             } finally {
                 isExecuting = false
                 executingMode = ""
                 executionProgress = 0f
                 currentMode = fetchActiveMode()
+                
+                if (modeName == "COOLDOWN" && !wasCancelled && cooldownTimeRemaining == 0) {
+                    executeScript("1", "BALANCED")
+                }
             }
         }
     }
 
     fun cancelExecution(canceledText: String) {
         if (!hasRoot) return
+        executionJob?.cancel()
+        executionJob = null
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
                 try {
@@ -204,6 +232,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
             isExecuting = false
             executingMode = ""
             executionProgress = 0f
+            cooldownTimeRemaining = 0
             currentMode = fetchActiveMode()
             snackbarHostState.showSnackbar(canceledText)
         }
@@ -358,7 +387,12 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                         val isCurr = currentMode == p.modeName
                         val isExec = executingMode == p.modeId
                         val bgColor = if (isCurr) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-                        ControlRow(p.title, stringResource(p.descRes), p.icon, bgColor, isExec, if(isExec) executionProgress else 0f, isCurr, hasRoot && !isExecuting, onSwipeRight = {
+                        
+                        val displayTitle = if (p.modeName == "COOLDOWN" && cooldownTimeRemaining > 0) {
+                            String.format("%02d:%02d", cooldownTimeRemaining / 60, cooldownTimeRemaining % 60)
+                        } else p.title
+                        
+                        ControlRow(displayTitle, stringResource(p.descRes), p.icon, bgColor, isExec, if(isExec) executionProgress else 0f, isCurr, hasRoot && !isExecuting, onSwipeRight = {
                             swipeCount++
                             if (swipeCount >= 3) {
                                 cancelExecution(executionCanceledStr)
