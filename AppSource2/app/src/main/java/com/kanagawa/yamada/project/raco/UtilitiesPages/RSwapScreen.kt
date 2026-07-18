@@ -26,6 +26,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
+object RSwapLock {
+    val mutex = Mutex()
+}
+
 private const val AUTOMATION_CONFIG_PATH = "/data/ProjectRaco/raco.txt"
 
 private suspend fun runRootCommand(cmd: String): String = withContext(Dispatchers.IO) {
@@ -158,21 +165,23 @@ fun RSwapScreen(onBack: () -> Unit) {
                                     configProgressText = context.getString(R.string.rswap_applying_changes)
                                     scope.launch {
                                         kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
-                                            val v = if (newValue) "1" else "0"
-                                            runRootCommand("grep -q '^RSWAP' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP.*/RSWAP $v/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP $v' >> $AUTOMATION_CONFIG_PATH")
-                                            if (newValue) {
-                                                runRootCommand("mkdir -p /data/ProjectRaco/RSWAPTrack")
-                                                configProgressText = context.getString(R.string.rswap_allocating)
-                                                runRootCommand("fallocate -l ${rswapSize}G /data/ProjectRaco/RSWAP")
-                                                configProgressText = context.getString(R.string.rswap_activating)
-                                                runRootCommand("chmod 0600 /data/ProjectRaco/RSWAP; mkswap /data/ProjectRaco/RSWAP; swapon -p 32767 /data/ProjectRaco/RSWAP")
-                                                runRootCommand("echo 100 > /proc/sys/vm/swappiness")
-                                                runRootCommand("echo \$(( \$(cat /proc/sys/vm/min_free_kbytes) * 12 / 10 )) > /proc/sys/vm/min_free_kbytes")
-                                            } else {
-                                                configProgressText = context.getString(R.string.rswap_removing_old)
-                                                runRootCommand("swapoff /data/ProjectRaco/RSWAP; rm -f /data/ProjectRaco/RSWAP")
+                                            RSwapLock.mutex.withLock {
+                                                val v = if (newValue) "1" else "0"
+                                                runRootCommand("grep -q '^RSWAP' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP.*/RSWAP $v/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP $v' >> $AUTOMATION_CONFIG_PATH")
+                                                if (newValue) {
+                                                    runRootCommand("mkdir -p /data/ProjectRaco/RSWAPTrack")
+                                                    configProgressText = context.getString(R.string.rswap_allocating)
+                                                    runRootCommand("fallocate -l ${rswapSize}G /data/ProjectRaco/RSWAP")
+                                                    configProgressText = context.getString(R.string.rswap_activating)
+                                                    runRootCommand("chmod 0600 /data/ProjectRaco/RSWAP; mkswap /data/ProjectRaco/RSWAP; swapon -p 32767 /data/ProjectRaco/RSWAP")
+                                                    runRootCommand("echo 100 > /proc/sys/vm/swappiness")
+                                                    runRootCommand("echo \$(( \$(cat /proc/sys/vm/min_free_kbytes) * 12 / 10 )) > /proc/sys/vm/min_free_kbytes")
+                                                } else {
+                                                    configProgressText = context.getString(R.string.rswap_removing_old)
+                                                    runRootCommand("swapoff /data/ProjectRaco/RSWAP; rm -f /data/ProjectRaco/RSWAP")
+                                                }
+                                                isConfiguring = false
                                             }
-                                            isConfiguring = false
                                         }
                                     }
                                 },
@@ -202,14 +211,16 @@ fun RSwapScreen(onBack: () -> Unit) {
                                                     configProgressText = context.getString(R.string.rswap_removing_old)
                                                     scope.launch {
                                                         kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
-                                                            runRootCommand("grep -q '^RSWAP_SIZE' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP_SIZE.*/RSWAP_SIZE $value/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP_SIZE $value' >> $AUTOMATION_CONFIG_PATH")
-                                                            runRootCommand("for file in /data/ProjectRaco/RSWAPTrack/rswap_stop_*; do if [ -f \"\$file\" ]; then pkg=\${file##*_}; for p in \$(pidof \$pkg); do kill -9 \$p; done; rm -f \"\$file\"; fi; done")
-                                                            runRootCommand("swapoff /data/ProjectRaco/RSWAP; rm -f /data/ProjectRaco/RSWAP")
-                                                            configProgressText = context.getString(R.string.rswap_allocating)
-                                                            runRootCommand("fallocate -l ${value}G /data/ProjectRaco/RSWAP")
-                                                            configProgressText = context.getString(R.string.rswap_activating)
-                                                            runRootCommand("chmod 0600 /data/ProjectRaco/RSWAP; mkswap /data/ProjectRaco/RSWAP; swapon -p 32767 /data/ProjectRaco/RSWAP")
-                                                            isConfiguring = false
+                                                            RSwapLock.mutex.withLock {
+                                                                runRootCommand("grep -q '^RSWAP_SIZE' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP_SIZE.*/RSWAP_SIZE $value/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP_SIZE $value' >> $AUTOMATION_CONFIG_PATH")
+                                                                runRootCommand("for file in /data/ProjectRaco/RSWAPTrack/rswap_stop_*; do if [ -f \"\$file\" ]; then pkg=\${file##*_}; for p in \$(pidof \$pkg); do kill -9 \$p; done; rm -f \"\$file\"; fi; done")
+                                                                runRootCommand("swapoff /data/ProjectRaco/RSWAP; rm -f /data/ProjectRaco/RSWAP")
+                                                                configProgressText = context.getString(R.string.rswap_allocating)
+                                                                runRootCommand("fallocate -l ${value}G /data/ProjectRaco/RSWAP")
+                                                                configProgressText = context.getString(R.string.rswap_activating)
+                                                                runRootCommand("chmod 0600 /data/ProjectRaco/RSWAP; mkswap /data/ProjectRaco/RSWAP; swapon -p 32767 /data/ProjectRaco/RSWAP")
+                                                                isConfiguring = false
+                                                            }
                                                         }
                                                     }
                                                 }

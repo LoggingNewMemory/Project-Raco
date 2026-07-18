@@ -120,6 +120,12 @@ fun AutomationScreen(onBack: () -> Unit) {
                                             runRoot("settings put secure accessibility_enabled 1")
                                         } else {
                                             runRoot("settings put secure enabled_accessibility_services null")
+                                            kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                                                RSwapLock.mutex.withLock {
+                                                    runRoot("grep -q '^RSWAP' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP.*/RSWAP 0/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP 0' >> $AUTOMATION_CONFIG_PATH")
+                                                    runRoot("swapoff /data/ProjectRaco/RSWAP; rm -f /data/ProjectRaco/RSWAP")
+                                                }
+                                            }
                                         }
                                     }
                                 }
