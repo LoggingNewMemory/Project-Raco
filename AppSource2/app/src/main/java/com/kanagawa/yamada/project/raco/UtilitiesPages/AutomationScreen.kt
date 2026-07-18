@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.withLock
 import com.kanagawa.yamada.project.raco.AppIcon
 import com.kanagawa.yamada.project.raco.AppName
 

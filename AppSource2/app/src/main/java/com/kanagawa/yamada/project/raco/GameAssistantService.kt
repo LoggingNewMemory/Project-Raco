@@ -11,11 +11,14 @@ import android.view.accessibility.AccessibilityEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import android.os.Handler
+import android.os.Looper
 
 class GameAssistantService : AccessibilityService() {
     private var currentForegroundPackage: String? = null
     private var isCurrentlyInGame = false
     private var lastGamePackage: String? = null
+    private var gameSpaceOverlay: GameSpaceOverlay? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -25,6 +28,10 @@ class GameAssistantService : AccessibilityService() {
         info.notificationTimeout = 100
         serviceInfo = info
         createNotificationChannel()
+        
+        Handler(Looper.getMainLooper()).post {
+            gameSpaceOverlay = GameSpaceOverlay(this)
+        }
     }
 
     private fun showForegroundNotification() {
@@ -80,6 +87,9 @@ class GameAssistantService : AccessibilityService() {
             isCurrentlyInGame = true
             lastGamePackage = packageName
             showForegroundNotification()
+            Handler(Looper.getMainLooper()).post {
+                gameSpaceOverlay?.show()
+            }
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val gameMode = sharedPrefs.getString("game_mode_$packageName", "none") ?: "none"
@@ -92,6 +102,9 @@ class GameAssistantService : AccessibilityService() {
         } else if (!isGame && isCurrentlyInGame) {
             isCurrentlyInGame = false
             hideForegroundNotification()
+            Handler(Looper.getMainLooper()).post {
+                gameSpaceOverlay?.hide()
+            }
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val unloadCmd = if (lastGamePackage != null) {
@@ -120,4 +133,9 @@ class GameAssistantService : AccessibilityService() {
     }
 
     override fun onInterrupt() {}
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        gameSpaceOverlay?.hide()
+    }
 }

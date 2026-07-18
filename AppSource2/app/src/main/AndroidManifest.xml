@@ -45,10 +45,6 @@
             android:name="com.canhub.cropper.CropImageActivity"
             android:theme="@style/Theme.AppCompat" />
 
-        
-        
-
-        
         <service
             android:name=".GameAssistantService"
             android:label="Project Raco Game Assistant"
@@ -65,7 +61,6 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Game profile tracking" />
         </service>
-
 
     </application>
 
