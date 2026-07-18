@@ -1,13 +1,17 @@
 package com.kanagawa.yamada.project.raco.UtilitiesPages
 
 import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.verticalScroll
 
 import com.kanagawa.yamada.project.raco.R
 import androidx.compose.ui.res.stringResource
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
@@ -93,6 +97,65 @@ fun SystemScreen(onBack: () -> Unit) {
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    
+    var showPresetPage by remember { mutableStateOf(false) }
+    
+    var customPresets by remember { 
+        mutableStateOf<Map<String, List<Float>>>(
+            prefs.getStringSet("ayunda_presets", emptySet<String>())?.associate {
+                val parts = it.split("::")
+                val vals = parts[1].split(",").map { v -> v.toFloat() }
+                parts[0] to vals
+            } ?: emptyMap()
+        )
+    }
+    
+    val builtinPresets = mapOf(
+        "Vivid" to listOf(1.2f, 1.1f, 1.1f, 1.3f),
+        "FPS" to listOf(1.0f, 1.2f, 1.0f, 1.1f),
+        "Cinema" to listOf(1.1f, 1.0f, 1.2f, 1.0f)
+    )
+    var activePresetName by remember { mutableStateOf(prefs.getString("active_ayunda_preset", "") ?: "") }
+
+    if (showPresetPage) {
+        AyundaPresetPage(
+            customPresets = customPresets,
+            builtinPresets = builtinPresets,
+            onSavePreset = { name, vals ->
+                val newPresets = customPresets + (name to vals)
+                customPresets = newPresets
+                prefs.edit().putStringSet("ayunda_presets", newPresets.map { "${it.key}::${it.value.joinToString(",")}" }.toSet()).apply()
+            },
+            onDeletePreset = { name ->
+                val newPresets = customPresets - name
+                customPresets = newPresets
+                prefs.edit().putStringSet("ayunda_presets", newPresets.map { "${it.key}::${it.value.joinToString(",")}" }.toSet()).apply()
+            },
+            onApplyPreset = { name, vals ->
+                activePresetName = name
+                rgbR = vals[0]; rgbG = vals[1]; rgbB = vals[2]; rgbS = vals[3]
+                scope.launch {
+                    prefs.edit().apply {
+                        putFloat("RGB_R", rgbR); putFloat("RGB_G", rgbG); putFloat("RGB_B", rgbB); putFloat("RGB_S", rgbS)
+                        putString("active_ayunda_preset", name)
+                        apply()
+                    }
+                    sysUpdateAyundaScript(rgbR, rgbG, rgbB, rgbS)
+                    sysSetAyundaRusdiEnabled(true)
+                }
+                showPresetPage = false
+            },
+            onPreviewValues = { vals ->
+                scope.launch {
+                    sysRunRoot("service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${vals[3]}")
+                }
+            },
+            currentValues = listOf(rgbR, rgbG, rgbB, rgbS),
+            activePresetName = activePresetName,
+            onBack = { showPresetPage = false }
+        )
+        return
+    }
 
     LaunchedEffect(Unit) {
         val config = sysRunRoot("cat $SYS_CONFIG")
@@ -121,6 +184,8 @@ fun SystemScreen(onBack: () -> Unit) {
                 }
             }
     }
+
+
 
     Scaffold(
         topBar = {
@@ -226,12 +291,14 @@ fun SystemScreen(onBack: () -> Unit) {
                                     }
                                 },
                                 onValueChangeFinished = {
+                                    activePresetName = ""
                                     scope.launch {
                                         prefs.edit().apply {
                                             putFloat("RGB_R", rgbR)
                                             putFloat("RGB_G", rgbG)
                                             putFloat("RGB_B", rgbB)
                                             putFloat("RGB_S", rgbS)
+                                            putString("active_ayunda_preset", "")
                                             apply()
                                         }
                                         sysUpdateAyundaScript(rgbR, rgbG, rgbB, rgbS)
@@ -246,16 +313,24 @@ fun SystemScreen(onBack: () -> Unit) {
                     }
 
                     Spacer(Modifier.height(8.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        TextButton(onClick = { showPresetPage = true }) {
+                            Icon(Icons.Default.Tune, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Presets")
+                        }
+
                         TextButton(
                             onClick = {
                                 rgbR = 1f; rgbG = 1f; rgbB = 1f; rgbS = 1f
+                                activePresetName = ""
                                 scope.launch {
                                     prefs.edit().apply {
                                         putFloat("RGB_R", 1f)
                                         putFloat("RGB_G", 1f)
                                         putFloat("RGB_B", 1f)
                                         putFloat("RGB_S", 1f)
+                                        putString("active_ayunda_preset", "")
                                         apply()
                                     }
                                     sysRunRoot("service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1")
@@ -384,6 +459,161 @@ private fun SystemCard(title: String, content: @Composable ColumnScope.() -> Uni
             Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(8.dp))
             content()
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AyundaPresetPage(
+    customPresets: Map<String, List<Float>>,
+    builtinPresets: Map<String, List<Float>>,
+    onSavePreset: (String, List<Float>) -> Unit,
+    onDeletePreset: (String) -> Unit,
+    onApplyPreset: (String, List<Float>) -> Unit,
+    onPreviewValues: (List<Float>) -> Unit,
+    currentValues: List<Float>,
+    activePresetName: String,
+    onBack: () -> Unit
+) {
+    androidx.activity.compose.BackHandler(onBack = onBack)
+    var editingPreset by remember { mutableStateOf<Pair<String, List<Float>>?>(null) }
+    
+    if (editingPreset != null) {
+        val (initName, initVals) = editingPreset!!
+        var presetName by remember { mutableStateOf(initName) }
+        var rgbR by remember { mutableFloatStateOf(initVals[0]) }
+        var rgbG by remember { mutableFloatStateOf(initVals[1]) }
+        var rgbB by remember { mutableFloatStateOf(initVals[2]) }
+        var rgbS by remember { mutableFloatStateOf(initVals[3]) }
+
+        LaunchedEffect(Unit) {
+            androidx.compose.runtime.snapshotFlow { listOf(rgbR, rgbG, rgbB, rgbS) }
+                .conflate()
+                .collect { values ->
+                    onPreviewValues(values)
+                }
+        }
+
+        AlertDialog(
+            onDismissRequest = { 
+                onPreviewValues(currentValues)
+                editingPreset = null 
+            },
+            title = { Text(if (initName.isEmpty()) "Create Preset" else "Edit Preset") },
+            text = {
+                Column(modifier = Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState())) {
+                    OutlinedTextField(
+                        value = presetName,
+                        onValueChange = { presetName = it },
+                        label = { Text("Preset Name") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Text("Red: ${String.format("%.2f", rgbR)}", color = Color(0xFFEF5350), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                    Slider(value = rgbR, onValueChange = { rgbR = it }, valueRange = 0f..2f, colors = SliderDefaults.colors(thumbColor = Color(0xFFEF5350), activeTrackColor = Color(0xFFEF5350)))
+                    Spacer(Modifier.height(8.dp))
+                    Text("Green: ${String.format("%.2f", rgbG)}", color = Color(0xFF66BB6A), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                    Slider(value = rgbG, onValueChange = { rgbG = it }, valueRange = 0f..2f, colors = SliderDefaults.colors(thumbColor = Color(0xFF66BB6A), activeTrackColor = Color(0xFF66BB6A)))
+                    Spacer(Modifier.height(8.dp))
+                    Text("Blue: ${String.format("%.2f", rgbB)}", color = Color(0xFF42A5F5), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                    Slider(value = rgbB, onValueChange = { rgbB = it }, valueRange = 0f..2f, colors = SliderDefaults.colors(thumbColor = Color(0xFF42A5F5), activeTrackColor = Color(0xFF42A5F5)))
+                    Spacer(Modifier.height(8.dp))
+                    Text("Saturation: ${String.format("%.2f", rgbS)}", color = Color(0xFFAB47BC), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                    Slider(value = rgbS, onValueChange = { rgbS = it }, valueRange = 0f..2f, colors = SliderDefaults.colors(thumbColor = Color(0xFFAB47BC), activeTrackColor = Color(0xFFAB47BC)))
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (presetName.isNotBlank()) {
+                            if (presetName != initName && initName.isNotEmpty()) {
+                                onDeletePreset(initName)
+                            }
+                            val finalVals = listOf(rgbR, rgbG, rgbB, rgbS)
+                            onSavePreset(presetName, finalVals)
+                            onApplyPreset(presetName, finalVals)
+                            editingPreset = null
+                        }
+                    }
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { 
+                    onPreviewValues(currentValues)
+                    editingPreset = null 
+                }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Ayunda Presets") },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, titleContentColor = MaterialTheme.colorScheme.primary, navigationIconContentColor = MaterialTheme.colorScheme.primary)
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { editingPreset = "" to currentValues }) {
+                Icon(Icons.Default.Add, "Save Preset")
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        LazyColumn(modifier = Modifier.padding(padding).fillMaxSize()) {
+            item {
+                Text("Built-in Presets", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(16.dp))
+            }
+            items(builtinPresets.keys.toList()) { name ->
+                val vals = builtinPresets[name]!!
+                val isCurrent = name == activePresetName
+                val bgColor = if (isCurrent) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+                val contentColor = if (isCurrent) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).background(bgColor, RoundedCornerShape(12.dp)).clickable { onApplyPreset(name, vals) }.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(name, fontWeight = FontWeight.SemiBold, color = contentColor, modifier = Modifier.weight(1f))
+                    if (isCurrent) {
+                        Icon(Icons.Default.Check, "Active", tint = contentColor)
+                    }
+                }
+            }
+            if (customPresets.isNotEmpty()) {
+                item {
+                    Text("Custom Presets", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(16.dp))
+                }
+                items(customPresets.keys.toList()) { name ->
+                    val vals = customPresets[name]!!
+                    val isCurrent = name == activePresetName
+                    val bgColor = if (isCurrent) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+                    val contentColor = if (isCurrent) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).background(bgColor, RoundedCornerShape(12.dp)).clickable { onApplyPreset(name, vals) }.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(name, fontWeight = FontWeight.SemiBold, color = contentColor, modifier = Modifier.weight(1f))
+                        if (isCurrent) {
+                            Icon(Icons.Default.Check, "Active", tint = contentColor, modifier = Modifier.padding(end = 8.dp))
+                        }
+                        IconButton(onClick = { editingPreset = name to vals }) {
+                            Icon(Icons.Default.Edit, "Edit", tint = MaterialTheme.colorScheme.primary)
+                        }
+                        IconButton(onClick = { onDeletePreset(name) }) {
+                            Icon(Icons.Default.Delete, "Delete", tint = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
+            }
         }
     }
 }
