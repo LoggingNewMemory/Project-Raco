@@ -163,4 +163,16 @@
     <string name="game_mode_standard">Estándar</string>
     <string name="game_mode_performance">Rendimiento</string>
     <string name="game_mode_battery">Batería</string>
+    <string name="rswap_title">RSWAP (Raco SWAP)</string>
+    <string name="enable_rswap">Habilitar RSWAP</string>
+    <string name="rswap_desc">Coloca el juego en un espacio SWAP dedicado para que se inicie más rápido la próxima vez.</string>
+    <string name="rswap_size">Tamaño de RSWAP</string>
+    <string name="rswap_configuration">Configuración de RSWAP</string>
+    <string name="rswap_applying_changes">Aplicando cambios...</string>
+    <string name="rswap_status">Estado de RSWAP</string>
+    <string name="rswap_loaded_games">Juegos Cargados</string>
+    <string name="rswap_no_games">No hay juegos cargados</string>
+    <string name="rswap_unload">Descargar Juego</string>
+    <string name="rswap_unload_all">Descargar Todos los Juegos</string>
+    <string name="manual_flush">Vaciado Manual</string>
 </resources>

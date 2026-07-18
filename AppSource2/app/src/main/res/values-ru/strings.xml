@@ -185,4 +185,16 @@ Project Raco требует Root</string>
     <string name="game_mode_standard">Стандартный</string>
     <string name="game_mode_performance">Производительность</string>
     <string name="game_mode_battery">Батарея</string>
+    <string name="rswap_title">RSWAP (Raco SWAP)</string>
+    <string name="enable_rswap">Включить RSWAP</string>
+    <string name="rswap_desc">Поместите игру в выделенное пространство SWAP, чтобы она запускалась быстрее.</string>
+    <string name="rswap_size">Размер RSWAP</string>
+    <string name="rswap_configuration">Настройки RSWAP</string>
+    <string name="rswap_applying_changes">Применение изменений...</string>
+    <string name="rswap_status">Статус RSWAP</string>
+    <string name="rswap_loaded_games">Загруженные игры</string>
+    <string name="rswap_no_games">Нет загруженных игр</string>
+    <string name="rswap_unload">Выгрузить игру</string>
+    <string name="rswap_unload_all">Выгрузить все игры</string>
+    <string name="manual_flush">Ручная очистка</string>
 </resources>

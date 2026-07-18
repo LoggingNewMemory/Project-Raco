@@ -195,5 +195,12 @@
     <string name="rswap_desc">Put the game on dedicated SWAP space so that it will launch faster next time.</string>
     <string name="enable_rswap">Enable RSWAP</string>
     <string name="rswap_size">RSWAP Size</string>
+    <string name="rswap_configuration">RSWAP Configuration</string>
+    <string name="rswap_applying_changes">Applying changes...</string>
+    <string name="rswap_status">RSWAP Status</string>
+    <string name="rswap_loaded_games">Loaded Games</string>
+    <string name="rswap_no_games">No Games Loaded</string>
+    <string name="rswap_unload">Unload Game</string>
+    <string name="rswap_unload_all">Unload All Games</string>
     <string name="manual_flush">Manual Flush</string>
 </resources>

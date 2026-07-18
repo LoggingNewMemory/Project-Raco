@@ -182,4 +182,16 @@ Project Raco Memerlukan Root</string>
     <string name="game_mode_standard">Standar</string>
     <string name="game_mode_performance">Performa</string>
     <string name="game_mode_battery">Baterai</string>
+    <string name="rswap_title">RSWAP (Raco SWAP)</string>
+    <string name="enable_rswap">Aktifkan RSWAP</string>
+    <string name="rswap_desc">Simpan game di ruang SWAP khusus agar memuat lebih cepat di lain waktu.</string>
+    <string name="rswap_size">Ukuran RSWAP</string>
+    <string name="rswap_configuration">Konfigurasi RSWAP</string>
+    <string name="rswap_applying_changes">Menerapkan perubahan...</string>
+    <string name="rswap_status">Status RSWAP</string>
+    <string name="rswap_loaded_games">Game yang Dimuat</string>
+    <string name="rswap_no_games">Tidak Ada Game yang Dimuat</string>
+    <string name="rswap_unload">Bongkar Game</string>
+    <string name="rswap_unload_all">Bongkar Semua Game</string>
+    <string name="manual_flush">Pembersihan Manual</string>
 </resources>
