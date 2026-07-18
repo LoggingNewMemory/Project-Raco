@@ -24,6 +24,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -39,10 +40,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import androidx.compose.animation.core.*
 
 class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private var composeView: ComposeView? = null
+    val selectedModeState = mutableStateOf("Awaken")
+    val isExecutingState = mutableStateOf(false)
+    val executingModeState = mutableStateOf("")
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val store = ViewModelStore()
@@ -100,7 +105,10 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
                             params.y = buttonY
                             windowManager.updateViewLayout(this, params)
                         },
-                        context = context
+                        context = context,
+                        selectedModeState = selectedModeState,
+                        isExecutingState = isExecutingState,
+                        executingModeState = executingModeState
                     )
                 }
             }
@@ -143,17 +151,45 @@ fun GameSpaceContent(
     onExpand: () -> Unit,
     onCollapse: () -> Unit,
     onDrag: (Float, Float) -> Unit,
-    context: Context
+    context: Context,
+    selectedModeState: MutableState<String>,
+    isExecutingState: MutableState<Boolean>,
+    executingModeState: MutableState<String>
 ) {
+    val themeColor by androidx.compose.animation.animateColorAsState(
+        when (selectedModeState.value) {
+            "Powersave" -> Color(0xFF4CAF50)
+            "Balanced" -> Color(0xFF2196F3)
+            "Awaken" -> Color(0xFFFF5722)
+            else -> Color(0xFFFF5722)
+        }
+    )
+
     if (!isExpanded) {
+        var lastInteraction by remember { mutableStateOf(System.currentTimeMillis()) }
+        var isIdle by remember { mutableStateOf(false) }
+
+        LaunchedEffect(lastInteraction) {
+            isIdle = false
+            delay(3000)
+            isIdle = true
+        }
+
+        val alpha by androidx.compose.animation.core.animateFloatAsState(if (isIdle) 0.4f else 1.0f)
+
         Box(
             modifier = Modifier
                 .size(52.dp)
+                .alpha(alpha)
                 .background(Color.Transparent)
                 .pointerInput(Unit) {
-                    detectDragGestures { change, dragAmount ->
+                    detectDragGestures(
+                        onDragStart = { lastInteraction = System.currentTimeMillis() },
+                        onDragEnd = { lastInteraction = System.currentTimeMillis() }
+                    ) { change, dragAmount ->
                         change.consume()
                         onDrag(dragAmount.x, dragAmount.y)
+                        lastInteraction = System.currentTimeMillis()
                     }
                 }
                 .padding(8.dp)
@@ -162,26 +198,29 @@ fun GameSpaceContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(CircleShape)
-                    .background(Brush.linearGradient(listOf(Color(0xFF2B2B2B).copy(alpha = 0.3f), Color(0xFF1A1A1A).copy(alpha = 0.3f))))
-                    .border(1.dp, Color(0xFF444444).copy(alpha = 0.3f), CircleShape)
-                    .clickable { onExpand() },
+                    .background(Color.White.copy(alpha = 0.15f))
+                    .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape)
+                    .clickable { 
+                        lastInteraction = System.currentTimeMillis()
+                        onExpand() 
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.SportsEsports,
                     contentDescription = "Game Space",
-                    tint = Color(0xFFFF5722),
+                    tint = Color.White,
                     modifier = Modifier.size(28.dp)
                 )
             }
         }
     } else {
-        GameSpaceDashboard(onCollapse = onCollapse, context = context)
+        GameSpaceDashboard(onCollapse = onCollapse, context = context, selectedModeState = selectedModeState, isExecutingState = isExecutingState, executingModeState = executingModeState, themeColor = themeColor)
     }
 }
 
 @Composable
-fun GameSpaceDashboard(onCollapse: () -> Unit, context: Context) {
+fun GameSpaceDashboard(onCollapse: () -> Unit, context: Context, selectedModeState: MutableState<String>, isExecutingState: MutableState<Boolean>, executingModeState: MutableState<String>, themeColor: Color) {
     var selectedTab by remember { mutableStateOf("Performance") }
     
     Box(
@@ -213,12 +252,14 @@ fun GameSpaceDashboard(onCollapse: () -> Unit, context: Context) {
                     icon = Icons.Default.Speed,
                     label = "Performance",
                     isSelected = selectedTab == "Performance",
+                    themeColor = themeColor,
                     onClick = { selectedTab = "Performance" }
                 )
                 SidebarItem(
                     icon = Icons.Default.Widgets,
                     label = "Tools",
                     isSelected = selectedTab == "Tools",
+                    themeColor = themeColor,
                     onClick = { selectedTab = "Tools" }
                 )
             }
@@ -233,7 +274,7 @@ fun GameSpaceDashboard(onCollapse: () -> Unit, context: Context) {
                     .padding(12.dp)
             ) {
                 if (selectedTab == "Performance") {
-                    PerformanceTab(context)
+                    PerformanceTab(context, selectedModeState, isExecutingState, executingModeState, themeColor)
                 } else {
                     ToolsTab()
                 }
@@ -243,7 +284,7 @@ fun GameSpaceDashboard(onCollapse: () -> Unit, context: Context) {
 }
 
 @Composable
-fun SidebarItem(icon: ImageVector, label: String, isSelected: Boolean, onClick: () -> Unit) {
+fun SidebarItem(icon: ImageVector, label: String, isSelected: Boolean, themeColor: Color, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable(onClick = onClick)
@@ -251,23 +292,22 @@ fun SidebarItem(icon: ImageVector, label: String, isSelected: Boolean, onClick: 
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = if (isSelected) Color(0xFFFF5722) else Color.Gray,
+            tint = if (isSelected) themeColor else Color.Gray,
             modifier = Modifier.size(28.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
             fontSize = 10.sp,
-            color = if (isSelected) Color(0xFFFF5722) else Color.Gray
+            color = if (isSelected) themeColor else Color.Gray
         )
     }
 }
 
 @Composable
-fun PerformanceTab(context: Context) {
+fun PerformanceTab(context: Context, selectedModeState: MutableState<String>, isExecutingState: MutableState<Boolean>, executingModeState: MutableState<String>, themeColor: Color) {
     var batteryLevel by remember { mutableStateOf("--") }
     var cpuUsage by remember { mutableStateOf("--") }
-    var selectedMode by remember { mutableStateOf("Balanced") }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -326,8 +366,8 @@ fun PerformanceTab(context: Context) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            StatCircle(title = "CPU", value = cpuUsage, unit = "MHz", highlight = true)
-            StatCircle(title = "Battery", value = batteryLevel, unit = "%", highlight = false)
+            StatCircle(title = "CPU", value = cpuUsage, unit = "MHz", highlight = true, themeColor = themeColor)
+            StatCircle(title = "Battery", value = batteryLevel, unit = "%", highlight = false, themeColor = themeColor)
         }
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -337,39 +377,69 @@ fun PerformanceTab(context: Context) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(44.dp)
-                .clip(RoundedCornerShape(22.dp))
-                .background(Color(0xFF2A2A2A)),
+                .background(Color.Transparent),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val modes = listOf(
-                "Powersave" to "2",
-                "Balanced" to "1",
-                "Awaken" to "4"
+                Triple("Powersave", "2", Color(0xFF4CAF50)),
+                Triple("Balanced", "1", Color(0xFF2196F3)),
+                Triple("Awaken", "4", Color(0xFFFF5722))
             )
-            modes.forEach { (modeLabel, cmdMode) ->
-                val isSelected = selectedMode == modeLabel
-                val bgColor by androidx.compose.animation.animateColorAsState(if (isSelected) Color(0xFFFF5722) else Color.Transparent)
-                val textColor by androidx.compose.animation.animateColorAsState(if (isSelected) Color.White else Color.LightGray)
+            modes.forEach { (modeLabel, cmdMode, modeColor) ->
+                val isSelected = selectedModeState.value == modeLabel
+                val isExecutingThis = isExecutingState.value && executingModeState.value == modeLabel
+                
+                val infiniteTransition = rememberInfiniteTransition()
+                val pulseAlpha by infiniteTransition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = if (isExecutingThis) 0.3f else 1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(400),
+                        repeatMode = RepeatMode.Reverse
+                    ), label = "pulse"
+                )
+
+                val bgColorTarget = if (isSelected || isExecutingThis) modeColor else Color.Transparent
+                val bgColor by androidx.compose.animation.animateColorAsState(bgColorTarget)
+                val textColor by androidx.compose.animation.animateColorAsState(if (isSelected || isExecutingThis) Color.White else Color.LightGray)
 
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(22.dp))
-                        .background(bgColor)
-                        .clickable { 
-                            selectedMode = modeLabel
+                        .background(bgColor.copy(alpha = if (isExecutingThis) pulseAlpha else 1f))
+                        .clickable(enabled = !isExecutingState.value) { 
+                            if (selectedModeState.value == modeLabel) return@clickable
+                            executingModeState.value = modeLabel
+                            isExecutingState.value = true
                             kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
                                 try {
-                                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $cmdMode")).waitFor()
+                                    val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $cmdMode"))
+                                    val reader = process.inputStream.bufferedReader()
+                                    while (isActive) {
+                                        val line = reader.readLine() ?: break
+                                        if (line.contains("PROGRESS: 100")) {
+                                            break
+                                        }
+                                    }
+                                    process.waitFor()
                                 } catch(e: Exception){}
+                                finally {
+                                    withContext(Dispatchers.Main) {
+                                        selectedModeState.value = modeLabel
+                                        executingModeState.value = ""
+                                        isExecutingState.value = false
+                                    }
+                                }
                             }
                         },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = modeLabel,
-                        color = textColor,
+                        color = textColor.copy(alpha = if (isExecutingThis) pulseAlpha else 1f),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -410,25 +480,25 @@ fun PerformanceTab(context: Context) {
                     .weight(1f)
                     .height(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, Color(0xFFFF5722), RoundedCornerShape(12.dp))
+                    .border(1.dp, themeColor, RoundedCornerShape(12.dp))
                     .background(Color(0xFF1E1E1E)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Ultra touch response", color = Color(0xFFFF5722), fontSize = 12.sp)
+                Text("Ultra touch response", color = themeColor, fontSize = 12.sp)
             }
         }
     }
 }
 
 @Composable
-fun StatCircle(title: String, value: String, unit: String, highlight: Boolean) {
+fun StatCircle(title: String, value: String, unit: String, highlight: Boolean, themeColor: Color) {
     Box(
         modifier = Modifier.size(72.dp),
         contentAlignment = Alignment.Center
     ) {
         androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
             drawArc(
-                color = if (highlight) Color(0xFFFF5722) else Color(0xFF333333),
+                color = if (highlight) themeColor else Color(0xFF333333),
                 startAngle = 135f,
                 sweepAngle = 270f,
                 useCenter = false,
