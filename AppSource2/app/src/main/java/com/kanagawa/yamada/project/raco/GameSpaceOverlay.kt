@@ -5,11 +5,14 @@ import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.BatteryManager
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -42,13 +45,22 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import androidx.compose.animation.core.*
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.scale
 
 class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private var composeView: ComposeView? = null
+    private var crosshairView: ComposeView? = null
     val selectedModeState = mutableStateOf("Awaken")
     val isExecutingState = mutableStateOf(false)
     val executingModeState = mutableStateOf("")
+    val isCrosshairActiveState = mutableStateOf(false)
+    
+    private val sharedPrefs = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+    val crosshairTypeState = mutableStateOf(sharedPrefs.getInt("crosshair_type", 1))
+    val crosshairSizeState = mutableStateOf(sharedPrefs.getFloat("crosshair_size", 32f))
+    val crosshairOpacityState = mutableStateOf(sharedPrefs.getFloat("crosshair_opacity", 1f))
+    val showCrosshairConfigState = mutableStateOf(false)
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val store = ViewModelStore()
@@ -59,7 +71,6 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
     override val savedStateRegistry: SavedStateRegistry get() = savedStateRegistryController.savedStateRegistry
 
     private var isExpanded by mutableStateOf(false)
-    private val sharedPrefs = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
     private var buttonX = sharedPrefs.getInt("overlay_x", 0)
     private var buttonY = sharedPrefs.getInt("overlay_y", 300)
 
@@ -105,11 +116,11 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
                         isExpanded = isExpanded,
                         onExpand = {
                             isExpanded = true
-                            updateLayoutParams()
+                            updateOverlayLayoutParams()
                         },
                         onCollapse = {
                             isExpanded = false
-                            updateLayoutParams()
+                            updateOverlayLayoutParams()
                         },
                         onDrag = { dx, dy ->
                             buttonX += dx.toInt()
@@ -129,7 +140,14 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
                         context = context,
                         selectedModeState = selectedModeState,
                         isExecutingState = isExecutingState,
-                        executingModeState = executingModeState
+                        executingModeState = executingModeState,
+                        isCrosshairActiveState = isCrosshairActiveState,
+                        onToggleCrosshair = { toggleCrosshair() },
+                        crosshairTypeState = crosshairTypeState,
+                        crosshairSizeState = crosshairSizeState,
+                        crosshairOpacityState = crosshairOpacityState,
+                        showCrosshairConfigState = showCrosshairConfigState,
+                        sharedPrefs = sharedPrefs
                     )
                 }
             }
@@ -141,6 +159,11 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
     }
 
     fun hide() {
+        if (crosshairView != null) {
+            windowManager.removeView(crosshairView)
+            crosshairView = null
+            isCrosshairActiveState.value = false
+        }
         composeView?.let {
             lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
             lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
@@ -149,8 +172,72 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
         }
         isExpanded = false
     }
+
+    private fun toggleCrosshair() {
+        Handler(Looper.getMainLooper()).post {
+            if (crosshairView != null) {
+                windowManager.removeView(crosshairView)
+                crosshairView = null
+                isCrosshairActiveState.value = false
+            } else {
+                isCrosshairActiveState.value = true
+                val metrics = android.util.DisplayMetrics()
+                windowManager.defaultDisplay.getRealMetrics(metrics)
+                val sizePx = (32 * metrics.density).toInt()
+
+                val crosshairParams = WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                    PixelFormat.TRANSLUCENT
+                ).apply {
+                    gravity = Gravity.CENTER
+                }
+
+                crosshairView = ComposeView(context).apply {
+                    setViewTreeLifecycleOwner(this@GameSpaceOverlay)
+                    setViewTreeViewModelStoreOwner(this@GameSpaceOverlay)
+                    setViewTreeSavedStateRegistryOwner(this@GameSpaceOverlay)
+                    
+                    setContent {
+                        val size by crosshairSizeState
+                        val opacity by crosshairOpacityState
+                        val type by crosshairTypeState
+                        val selectedMode by selectedModeState
+                        
+                        val adaptiveColor by androidx.compose.animation.animateColorAsState(
+                            when (selectedMode) {
+                                "Powersave" -> Color(0xFF4CAF50)
+                                "Balanced" -> Color(0xFF2196F3)
+                                "Awaken" -> Color(0xFFFF5722)
+                                else -> Color(0xFFFF5722)
+                            }
+                        )
+                        
+                        val drawableRes = when(type) {
+                            2 -> R.drawable.ic_crosshair_2
+                            3 -> R.drawable.ic_crosshair_3
+                            4 -> R.drawable.ic_crosshair_4
+                            else -> R.drawable.ic_crosshair_1
+                        }
+                        
+                        Box(modifier = Modifier.size(size.dp), contentAlignment = Alignment.Center) {
+                            Icon(
+                                painter = androidx.compose.ui.res.painterResource(id = drawableRes),
+                                contentDescription = "Crosshair",
+                                tint = adaptiveColor.copy(alpha = opacity),
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
+                }
+                windowManager.addView(crosshairView, crosshairParams)
+            }
+        }
+    }
     
-    private fun updateLayoutParams() {
+    fun updateOverlayLayoutParams() {
         if (isExpanded) {
             params.width = WindowManager.LayoutParams.MATCH_PARENT
             params.height = WindowManager.LayoutParams.MATCH_PARENT
@@ -175,7 +262,14 @@ fun GameSpaceContent(
     context: Context,
     selectedModeState: MutableState<String>,
     isExecutingState: MutableState<Boolean>,
-    executingModeState: MutableState<String>
+    executingModeState: MutableState<String>,
+    isCrosshairActiveState: MutableState<Boolean>,
+    onToggleCrosshair: () -> Unit,
+    crosshairTypeState: MutableState<Int>,
+    crosshairSizeState: MutableState<Float>,
+    crosshairOpacityState: MutableState<Float>,
+    showCrosshairConfigState: MutableState<Boolean>,
+    sharedPrefs: android.content.SharedPreferences
 ) {
     val themeColor by androidx.compose.animation.animateColorAsState(
         when (selectedModeState.value) {
@@ -236,12 +330,40 @@ fun GameSpaceContent(
             }
         }
     } else {
-        GameSpaceDashboard(onCollapse = onCollapse, context = context, selectedModeState = selectedModeState, isExecutingState = isExecutingState, executingModeState = executingModeState, themeColor = themeColor)
+        GameSpaceDashboard(
+            onCollapse = onCollapse, 
+            context = context, 
+            selectedModeState = selectedModeState, 
+            isExecutingState = isExecutingState, 
+            executingModeState = executingModeState, 
+            themeColor = themeColor, 
+            isCrosshairActiveState = isCrosshairActiveState, 
+            onToggleCrosshair = onToggleCrosshair,
+            crosshairTypeState = crosshairTypeState,
+            crosshairSizeState = crosshairSizeState,
+            crosshairOpacityState = crosshairOpacityState,
+            showCrosshairConfigState = showCrosshairConfigState,
+            sharedPrefs = sharedPrefs
+        )
     }
 }
 
 @Composable
-fun GameSpaceDashboard(onCollapse: () -> Unit, context: Context, selectedModeState: MutableState<String>, isExecutingState: MutableState<Boolean>, executingModeState: MutableState<String>, themeColor: Color) {
+fun GameSpaceDashboard(
+    onCollapse: () -> Unit, 
+    context: Context, 
+    selectedModeState: MutableState<String>, 
+    isExecutingState: MutableState<Boolean>, 
+    executingModeState: MutableState<String>, 
+    themeColor: Color, 
+    isCrosshairActiveState: MutableState<Boolean>, 
+    onToggleCrosshair: () -> Unit,
+    crosshairTypeState: MutableState<Int>,
+    crosshairSizeState: MutableState<Float>,
+    crosshairOpacityState: MutableState<Float>,
+    showCrosshairConfigState: MutableState<Boolean>,
+    sharedPrefs: android.content.SharedPreferences
+) {
     var selectedTab by remember { mutableStateOf("Performance") }
     
     Box(
@@ -294,10 +416,23 @@ fun GameSpaceDashboard(onCollapse: () -> Unit, context: Context, selectedModeSta
                     .background(Color(0xFF121212).copy(alpha = 0.95f))
                     .padding(12.dp)
             ) {
-                if (selectedTab == "Performance") {
+                if (showCrosshairConfigState.value) {
+                    CrosshairConfigView(
+                        onDismissRequest = { showCrosshairConfigState.value = false },
+                        crosshairTypeState = crosshairTypeState,
+                        crosshairSizeState = crosshairSizeState,
+                        crosshairOpacityState = crosshairOpacityState,
+                        sharedPrefs = sharedPrefs
+                    )
+                } else if (selectedTab == "Performance") {
                     PerformanceTab(context, selectedModeState, isExecutingState, executingModeState, themeColor)
                 } else {
-                    ToolsTab()
+                    ToolsTab(
+                        isCrosshairActiveState = isCrosshairActiveState, 
+                        onToggleCrosshair = onToggleCrosshair, 
+                        themeColor = themeColor,
+                        showCrosshairConfigState = showCrosshairConfigState
+                    )
                 }
             }
         }
@@ -604,16 +739,18 @@ fun StatCircle(title: String, value: String, unit: String, highlight: Boolean, t
     }
 }
 
+data class ToolData(val title: String, val iconRes: Int?, val iconVector: ImageVector?, val action: () -> Unit, val onLongClick: (() -> Unit)? = null)
+
 @Composable
-fun ToolsTab() {
+fun ToolsTab(isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>) {
     val coroutineScope = rememberCoroutineScope()
     val tools = listOf(
-        Triple("WLAN", Icons.Default.Wifi) { Runtime.getRuntime().exec(arrayOf("su", "-c", "svc wifi disable")) },
-        Triple("Network", Icons.Default.Public) { Runtime.getRuntime().exec(arrayOf("su", "-c", "svc data disable")) },
-        Triple("Cleanup", Icons.Default.CleaningServices) { Runtime.getRuntime().exec(arrayOf("su", "-c", "echo 3 > /proc/sys/vm/drop_caches")) },
-        Triple("Screenshot", Icons.Default.CameraAlt) { Runtime.getRuntime().exec(arrayOf("su", "-c", "input keyevent 120")) },
-        Triple("Record", Icons.Default.Videocam) { },
-        Triple("Bullet Notif", Icons.Default.Message) { }
+        ToolData("Crosshair", R.drawable.ic_crosshair_1, null, { onToggleCrosshair() }, onLongClick = { showCrosshairConfigState.value = true }),
+        ToolData("WLAN", null, Icons.Default.Wifi, { Runtime.getRuntime().exec(arrayOf("su", "-c", "svc wifi disable")) }),
+        ToolData("Network", null, Icons.Default.Public, { Runtime.getRuntime().exec(arrayOf("su", "-c", "svc data disable")) }),
+        ToolData("Cleanup", null, Icons.Default.CleaningServices, { Runtime.getRuntime().exec(arrayOf("su", "-c", "echo 3 > /proc/sys/vm/drop_caches")) }),
+        ToolData("Screenshot", null, Icons.Default.CameraAlt, { Runtime.getRuntime().exec(arrayOf("su", "-c", "input keyevent 120")) }),
+        ToolData("Record", null, Icons.Default.Videocam, { })
     )
     
     Column(
@@ -633,19 +770,30 @@ fun ToolsTab() {
         for (row in 0 until 2) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 for (col in 0 until 3) {
                     val index = row * 3 + col
                     if (index < tools.size) {
                         val tool = tools[index]
-                        ToolItem(title = tool.first, icon = tool.second as ImageVector) {
+                        val isCrosshairActive = tool.title == "Crosshair" && isCrosshairActiveState.value
+                        ToolItem(
+                            title = tool.title, 
+                            iconRes = tool.iconRes,
+                            icon = tool.iconVector, 
+                            modifier = Modifier.weight(1f),
+                            isActive = isCrosshairActive,
+                            themeColor = themeColor,
+                            onLongClick = tool.onLongClick
+                        ) {
                             coroutineScope.launch(Dispatchers.IO) {
                                 try {
-                                    (tool.third as () -> Unit).invoke()
+                                    tool.action.invoke()
                                 } catch (e: Exception) {}
                             }
                         }
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
@@ -653,29 +801,120 @@ fun ToolsTab() {
     }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-fun ToolItem(title: String, icon: ImageVector, onClick: () -> Unit) {
+fun ToolItem(title: String, iconRes: Int? = null, icon: ImageVector? = null, modifier: Modifier = Modifier, isActive: Boolean = false, themeColor: Color = Color.White, onLongClick: (() -> Unit)? = null, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .width(72.dp)
+        modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF2A2A2A))
-            .clickable(onClick = onClick)
-            .padding(10.dp)
+            .background(if (isActive) Color(0xFFE0E0E0) else Color(0xFF2A2A2A))
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
+            .padding(vertical = 14.dp, horizontal = 4.dp)
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            tint = Color.White,
-            modifier = Modifier.size(24.dp)
-        )
+        if (iconRes != null) {
+            Icon(
+                painter = androidx.compose.ui.res.painterResource(id = iconRes),
+                contentDescription = title,
+                tint = if (isActive) Color.Black else Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+        } else if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = if (isActive) Color.Black else Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = title,
-            color = Color.LightGray,
+            color = if (isActive) Color.Black else Color.LightGray,
             fontSize = 10.sp,
             maxLines = 1
+        )
+    }
+}
+
+@Composable
+fun CrosshairConfigView(
+    onDismissRequest: () -> Unit,
+    crosshairTypeState: MutableState<Int>,
+    crosshairSizeState: MutableState<Float>,
+    crosshairOpacityState: MutableState<Float>,
+    sharedPrefs: android.content.SharedPreferences
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Crosshair Settings", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            IconButton(onClick = onDismissRequest, modifier = Modifier.size(24.dp)) {
+                Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = Color.Gray)
+            }
+        }
+        
+        Text("Style", color = Color.Gray, fontSize = 12.sp)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            for (i in 1..4) {
+                val drawableRes = when(i) {
+                    2 -> R.drawable.ic_crosshair_2
+                    3 -> R.drawable.ic_crosshair_3
+                    4 -> R.drawable.ic_crosshair_4
+                    else -> R.drawable.ic_crosshair_1
+                }
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (crosshairTypeState.value == i) Color(0xFF4CAF50) else Color(0xFF2A2A2A))
+                        .clickable { 
+                            crosshairTypeState.value = i 
+                            sharedPrefs.edit().putInt("crosshair_type", i).apply()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = androidx.compose.ui.res.painterResource(id = drawableRes),
+                        contentDescription = "Crosshair $i",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Size", color = Color.Gray, fontSize = 12.sp)
+        Slider(
+            value = crosshairSizeState.value,
+            onValueChange = { 
+                crosshairSizeState.value = it 
+                sharedPrefs.edit().putFloat("crosshair_size", it).apply()
+            },
+            valueRange = 16f..128f
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Opacity", color = Color.Gray, fontSize = 12.sp)
+        Slider(
+            value = crosshairOpacityState.value,
+            onValueChange = { 
+                crosshairOpacityState.value = it 
+                sharedPrefs.edit().putFloat("crosshair_opacity", it).apply()
+            },
+            valueRange = 0.1f..1f
         )
     }
 }

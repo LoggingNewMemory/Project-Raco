@@ -1,9 +1,12 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.1 Chrome/142.0.7444.265 Electron/39.8.0 Safari/537.36">
   <diagram name="Page-1" id="RafS2GZK1M6LYWt_0SCt">
-    <mxGraphModel dx="1825" dy="670" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2028" dy="810" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="jfDjjWUG67XrfJvn7yyf-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="630" width="620" x="190" y="1680" as="geometry" />
+        </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-32" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
           <mxGeometry height="640" width="1020" x="-840" y="1690" as="geometry" />
         </mxCell>
@@ -275,40 +278,40 @@
           <mxGeometry height="100" width="295" x="-555" y="2190" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-34" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="Game Assistant Service Design" vertex="1">
-          <mxGeometry height="50" width="170" x="230" y="1690" as="geometry" />
+          <mxGeometry height="50" width="170" x="200" y="1690" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-37" edge="1" parent="1" source="eyppIntXDMKMuIVPNFLS-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="eyppIntXDMKMuIVPNFLS-36">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-35" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="Using&amp;nbsp;AccessibilityService and listen to&amp;nbsp;&lt;code data-path-to-node=&quot;7,0,0&quot; data-index-in-node=&quot;102&quot;&gt;TYPE_WINDOW_STATE_CHANGED&lt;/code&gt; event&amp;nbsp;" vertex="1">
-          <mxGeometry height="60" width="250" x="255" y="1860" as="geometry" />
+          <mxGeometry height="60" width="250" x="225" y="1860" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-41" edge="1" parent="1" source="eyppIntXDMKMuIVPNFLS-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="eyppIntXDMKMuIVPNFLS-40">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-36" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Whenever the user opens an app, closes an app, or switches tasks, this event fires instantly, handing you the packageName of the new foreground app." vertex="1">
-          <mxGeometry height="100" width="250" x="255" y="1950" as="geometry" />
+          <mxGeometry height="100" width="250" x="225" y="1950" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-39" edge="1" parent="1" source="eyppIntXDMKMuIVPNFLS-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="eyppIntXDMKMuIVPNFLS-35">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-38" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Can use to auto grant&lt;div&gt;settings put secure enabled_accessibility_services com.your.package/com.your.package.YourService&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;(TODO: RENAME LATER)&lt;/div&gt;" vertex="1">
-          <mxGeometry height="80" width="300" x="230" y="1750" as="geometry" />
+          <mxGeometry height="80" width="300" x="200" y="1750" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-43" edge="1" parent="1" source="eyppIntXDMKMuIVPNFLS-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="eyppIntXDMKMuIVPNFLS-42">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-40" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Pass it to C Code, C code will receive it via POSIX (Direct Execution)&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;it will do ProcessBuilder method&lt;div&gt;(using args (Ex: ./raco load))&lt;/div&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="110" width="255" x="252.5" y="2080" as="geometry" />
+          <mxGeometry height="110" width="255" x="222.5" y="2080" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-42" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="On C&amp;nbsp;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;catches those arguments natively using the standard int main(int argc, char *argv[])&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="257.5" x="251.25" y="2220" as="geometry" />
+          <mxGeometry height="70" width="257.5" x="221.25" y="2220" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-46" edge="1" parent="1" source="eyppIntXDMKMuIVPNFLS-45" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="eyppIntXDMKMuIVPNFLS-38">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-45" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="NOTE&lt;div&gt;Because of new android fckery about OOM&lt;/div&gt;&lt;div&gt;We need a silent notification&lt;br&gt;&lt;br&gt;&quot;Project Raco Game Assistant is Running&quot;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;In order to Game Assistant not get killed&lt;/div&gt;" vertex="1">
-          <mxGeometry height="110" width="270" x="560" y="1735" as="geometry" />
+          <mxGeometry height="110" width="270" x="530" y="1735" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
