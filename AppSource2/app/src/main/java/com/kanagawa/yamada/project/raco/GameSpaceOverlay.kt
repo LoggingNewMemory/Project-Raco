@@ -397,8 +397,9 @@ fun PerformanceTab(context: Context, selectedModeState: MutableState<String>, is
             modifier = Modifier
                 .fillMaxWidth()
                 .height(44.dp)
-                .background(Color.Transparent),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                .clip(RoundedCornerShape(22.dp))
+                .background(Color(0xFF222222))
+                .padding(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val modes = listOf(
@@ -422,14 +423,14 @@ fun PerformanceTab(context: Context, selectedModeState: MutableState<String>, is
 
                 val bgColorTarget = if (isSelected || isExecutingThis) modeColor else Color.Transparent
                 val bgColor by androidx.compose.animation.animateColorAsState(bgColorTarget)
-                val textColor by androidx.compose.animation.animateColorAsState(if (isSelected || isExecutingThis) Color.White else Color.LightGray)
+                val textColor by androidx.compose.animation.animateColorAsState(if (isSelected || isExecutingThis) Color(0xFF121212) else Color.Gray)
 
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(22.dp))
-                        .background(bgColor.copy(alpha = if (isExecutingThis) pulseAlpha else 1f))
+                        .background(if (isExecutingThis) bgColor.copy(alpha = pulseAlpha) else bgColor)
                         .clickable(enabled = !isExecutingState.value) { 
                             if (selectedModeState.value == modeLabel) return@clickable
                             executingModeState.value = modeLabel
@@ -461,7 +462,7 @@ fun PerformanceTab(context: Context, selectedModeState: MutableState<String>, is
                         text = modeLabel,
                         color = textColor.copy(alpha = if (isExecutingThis) pulseAlpha else 1f),
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = if (isSelected || isExecutingThis) FontWeight.Bold else FontWeight.Normal
                     )
                 }
             }
