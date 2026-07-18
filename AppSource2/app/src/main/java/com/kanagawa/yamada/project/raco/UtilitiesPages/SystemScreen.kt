@@ -52,7 +52,7 @@ private suspend fun sysWriteKey(key: String, value: String) {
 
 private suspend fun sysSetAyundaRusdiEnabled(enabled: Boolean) {
     val v = if (enabled) "1" else "0"
-    sysRunRoot("grep -q '^AYUNDA_RUSDI ' $SYS_CONFIG && sed -i 's|^AYUNDA_RUSDI.*|AYUNDA_RUSDI $v|' $SYS_CONFIG || echo 'AYUNDA_RUSDI $v' >> $SYS_CONFIG")
+    sysRunRoot("grep -q '^AYUNDA_RUSDI ' $SYS_CONFIG && sed -i 's|^AYUNDA_RUSDI .*|AYUNDA_RUSDI $v|' $SYS_CONFIG || echo 'AYUNDA_RUSDI $v' >> $SYS_CONFIG")
 }
 
 private suspend fun sysUpdateAyundaScript(r: Float, g: Float, b: Float, s: Float) {
