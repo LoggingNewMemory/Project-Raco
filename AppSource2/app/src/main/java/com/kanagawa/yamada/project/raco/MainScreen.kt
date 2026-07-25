@@ -331,9 +331,9 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
 
                     item {
                         // Status Row
-                        Row(modifier = Modifier.fillMaxWidth()) {
+                        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max)) {
                             Card(
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f).fillMaxHeight(),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
                                 Column(modifier = Modifier.padding(12.dp)) {
@@ -347,7 +347,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                             }
                             Spacer(modifier = Modifier.width(10.dp))
                             Card(
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f).fillMaxHeight(),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
                                 Column(modifier = Modifier.padding(12.dp)) {
