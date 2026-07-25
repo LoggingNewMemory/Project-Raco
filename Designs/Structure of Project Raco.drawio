@@ -236,7 +236,7 @@
         <mxCell id="eyppIntXDMKMuIVPNFLS-9" parent="eyppIntXDMKMuIVPNFLS-16" style="rounded=0;whiteSpace=wrap;html=1;" value="Using fallocate to allocates the RSWAP according to user&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Create on /data/ProjectRaco/RSWAP&lt;/div&gt;" vertex="1">
           <mxGeometry height="100" width="220" x="10" y="50" as="geometry" />
         </mxCell>
-        <mxCell id="eyppIntXDMKMuIVPNFLS-10" parent="eyppIntXDMKMuIVPNFLS-16" style="rounded=0;whiteSpace=wrap;html=1;" value="Bind (losetup) and use mkswap and swapon to activate RSWAP" vertex="1">
+        <mxCell id="eyppIntXDMKMuIVPNFLS-10" parent="eyppIntXDMKMuIVPNFLS-16" style="rounded=0;whiteSpace=wrap;html=1;" value="Directly use chmod 0600, mkswap, and swapon (with priority) to activate RSWAP on the file (no losetup required)" vertex="1">
           <mxGeometry height="100" width="200" x="260" y="50" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-14" parent="eyppIntXDMKMuIVPNFLS-16" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="On Setup and Configurations" vertex="1">
