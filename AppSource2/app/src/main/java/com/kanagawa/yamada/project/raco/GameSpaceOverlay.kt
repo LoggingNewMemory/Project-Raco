@@ -60,6 +60,7 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
     val crosshairTypeState = mutableStateOf(sharedPrefs.getInt("crosshair_type", 1))
     val crosshairSizeState = mutableStateOf(sharedPrefs.getFloat("crosshair_size", 32f))
     val crosshairOpacityState = mutableStateOf(sharedPrefs.getFloat("crosshair_opacity", 1f))
+    val crosshairColorState = mutableStateOf(sharedPrefs.getString("crosshair_color", "White") ?: "White")
     val showCrosshairConfigState = mutableStateOf(false)
 
     private val lifecycleRegistry = LifecycleRegistry(this)
@@ -146,6 +147,7 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
                         crosshairTypeState = crosshairTypeState,
                         crosshairSizeState = crosshairSizeState,
                         crosshairOpacityState = crosshairOpacityState,
+                        crosshairColorState = crosshairColorState,
                         showCrosshairConfigState = showCrosshairConfigState,
                         sharedPrefs = sharedPrefs
                     )
@@ -204,16 +206,14 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
                         val size by crosshairSizeState
                         val opacity by crosshairOpacityState
                         val type by crosshairTypeState
-                        val selectedMode by selectedModeState
+                        val colorStr by crosshairColorState
                         
-                        val adaptiveColor by androidx.compose.animation.animateColorAsState(
-                            when (selectedMode) {
-                                "Powersave" -> Color(0xFF4CAF50)
-                                "Balanced" -> Color(0xFF2196F3)
-                                "Awaken" -> Color(0xFFFF5722)
-                                else -> Color(0xFFFF5722)
-                            }
-                        )
+                        val actualColor = when(colorStr) {
+                            "Red" -> Color.Red
+                            "Blue" -> Color.Blue
+                            "Green" -> Color.Green
+                            else -> Color.White
+                        }
                         
                         val drawableRes = when(type) {
                             2 -> R.drawable.ic_crosshair_2
@@ -226,7 +226,7 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
                             Icon(
                                 painter = androidx.compose.ui.res.painterResource(id = drawableRes),
                                 contentDescription = "Crosshair",
-                                tint = adaptiveColor.copy(alpha = opacity),
+                                tint = actualColor.copy(alpha = opacity),
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
@@ -268,6 +268,7 @@ fun GameSpaceContent(
     crosshairTypeState: MutableState<Int>,
     crosshairSizeState: MutableState<Float>,
     crosshairOpacityState: MutableState<Float>,
+    crosshairColorState: MutableState<String>,
     showCrosshairConfigState: MutableState<Boolean>,
     sharedPrefs: android.content.SharedPreferences
 ) {
@@ -342,6 +343,7 @@ fun GameSpaceContent(
             crosshairTypeState = crosshairTypeState,
             crosshairSizeState = crosshairSizeState,
             crosshairOpacityState = crosshairOpacityState,
+            crosshairColorState = crosshairColorState,
             showCrosshairConfigState = showCrosshairConfigState,
             sharedPrefs = sharedPrefs
         )
@@ -361,6 +363,7 @@ fun GameSpaceDashboard(
     crosshairTypeState: MutableState<Int>,
     crosshairSizeState: MutableState<Float>,
     crosshairOpacityState: MutableState<Float>,
+    crosshairColorState: MutableState<String>,
     showCrosshairConfigState: MutableState<Boolean>,
     sharedPrefs: android.content.SharedPreferences
 ) {
@@ -422,6 +425,8 @@ fun GameSpaceDashboard(
                         crosshairTypeState = crosshairTypeState,
                         crosshairSizeState = crosshairSizeState,
                         crosshairOpacityState = crosshairOpacityState,
+                        crosshairColorState = crosshairColorState,
+                        themeColor = themeColor,
                         sharedPrefs = sharedPrefs
                     )
                 } else if (selectedTab == "Performance") {
@@ -846,6 +851,8 @@ fun CrosshairConfigView(
     crosshairTypeState: MutableState<Int>,
     crosshairSizeState: MutableState<Float>,
     crosshairOpacityState: MutableState<Float>,
+    crosshairColorState: MutableState<String>,
+    themeColor: Color,
     sharedPrefs: android.content.SharedPreferences
 ) {
     Column(
@@ -880,7 +887,7 @@ fun CrosshairConfigView(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(if (crosshairTypeState.value == i) Color(0xFF4CAF50) else Color(0xFF2A2A2A))
+                        .background(if (crosshairTypeState.value == i) themeColor else Color(0xFF2A2A2A))
                         .clickable { 
                             crosshairTypeState.value = i 
                             sharedPrefs.edit().putInt("crosshair_type", i).apply()
@@ -893,6 +900,29 @@ fun CrosshairConfigView(
                         tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Color", color = Color.Gray, fontSize = 12.sp)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            val colors = listOf("White" to Color.White, "Red" to Color.Red, "Blue" to Color.Blue, "Green" to Color.Green)
+            for ((colorName, colorValue) in colors) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (crosshairColorState.value == colorName) themeColor else Color(0xFF2A2A2A))
+                        .clickable { 
+                            crosshairColorState.value = colorName 
+                            sharedPrefs.edit().putString("crosshair_color", colorName).apply()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(colorValue).border(1.dp, Color.Gray, CircleShape))
                 }
             }
         }
