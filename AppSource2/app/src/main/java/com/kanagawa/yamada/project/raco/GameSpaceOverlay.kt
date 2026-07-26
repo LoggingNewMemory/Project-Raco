@@ -397,16 +397,22 @@ fun GameSpaceDashboard(
                 SidebarItem(
                     icon = Icons.Default.Speed,
                     label = "Performance",
-                    isSelected = selectedTab == "Performance",
+                    isSelected = selectedTab == "Performance" && !showCrosshairConfigState.value,
                     themeColor = themeColor,
-                    onClick = { selectedTab = "Performance" }
+                    onClick = { 
+                        selectedTab = "Performance"
+                        showCrosshairConfigState.value = false
+                    }
                 )
                 SidebarItem(
                     icon = Icons.Default.Widgets,
                     label = "Tools",
-                    isSelected = selectedTab == "Tools",
+                    isSelected = selectedTab == "Tools" || showCrosshairConfigState.value,
                     themeColor = themeColor,
-                    onClick = { selectedTab = "Tools" }
+                    onClick = { 
+                        selectedTab = "Tools"
+                        showCrosshairConfigState.value = false
+                    }
                 )
             }
             
