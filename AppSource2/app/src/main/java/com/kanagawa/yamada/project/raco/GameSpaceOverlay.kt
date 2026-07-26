@@ -757,11 +757,8 @@ fun ToolsTab(isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: (
     val coroutineScope = rememberCoroutineScope()
     val tools = listOf(
         ToolData("Crosshair", R.drawable.ic_crosshair_1, null, { onToggleCrosshair() }, onLongClick = { showCrosshairConfigState.value = true }),
-        ToolData("WLAN", null, Icons.Default.Wifi, { Runtime.getRuntime().exec(arrayOf("su", "-c", "svc wifi disable")) }),
-        ToolData("Network", null, Icons.Default.Public, { Runtime.getRuntime().exec(arrayOf("su", "-c", "svc data disable")) }),
         ToolData("Cleanup", null, Icons.Default.CleaningServices, { Runtime.getRuntime().exec(arrayOf("su", "-c", "echo 3 > /proc/sys/vm/drop_caches")) }),
-        ToolData("Screenshot", null, Icons.Default.CameraAlt, { Runtime.getRuntime().exec(arrayOf("su", "-c", "input keyevent 120")) }),
-        ToolData("Record", null, Icons.Default.Videocam, { })
+        ToolData("Screenshot", null, Icons.Default.CameraAlt, { Runtime.getRuntime().exec(arrayOf("su", "-c", "input keyevent 120")) })
     )
     
     Column(
