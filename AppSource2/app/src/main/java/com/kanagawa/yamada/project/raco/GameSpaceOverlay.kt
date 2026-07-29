@@ -103,7 +103,23 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
     }
 
-    fun show() {
+    val currentPackageState = mutableStateOf("")
+
+    fun show(packageName: String) {
+        currentPackageState.value = packageName
+        selectedModeState.value = sharedPrefs.getString("raco_game_mode_$packageName", "Awaken") ?: "Awaken"
+        crosshairTypeState.value = sharedPrefs.getInt("crosshair_type_$packageName", sharedPrefs.getInt("crosshair_type", 1))
+        crosshairSizeState.value = sharedPrefs.getFloat("crosshair_size_$packageName", sharedPrefs.getFloat("crosshair_size", 32f))
+        crosshairOpacityState.value = sharedPrefs.getFloat("crosshair_opacity_$packageName", sharedPrefs.getFloat("crosshair_opacity", 1f))
+        crosshairColorState.value = sharedPrefs.getString("crosshair_color_$packageName", sharedPrefs.getString("crosshair_color", "White")) ?: "White"
+
+        val savedCrosshairActive = sharedPrefs.getBoolean("crosshair_active_$packageName", false)
+        if (savedCrosshairActive) {
+            if (crosshairView == null) toggleCrosshair(true)
+        } else {
+            if (crosshairView != null) toggleCrosshair(false)
+        }
+
         if (composeView != null) return
 
         composeView = ComposeView(context).apply {
@@ -114,6 +130,7 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
             setContent {
                 MaterialTheme(colorScheme = darkColorScheme()) {
                     GameSpaceContent(
+                        currentPackage = currentPackageState.value,
                         isExpanded = isExpanded,
                         onExpand = {
                             isExpanded = true
@@ -175,14 +192,18 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
         isExpanded = false
     }
 
-    private fun toggleCrosshair() {
+    private fun toggleCrosshair(forceState: Boolean? = null) {
         Handler(Looper.getMainLooper()).post {
-            if (crosshairView != null) {
+            val pkg = currentPackageState.value
+            val targetState = forceState ?: (crosshairView == null)
+            if (!targetState && crosshairView != null) {
                 windowManager.removeView(crosshairView)
                 crosshairView = null
                 isCrosshairActiveState.value = false
-            } else {
+                if (pkg.isNotEmpty()) sharedPrefs.edit().putBoolean("crosshair_active_$pkg", false).apply()
+            } else if (targetState && crosshairView == null) {
                 isCrosshairActiveState.value = true
+                if (pkg.isNotEmpty()) sharedPrefs.edit().putBoolean("crosshair_active_$pkg", true).apply()
                 val metrics = android.util.DisplayMetrics()
                 windowManager.defaultDisplay.getRealMetrics(metrics)
                 val sizePx = (32 * metrics.density).toInt()
@@ -255,6 +276,7 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
 
 @Composable
 fun GameSpaceContent(
+    currentPackage: String,
     isExpanded: Boolean,
     onExpand: () -> Unit,
     onCollapse: () -> Unit,
@@ -332,6 +354,7 @@ fun GameSpaceContent(
         }
     } else {
         GameSpaceDashboard(
+            currentPackage = currentPackage,
             onCollapse = onCollapse, 
             context = context, 
             selectedModeState = selectedModeState, 
@@ -352,6 +375,7 @@ fun GameSpaceContent(
 
 @Composable
 fun GameSpaceDashboard(
+    currentPackage: String,
     onCollapse: () -> Unit, 
     context: Context, 
     selectedModeState: MutableState<String>, 
@@ -427,6 +451,7 @@ fun GameSpaceDashboard(
             ) {
                 if (showCrosshairConfigState.value) {
                     CrosshairConfigView(
+                        currentPackage = currentPackage,
                         onDismissRequest = { showCrosshairConfigState.value = false },
                         crosshairTypeState = crosshairTypeState,
                         crosshairSizeState = crosshairSizeState,
@@ -436,7 +461,7 @@ fun GameSpaceDashboard(
                         sharedPrefs = sharedPrefs
                     )
                 } else if (selectedTab == "Performance") {
-                    PerformanceTab(context, selectedModeState, isExecutingState, executingModeState, themeColor)
+                    PerformanceTab(context, currentPackage, selectedModeState, isExecutingState, executingModeState, themeColor, sharedPrefs)
                 } else {
                     ToolsTab(
                         isCrosshairActiveState = isCrosshairActiveState, 
@@ -472,7 +497,7 @@ fun SidebarItem(icon: ImageVector, label: String, isSelected: Boolean, themeColo
 }
 
 @Composable
-fun PerformanceTab(context: Context, selectedModeState: MutableState<String>, isExecutingState: MutableState<Boolean>, executingModeState: MutableState<String>, themeColor: Color) {
+fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: MutableState<String>, isExecutingState: MutableState<Boolean>, executingModeState: MutableState<String>, themeColor: Color, sharedPrefs: android.content.SharedPreferences) {
     var batteryLevel by remember { mutableStateOf("--") }
     var cpuUsage by remember { mutableStateOf("--") }
 
@@ -643,6 +668,9 @@ fun PerformanceTab(context: Context, selectedModeState: MutableState<String>, is
                                             selectedModeState.value = modeLabel
                                             executingModeState.value = ""
                                             isExecutingState.value = false
+                                            if (currentPackage.isNotEmpty()) {
+                                                sharedPrefs.edit().putString("raco_game_mode_$currentPackage", modeLabel).apply()
+                                            }
                                         }
                                     }
                                 }
@@ -674,7 +702,7 @@ fun PerformanceTab(context: Context, selectedModeState: MutableState<String>, is
             fontSize = 10.sp
         )
         Spacer(modifier = Modifier.height(8.dp))
-        var isUltraTouch by remember { mutableStateOf(false) }
+        var isUltraTouch by remember { mutableStateOf(sharedPrefs.getBoolean("ultra_touch_$currentPackage", false)) }
         
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -690,6 +718,7 @@ fun PerformanceTab(context: Context, selectedModeState: MutableState<String>, is
                     .clickable { 
                         if (!isUltraTouch) return@clickable
                         isUltraTouch = false
+                        if (currentPackage.isNotEmpty()) sharedPrefs.edit().putBoolean("ultra_touch_$currentPackage", false).apply()
                         kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
                             try {
                                 Runtime.getRuntime().exec(arrayOf("su", "-c", "settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec")).waitFor()
@@ -710,6 +739,7 @@ fun PerformanceTab(context: Context, selectedModeState: MutableState<String>, is
                     .clickable { 
                         if (isUltraTouch) return@clickable
                         isUltraTouch = true
+                        if (currentPackage.isNotEmpty()) sharedPrefs.edit().putBoolean("ultra_touch_$currentPackage", true).apply()
                         kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
                             try {
                                 Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system pointer_speed 7; setprop windowsmgr.max_events_per_sec 300")).waitFor()
@@ -850,6 +880,7 @@ fun ToolItem(title: String, iconRes: Int? = null, icon: ImageVector? = null, mod
 
 @Composable
 fun CrosshairConfigView(
+    currentPackage: String,
     onDismissRequest: () -> Unit,
     crosshairTypeState: MutableState<Int>,
     crosshairSizeState: MutableState<Float>,
@@ -894,6 +925,7 @@ fun CrosshairConfigView(
                         .clickable { 
                             crosshairTypeState.value = i 
                             sharedPrefs.edit().putInt("crosshair_type", i).apply()
+                            if (currentPackage.isNotEmpty()) sharedPrefs.edit().putInt("crosshair_type_$currentPackage", i).apply()
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -922,6 +954,7 @@ fun CrosshairConfigView(
                         .clickable { 
                             crosshairColorState.value = colorName 
                             sharedPrefs.edit().putString("crosshair_color", colorName).apply()
+                            if (currentPackage.isNotEmpty()) sharedPrefs.edit().putString("crosshair_color_$currentPackage", colorName).apply()
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -936,6 +969,7 @@ fun CrosshairConfigView(
             onValueChange = { 
                 crosshairSizeState.value = it 
                 sharedPrefs.edit().putFloat("crosshair_size", it).apply()
+                if (currentPackage.isNotEmpty()) sharedPrefs.edit().putFloat("crosshair_size_$currentPackage", it).apply()
             },
             valueRange = 16f..128f
         )
@@ -946,6 +980,7 @@ fun CrosshairConfigView(
             onValueChange = { 
                 crosshairOpacityState.value = it 
                 sharedPrefs.edit().putFloat("crosshair_opacity", it).apply()
+                if (currentPackage.isNotEmpty()) sharedPrefs.edit().putFloat("crosshair_opacity_$currentPackage", it).apply()
             },
             valueRange = 0.1f..1f
         )

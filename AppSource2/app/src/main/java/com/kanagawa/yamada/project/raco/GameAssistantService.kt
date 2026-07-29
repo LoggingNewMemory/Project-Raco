@@ -36,7 +36,7 @@ class GameAssistantService : AccessibilityService() {
 
     private fun showForegroundNotification() {
         val notification = Notification.Builder(this, "raco_game_assistant")
-            .setContentTitle("Project Raco Game Assistant is Running")
+            .setContentTitle("Raco Game Assistant is Running")
             .setSmallIcon(android.R.drawable.ic_menu_manage)
             .setOngoing(true)
             .build()
@@ -88,7 +88,7 @@ class GameAssistantService : AccessibilityService() {
             lastGamePackage = packageName
             showForegroundNotification()
             Handler(Looper.getMainLooper()).post {
-                gameSpaceOverlay?.show()
+                gameSpaceOverlay?.show(packageName)
             }
             CoroutineScope(Dispatchers.IO).launch {
                 try {
@@ -97,6 +97,22 @@ class GameAssistantService : AccessibilityService() {
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd game mode $gameMode $packageName")).waitFor()
                     }
                     Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load $packageName")).waitFor()
+                    
+                    val racoMode = sharedPrefs.getString("raco_game_mode_$packageName", "Awaken") ?: "Awaken"
+                    val cmdMode = when(racoMode) {
+                        "Powersave" -> "2"
+                        "Balanced" -> "1"
+                        "Awaken" -> "4"
+                        else -> "4"
+                    }
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $cmdMode")).waitFor()
+                    
+                    val ultraTouch = sharedPrefs.getBoolean("ultra_touch_$packageName", false)
+                    if (ultraTouch) {
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system pointer_speed 7; setprop windowsmgr.max_events_per_sec 300")).waitFor()
+                    } else {
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec")).waitFor()
+                    }
                 } catch (e: Exception) {}
             }
         } else if (!isGame && isCurrentlyInGame) {
@@ -113,11 +129,15 @@ class GameAssistantService : AccessibilityService() {
                         "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload"
                     }
                     Runtime.getRuntime().exec(arrayOf("su", "-c", unloadCmd)).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec")).waitFor()
                 } catch (e: Exception) {}
             }
         } else if (isGame && isCurrentlyInGame && packageName != lastGamePackage) {
             val oldGame = lastGamePackage
             lastGamePackage = packageName
+            Handler(Looper.getMainLooper()).post {
+                gameSpaceOverlay?.show(packageName)
+            }
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val unloadCmd = if (oldGame != null) {
@@ -127,6 +147,22 @@ class GameAssistantService : AccessibilityService() {
                     }
                     Runtime.getRuntime().exec(arrayOf("su", "-c", unloadCmd)).waitFor()
                     Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load $packageName")).waitFor()
+                    
+                    val racoMode = sharedPrefs.getString("raco_game_mode_$packageName", "Awaken") ?: "Awaken"
+                    val cmdMode = when(racoMode) {
+                        "Powersave" -> "2"
+                        "Balanced" -> "1"
+                        "Awaken" -> "4"
+                        else -> "4"
+                    }
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $cmdMode")).waitFor()
+                    
+                    val ultraTouch = sharedPrefs.getBoolean("ultra_touch_$packageName", false)
+                    if (ultraTouch) {
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system pointer_speed 7; setprop windowsmgr.max_events_per_sec 300")).waitFor()
+                    } else {
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec")).waitFor()
+                    }
                 } catch (e: Exception) {}
             }
         }
