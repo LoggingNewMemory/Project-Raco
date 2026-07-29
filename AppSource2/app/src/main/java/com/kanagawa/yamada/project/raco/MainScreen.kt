@@ -49,6 +49,16 @@ import com.kanagawa.yamada.project.raco.Screen
 import java.io.File
 import kotlin.random.Random
 
+object ExecutionManager {
+    var isExecuting by mutableStateOf(false)
+    var executingMode by mutableStateOf("")
+    var executionProgress by mutableFloatStateOf(0f)
+    var cooldownTimeRemaining by mutableIntStateOf(0)
+    var currentMode by mutableStateOf("NONE")
+    var executionJob: Job? = null
+    val scope = kotlinx.coroutines.CoroutineScope(Dispatchers.Main + kotlinx.coroutines.SupervisorJob())
+}
+
 @Composable
 fun MainScreen(onNavigate: (Screen) -> Unit) {
     val psTitle = stringResource(R.string.power_save)
@@ -63,18 +73,12 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
     val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
     val bannerImagePath = sharedPrefs.getString("banner_image_path", "")
 
-    var currentMode by remember { mutableStateOf("NONE") }
     var hasRoot by remember { mutableStateOf(false) }
     var gameAssistantEnabled by remember { mutableStateOf(false) }
     var checkingRoot by remember { mutableStateOf(true) }
-    var isExecuting by remember { mutableStateOf(false) }
-    var executingMode by remember { mutableStateOf("") }
-    var executionProgress by remember { mutableFloatStateOf(0f) }
     var moduleInstalled by remember { mutableStateOf(false) }
     var moduleVersion by remember { mutableStateOf("Unknown") }
     var swipeCount by remember { mutableIntStateOf(0) }
-    var executionJob: Job? by remember { mutableStateOf(null) }
-    var cooldownTimeRemaining by remember { mutableIntStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -150,18 +154,18 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
             if (moduleInstalled) {
                 moduleVersion = getAppVersion()
             }
-            currentMode = fetchActiveMode()
+            ExecutionManager.currentMode = fetchActiveMode()
             gameAssistantEnabled = checkGameAssistant()
         }
         checkingRoot = false
     }
 
     fun executeScript(modeArg: String, modeName: String) {
-        if (!hasRoot || isExecuting) return
-        isExecuting = true
-        executingMode = modeArg
-        executionProgress = 0f
-        executionJob = coroutineScope.launch {
+        if (!hasRoot || ExecutionManager.isExecuting) return
+        ExecutionManager.isExecuting = true
+        ExecutionManager.executingMode = modeArg
+        ExecutionManager.executionProgress = 0f
+        ExecutionManager.executionJob = ExecutionManager.scope.launch {
             var wasCancelled = false
             try {
                 if (modeName == "COOLDOWN") {
@@ -171,12 +175,12 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                     }
                     
                     for (i in 120 downTo 1) {
-                        cooldownTimeRemaining = i
-                        executionProgress = (120 - i) / 120f
+                        ExecutionManager.cooldownTimeRemaining = i
+                        ExecutionManager.executionProgress = (120 - i) / 120f
                         delay(1000)
                     }
-                    cooldownTimeRemaining = 0
-                    executionProgress = 1f
+                    ExecutionManager.cooldownTimeRemaining = 0
+                    ExecutionManager.executionProgress = 1f
                 } else {
                     withContext(Dispatchers.IO) {
                         val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco " + modeArg))
@@ -187,7 +191,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                                 line.substringAfter("PROGRESS:").trim().toFloatOrNull()?.let {
                                     val progressVal = it / 100f
                                     // Keep it at 95% until all background tasks and state saving are completely finished
-                                    executionProgress = if (progressVal >= 1f) 0.95f else progressVal
+                                    ExecutionManager.executionProgress = if (progressVal >= 1f) 0.95f else progressVal
                                 }
                                 if (line.contains("PROGRESS: 100")) {
                                     break
@@ -199,20 +203,20 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                             // Safely wait for state save so UI correctly updates
                             Runtime.getRuntime().exec(arrayOf("su", "-c", "grep -q '^STATE' $configPath && sed -i 's|^STATE.*|STATE $modeArg|' $configPath || echo 'STATE $modeArg' >> $configPath")).waitFor()
                         }
-                        executionProgress = 1f
+                        ExecutionManager.executionProgress = 1f
                     }
                 }
-                currentMode = if (modeName == "CLEAR") "NONE" else modeName
+                ExecutionManager.currentMode = if (modeName == "CLEAR") "NONE" else modeName
             } catch (e: CancellationException) {
                 wasCancelled = true
             } catch (e: Exception) {
             } finally {
-                isExecuting = false
-                executingMode = ""
-                executionProgress = 0f
-                currentMode = fetchActiveMode()
+                ExecutionManager.isExecuting = false
+                ExecutionManager.executingMode = ""
+                ExecutionManager.executionProgress = 0f
+                ExecutionManager.currentMode = fetchActiveMode()
                 
-                if (modeName == "COOLDOWN" && !wasCancelled && cooldownTimeRemaining == 0) {
+                if (modeName == "COOLDOWN" && !wasCancelled && ExecutionManager.cooldownTimeRemaining == 0) {
                     executeScript("1", "BALANCED")
                 }
             }
@@ -221,20 +225,20 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
 
     fun cancelExecution(canceledText: String) {
         if (!hasRoot) return
-        executionJob?.cancel()
-        executionJob = null
-        coroutineScope.launch {
+        ExecutionManager.executionJob?.cancel()
+        ExecutionManager.executionJob = null
+        ExecutionManager.scope.launch {
             withContext(Dispatchers.IO) {
                 try {
                     Runtime.getRuntime().exec(arrayOf("su", "-c", "killall raco")).waitFor()
                 } catch (e: Exception) {}
             }
-            isExecuting = false
-            executingMode = ""
-            executionProgress = 0f
-            cooldownTimeRemaining = 0
-            currentMode = fetchActiveMode()
-            snackbarHostState.showSnackbar(canceledText)
+            ExecutionManager.isExecuting = false
+            ExecutionManager.executingMode = ""
+            ExecutionManager.executionProgress = 0f
+            ExecutionManager.cooldownTimeRemaining = 0
+            ExecutionManager.currentMode = fetchActiveMode()
+            coroutineScope.launch { snackbarHostState.showSnackbar(canceledText) }
         }
     }
 
@@ -384,15 +388,15 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                     }
 
                     items(controlParams) { p ->
-                        val isCurr = currentMode == p.modeName
-                        val isExec = executingMode == p.modeId
+                        val isCurr = ExecutionManager.currentMode == p.modeName
+                        val isExec = ExecutionManager.executingMode == p.modeId
                         val bgColor = if (isCurr) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
                         
-                        val displayTitle = if (p.modeName == "COOLDOWN" && cooldownTimeRemaining > 0) {
-                            String.format("%02d:%02d", cooldownTimeRemaining / 60, cooldownTimeRemaining % 60)
+                        val displayTitle = if (p.modeName == "COOLDOWN" && ExecutionManager.cooldownTimeRemaining > 0) {
+                            String.format("%02d:%02d", ExecutionManager.cooldownTimeRemaining / 60, ExecutionManager.cooldownTimeRemaining % 60)
                         } else p.title
                         
-                        ControlRow(displayTitle, stringResource(p.descRes), p.icon, bgColor, isExec, if(isExec) executionProgress else 0f, isCurr, hasRoot && !isExecuting, onSwipeRight = {
+                        ControlRow(displayTitle, stringResource(p.descRes), p.icon, bgColor, isExec, if(isExec) ExecutionManager.executionProgress else 0f, isCurr, hasRoot && !ExecutionManager.isExecuting, onSwipeRight = {
                             swipeCount++
                             if (swipeCount >= 3) {
                                 cancelExecution(executionCanceledStr)
