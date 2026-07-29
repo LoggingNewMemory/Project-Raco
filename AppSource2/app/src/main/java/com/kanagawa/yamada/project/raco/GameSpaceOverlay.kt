@@ -842,10 +842,21 @@ data class ToolData(val title: String, val iconRes: Int?, val iconVector: ImageV
 @Composable
 fun ToolsTab(isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>) {
     val coroutineScope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
     val tools = listOf(
         ToolData("Crosshair", R.drawable.ic_crosshair_1, null, { onToggleCrosshair() }, onLongClick = { showCrosshairConfigState.value = true }),
-        ToolData("Cleanup", null, Icons.Default.CleaningServices, { Runtime.getRuntime().exec(arrayOf("su", "-c", "echo 3 > /proc/sys/vm/drop_caches")) }),
-        ToolData("Screenshot", null, Icons.Default.CameraAlt, { Runtime.getRuntime().exec(arrayOf("su", "-c", "input keyevent 120")) })
+        ToolData("Cleanup", null, Icons.Default.CleaningServices, { 
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "am kill-all; echo 3 > /proc/sys/vm/drop_caches; echo 1 > /proc/sys/vm/compact_memory"))
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                android.widget.Toast.makeText(context, "Background apps killed & memory cleaned!", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }),
+        ToolData("Screenshot", null, Icons.Default.CameraAlt, { 
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "input keyevent 120"))
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                android.widget.Toast.makeText(context, "Screenshot captured", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        })
     )
     
     Column(
