@@ -848,7 +848,10 @@ fun ToolsTab(isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: (
             Runtime.getRuntime().exec(arrayOf("su", "-c", "am kill-all; echo 3 > /proc/sys/vm/drop_caches; echo 1 > /proc/sys/vm/compact_memory"))
         }),
         ToolData("Screenshot", null, Icons.Default.CameraAlt, { 
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "input keyevent 120"))
+            val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US).format(java.util.Date())
+            val dir = "/sdcard/Pictures/ProjectRaco"
+            val path = "$dir/Screenshot_$timestamp.png"
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "mkdir -p $dir && screencap -p > $path && am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://$path"))
         })
     )
     
