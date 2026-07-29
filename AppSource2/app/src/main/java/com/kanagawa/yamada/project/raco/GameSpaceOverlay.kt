@@ -44,6 +44,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import androidx.compose.animation.core.*
+import androidx.compose.animation.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.scale
 
@@ -449,26 +450,44 @@ fun GameSpaceDashboard(
                     .background(Color(0xFF121212).copy(alpha = 0.95f))
                     .padding(12.dp)
             ) {
-                if (showCrosshairConfigState.value) {
-                    CrosshairConfigView(
-                        currentPackage = currentPackage,
-                        onDismissRequest = { showCrosshairConfigState.value = false },
-                        crosshairTypeState = crosshairTypeState,
-                        crosshairSizeState = crosshairSizeState,
-                        crosshairOpacityState = crosshairOpacityState,
-                        crosshairColorState = crosshairColorState,
-                        themeColor = themeColor,
-                        sharedPrefs = sharedPrefs
-                    )
-                } else if (selectedTab == "Performance") {
-                    PerformanceTab(context, currentPackage, selectedModeState, isExecutingState, executingModeState, themeColor, sharedPrefs)
-                } else {
-                    ToolsTab(
-                        isCrosshairActiveState = isCrosshairActiveState, 
-                        onToggleCrosshair = onToggleCrosshair, 
-                        themeColor = themeColor,
-                        showCrosshairConfigState = showCrosshairConfigState
-                    )
+                AnimatedContent(
+                    targetState = when {
+                        showCrosshairConfigState.value -> 2
+                        selectedTab == "Performance" -> 0
+                        else -> 1
+                    },
+                    transitionSpec = {
+                        fadeIn().togetherWith(fadeOut()).using(
+                            SizeTransform(clip = false)
+                        )
+                    },
+                    label = "tabAnimation"
+                ) { targetState ->
+                    when (targetState) {
+                        2 -> {
+                            CrosshairConfigView(
+                                currentPackage = currentPackage,
+                                onDismissRequest = { showCrosshairConfigState.value = false },
+                                crosshairTypeState = crosshairTypeState,
+                                crosshairSizeState = crosshairSizeState,
+                                crosshairOpacityState = crosshairOpacityState,
+                                crosshairColorState = crosshairColorState,
+                                themeColor = themeColor,
+                                sharedPrefs = sharedPrefs
+                            )
+                        }
+                        0 -> {
+                            PerformanceTab(context, currentPackage, selectedModeState, isExecutingState, executingModeState, themeColor, sharedPrefs)
+                        }
+                        1 -> {
+                            ToolsTab(
+                                isCrosshairActiveState = isCrosshairActiveState, 
+                                onToggleCrosshair = onToggleCrosshair, 
+                                themeColor = themeColor,
+                                showCrosshairConfigState = showCrosshairConfigState
+                            )
+                        }
+                    }
                 }
             }
         }
