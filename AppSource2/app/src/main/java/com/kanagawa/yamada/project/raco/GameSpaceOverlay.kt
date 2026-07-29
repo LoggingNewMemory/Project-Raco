@@ -842,20 +842,13 @@ data class ToolData(val title: String, val iconRes: Int?, val iconVector: ImageV
 @Composable
 fun ToolsTab(isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>) {
     val coroutineScope = rememberCoroutineScope()
-    val context = androidx.compose.ui.platform.LocalContext.current
     val tools = listOf(
         ToolData("Crosshair", R.drawable.ic_crosshair_1, null, { onToggleCrosshair() }, onLongClick = { showCrosshairConfigState.value = true }),
         ToolData("Cleanup", null, Icons.Default.CleaningServices, { 
             Runtime.getRuntime().exec(arrayOf("su", "-c", "am kill-all; echo 3 > /proc/sys/vm/drop_caches; echo 1 > /proc/sys/vm/compact_memory"))
-            android.os.Handler(android.os.Looper.getMainLooper()).post {
-                android.widget.Toast.makeText(context, "Background apps killed & memory cleaned!", android.widget.Toast.LENGTH_SHORT).show()
-            }
         }),
         ToolData("Screenshot", null, Icons.Default.CameraAlt, { 
             Runtime.getRuntime().exec(arrayOf("su", "-c", "input keyevent 120"))
-            android.os.Handler(android.os.Looper.getMainLooper()).post {
-                android.widget.Toast.makeText(context, "Screenshot captured", android.widget.Toast.LENGTH_SHORT).show()
-            }
         })
     )
     
@@ -910,36 +903,63 @@ fun ToolsTab(isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: (
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun ToolItem(title: String, iconRes: Int? = null, icon: ImageVector? = null, modifier: Modifier = Modifier, isActive: Boolean = false, themeColor: Color = Color.White, onLongClick: (() -> Unit)? = null, onClick: () -> Unit) {
+    val coroutineScope = rememberCoroutineScope()
+    var showSuccess by remember { mutableStateOf(false) }
+    
+    val displayTitle = if (showSuccess) {
+        when (title) {
+            "Cleanup" -> "Cleaned!"
+            "Screenshot" -> "Captured!"
+            else -> title
+        }
+    } else title
+
+    val bgColor by androidx.compose.animation.animateColorAsState(
+        targetValue = if (isActive) Color(0xFFE0E0E0) else if (showSuccess) themeColor else Color(0xFF2A2A2A),
+        animationSpec = tween(300),
+        label = "bgColorAnim"
+    )
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(if (isActive) Color(0xFFE0E0E0) else Color(0xFF2A2A2A))
+            .background(bgColor)
             .combinedClickable(
-                onClick = onClick,
+                onClick = {
+                    onClick()
+                    if (title == "Cleanup" || title == "Screenshot") {
+                        coroutineScope.launch {
+                            showSuccess = true
+                            delay(1500)
+                            showSuccess = false
+                        }
+                    }
+                },
                 onLongClick = onLongClick
             )
             .padding(vertical = 14.dp, horizontal = 4.dp)
     ) {
+        val iconTint = if (isActive || showSuccess) Color.Black else Color.White
         if (iconRes != null) {
             Icon(
                 painter = androidx.compose.ui.res.painterResource(id = iconRes),
-                contentDescription = title,
-                tint = if (isActive) Color.Black else Color.White,
+                contentDescription = displayTitle,
+                tint = iconTint,
                 modifier = Modifier.size(24.dp)
             )
         } else if (icon != null) {
             Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = if (isActive) Color.Black else Color.White,
+                imageVector = if (showSuccess) Icons.Default.Check else icon,
+                contentDescription = displayTitle,
+                tint = iconTint,
                 modifier = Modifier.size(24.dp)
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = title,
-            color = if (isActive) Color.Black else Color.LightGray,
+            text = displayTitle,
+            color = if (isActive || showSuccess) Color.Black else Color.LightGray,
             fontSize = 10.sp,
             maxLines = 1
         )
