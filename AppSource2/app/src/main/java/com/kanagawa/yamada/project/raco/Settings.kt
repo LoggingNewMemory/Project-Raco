@@ -330,8 +330,8 @@ fun SettingsScreen(
                         androidx.compose.animation.AnimatedContent(
                             targetState = selectedCategory,
                             transitionSpec = {
-                                (androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(150)) + androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(150)) { 40 }).togetherWith(
-                                    androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(150)) + androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(150)) { -40 }
+                                androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(150)).togetherWith(
+                                    androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(150))
                                 ).using(androidx.compose.animation.SizeTransform(clip = false))
                             },
                             label = "CategoryTransition"

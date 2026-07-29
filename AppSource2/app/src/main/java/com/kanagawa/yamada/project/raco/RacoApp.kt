@@ -1,6 +1,7 @@
 package com.kanagawa.yamada.project.raco
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.with
 import androidx.compose.runtime.*
 import com.kanagawa.yamada.project.raco.*
 
@@ -13,6 +14,7 @@ enum class Screen {
     Raco
 }
 
+@OptIn(androidx.compose.animation.ExperimentalAnimationApi::class)
 @Composable
 fun RacoApp() {
     var currentScreen by remember { mutableStateOf(Screen.Main) }
@@ -21,10 +23,12 @@ fun RacoApp() {
         currentScreen = Screen.Main
     }
 
-    Crossfade(
+    androidx.compose.animation.AnimatedContent(
         targetState = currentScreen,
         label = "ScreenTransition",
-        animationSpec = androidx.compose.animation.core.tween(150)
+        transitionSpec = {
+            androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(300)) with androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(300))
+        }
     ) { screen ->
         when (screen) {
             Screen.Main -> MainScreen(onNavigate = { currentScreen = it })

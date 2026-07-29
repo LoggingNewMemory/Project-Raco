@@ -1,6 +1,7 @@
 package com.kanagawa.yamada.project.raco
 
 import androidx.compose.ui.draw.alpha
+import androidx.compose.animation.with
 
 import com.kanagawa.yamada.project.raco.R
 import androidx.compose.ui.res.stringResource
@@ -38,7 +39,7 @@ enum class UtilityRoute {
     CoreTweaks, Automation, System, Appearance, ExtraSettings
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalAnimationApi::class)
 @Composable
 fun UtilitiesScreen(onBack: () -> Unit) {
     var hasRoot by remember { mutableStateOf(false) }
@@ -70,121 +71,127 @@ fun UtilitiesScreen(onBack: () -> Unit) {
         }
     }
 
-    // Navigate to sub-screen
-    currentRoute?.let { route ->
-        androidx.activity.compose.BackHandler(enabled = true) {
-            currentRoute = null
+    androidx.compose.animation.AnimatedContent(
+        targetState = currentRoute,
+        label = "UtilityScreenTransition",
+        transitionSpec = {
+            androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(300)) with androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(300))
         }
-        when (route) {
-            UtilityRoute.CoreTweaks -> CoreTweaksScreen(onBack = { currentRoute = null })
-            UtilityRoute.Automation -> AutomationScreen(onBack = { currentRoute = null })
-            UtilityRoute.System -> SystemScreen(onBack = { currentRoute = null })
-            UtilityRoute.Appearance -> AppearanceScreen(onBack = { currentRoute = null })
-            UtilityRoute.ExtraSettings -> ExtraSettingsScreen(onBack = { currentRoute = null })
-        }
-        return
-    }
-
-    val filteredItems = if (searchQuery.isBlank()) {
-        categories
-    } else {
-        val terms = searchQuery.lowercase().split(" ").filter { it.isNotEmpty() }
-        categories.filter { item ->
-            val combined = (item.title + " " + item.subtitle + " " + item.keywords).lowercase()
-            terms.all { term -> combined.contains(term) }
-        }
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(stringResource(R.string.utilities_title))
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.primary
-                )
-            )
-        },
-        containerColor = Color.Transparent
-    ) { padding ->
-        val context = androidx.compose.ui.platform.LocalContext.current
-        val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
-
-            val alpha by androidx.compose.animation.core.animateFloatAsState(
-                targetValue = if (!isLoaded) 0f else 1f,
-                animationSpec = androidx.compose.animation.core.tween(150), label = ""
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .alpha(alpha)
-            ) {
-
-            if (!hasRoot) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.error_no_root), color = MaterialTheme.colorScheme.error)
+    ) { route ->
+        if (route != null) {
+            androidx.activity.compose.BackHandler(enabled = true) {
+                currentRoute = null
+            }
+            when (route) {
+                UtilityRoute.CoreTweaks -> CoreTweaksScreen(onBack = { currentRoute = null })
+                UtilityRoute.Automation -> AutomationScreen(onBack = { currentRoute = null })
+                UtilityRoute.System -> SystemScreen(onBack = { currentRoute = null })
+                UtilityRoute.Appearance -> AppearanceScreen(onBack = { currentRoute = null })
+                UtilityRoute.ExtraSettings -> ExtraSettingsScreen(onBack = { currentRoute = null })
+            }
+        } else {
+            val filteredItems = if (searchQuery.isBlank()) {
+                categories
+            } else {
+                val terms = searchQuery.lowercase().split(" ").filter { it.isNotEmpty() }
+                categories.filter { item ->
+                    val combined = (item.title + " " + item.subtitle + " " + item.keywords).lowercase()
+                    terms.all { term -> combined.contains(term) }
                 }
-                return@Column
             }
 
-            // Search bar
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                placeholder = { Text(stringResource(R.string.search_utilities_1)) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(30.dp),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            )
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Text(stringResource(R.string.utilities_title))
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = onBack) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent,
+                            titleContentColor = MaterialTheme.colorScheme.primary,
+                            navigationIconContentColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                },
+                containerColor = Color.Transparent
+            ) { padding ->
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
 
-            if (filteredItems.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.no_results_found_1), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                val alpha by androidx.compose.animation.core.animateFloatAsState(
+                    targetValue = if (!isLoaded) 0f else 1f,
+                    animationSpec = androidx.compose.animation.core.tween(150), label = ""
+                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .alpha(alpha)
                 ) {
-                    items(filteredItems) { item ->
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { currentRoute = item.route }
+
+                    if (!hasRoot) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(stringResource(R.string.error_no_root), color = MaterialTheme.colorScheme.error)
+                        }
+                        return@Column
+                    }
+
+                    // Search bar
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text(stringResource(R.string.search_utilities_1)) },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        shape = RoundedCornerShape(30.dp),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    )
+
+                    if (filteredItems.isEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(stringResource(R.string.no_results_found_1), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(item.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(item.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(item.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            items(filteredItems) { item ->
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { currentRoute = item.route }
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(item.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(item.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(item.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
                                 }
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
