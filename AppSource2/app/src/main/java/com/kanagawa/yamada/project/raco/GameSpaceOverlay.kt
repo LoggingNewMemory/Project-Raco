@@ -513,15 +513,35 @@ fun SidebarItem(icon: ImageVector, label: String, isSelected: Boolean, themeColo
 fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: MutableState<String>, isExecutingState: MutableState<Boolean>, executingModeState: MutableState<String>, themeColor: Color, sharedPrefs: android.content.SharedPreferences) {
     var batteryLevel by remember { mutableStateOf("--") }
     var cpuUsage by remember { mutableStateOf("--") }
+    var maxCpuFreq by remember { mutableStateOf(1000L) }
+
+    DisposableEffect(context) {
+        val receiver = object : android.content.BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == Intent.ACTION_BATTERY_CHANGED) {
+                    val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                    val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+                    if (level >= 0 && scale > 0) {
+                        batteryLevel = ((level * 100) / scale).toString()
+                    }
+                }
+            }
+        }
+        val initialIntent = context.registerReceiver(receiver, android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        if (initialIntent != null) {
+            val level = initialIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+            val scale = initialIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+            if (level >= 0 && scale > 0) {
+                batteryLevel = ((level * 100) / scale).toString()
+            }
+        }
+        onDispose {
+            context.unregisterReceiver(receiver)
+        }
+    }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            // Update battery once (or we can poll it)
-            try {
-                val bm = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-                batteryLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY).toString()
-            } catch(e: Exception){}
-
             while (isActive) {
                 try {
                     val cpufreqDir = java.io.File("/sys/devices/system/cpu/cpufreq")
@@ -530,6 +550,13 @@ fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: 
                     }?.maxByOrNull { it.name.removePrefix("policy").toIntOrNull() ?: -1 }
                     
                     if (highestPolicy != null) {
+                        val maxFreqFile = java.io.File(highestPolicy, "cpuinfo_max_freq")
+                        if (maxFreqFile.exists()) {
+                            try {
+                                maxCpuFreq = maxFreqFile.readText().trim().toLong() / 1000
+                            } catch(e: Exception){}
+                        }
+
                         val freqFile = java.io.File(highestPolicy, "scaling_cur_freq")
                         if (freqFile.exists()) {
                             val freqStr = freqFile.readText().trim()
@@ -541,11 +568,6 @@ fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: 
                             }
                         }
                     }
-                } catch(e: Exception){}
-                
-                try {
-                    val bm = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-                    batteryLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY).toString()
                 } catch(e: Exception){}
                 
                 delay(1000)
@@ -571,8 +593,10 @@ fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: 
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            StatCircle(title = "CPU", value = cpuUsage, unit = "MHz", highlight = true, themeColor = themeColor)
-            StatCircle(title = "Battery", value = batteryLevel, unit = "%", highlight = false, themeColor = themeColor)
+            val cpuProg = (cpuUsage.toLongOrNull() ?: 0L).toFloat() / maxCpuFreq.toFloat().coerceAtLeast(1f)
+            StatCircle(title = "CPU", value = cpuUsage, unit = "MHz", progress = cpuProg, highlight = true, themeColor = themeColor)
+            val batProg = (batteryLevel.toIntOrNull() ?: 0).toFloat() / 100f
+            StatCircle(title = "Battery", value = batteryLevel, unit = "%", progress = batProg, highlight = false, themeColor = themeColor)
         }
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -768,14 +792,21 @@ fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: 
 }
 
 @Composable
-fun StatCircle(title: String, value: String, unit: String, highlight: Boolean, themeColor: Color) {
+fun StatCircle(title: String, value: String, unit: String, progress: Float, highlight: Boolean, themeColor: Color) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = tween(1000, easing = FastOutSlowInEasing),
+        label = "progressAnim"
+    )
+
     Box(
         modifier = Modifier.size(72.dp),
         contentAlignment = Alignment.Center
     ) {
         androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+            // Background track
             drawArc(
-                color = if (highlight) themeColor else Color(0xFF333333),
+                color = Color(0xFF333333),
                 startAngle = 135f,
                 sweepAngle = 270f,
                 useCenter = false,
@@ -784,6 +815,19 @@ fun StatCircle(title: String, value: String, unit: String, highlight: Boolean, t
                     cap = androidx.compose.ui.graphics.StrokeCap.Round
                 )
             )
+            // Foreground scaler
+            if (animatedProgress > 0f) {
+                drawArc(
+                    color = if (highlight) themeColor else themeColor.copy(alpha = 0.8f),
+                    startAngle = 135f,
+                    sweepAngle = 270f * animatedProgress,
+                    useCenter = false,
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(
+                        width = 4.dp.toPx(),
+                        cap = androidx.compose.ui.graphics.StrokeCap.Round
+                    )
+                )
+            }
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(title, color = Color.Gray, fontSize = 8.sp)
