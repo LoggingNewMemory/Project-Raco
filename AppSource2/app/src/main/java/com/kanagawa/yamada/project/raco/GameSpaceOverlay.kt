@@ -506,12 +506,6 @@ fun SidebarItem(icon: ImageVector, label: String, isSelected: Boolean, themeColo
             tint = if (isSelected) themeColor else Color.Gray,
             modifier = Modifier.size(28.dp)
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            fontSize = 10.sp,
-            color = if (isSelected) themeColor else Color.Gray
-        )
     }
 }
 
