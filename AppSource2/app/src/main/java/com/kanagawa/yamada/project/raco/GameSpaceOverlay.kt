@@ -915,7 +915,7 @@ fun ToolItem(title: String, iconRes: Int? = null, icon: ImageVector? = null, mod
     } else title
 
     val bgColor by androidx.compose.animation.animateColorAsState(
-        targetValue = if (isActive) Color(0xFFE0E0E0) else if (showSuccess) themeColor else Color(0xFF2A2A2A),
+        targetValue = if (isActive || showSuccess) Color(0xFFE0E0E0) else Color(0xFF2A2A2A),
         animationSpec = tween(300),
         label = "bgColorAnim"
     )
