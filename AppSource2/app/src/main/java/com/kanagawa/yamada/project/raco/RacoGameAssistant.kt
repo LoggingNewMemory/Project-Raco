@@ -168,12 +168,18 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                         currentPackage = currentPackageState.value,
                         isExpanded = isExpanded,
                         onExpand = {
-                            isExpanded = true
-                            updateOverlayLayoutParams()
+                            composeView?.animate()?.alpha(0f)?.setDuration(150)?.withEndAction {
+                                isExpanded = true
+                                updateOverlayLayoutParams()
+                                composeView?.animate()?.alpha(1f)?.setDuration(150)?.start()
+                            }?.start()
                         },
                         onCollapse = {
-                            isExpanded = false
-                            updateOverlayLayoutParams()
+                            composeView?.animate()?.alpha(0f)?.setDuration(150)?.withEndAction {
+                                isExpanded = false
+                                updateOverlayLayoutParams()
+                                composeView?.animate()?.alpha(1f)?.setDuration(150)?.start()
+                            }?.start()
                         },
                         onDragStart = {
                             val metrics = android.util.DisplayMetrics()
@@ -223,20 +229,28 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
 
     fun hide() {
         if (crosshairView != null) {
-            windowManager.removeView(crosshairView)
+            val view = crosshairView
             crosshairView = null
             isCrosshairActiveState.value = false
+            view?.animate()?.alpha(0f)?.setDuration(300)?.withEndAction {
+                if (view.parent != null) windowManager.removeView(view)
+            }?.start()
         }
         if (infoView != null) {
-            windowManager.removeView(infoView)
+            val view = infoView
             infoView = null
             isInfoActiveState.value = false
+            view?.animate()?.alpha(0f)?.setDuration(300)?.withEndAction {
+                if (view.parent != null) windowManager.removeView(view)
+            }?.start()
         }
-        composeView?.let {
-            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
-            windowManager.removeView(it)
+        composeView?.let { view ->
             composeView = null
+            view.animate().alpha(0f).setDuration(300).withEndAction {
+                lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+                lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+                if (view.parent != null) windowManager.removeView(view)
+            }.start()
         }
         
         val pkg = currentPackageState.value
@@ -266,10 +280,13 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
             val pkg = currentPackageState.value
             val targetState = forceState ?: (crosshairView == null)
             if (!targetState && crosshairView != null) {
-                windowManager.removeView(crosshairView)
+                val view = crosshairView
                 crosshairView = null
                 isCrosshairActiveState.value = false
                 if (pkg.isNotEmpty()) sharedPrefs.edit().putBoolean("crosshair_active_$pkg", false).apply()
+                view?.animate()?.alpha(0f)?.setDuration(300)?.withEndAction {
+                    if (view.parent != null) windowManager.removeView(view)
+                }?.start()
             } else if (targetState && crosshairView == null) {
                 isCrosshairActiveState.value = true
                 if (pkg.isNotEmpty()) sharedPrefs.edit().putBoolean("crosshair_active_$pkg", true).apply()
@@ -331,10 +348,13 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
             val pkg = currentPackageState.value
             val targetState = forceState ?: (infoView == null)
             if (!targetState && infoView != null) {
-                windowManager.removeView(infoView)
+                val view = infoView
                 infoView = null
                 isInfoActiveState.value = false
                 if (pkg.isNotEmpty()) sharedPrefs.edit().putBoolean("info_active_$pkg", false).apply()
+                view?.animate()?.alpha(0f)?.setDuration(300)?.withEndAction {
+                    if (view.parent != null) windowManager.removeView(view)
+                }?.start()
             } else if (targetState && infoView == null) {
                 isInfoActiveState.value = true
                 if (pkg.isNotEmpty()) sharedPrefs.edit().putBoolean("info_active_$pkg", true).apply()
