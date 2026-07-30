@@ -181,47 +181,53 @@ class MainActivity : AppCompatActivity() {
                         )
                     }
 
-                    when (currentScreen) {
-                        ScreenState.CHECKING_LICENSE,
-                        ScreenState.CHECKING_ROOT -> { /* Black screen while checking */ }
+                    androidx.compose.animation.Crossfade(
+                        targetState = currentScreen,
+                        label = "Screen Transition",
+                        animationSpec = androidx.compose.animation.core.tween(durationMillis = 600)
+                    ) { targetScreen ->
+                        when (targetScreen) {
+                            ScreenState.CHECKING_LICENSE,
+                            ScreenState.CHECKING_ROOT -> { /* Black screen while checking */ }
 
-                        ScreenState.NO_ROOT -> {
-                            Text(stringResource(R.string.root_access_denied_project_raco_requires_root),
-                                color = Color.Red,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
-
-                        ScreenState.LICENSE_SETUP -> {
-                            // Show the RacoSec activation screen
-                            val scope = rememberCoroutineScope()
-                            RacoSecSetupScreen(
-                                onActivationSuccess = {
-                                    scope.launch {
-                                        currentScreen = ScreenState.CHECKING_ROOT
-                                        val isRooted = withContext(Dispatchers.IO) { checkRootAccess() }
-                                        currentScreen = if (isRooted) ScreenState.HOME_SCREEN else ScreenState.NO_ROOT
-                                    }
-                                }
-                            )
-                        }
-
-                        ScreenState.TAMPER_BLOCKED -> {
-                            // App should already be crashing from RacoSecManager.
-                            // Fallback message if somehow we land here.
-                            Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-                                Text(
-                                    "⛔",
+                            ScreenState.NO_ROOT -> {
+                                Text(stringResource(R.string.root_access_denied_project_raco_requires_root),
                                     color = Color.Red,
-                                    modifier = Modifier.align(Alignment.Center),
-                                    textAlign = TextAlign.Center
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.align(Alignment.Center)
                                 )
                             }
-                        }
 
-                        ScreenState.HOME_SCREEN -> {
-                            RacoApp()
+                            ScreenState.LICENSE_SETUP -> {
+                                // Show the RacoSec activation screen
+                                val scope = rememberCoroutineScope()
+                                RacoSecSetupScreen(
+                                    onActivationSuccess = {
+                                        scope.launch {
+                                            currentScreen = ScreenState.CHECKING_ROOT
+                                            val isRooted = withContext(Dispatchers.IO) { checkRootAccess() }
+                                            currentScreen = if (isRooted) ScreenState.HOME_SCREEN else ScreenState.NO_ROOT
+                                        }
+                                    }
+                                )
+                            }
+
+                            ScreenState.TAMPER_BLOCKED -> {
+                                // App should already be crashing from RacoSecManager.
+                                // Fallback message if somehow we land here.
+                                Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+                                    Text(
+                                        "⛔",
+                                        color = Color.Red,
+                                        modifier = Modifier.align(Alignment.Center),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+
+                            ScreenState.HOME_SCREEN -> {
+                                RacoApp()
+                            }
                         }
                     }
                 }
