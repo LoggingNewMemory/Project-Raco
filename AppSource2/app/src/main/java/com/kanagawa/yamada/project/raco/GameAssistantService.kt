@@ -18,7 +18,7 @@ class GameAssistantService : AccessibilityService() {
     private var currentForegroundPackage: String? = null
     private var isCurrentlyInGame = false
     private var lastGamePackage: String? = null
-    private var gameSpaceOverlay: GameSpaceOverlay? = null
+    private var gameSpaceOverlay: RacoGameAssistant? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -30,7 +30,7 @@ class GameAssistantService : AccessibilityService() {
         createNotificationChannel()
         
         Handler(Looper.getMainLooper()).post {
-            gameSpaceOverlay = GameSpaceOverlay(this)
+            gameSpaceOverlay = RacoGameAssistant(this)
         }
     }
 

@@ -48,7 +48,7 @@ import androidx.compose.animation.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.scale
 
-class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
+class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private var composeView: ComposeView? = null
     private var crosshairView: ComposeView? = null
@@ -124,9 +124,9 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
         if (composeView != null) return
 
         composeView = ComposeView(context).apply {
-            setViewTreeLifecycleOwner(this@GameSpaceOverlay)
-            setViewTreeViewModelStoreOwner(this@GameSpaceOverlay)
-            setViewTreeSavedStateRegistryOwner(this@GameSpaceOverlay)
+            setViewTreeLifecycleOwner(this@RacoGameAssistant)
+            setViewTreeViewModelStoreOwner(this@RacoGameAssistant)
+            setViewTreeSavedStateRegistryOwner(this@RacoGameAssistant)
             
             setContent {
                 MaterialTheme(colorScheme = darkColorScheme()) {
@@ -220,9 +220,9 @@ class GameSpaceOverlay(private val context: Context) : LifecycleOwner, ViewModel
                 }
 
                 crosshairView = ComposeView(context).apply {
-                    setViewTreeLifecycleOwner(this@GameSpaceOverlay)
-                    setViewTreeViewModelStoreOwner(this@GameSpaceOverlay)
-                    setViewTreeSavedStateRegistryOwner(this@GameSpaceOverlay)
+                    setViewTreeLifecycleOwner(this@RacoGameAssistant)
+                    setViewTreeViewModelStoreOwner(this@RacoGameAssistant)
+                    setViewTreeSavedStateRegistryOwner(this@RacoGameAssistant)
                     
                     setContent {
                         val size by crosshairSizeState
@@ -481,10 +481,12 @@ fun GameSpaceDashboard(
                         }
                         1 -> {
                             ToolsTab(
+                                context = context,
                                 isCrosshairActiveState = isCrosshairActiveState, 
                                 onToggleCrosshair = onToggleCrosshair, 
                                 themeColor = themeColor,
-                                showCrosshairConfigState = showCrosshairConfigState
+                                showCrosshairConfigState = showCrosshairConfigState,
+                                onCollapse = onCollapse
                             )
                         }
                     }
@@ -840,7 +842,7 @@ fun StatCircle(title: String, value: String, unit: String, progress: Float, high
 data class ToolData(val title: String, val iconRes: Int?, val iconVector: ImageVector?, val action: () -> Unit, val onLongClick: (() -> Unit)? = null)
 
 @Composable
-fun ToolsTab(isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>) {
+fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>, onCollapse: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     val tools = listOf(
         ToolData("Crosshair", R.drawable.ic_crosshair_1, null, { onToggleCrosshair() }, onLongClick = { showCrosshairConfigState.value = true }),
@@ -848,10 +850,17 @@ fun ToolsTab(isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: (
             Runtime.getRuntime().exec(arrayOf("su", "-c", "am kill-all; echo 3 > /proc/sys/vm/drop_caches; echo 1 > /proc/sys/vm/compact_memory"))
         }),
         ToolData("Screenshot", null, Icons.Default.CameraAlt, { 
-            val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US).format(java.util.Date())
-            val dir = "/sdcard/Pictures/ProjectRaco"
-            val path = "$dir/Screenshot_$timestamp.png"
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "mkdir -p $dir && screencap -p > $path && am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://$path"))
+            Handler(Looper.getMainLooper()).post { onCollapse() }
+            coroutineScope.launch(Dispatchers.IO) {
+                delay(300)
+                val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US).format(java.util.Date())
+                val dir = "/sdcard/Pictures/ProjectRaco"
+                val path = "$dir/Screenshot_$timestamp.png"
+                Runtime.getRuntime().exec(arrayOf("su", "-c", "mkdir -p $dir && screencap -p > $path && am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://$path")).waitFor()
+                withContext(Dispatchers.Main) {
+                    android.widget.Toast.makeText(context, "Screenshot Captured", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
         })
     )
     
