@@ -47,11 +47,13 @@ import androidx.compose.animation.core.*
 import androidx.compose.animation.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.foundation.Image
 
 class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private var composeView: ComposeView? = null
     private var crosshairView: ComposeView? = null
+    private var infoView: ComposeView? = null
     val selectedModeState = mutableStateOf("Awaken")
     val isExecutingState = mutableStateOf(false)
     val executingModeState = mutableStateOf("")
@@ -66,6 +68,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
     val showAyundaConfigState = mutableStateOf(false)
     val activeAyundaPresetState = mutableStateOf("")
     val activeDndState = mutableStateOf(false)
+    val isInfoActiveState = mutableStateOf(false)
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val store = ViewModelStore()
@@ -140,6 +143,13 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
             if (crosshairView != null) toggleCrosshair(false)
         }
 
+        val savedInfoActive = sharedPrefs.getBoolean("info_active_$packageName", false)
+        if (savedInfoActive) {
+            if (infoView == null) toggleInfo(true)
+        } else {
+            if (infoView != null) toggleInfo(false)
+        }
+
         if (composeView != null) return
 
         composeView = ComposeView(context).apply {
@@ -189,6 +199,8 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                         showAyundaConfigState = showAyundaConfigState,
                         activeAyundaPresetState = activeAyundaPresetState,
                         activeDndState = activeDndState,
+                        isInfoActiveState = isInfoActiveState,
+                        onToggleInfo = { toggleInfo() },
                         sharedPrefs = sharedPrefs
                     )
                 }
@@ -205,6 +217,11 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
             windowManager.removeView(crosshairView)
             crosshairView = null
             isCrosshairActiveState.value = false
+        }
+        if (infoView != null) {
+            windowManager.removeView(infoView)
+            infoView = null
+            isInfoActiveState.value = false
         }
         composeView?.let {
             lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
@@ -249,7 +266,6 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                 if (pkg.isNotEmpty()) sharedPrefs.edit().putBoolean("crosshair_active_$pkg", true).apply()
                 val metrics = android.util.DisplayMetrics()
                 windowManager.defaultDisplay.getRealMetrics(metrics)
-                val sizePx = (32 * metrics.density).toInt()
 
                 val crosshairParams = WindowManager.LayoutParams(
                     WindowManager.LayoutParams.WRAP_CONTENT,
@@ -286,17 +302,55 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                             else -> R.drawable.ic_crosshair_1
                         }
                         
-                        Box(modifier = Modifier.size(size.dp), contentAlignment = Alignment.Center) {
-                            Icon(
-                                painter = androidx.compose.ui.res.painterResource(id = drawableRes),
-                                contentDescription = "Crosshair",
-                                tint = actualColor.copy(alpha = opacity),
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
+                        Image(
+                            painter = androidx.compose.ui.res.painterResource(id = drawableRes),
+                            contentDescription = "Crosshair",
+                            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(actualColor),
+                            modifier = Modifier
+                                .size(size.dp)
+                                .alpha(opacity)
+                        )
                     }
                 }
                 windowManager.addView(crosshairView, crosshairParams)
+            }
+        }
+    }
+
+    private fun toggleInfo(forceState: Boolean? = null) {
+        Handler(Looper.getMainLooper()).post {
+            val pkg = currentPackageState.value
+            val targetState = forceState ?: (infoView == null)
+            if (!targetState && infoView != null) {
+                windowManager.removeView(infoView)
+                infoView = null
+                isInfoActiveState.value = false
+                if (pkg.isNotEmpty()) sharedPrefs.edit().putBoolean("info_active_$pkg", false).apply()
+            } else if (targetState && infoView == null) {
+                isInfoActiveState.value = true
+                if (pkg.isNotEmpty()) sharedPrefs.edit().putBoolean("info_active_$pkg", true).apply()
+                
+                val infoParams = WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                    PixelFormat.TRANSLUCENT
+                ).apply {
+                    gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+                    y = 80
+                }
+
+                infoView = ComposeView(context).apply {
+                    setViewTreeLifecycleOwner(this@RacoGameAssistant)
+                    setViewTreeViewModelStoreOwner(this@RacoGameAssistant)
+                    setViewTreeSavedStateRegistryOwner(this@RacoGameAssistant)
+                    
+                    setContent {
+                        InfoOverlayView(context, pkg)
+                    }
+                }
+                windowManager.addView(infoView, infoParams)
             }
         }
     }
@@ -338,6 +392,8 @@ fun GameSpaceContent(
     showAyundaConfigState: MutableState<Boolean>,
     activeAyundaPresetState: MutableState<String>,
     activeDndState: MutableState<Boolean>,
+    isInfoActiveState: MutableState<Boolean>,
+    onToggleInfo: () -> Unit,
     sharedPrefs: android.content.SharedPreferences
 ) {
     val themeColor by androidx.compose.animation.animateColorAsState(
@@ -417,6 +473,8 @@ fun GameSpaceContent(
             showAyundaConfigState = showAyundaConfigState,
             activeAyundaPresetState = activeAyundaPresetState,
             activeDndState = activeDndState,
+            isInfoActiveState = isInfoActiveState,
+            onToggleInfo = onToggleInfo,
             sharedPrefs = sharedPrefs
         )
     }
@@ -441,6 +499,8 @@ fun GameSpaceDashboard(
     showAyundaConfigState: MutableState<Boolean>,
     activeAyundaPresetState: MutableState<String>,
     activeDndState: MutableState<Boolean>,
+    isInfoActiveState: MutableState<Boolean>,
+    onToggleInfo: () -> Unit,
     sharedPrefs: android.content.SharedPreferences
 ) {
     var selectedTab by remember { mutableStateOf("Performance") }
@@ -544,6 +604,8 @@ fun GameSpaceDashboard(
                                 showAyundaConfigState = showAyundaConfigState,
                                 activeAyundaPresetState = activeAyundaPresetState,
                                 activeDndState = activeDndState,
+                                isInfoActiveState = isInfoActiveState,
+                                onToggleInfo = onToggleInfo,
                                 sharedPrefs = sharedPrefs,
                                 onCollapse = onCollapse
                             )
@@ -910,7 +972,7 @@ fun StatCircle(title: String, value: String, unit: String, progress: Float, high
 data class ToolData(val title: String, val iconRes: Int?, val iconVector: ImageVector?, val action: suspend () -> String?, val onLongClick: (() -> Unit)? = null)
 
 @Composable
-fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>, showAyundaConfigState: MutableState<Boolean>, activeAyundaPresetState: MutableState<String>, activeDndState: MutableState<Boolean>, sharedPrefs: android.content.SharedPreferences, onCollapse: () -> Unit) {
+fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>, showAyundaConfigState: MutableState<Boolean>, activeAyundaPresetState: MutableState<String>, activeDndState: MutableState<Boolean>, isInfoActiveState: MutableState<Boolean>, onToggleInfo: () -> Unit, sharedPrefs: android.content.SharedPreferences, onCollapse: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         // Initialization if needed
@@ -1037,7 +1099,8 @@ fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: M
                 Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f $s")).waitFor()
             }
             null
-        }, onLongClick = { showAyundaConfigState.value = true })
+        }, onLongClick = { showAyundaConfigState.value = true }),
+        ToolData("Info", null, Icons.Default.Info, { onToggleInfo(); null })
     )
     
     Column(
@@ -1066,12 +1129,13 @@ fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: M
                         val isCrosshairActive = tool.title == "Crosshair" && isCrosshairActiveState.value
                         val isDndCurrentlyActive = tool.title == "DND" && activeDndState.value
                         val isAyundaCurrentlyActive = tool.title == "Ayunda" && activeAyundaPresetState.value.isNotEmpty()
+                        val isInfoCurrentlyActive = tool.title == "Info" && isInfoActiveState.value
                         ToolItem(
                             title = tool.title, 
-                            iconRes = tool.iconRes,
+                            iconRes = tool.iconRes, 
                             icon = tool.iconVector, 
                             modifier = Modifier.weight(1f),
-                            isActive = isCrosshairActive || isDndCurrentlyActive || isAyundaCurrentlyActive,
+                            isActive = isCrosshairActive || isDndCurrentlyActive || isAyundaCurrentlyActive || isInfoCurrentlyActive,
                             themeColor = themeColor,
                             onLongClick = tool.onLongClick,
                             onClick = tool.action
@@ -1403,6 +1467,120 @@ fun AyundaConfigView(
                     Icon(Icons.Default.Check, "Active", tint = Color.White)
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun InfoOverlayView(context: Context, currentPackage: String) {
+    var currentTime by remember { mutableStateOf(java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())) }
+    var currentFps by remember { mutableStateOf(0) }
+    var currentBattery by remember { mutableStateOf(100) }
+
+    LaunchedEffect(currentPackage) {
+        val bm = context.getSystemService(Context.BATTERY_SERVICE) as android.os.BatteryManager
+        var previousMaxTime = 0L
+        var targetLayer = ""
+        Runtime.getRuntime().exec(arrayOf("su", "-c", "dumpsys SurfaceFlinger --timestats -clear -enable"))
+        
+        while (true) {
+            currentTime = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
+            currentBattery = bm.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)
+            
+            // Calculate FPS matching Kaorios 1:1 logic
+            val fps = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                var calculatedFps = 0.0
+                try {
+                    val timeStatsProc = Runtime.getRuntime().exec(arrayOf("su", "-c", "dumpsys SurfaceFlinger --timestats -dump"))
+                    val timeStatsOutput = timeStatsProc.inputStream.bufferedReader().readText()
+                    val matcher = java.util.regex.Pattern.compile("averageFPS\\s*=\\s*([0-9.]+)").matcher(timeStatsOutput)
+                    if (matcher.find()) {
+                        val fpsFloat = matcher.group(1)?.toFloatOrNull()
+                        if (fpsFloat != null && fpsFloat > 0f) {
+                            calculatedFps = fpsFloat.toDouble()
+                            Runtime.getRuntime().exec(arrayOf("su", "-c", "dumpsys SurfaceFlinger --timestats -clear -enable"))
+                        }
+                    }
+
+                    if (calculatedFps <= 0.0) {
+                        if (targetLayer.isEmpty()) {
+                            val listProcess = Runtime.getRuntime().exec(arrayOf("su", "-c", "dumpsys SurfaceFlinger --list"))
+                            val layers = listProcess.inputStream.bufferedReader().readLines()
+                            targetLayer = layers.firstOrNull { it.contains(currentPackage) && it.contains("SurfaceView") } 
+                                ?: layers.firstOrNull { it.contains(currentPackage) }
+                                ?: currentPackage
+                        }
+
+                        val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "dumpsys SurfaceFlinger --latency '$targetLayer'"))
+                        val lines = process.inputStream.bufferedReader().readLines()
+                        if (lines.size >= 2) {
+                            var maxTime = Long.MIN_VALUE
+                            var frameCount = 0
+                            
+                            for (i in 1 until lines.size) {
+                                val parts = lines[i].trim().split("\\s+".toRegex())
+                                if (parts.size >= 3) {
+                                    val time = parts[1].toLongOrNull() ?: continue
+                                    if (time <= 0L || time == Long.MAX_VALUE) continue
+                                    
+                                    if (time > previousMaxTime) {
+                                        frameCount++
+                                        if (time > maxTime) maxTime = time
+                                    }
+                                }
+                            }
+                            
+                            if (previousMaxTime > 0L && maxTime > previousMaxTime && frameCount > 0) {
+                                val timeDiffSec = (maxTime - previousMaxTime) / 1e9
+                                if (timeDiffSec > 0) {
+                                    val currentCalc = frameCount / timeDiffSec
+                                    if (currentCalc in 1.0..240.0) {
+                                        calculatedFps = currentCalc
+                                    }
+                                }
+                            }
+                            if (maxTime > previousMaxTime && maxTime != Long.MIN_VALUE) {
+                                previousMaxTime = maxTime
+                            }
+                        } else {
+                            targetLayer = ""
+                        }
+                    }
+                } catch (e: Exception) {}
+                calculatedFps
+            }
+            if (fps > 0) {
+                currentFps = kotlin.math.round(fps).toInt()
+            } else if (fps == 0.0 && previousMaxTime > 0L) {
+                currentFps = 0
+            }
+            
+            kotlinx.coroutines.delay(1000)
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color(0xFF1E1E1E).copy(alpha = 0.85f))
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Schedule, contentDescription = "Time", tint = Color.LightGray, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(currentTime, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Layers, contentDescription = "FPS", tint = Color.LightGray, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
+            Text("${currentFps}FPS", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.BatteryFull, contentDescription = "Battery", tint = Color.LightGray, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
+            Text("$currentBattery%", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }
