@@ -71,6 +71,9 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
     val activeAyundaPresetState = mutableStateOf("")
     val activeDndState = mutableStateOf(false)
     val isInfoActiveState = mutableStateOf(false)
+    
+    private var cachedGameIconMaxX = 0
+    private var cachedGameIconMaxY = 0
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val store = ViewModelStore()
@@ -172,16 +175,19 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                             isExpanded = false
                             updateOverlayLayoutParams()
                         },
+                        onDragStart = {
+                            val metrics = android.util.DisplayMetrics()
+                            windowManager.defaultDisplay.getRealMetrics(metrics)
+                            val buttonSizePx = (52 * metrics.density).toInt()
+                            cachedGameIconMaxX = Math.max(0, metrics.widthPixels - buttonSizePx)
+                            cachedGameIconMaxY = Math.max(0, metrics.heightPixels - buttonSizePx)
+                        },
                         onDrag = { dx, dy ->
                             buttonX += dx.toInt()
                             buttonY += dy.toInt()
                             
-                            val metrics = android.util.DisplayMetrics()
-                            windowManager.defaultDisplay.getRealMetrics(metrics)
-                            val buttonSizePx = (52 * metrics.density).toInt()
-                            
-                            buttonX = buttonX.coerceIn(0, Math.max(0, metrics.widthPixels - buttonSizePx))
-                            buttonY = buttonY.coerceIn(0, Math.max(0, metrics.heightPixels - buttonSizePx))
+                            buttonX = buttonX.coerceIn(0, cachedGameIconMaxX)
+                            buttonY = buttonY.coerceIn(0, cachedGameIconMaxY)
 
                             params.x = buttonX
                             params.y = buttonY
@@ -364,6 +370,9 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                     var initialTouchY = 0f
                     var isDragging = false
 
+                    var maxX = 0
+                    var maxY = 0
+
                     setOnTouchListener { view, event ->
                         when (event.action) {
                             MotionEvent.ACTION_DOWN -> {
@@ -372,6 +381,12 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                                 initialTouchX = event.rawX
                                 initialTouchY = event.rawY
                                 isDragging = false
+                                
+                                val metrics = android.util.DisplayMetrics()
+                                windowManager.defaultDisplay.getRealMetrics(metrics)
+                                maxX = Math.max(0, metrics.widthPixels - view.width)
+                                maxY = Math.max(0, metrics.heightPixels - view.height)
+                                
                                 true
                             }
                             MotionEvent.ACTION_MOVE -> {
@@ -381,11 +396,6 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                                     isDragging = true
                                 }
                                 if (isDragging) {
-                                    val metrics = android.util.DisplayMetrics()
-                                    windowManager.defaultDisplay.getRealMetrics(metrics)
-                                    val maxX = Math.max(0, metrics.widthPixels - view.width)
-                                    val maxY = Math.max(0, metrics.heightPixels - view.height)
-                                    
                                     val newX = initialX + dx.toInt()
                                     val newY = initialY + dy.toInt()
                                     infoParams.x = newX.coerceIn(0, maxX)
@@ -435,6 +445,7 @@ fun GameSpaceContent(
     isExpanded: Boolean,
     onExpand: () -> Unit,
     onCollapse: () -> Unit,
+    onDragStart: () -> Unit = {},
     onDrag: (Float, Float) -> Unit,
     context: Context,
     selectedModeState: MutableState<String>,
@@ -482,7 +493,10 @@ fun GameSpaceContent(
                 .background(Color.Transparent)
                 .pointerInput(Unit) {
                     detectDragGestures(
-                        onDragStart = { lastInteraction = System.currentTimeMillis() },
+                        onDragStart = { 
+                            lastInteraction = System.currentTimeMillis()
+                            onDragStart()
+                        },
                         onDragEnd = { lastInteraction = System.currentTimeMillis() }
                     ) { change, dragAmount ->
                         change.consume()
