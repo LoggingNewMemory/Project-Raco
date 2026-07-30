@@ -272,9 +272,8 @@ class MainActivity : AppCompatActivity() {
             val isRooted = process.waitFor() == 0
             if (isRooted) {
                 // Grant SYSTEM_ALERT_WINDOW permission for the game overlay service
-                Runtime.getRuntime().exec(arrayOf("su", "-c", "appops set com.kanagawa.yamada.project.raco SYSTEM_ALERT_WINDOW allow")).waitFor()
-                // Grant GET_USAGE_STATS to allow polling the foreground app for the in-game menu
-                Runtime.getRuntime().exec(arrayOf("su", "-c", "appops set com.kanagawa.yamada.project.raco GET_USAGE_STATS allow")).waitFor()
+                val cmd = "appops set com.kanagawa.yamada.project.raco SYSTEM_ALERT_WINDOW allow ; appops set com.kanagawa.yamada.project.raco GET_USAGE_STATS allow"
+                Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
             }
             isRooted
         } catch (e: Exception) {

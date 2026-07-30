@@ -48,17 +48,37 @@ fun AboutScreen(onBack: () -> Unit) {
         coroutineScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val processModel = Runtime.getRuntime().exec(arrayOf("su", "-c", "getprop ro.product.model"))
-                    deviceModel = BufferedReader(InputStreamReader(processModel.inputStream)).readText().trim()
-
-                    var cpuName = BufferedReader(InputStreamReader(Runtime.getRuntime().exec(arrayOf("su", "-c", "getprop ro.board.platform")).inputStream)).readText().trim()
+                    val script = """
+                        echo "MODEL=$(getprop ro.product.model)"
+                        echo "PLATFORM=$(getprop ro.board.platform)"
+                        echo "HW=$(getprop ro.hardware)"
+                        echo "CPU=$(cat /proc/cpuinfo | grep Hardware | cut -d: -f2)"
+                        echo "FREQ=$(cat /sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_max_freq | sort -nr | head -n 1)"
+                        echo "RAM=$(cat /proc/meminfo | grep MemTotal | awk '{print ${'$'}2}')"
+                        echo "STORAGE=$(df /data | tail -n 1 | awk '{print ${'$'}2}')"
+                        echo "BATTERY=$(cat /sys/class/power_supply/battery/charge_full_design 2>/dev/null)"
+                    """.trimIndent()
+                    
+                    val process = Runtime.getRuntime().exec(arrayOf("su", "-c", script))
+                    val lines = BufferedReader(InputStreamReader(process.inputStream)).readLines()
+                    
+                    val data = mutableMapOf<String, String>()
+                    lines.forEach { line ->
+                        val parts = line.split("=", limit = 2)
+                        if (parts.size == 2) data[parts[0]] = parts[1].trim()
+                    }
+                    
+                    deviceModel = data["MODEL"] ?: "Unknown Device"
+                    
+                    var cpuName = data["PLATFORM"] ?: ""
                     if (cpuName.isEmpty() || cpuName.equals("unknown", ignoreCase = true)) {
-                        cpuName = BufferedReader(InputStreamReader(Runtime.getRuntime().exec(arrayOf("su", "-c", "getprop ro.hardware")).inputStream)).readText().trim()
+                        cpuName = data["HW"] ?: ""
                     }
                     if (cpuName.isEmpty() || cpuName.equals("unknown", ignoreCase = true)) {
-                        cpuName = BufferedReader(InputStreamReader(Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /proc/cpuinfo | grep Hardware | cut -d: -f2")).inputStream)).readText().trim()
+                        cpuName = data["CPU"] ?: "Unknown CPU"
                     }
-                    val cpuFreqStr = BufferedReader(InputStreamReader(Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_max_freq | sort -nr | head -n 1")).inputStream)).readText().trim()
+                    
+                    val cpuFreqStr = data["FREQ"] ?: ""
                     cpuInfo = if (cpuFreqStr.isNotEmpty() && cpuFreqStr.toLongOrNull() != null) {
                         val freqGhz = cpuFreqStr.toLong() / 1000000.0
                         String.format("%.2fGHz %s", freqGhz, cpuName)
@@ -66,15 +86,13 @@ fun AboutScreen(onBack: () -> Unit) {
                         cpuName
                     }
 
-                    val processRam = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /proc/meminfo | grep MemTotal | awk '{print \$2}'"))
-                    val ramKbStr = BufferedReader(InputStreamReader(processRam.inputStream)).readText().trim()
+                    val ramKbStr = data["RAM"] ?: ""
                     if (ramKbStr.isNotEmpty() && ramKbStr.toLongOrNull() != null) {
                         val ramGb = Math.ceil(ramKbStr.toLong() / (1024.0 * 1024.0)).toLong()
                         ramInfo = "$ramGb GB"
                     }
 
-                    val processStorage = Runtime.getRuntime().exec(arrayOf("su", "-c", "df /data | tail -n 1 | awk '{print \$2}'"))
-                    val storageKbStr = BufferedReader(InputStreamReader(processStorage.inputStream)).readText().trim()
+                    val storageKbStr = data["STORAGE"] ?: ""
                     if (storageKbStr.isNotEmpty() && storageKbStr.toLongOrNull() != null) {
                         val storageGb = storageKbStr.toLong() / (1024.0 * 1024.0)
                         storageInfo = when {
@@ -87,11 +105,10 @@ fun AboutScreen(onBack: () -> Unit) {
                         }
                     }
 
-                    val processBattery = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /sys/class/power_supply/battery/charge_full_design"))
-                    val batteryUahStr = BufferedReader(InputStreamReader(processBattery.inputStream)).readText().trim()
+                    val batteryUahStr = data["BATTERY"] ?: ""
                     if (batteryUahStr.isNotEmpty() && batteryUahStr.toLongOrNull() != null) {
                         var mah = Math.round(batteryUahStr.toLong() / 1000.0)
-                        if (mah < 1000) mah *= 10
+                        if (mah in 1..999) mah *= 10
                         batteryInfo = "$mah mAh"
                     }
                 }

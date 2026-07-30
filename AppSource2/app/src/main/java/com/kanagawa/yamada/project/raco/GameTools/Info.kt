@@ -30,81 +30,106 @@ fun InfoOverlayView(context: Context, currentPackage: String) {
         val bm = context.getSystemService(Context.BATTERY_SERVICE) as android.os.BatteryManager
         var previousMaxTime = 0L
         var targetLayer = ""
-        Runtime.getRuntime().exec(arrayOf("su", "-c", "dumpsys SurfaceFlinger --timestats -clear -enable"))
         
-        while (true) {
-            currentTime = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
-            currentBattery = bm.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        val process = Runtime.getRuntime().exec("su")
+        val suOut = java.io.DataOutputStream(process.outputStream)
+        val suIn = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
+        
+        fun runCmd(cmd: String): List<String> {
+            try {
+                suOut.writeBytes(cmd + "\n")
+                suOut.writeBytes("echo '---RACO_END---'\n")
+                suOut.flush()
+                val lines = mutableListOf<String>()
+                while (true) {
+                    val line = suIn.readLine() ?: break
+                    if (line == "---RACO_END---") break
+                    lines.add(line)
+                }
+                return lines
+            } catch(e: Exception) { return emptyList() }
+        }
+
+        try {
+            runCmd("dumpsys SurfaceFlinger --timestats -clear -enable")
             
-            // Calculate FPS matching Kaorios 1:1 logic
-            val fps = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                var calculatedFps = 0.0
-                try {
-                    val timeStatsProc = Runtime.getRuntime().exec(arrayOf("su", "-c", "dumpsys SurfaceFlinger --timestats -dump"))
-                    val timeStatsOutput = timeStatsProc.inputStream.bufferedReader().readText()
-                    val matcher = java.util.regex.Pattern.compile("averageFPS\\s*=\\s*([0-9.]+)").matcher(timeStatsOutput)
-                    if (matcher.find()) {
-                        val fpsFloat = matcher.group(1)?.toFloatOrNull()
-                        if (fpsFloat != null && fpsFloat > 0f) {
-                            calculatedFps = fpsFloat.toDouble()
-                            Runtime.getRuntime().exec(arrayOf("su", "-c", "dumpsys SurfaceFlinger --timestats -clear -enable"))
+            while (true) {
+                currentTime = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
+                currentBattery = bm.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)
+                
+                // Calculate FPS matching Kaorios 1:1 logic
+                val fps = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    var calculatedFps = 0.0
+                    try {
+                        val timeStatsOutput = runCmd("dumpsys SurfaceFlinger --timestats -dump").joinToString("\n")
+                        val matcher = java.util.regex.Pattern.compile("averageFPS\\s*=\\s*([0-9.]+)").matcher(timeStatsOutput)
+                        if (matcher.find()) {
+                            val fpsFloat = matcher.group(1)?.toFloatOrNull()
+                            if (fpsFloat != null && fpsFloat > 0f) {
+                                calculatedFps = fpsFloat.toDouble()
+                                runCmd("dumpsys SurfaceFlinger --timestats -clear -enable")
+                            }
                         }
-                    }
-
-                    if (calculatedFps <= 0.0) {
-                        if (targetLayer.isEmpty()) {
-                            val listProcess = Runtime.getRuntime().exec(arrayOf("su", "-c", "dumpsys SurfaceFlinger --list"))
-                            val layers = listProcess.inputStream.bufferedReader().readLines()
-                            targetLayer = layers.firstOrNull { it.contains(currentPackage) && it.contains("SurfaceView") } 
-                                ?: layers.firstOrNull { it.contains(currentPackage) }
-                                ?: currentPackage
-                        }
-
-                        val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "dumpsys SurfaceFlinger --latency '$targetLayer'"))
-                        val lines = process.inputStream.bufferedReader().readLines()
-                        if (lines.size >= 2) {
-                            var maxTime = Long.MIN_VALUE
-                            var frameCount = 0
-                            
-                            for (i in 1 until lines.size) {
-                                val parts = lines[i].trim().split("\\s+".toRegex())
-                                if (parts.size >= 3) {
-                                    val time = parts[1].toLongOrNull() ?: continue
-                                    if (time <= 0L || time == Long.MAX_VALUE) continue
-                                    
-                                    if (time > previousMaxTime) {
-                                        frameCount++
-                                        if (time > maxTime) maxTime = time
+    
+                        if (calculatedFps <= 0.0) {
+                            if (targetLayer.isEmpty()) {
+                                val layers = runCmd("dumpsys SurfaceFlinger --list")
+                                targetLayer = layers.firstOrNull { it.contains(currentPackage) && it.contains("SurfaceView") } 
+                                    ?: layers.firstOrNull { it.contains(currentPackage) }
+                                    ?: currentPackage
+                            }
+    
+                            val lines = runCmd("dumpsys SurfaceFlinger --latency '$targetLayer'")
+                            if (lines.size >= 2) {
+                                var maxTime = Long.MIN_VALUE
+                                var frameCount = 0
+                                
+                                for (i in 1 until lines.size) {
+                                    val parts = lines[i].trim().split("\\s+".toRegex())
+                                    if (parts.size >= 3) {
+                                        val time = parts[1].toLongOrNull() ?: continue
+                                        if (time <= 0L || time == Long.MAX_VALUE) continue
+                                        
+                                        if (time > previousMaxTime) {
+                                            frameCount++
+                                            if (time > maxTime) maxTime = time
+                                        }
                                     }
                                 }
-                            }
-                            
-                            if (previousMaxTime > 0L && maxTime > previousMaxTime && frameCount > 0) {
-                                val timeDiffSec = (maxTime - previousMaxTime) / 1e9
-                                if (timeDiffSec > 0) {
-                                    val currentCalc = frameCount / timeDiffSec
-                                    if (currentCalc in 1.0..240.0) {
-                                        calculatedFps = currentCalc
+                                
+                                if (previousMaxTime > 0L && maxTime > previousMaxTime && frameCount > 0) {
+                                    val timeDiffSec = (maxTime - previousMaxTime) / 1e9
+                                    if (timeDiffSec > 0) {
+                                        val currentCalc = frameCount / timeDiffSec
+                                        if (currentCalc in 1.0..240.0) {
+                                            calculatedFps = currentCalc
+                                        }
                                     }
                                 }
+                                if (maxTime > previousMaxTime && maxTime != Long.MIN_VALUE) {
+                                    previousMaxTime = maxTime
+                                }
+                            } else {
+                                targetLayer = ""
                             }
-                            if (maxTime > previousMaxTime && maxTime != Long.MIN_VALUE) {
-                                previousMaxTime = maxTime
-                            }
-                        } else {
-                            targetLayer = ""
                         }
-                    }
-                } catch (e: Exception) {}
-                calculatedFps
+                    } catch (e: Exception) {}
+                    calculatedFps
+                }
+                if (fps > 0) {
+                    currentFps = kotlin.math.round(fps).toInt()
+                } else if (fps == 0.0 && previousMaxTime > 0L) {
+                    currentFps = 0
+                }
+                
+                delay(1000)
             }
-            if (fps > 0) {
-                currentFps = kotlin.math.round(fps).toInt()
-            } else if (fps == 0.0 && previousMaxTime > 0L) {
-                currentFps = 0
-            }
-            
-            delay(1000)
+        } finally {
+            try {
+                suOut.close()
+                suIn.close()
+                process.destroy()
+            } catch(e: Exception) {}
         }
     }
 

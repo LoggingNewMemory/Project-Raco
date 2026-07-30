@@ -132,9 +132,8 @@ object AyundaTool {
                 val b = sharedPrefs.getFloat("RGB_B", 1f)
                 val s = sharedPrefs.getFloat("RGB_S", 1f)
                 Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s")).waitFor()
-            } else {
-                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1")).waitFor()
-                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.0")).waitFor()
+                val cmd = "service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f 1.0"
+                Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
             }
         } else {
             var lastPreset = sharedPrefs.getString("active_ayunda_preset_$currentPackage", "") ?: ""
@@ -154,8 +153,8 @@ object AyundaTool {
             val g = sharedPrefs.getFloat("RGB_G_$currentPackage", 1f)
             val b = sharedPrefs.getFloat("RGB_B_$currentPackage", 1f)
             val s = sharedPrefs.getFloat("RGB_S_$currentPackage", 1f)
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1")).waitFor()
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f $s")).waitFor()
+            val cmd = "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s"
+            Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
         }
     }
 }
