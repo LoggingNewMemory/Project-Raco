@@ -96,8 +96,6 @@ class GameAssistantService : AccessibilityService() {
                     if (gameMode != "none") {
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd game mode $gameMode $packageName")).waitFor()
                     }
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load $packageName")).waitFor()
-                    
                     val racoMode = sharedPrefs.getString("raco_game_mode_$packageName", "Awaken") ?: "Awaken"
                     val cmdMode = when(racoMode) {
                         "Powersave" -> "2"
@@ -105,7 +103,7 @@ class GameAssistantService : AccessibilityService() {
                         "Awaken" -> "4"
                         else -> "4"
                     }
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $cmdMode")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load $packageName $cmdMode")).waitFor()
                     
                     val ultraTouch = sharedPrefs.getBoolean("ultra_touch_$packageName", false)
                     if (ultraTouch) {
@@ -146,8 +144,6 @@ class GameAssistantService : AccessibilityService() {
                         "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload"
                     }
                     Runtime.getRuntime().exec(arrayOf("su", "-c", unloadCmd)).waitFor()
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load $packageName")).waitFor()
-                    
                     val racoMode = sharedPrefs.getString("raco_game_mode_$packageName", "Awaken") ?: "Awaken"
                     val cmdMode = when(racoMode) {
                         "Powersave" -> "2"
@@ -155,7 +151,7 @@ class GameAssistantService : AccessibilityService() {
                         "Awaken" -> "4"
                         else -> "4"
                     }
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $cmdMode")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load $packageName $cmdMode")).waitFor()
                     
                     val ultraTouch = sharedPrefs.getBoolean("ultra_touch_$packageName", false)
                     if (ultraTouch) {

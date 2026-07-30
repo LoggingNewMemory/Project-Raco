@@ -455,8 +455,19 @@ int main(int argc, char *argv[]) {
     if (strcmp(argv[1], "load") == 0) {
         if (argc >= 3) {
             printf("Game Assistant Loaded for: %s\n", argv[2]);
-            // Apply gaming profile automatically when a game is loaded
-            mode_awaken();
+            if (argc >= 4) {
+                int load_mode = atoi(argv[3]);
+                switch(load_mode) {
+                    case 4: mode_awaken(); break;
+                    case 3: mode_balanced(); break;
+                    case 2: mode_powersave(); break;
+                    case 1: mode_normal(); break;
+                    case 5: mode_gaming_pro(); break;
+                    default: mode_awaken(); break;
+                }
+            } else {
+                mode_awaken();
+            }
             rswap_resume(argv[2]);
         }
         return 0;
