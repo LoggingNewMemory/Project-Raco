@@ -48,6 +48,7 @@ import androidx.compose.animation.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.foundation.Image
+import android.view.MotionEvent
 import com.kanagawa.yamada.project.raco.GameTools.*
 
 class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
@@ -335,17 +336,71 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                     WindowManager.LayoutParams.WRAP_CONTENT,
                     WindowManager.LayoutParams.WRAP_CONTENT,
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                     PixelFormat.TRANSLUCENT
                 ).apply {
-                    gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-                    y = 80
+                    gravity = Gravity.TOP or Gravity.START
+                    val savedX = sharedPrefs.getInt("info_x", -1)
+                    val savedY = sharedPrefs.getInt("info_y", -1)
+                    if (savedX != -1 && savedY != -1) {
+                        x = savedX
+                        y = savedY
+                    } else {
+                        val metrics = context.resources.displayMetrics
+                        x = metrics.widthPixels / 2 - 200
+                        y = 80
+                    }
                 }
 
                 infoView = ComposeView(context).apply {
                     setViewTreeLifecycleOwner(this@RacoGameAssistant)
                     setViewTreeViewModelStoreOwner(this@RacoGameAssistant)
                     setViewTreeSavedStateRegistryOwner(this@RacoGameAssistant)
+                    
+                    var initialX = 0
+                    var initialY = 0
+                    var initialTouchX = 0f
+                    var initialTouchY = 0f
+                    var isDragging = false
+
+                    setOnTouchListener { view, event ->
+                        when (event.action) {
+                            MotionEvent.ACTION_DOWN -> {
+                                initialX = infoParams.x
+                                initialY = infoParams.y
+                                initialTouchX = event.rawX
+                                initialTouchY = event.rawY
+                                isDragging = false
+                                true
+                            }
+                            MotionEvent.ACTION_MOVE -> {
+                                val dx = event.rawX - initialTouchX
+                                val dy = event.rawY - initialTouchY
+                                if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                                    isDragging = true
+                                }
+                                if (isDragging) {
+                                    val metrics = android.util.DisplayMetrics()
+                                    windowManager.defaultDisplay.getRealMetrics(metrics)
+                                    val maxX = Math.max(0, metrics.widthPixels - view.width)
+                                    val maxY = Math.max(0, metrics.heightPixels - view.height)
+                                    val newX = initialX + dx.toInt()
+                                    val newY = initialY + dy.toInt()
+                                    infoParams.x = newX.coerceIn(0, maxX)
+                                    infoParams.y = newY.coerceIn(0, maxY)
+                                    windowManager.updateViewLayout(view, infoParams)
+                                }
+                                true
+                            }
+                            MotionEvent.ACTION_UP -> {
+                                if (isDragging) {
+                                    sharedPrefs.edit().putInt("info_x", infoParams.x).putInt("info_y", infoParams.y).apply()
+                                }
+                                true
+                            }
+                            else -> false
+                        }
+                    }
                     
                     setContent {
                         InfoOverlayView(context, pkg)
@@ -994,7 +1049,7 @@ fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: M
             AyundaTool.toggle(currentPackage, activeAyundaPresetState, sharedPrefs)
             null
         }, onLongClick = { showAyundaConfigState.value = true }),
-        ToolData("Info", null, Icons.Default.Info, { onToggleInfo(); null })
+        ToolData("Device Info", null, Icons.Default.DeveloperBoard, { onToggleInfo(); null })
     )
     
     Column(
@@ -1021,9 +1076,9 @@ fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: M
                     if (index < tools.size) {
                         val tool = tools[index]
                         val isCrosshairActive = tool.title == "Crosshair" && isCrosshairActiveState.value
-                        val isDndCurrentlyActive = tool.title == "DND" && activeDndState.value
+                        val isDndCurrentlyActive = tool.title.equals("Dnd", ignoreCase = true) && activeDndState.value
                         val isAyundaCurrentlyActive = tool.title == "Ayunda" && activeAyundaPresetState.value.isNotEmpty()
-                        val isInfoCurrentlyActive = tool.title == "Info" && isInfoActiveState.value
+                        val isInfoCurrentlyActive = tool.title == "Device Info" && isInfoActiveState.value
                         ToolItem(
                             title = tool.title, 
                             iconRes = tool.iconRes, 

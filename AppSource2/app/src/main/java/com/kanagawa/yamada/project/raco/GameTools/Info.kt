@@ -110,26 +110,26 @@ fun InfoOverlayView(context: Context, currentPackage: String) {
 
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(4.dp))
             .background(Color(0xFF1E1E1E).copy(alpha = 0.85f))
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Schedule, contentDescription = "Time", tint = Color.LightGray, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(currentTime, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Icon(Icons.Default.Schedule, contentDescription = "Time", tint = Color.LightGray, modifier = Modifier.size(15.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(currentTime, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Layers, contentDescription = "FPS", tint = Color.LightGray, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(6.dp))
-            Text("${currentFps}FPS", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Icon(Icons.Default.Layers, contentDescription = "FPS", tint = Color.LightGray, modifier = Modifier.size(15.dp))
+            Spacer(Modifier.width(4.dp))
+            Text("${currentFps}FPS", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.BatteryFull, contentDescription = "Battery", tint = Color.LightGray, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(6.dp))
-            Text("$currentBattery%", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Icon(Icons.Default.BatteryFull, contentDescription = "Battery", tint = Color.LightGray, modifier = Modifier.size(15.dp))
+            Spacer(Modifier.width(4.dp))
+            Text("$currentBattery%", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }
