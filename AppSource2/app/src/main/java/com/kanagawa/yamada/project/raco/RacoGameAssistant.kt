@@ -1035,11 +1035,11 @@ fun ToolItem(title: String, iconRes: Int? = null, icon: ImageVector? = null, mod
                     if (isProcessing) return@combinedClickable
                     coroutineScope.launch(Dispatchers.IO) {
                         try {
-                            if (title == "Cleanup" || title == "Screenshot") {
+                            if (title == "Cleanup") {
                                 isProcessing = true
                             }
                             val msg = onClick()
-                            if (title == "Cleanup" || title == "Screenshot") {
+                            if (title == "Cleanup") {
                                 isProcessing = false
                                 if (msg != null) successMsg = msg
                                 showSuccess = true
