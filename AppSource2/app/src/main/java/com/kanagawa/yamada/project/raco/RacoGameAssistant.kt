@@ -179,6 +179,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                             val metrics = android.util.DisplayMetrics()
                             windowManager.defaultDisplay.getRealMetrics(metrics)
                             val buttonSizePx = (52 * metrics.density).toInt()
+                            
                             buttonX = buttonX.coerceIn(0, Math.max(0, metrics.widthPixels - buttonSizePx))
                             buttonY = buttonY.coerceIn(0, Math.max(0, metrics.heightPixels - buttonSizePx))
 
@@ -384,6 +385,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                                     windowManager.defaultDisplay.getRealMetrics(metrics)
                                     val maxX = Math.max(0, metrics.widthPixels - view.width)
                                     val maxY = Math.max(0, metrics.heightPixels - view.height)
+                                    
                                     val newX = initialX + dx.toInt()
                                     val newY = initialY + dy.toInt()
                                     infoParams.x = newX.coerceIn(0, maxX)
