@@ -21,10 +21,16 @@ import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -50,7 +56,7 @@ import com.kanagawa.yamada.project.raco.security.RacoSecSetupScreen
 import com.kanagawa.yamada.project.raco.security.SecCheckResult
 
 enum class ScreenState {
-    CHECKING_ROOT, NO_ROOT, HOME_SCREEN,
+    CHECKING_ROOT, ROOT_NOTICE, NO_ROOT, HOME_SCREEN,
     // RacoSec states
     CHECKING_LICENSE, LICENSE_SETUP, TAMPER_BLOCKED
 }
@@ -137,14 +143,21 @@ class MainActivity : AppCompatActivity() {
                 var currentScreen by remember { mutableStateOf(ScreenState.CHECKING_LICENSE) }
 
                 LaunchedEffect(Unit) {
-                    // ── Step 1: RacoSec license check (if LACCESS is enabled) ──
+                    // ── Step 1: Root check FIRST — user must grant before anything else ──
+                    currentScreen = ScreenState.CHECKING_ROOT
+                    val isRooted = checkRootAccess()
+                    if (!isRooted) {
+                        currentScreen = ScreenState.ROOT_NOTICE
+                        return@LaunchedEffect
+                    }
+
+                    // ── Step 2: RacoSec license check (if LACCESS is enabled) ──
                     if (BuildConfig.LACCESS) {
+                        currentScreen = ScreenState.CHECKING_LICENSE
                         val secResult = RacoSecManager.performStartupCheck(context, true)
                         when (secResult) {
                             is SecCheckResult.Clean,
-                            is SecCheckResult.NetworkUnavailable -> {
-                                // License OK – proceed to root check
-                            }
+                            is SecCheckResult.NetworkUnavailable -> { /* OK — continue */ }
                             is SecCheckResult.NotActivated -> {
                                 currentScreen = ScreenState.LICENSE_SETUP
                                 return@LaunchedEffect
@@ -158,10 +171,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
 
-                    // ── Step 2: Root check ──
-                    currentScreen = ScreenState.CHECKING_ROOT
-                    val isRooted = checkRootAccess()
-                    currentScreen = if (isRooted) ScreenState.HOME_SCREEN else ScreenState.NO_ROOT
+                    currentScreen = ScreenState.HOME_SCREEN
                 }
 
                 Box(
@@ -190,12 +200,84 @@ class MainActivity : AppCompatActivity() {
                             ScreenState.CHECKING_LICENSE,
                             ScreenState.CHECKING_ROOT -> { /* Black screen while checking */ }
 
+                            ScreenState.ROOT_NOTICE,
                             ScreenState.NO_ROOT -> {
-                                Text(stringResource(R.string.root_access_denied_project_raco_requires_root),
-                                    color = Color.Red,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.align(Alignment.Center)
-                                )
+                                // Root Notice screen — shown before RacoSec if root isn't granted.
+                                // Also shown if root was revoked after a previous session.
+                                val scope = rememberCoroutineScope()
+                                var isRetrying by remember { mutableStateOf(false) }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.background),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    androidx.compose.foundation.layout.Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+                                        modifier = Modifier.padding(32.dp)
+                                    ) {
+                                        Text("🔐", style = MaterialTheme.typography.displayLarge)
+                                        Text(
+                                            "Root Access Required",
+                                            style = MaterialTheme.typography.headlineSmall,
+                                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onBackground
+                                        )
+                                        Text(
+                                            "Project Raco requires root access to function.\n" +
+                                            "Please grant root permission when prompted by your root manager (Magisk / KernelSU / APatch).",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                                            textAlign = TextAlign.Center
+                                        )
+                                        androidx.compose.material3.Button(
+                                            onClick = {
+                                                scope.launch {
+                                                    isRetrying = true
+                                                    currentScreen = ScreenState.CHECKING_ROOT
+                                                    val rooted = withContext(Dispatchers.IO) { checkRootAccess() }
+                                                    isRetrying = false
+                                                    if (rooted) {
+                                                        // Root granted — now run RacoSec
+                                                        if (BuildConfig.LACCESS) {
+                                                            currentScreen = ScreenState.CHECKING_LICENSE
+                                                            val secResult = RacoSecManager.performStartupCheck(context, true)
+                                                            when (secResult) {
+                                                                is SecCheckResult.NotActivated -> {
+                                                                    currentScreen = ScreenState.LICENSE_SETUP
+                                                                    return@launch
+                                                                }
+                                                                is SecCheckResult.Tampered,
+                                                                is SecCheckResult.ClonedBackup,
+                                                                is SecCheckResult.WrongDevice -> {
+                                                                    currentScreen = ScreenState.TAMPER_BLOCKED
+                                                                    return@launch
+                                                                }
+                                                                else -> {}
+                                                            }
+                                                        }
+                                                        currentScreen = ScreenState.HOME_SCREEN
+                                                    } else {
+                                                        currentScreen = ScreenState.ROOT_NOTICE
+                                                    }
+                                                }
+                                            },
+                                            enabled = !isRetrying,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            if (isRetrying) {
+                                                androidx.compose.material3.CircularProgressIndicator(
+                                                    modifier = Modifier.size(18.dp),
+                                                    strokeWidth = 2.dp,
+                                                    color = MaterialTheme.colorScheme.onPrimary
+                                                )
+                                                Spacer(Modifier.width(8.dp))
+                                            }
+                                            Text(if (isRetrying) "Requesting..." else "Grant Root Access")
+                                        }
+                                    }
+                                }
                             }
 
                             ScreenState.LICENSE_SETUP -> {
