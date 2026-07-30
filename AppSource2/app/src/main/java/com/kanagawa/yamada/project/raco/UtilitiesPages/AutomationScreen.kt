@@ -135,38 +135,6 @@ fun AutomationScreen(onBack: () -> Unit) {
                     }
                 }
             }
-
-            // DND Card
-            item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(stringResource(R.string.do_not_disturb), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                        Spacer(Modifier.height(4.dp))
-                        Text(stringResource(R.string.enable_dnd_mode_during_gaming_to_block_notifications), style = MaterialTheme.typography.bodySmall)
-                        Spacer(Modifier.height(8.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.DoNotDisturbOn, null, tint = MaterialTheme.colorScheme.primary)
-                            Spacer(Modifier.width(12.dp))
-                            Text(stringResource(R.string.enable_dnd), modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
-                            Switch(
-                                checked = dndEnabled,
-                                onCheckedChange = { newValue ->
-                                    dndEnabled = newValue
-                                    scope.launch {
-                                        val v = if (newValue) "1" else "0"
-                                        runRoot("grep -q '^DND ' $AUTOMATION_CONFIG_PATH && sed -i 's/^DND .*/DND $v/' $AUTOMATION_CONFIG_PATH || echo 'DND $v' >> $AUTOMATION_CONFIG_PATH")
-                                    }
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-
             // RSWAP Card
             item {
                 Card(

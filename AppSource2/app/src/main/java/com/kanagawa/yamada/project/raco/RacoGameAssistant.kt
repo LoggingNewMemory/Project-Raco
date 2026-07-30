@@ -64,6 +64,8 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
     val crosshairColorState = mutableStateOf(sharedPrefs.getString("crosshair_color", "White") ?: "White")
     val showCrosshairConfigState = mutableStateOf(false)
     val showAyundaConfigState = mutableStateOf(false)
+    val activeAyundaPresetState = mutableStateOf("")
+    val activeDndState = mutableStateOf(false)
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val store = ViewModelStore()
@@ -114,6 +116,22 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         crosshairSizeState.value = sharedPrefs.getFloat("crosshair_size_$packageName", sharedPrefs.getFloat("crosshair_size", 32f))
         crosshairOpacityState.value = sharedPrefs.getFloat("crosshair_opacity_$packageName", sharedPrefs.getFloat("crosshair_opacity", 1f))
         crosshairColorState.value = sharedPrefs.getString("crosshair_color_$packageName", sharedPrefs.getString("crosshair_color", "White")) ?: "White"
+
+        val savedAyundaPreset = sharedPrefs.getString("active_ayunda_preset_$packageName", "") ?: ""
+        activeAyundaPresetState.value = savedAyundaPreset
+        if (savedAyundaPreset.isNotEmpty()) {
+            val r = sharedPrefs.getFloat("RGB_R_$packageName", 1f)
+            val g = sharedPrefs.getFloat("RGB_G_$packageName", 1f)
+            val b = sharedPrefs.getFloat("RGB_B_$packageName", 1f)
+            val s = sharedPrefs.getFloat("RGB_S_$packageName", 1f)
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s"))
+        }
+
+        val savedDndActive = sharedPrefs.getBoolean("dnd_active_$packageName", false)
+        activeDndState.value = savedDndActive
+        if (savedDndActive) {
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd notification set_dnd priority"))
+        }
 
         val savedCrosshairActive = sharedPrefs.getBoolean("crosshair_active_$packageName", false)
         if (savedCrosshairActive) {
@@ -169,6 +187,8 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                         crosshairColorState = crosshairColorState,
                         showCrosshairConfigState = showCrosshairConfigState,
                         showAyundaConfigState = showAyundaConfigState,
+                        activeAyundaPresetState = activeAyundaPresetState,
+                        activeDndState = activeDndState,
                         sharedPrefs = sharedPrefs
                     )
                 }
@@ -192,6 +212,26 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
             windowManager.removeView(it)
             composeView = null
         }
+        
+        val pkg = currentPackageState.value
+        val savedAyundaPreset = sharedPrefs.getString("active_ayunda_preset_$pkg", "") ?: ""
+        if (savedAyundaPreset.isNotEmpty()) {
+            val globalPreset = sharedPrefs.getString("active_ayunda_preset", "") ?: ""
+            if (globalPreset.isNotEmpty()) {
+                val r = sharedPrefs.getFloat("RGB_R", 1f)
+                val g = sharedPrefs.getFloat("RGB_G", 1f)
+                val b = sharedPrefs.getFloat("RGB_B", 1f)
+                val s = sharedPrefs.getFloat("RGB_S", 1f)
+                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s"))
+            } else {
+                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f 1.0"))
+            }
+        }
+        
+        if (activeDndState.value) {
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd notification set_dnd off"))
+        }
+        
         isExpanded = false
     }
 
@@ -296,6 +336,8 @@ fun GameSpaceContent(
     crosshairColorState: MutableState<String>,
     showCrosshairConfigState: MutableState<Boolean>,
     showAyundaConfigState: MutableState<Boolean>,
+    activeAyundaPresetState: MutableState<String>,
+    activeDndState: MutableState<Boolean>,
     sharedPrefs: android.content.SharedPreferences
 ) {
     val themeColor by androidx.compose.animation.animateColorAsState(
@@ -373,6 +415,8 @@ fun GameSpaceContent(
             crosshairColorState = crosshairColorState,
             showCrosshairConfigState = showCrosshairConfigState,
             showAyundaConfigState = showAyundaConfigState,
+            activeAyundaPresetState = activeAyundaPresetState,
+            activeDndState = activeDndState,
             sharedPrefs = sharedPrefs
         )
     }
@@ -395,6 +439,8 @@ fun GameSpaceDashboard(
     crosshairColorState: MutableState<String>,
     showCrosshairConfigState: MutableState<Boolean>,
     showAyundaConfigState: MutableState<Boolean>,
+    activeAyundaPresetState: MutableState<String>,
+    activeDndState: MutableState<Boolean>,
     sharedPrefs: android.content.SharedPreferences
 ) {
     var selectedTab by remember { mutableStateOf("Performance") }
@@ -490,20 +536,25 @@ fun GameSpaceDashboard(
                         1 -> {
                             ToolsTab(
                                 context = context,
+                                currentPackage = currentPackage,
                                 isCrosshairActiveState = isCrosshairActiveState, 
                                 onToggleCrosshair = onToggleCrosshair, 
                                 themeColor = themeColor,
                                 showCrosshairConfigState = showCrosshairConfigState,
                                 showAyundaConfigState = showAyundaConfigState,
+                                activeAyundaPresetState = activeAyundaPresetState,
+                                activeDndState = activeDndState,
                                 sharedPrefs = sharedPrefs,
                                 onCollapse = onCollapse
                             )
                         }
                         3 -> {
                             AyundaConfigView(
+                                currentPackage = currentPackage,
                                 onDismissRequest = { showAyundaConfigState.value = false },
                                 themeColor = themeColor,
-                                sharedPrefs = sharedPrefs
+                                sharedPrefs = sharedPrefs,
+                                activeAyundaPresetState = activeAyundaPresetState
                             )
                         }
                     }
@@ -859,15 +910,10 @@ fun StatCircle(title: String, value: String, unit: String, progress: Float, high
 data class ToolData(val title: String, val iconRes: Int?, val iconVector: ImageVector?, val action: suspend () -> String?, val onLongClick: (() -> Unit)? = null)
 
 @Composable
-fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>, showAyundaConfigState: MutableState<Boolean>, sharedPrefs: android.content.SharedPreferences, onCollapse: () -> Unit) {
+fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>, showAyundaConfigState: MutableState<Boolean>, activeAyundaPresetState: MutableState<String>, activeDndState: MutableState<Boolean>, sharedPrefs: android.content.SharedPreferences, onCollapse: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
-    var isDndActive by remember { mutableStateOf(false) }
-    var isAyundaActive by remember { mutableStateOf(sharedPrefs.getString("active_ayunda_preset", "")?.isNotEmpty() == true) }
-    
     LaunchedEffect(Unit) {
-        try {
-            isDndActive = android.provider.Settings.Global.getInt(context.contentResolver, "zen_mode", 0) != 0
-        } catch (e: Exception) {}
+        // Initialization if needed
     }
 
     val tools = listOf(
@@ -940,9 +986,12 @@ fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, on
             }
             null
         }),
-        ToolData("DND", null, Icons.Default.DoNotDisturbOn, { 
-            isDndActive = !isDndActive
-            if (isDndActive) {
+        ToolData("DND", null, Icons.Default.DoNotDisturbOn, {
+            val newState = !activeDndState.value
+            activeDndState.value = newState
+            sharedPrefs.edit().putBoolean("dnd_active_$currentPackage", newState).apply()
+            
+            if (newState) {
                 Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd notification set_dnd priority")).waitFor()
             } else {
                 Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd notification set_dnd off")).waitFor()
@@ -950,22 +999,42 @@ fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, on
             null
         }),
         ToolData("Ayunda", null, Icons.Default.Palette, {
-            isAyundaActive = !isAyundaActive
-            if (!isAyundaActive) {
-                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1")).waitFor()
-                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.0")).waitFor()
-                sharedPrefs.edit().putString("active_ayunda_preset", "").apply()
+            val isCurrentlyActive = activeAyundaPresetState.value.isNotEmpty()
+            if (isCurrentlyActive) {
+                activeAyundaPresetState.value = ""
+                sharedPrefs.edit().putString("active_ayunda_preset_$currentPackage", "").apply()
+                val globalPreset = sharedPrefs.getString("active_ayunda_preset", "") ?: ""
+                if (globalPreset.isNotEmpty()) {
+                    val r = sharedPrefs.getFloat("RGB_R", 1f)
+                    val g = sharedPrefs.getFloat("RGB_G", 1f)
+                    val b = sharedPrefs.getFloat("RGB_B", 1f)
+                    val s = sharedPrefs.getFloat("RGB_S", 1f)
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s")).waitFor()
+                } else {
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.0")).waitFor()
+                }
             } else {
-                val lastPreset = sharedPrefs.getString("active_ayunda_preset", "") ?: ""
-                val r = sharedPrefs.getFloat("RGB_R", 1f)
-                val g = sharedPrefs.getFloat("RGB_G", 1f)
-                val b = sharedPrefs.getFloat("RGB_B", 1f)
-                val s = sharedPrefs.getFloat("RGB_S", 1f)
+                var lastPreset = sharedPrefs.getString("active_ayunda_preset_$currentPackage", "") ?: ""
+                if (lastPreset.isEmpty()) {
+                    lastPreset = "Hunter" // Default for new games
+                    sharedPrefs.edit().putString("active_ayunda_preset_$currentPackage", lastPreset).apply()
+                    // Set values for Hunter (0.9, 1.2, 0.9, 1.3)
+                    sharedPrefs.edit().apply {
+                        putFloat("RGB_R_$currentPackage", 0.9f)
+                        putFloat("RGB_G_$currentPackage", 1.2f)
+                        putFloat("RGB_B_$currentPackage", 0.9f)
+                        putFloat("RGB_S_$currentPackage", 1.3f)
+                        apply()
+                    }
+                }
+                activeAyundaPresetState.value = lastPreset
+                val r = sharedPrefs.getFloat("RGB_R_$currentPackage", 1f)
+                val g = sharedPrefs.getFloat("RGB_G_$currentPackage", 1f)
+                val b = sharedPrefs.getFloat("RGB_B_$currentPackage", 1f)
+                val s = sharedPrefs.getFloat("RGB_S_$currentPackage", 1f)
                 Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1")).waitFor()
                 Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f $s")).waitFor()
-                if (lastPreset.isEmpty()) {
-                    sharedPrefs.edit().putString("active_ayunda_preset", "Custom").apply()
-                }
             }
             null
         }, onLongClick = { showAyundaConfigState.value = true })
@@ -995,8 +1064,8 @@ fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, on
                     if (index < tools.size) {
                         val tool = tools[index]
                         val isCrosshairActive = tool.title == "Crosshair" && isCrosshairActiveState.value
-                        val isDndCurrentlyActive = tool.title == "DND" && isDndActive
-                        val isAyundaCurrentlyActive = tool.title == "Ayunda" && isAyundaActive
+                        val isDndCurrentlyActive = tool.title == "DND" && activeDndState.value
+                        val isAyundaCurrentlyActive = tool.title == "Ayunda" && activeAyundaPresetState.value.isNotEmpty()
                         ToolItem(
                             title = tool.title, 
                             iconRes = tool.iconRes,
@@ -1248,12 +1317,13 @@ fun CrosshairConfigView(
 
 @Composable
 fun AyundaConfigView(
+    currentPackage: String,
     onDismissRequest: () -> Unit,
     themeColor: Color,
-    sharedPrefs: android.content.SharedPreferences
+    sharedPrefs: android.content.SharedPreferences,
+    activeAyundaPresetState: MutableState<String>
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var activePreset by remember { mutableStateOf(sharedPrefs.getString("active_ayunda_preset", "") ?: "") }
 
     data class PresetData(val title: String, val desc: String, val vals: List<Float>)
     
@@ -1295,7 +1365,7 @@ fun AyundaConfigView(
             val desc = preset.desc
             val vals = preset.vals
             
-            val isCurrent = activePreset == name
+            val isCurrent = activeAyundaPresetState.value == name
             val bgColor = if (isCurrent) themeColor else Color(0xFF2A2A2A)
             val textColor = if (isCurrent) Color.White else Color.LightGray
             val descColor = if (isCurrent) Color.White.copy(alpha = 0.7f) else Color.Gray
@@ -1307,14 +1377,14 @@ fun AyundaConfigView(
                     .clip(RoundedCornerShape(8.dp))
                     .background(bgColor)
                     .clickable {
-                        activePreset = name
+                        activeAyundaPresetState.value = name
                         coroutineScope.launch(Dispatchers.IO) {
                             sharedPrefs.edit().apply {
-                                putFloat("RGB_R", vals[0])
-                                putFloat("RGB_G", vals[1])
-                                putFloat("RGB_B", vals[2])
-                                putFloat("RGB_S", vals[3])
-                                putString("active_ayunda_preset", name)
+                                putFloat("RGB_R_$currentPackage", vals[0])
+                                putFloat("RGB_G_$currentPackage", vals[1])
+                                putFloat("RGB_B_$currentPackage", vals[2])
+                                putFloat("RGB_S_$currentPackage", vals[3])
+                                putString("active_ayunda_preset_$currentPackage", name)
                                 apply()
                             }
                             Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${vals[3]}")).waitFor()
