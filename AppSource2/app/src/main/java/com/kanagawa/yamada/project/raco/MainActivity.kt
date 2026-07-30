@@ -41,16 +41,24 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+
+// RacoSec imports
+import com.kanagawa.yamada.project.raco.BuildConfig
+import com.kanagawa.yamada.project.raco.security.RacoSecManager
+import com.kanagawa.yamada.project.raco.security.RacoSecSetupScreen
+import com.kanagawa.yamada.project.raco.security.SecCheckResult
 
 enum class ScreenState {
-    CHECKING_ROOT, NO_ROOT, HOME_SCREEN
+    CHECKING_ROOT, NO_ROOT, HOME_SCREEN,
+    // RacoSec states
+    CHECKING_LICENSE, LICENSE_SETUP, TAMPER_BLOCKED
 }
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
 
         // ── Auto Notch Detector / Full Screen Mode ──
         // Allow the app window to extend into the display cutout (notch) area.
@@ -126,15 +134,34 @@ class MainActivity : AppCompatActivity() {
             }
 
             ProjectRacoTheme(darkTheme = true, seedColor = adaptiveColor) {
-                var currentScreen by remember { mutableStateOf(ScreenState.CHECKING_ROOT) }
+                var currentScreen by remember { mutableStateOf(ScreenState.CHECKING_LICENSE) }
 
                 LaunchedEffect(Unit) {
-                    val isRooted = checkRootAccess()
-                    currentScreen = if (isRooted) {
-                        ScreenState.HOME_SCREEN
-                    } else {
-                        ScreenState.NO_ROOT
+                    // ── Step 1: RacoSec license check (if LACCESS is enabled) ──
+                    if (BuildConfig.LACCESS) {
+                        val secResult = RacoSecManager.performStartupCheck(context, true)
+                        when (secResult) {
+                            is SecCheckResult.Clean,
+                            is SecCheckResult.NetworkUnavailable -> {
+                                // License OK – proceed to root check
+                            }
+                            is SecCheckResult.NotActivated -> {
+                                currentScreen = ScreenState.LICENSE_SETUP
+                                return@LaunchedEffect
+                            }
+                            is SecCheckResult.Tampered,
+                            is SecCheckResult.ClonedBackup,
+                            is SecCheckResult.WrongDevice -> {
+                                currentScreen = ScreenState.TAMPER_BLOCKED
+                                return@LaunchedEffect
+                            }
+                        }
                     }
+
+                    // ── Step 2: Root check ──
+                    currentScreen = ScreenState.CHECKING_ROOT
+                    val isRooted = checkRootAccess()
+                    currentScreen = if (isRooted) ScreenState.HOME_SCREEN else ScreenState.NO_ROOT
                 }
 
                 Box(
@@ -155,7 +182,9 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     when (currentScreen) {
-                        ScreenState.CHECKING_ROOT -> { } // Black screen while Magisk prompts
+                        ScreenState.CHECKING_LICENSE,
+                        ScreenState.CHECKING_ROOT -> { /* Black screen while checking */ }
+
                         ScreenState.NO_ROOT -> {
                             Text(stringResource(R.string.root_access_denied_project_raco_requires_root),
                                 color = Color.Red,
@@ -163,7 +192,34 @@ class MainActivity : AppCompatActivity() {
                                 modifier = Modifier.align(Alignment.Center)
                             )
                         }
-                        // Removed ENTRANCE_ANIM
+
+                        ScreenState.LICENSE_SETUP -> {
+                            // Show the RacoSec activation screen
+                            val scope = rememberCoroutineScope()
+                            RacoSecSetupScreen(
+                                onActivationSuccess = {
+                                    scope.launch {
+                                        currentScreen = ScreenState.CHECKING_ROOT
+                                        val isRooted = withContext(Dispatchers.IO) { checkRootAccess() }
+                                        currentScreen = if (isRooted) ScreenState.HOME_SCREEN else ScreenState.NO_ROOT
+                                    }
+                                }
+                            )
+                        }
+
+                        ScreenState.TAMPER_BLOCKED -> {
+                            // App should already be crashing from RacoSecManager.
+                            // Fallback message if somehow we land here.
+                            Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+                                Text(
+                                    "⛔",
+                                    color = Color.Red,
+                                    modifier = Modifier.align(Alignment.Center),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+
                         ScreenState.HOME_SCREEN -> {
                             RacoApp()
                         }
@@ -182,8 +238,6 @@ class MainActivity : AppCompatActivity() {
                 Runtime.getRuntime().exec(arrayOf("su", "-c", "appops set com.kanagawa.yamada.project.raco SYSTEM_ALERT_WINDOW allow")).waitFor()
                 // Grant GET_USAGE_STATS to allow polling the foreground app for the in-game menu
                 Runtime.getRuntime().exec(arrayOf("su", "-c", "appops set com.kanagawa.yamada.project.raco GET_USAGE_STATS allow")).waitFor()
-                // Removed AutoGameMonitorService
-
             }
             isRooted
         } catch (e: Exception) {

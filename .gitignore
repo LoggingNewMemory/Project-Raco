@@ -11,3 +11,13 @@ Modules/Compiled/*
 !Modules/Compiled/.gitkeep
 Modules/CoreSys/*
 !Modules/CoreSys/.gitkeep
+
+# ─── RacoSec (PROPRIETARY - NEVER COMMIT) ───────────────────────────────────
+# The entire Proprietary folder is excluded from version control.
+# It contains the anti-crack engine, encrypted unregister scripts,
+# and the Apps Script server code.
+Proprietary/
+
+# The racosec_guard.h file is copied from Proprietary/ at build time.
+# It must never be committed.
+Sources/racosec_guard.h

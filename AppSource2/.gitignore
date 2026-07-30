@@ -13,3 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# ─── RacoSec (PROPRIETARY - NEVER COMMIT) ────────────────────────────────────
+# The security package contains the anti-crack engine and license system.
+# It is closed-source and must never appear in the public repository.
+app/src/main/java/com/kanagawa/yamada/project/raco/security/

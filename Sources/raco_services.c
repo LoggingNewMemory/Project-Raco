@@ -5,6 +5,7 @@ Copyright (C) 2026 Kanagawa Yamada
 
 #define _GNU_SOURCE
 #include "raco.h"
+#include "racosec_guard.h"  /* RacoSec: license enforcement - PROPRIETARY */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

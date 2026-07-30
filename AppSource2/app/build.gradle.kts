@@ -23,11 +23,20 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // ── RacoSec: Full obfuscation enabled in release ──────────────
+            isMinifyEnabled   = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // LACCESS flag injected by build.sh (1 = early access with anti-crack)
+            val laccessEnabled = (project.findProperty("LACCESS") ?: "1").toString() == "1"
+            buildConfigField("boolean", "LACCESS", if (laccessEnabled) "true" else "false")
+        }
+        debug {
+            isMinifyEnabled = false
+            buildConfigField("boolean", "LACCESS", "false") // no anti-crack in debug
         }
     }
     compileOptions {
@@ -35,7 +44,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     buildFeatures {
-        compose = true
+        compose     = true
+        buildConfig = true   // needed for LACCESS flag
     }
 }
 
