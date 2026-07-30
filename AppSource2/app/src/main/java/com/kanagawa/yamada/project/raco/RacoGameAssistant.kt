@@ -839,15 +839,36 @@ fun StatCircle(title: String, value: String, unit: String, progress: Float, high
     }
 }
 
-data class ToolData(val title: String, val iconRes: Int?, val iconVector: ImageVector?, val action: () -> Unit, val onLongClick: (() -> Unit)? = null)
+data class ToolData(val title: String, val iconRes: Int?, val iconVector: ImageVector?, val action: suspend () -> String?, val onLongClick: (() -> Unit)? = null)
 
 @Composable
 fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>, onCollapse: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     val tools = listOf(
-        ToolData("Crosshair", R.drawable.ic_crosshair_1, null, { onToggleCrosshair() }, onLongClick = { showCrosshairConfigState.value = true }),
+        ToolData("Crosshair", R.drawable.ic_crosshair_1, null, { onToggleCrosshair(); null }, onLongClick = { showCrosshairConfigState.value = true }),
         ToolData("Cleanup", null, Icons.Default.CleaningServices, { 
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "am kill-all; echo 3 > /proc/sys/vm/drop_caches; echo 1 > /proc/sys/vm/compact_memory"))
+            var memBefore = 0L
+            try {
+                java.io.File("/proc/meminfo").forEachLine { line ->
+                    if (line.startsWith("MemAvailable:")) {
+                        memBefore = line.split("\\s+".toRegex())[1].toLong()
+                    }
+                }
+            } catch(e: Exception) {}
+            
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "am kill-all; echo 3 > /proc/sys/vm/drop_caches; echo 1 > /proc/sys/vm/compact_memory")).waitFor()
+            
+            var memAfter = 0L
+            try {
+                java.io.File("/proc/meminfo").forEachLine { line ->
+                    if (line.startsWith("MemAvailable:")) {
+                        memAfter = line.split("\\s+".toRegex())[1].toLong()
+                    }
+                }
+            } catch(e: Exception) {}
+            
+            val diff = (memAfter - memBefore) / 1024
+            if (diff > 0) "Cleaned\n$diff Mb" else "Optimized!"
         }),
         ToolData("Screenshot", null, Icons.Default.CameraAlt, { 
             Handler(Looper.getMainLooper()).post { onCollapse() }
@@ -891,6 +912,7 @@ fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, on
                     } catch (e: Exception) {}
                 }
             }
+            null
         })
     )
     
@@ -925,14 +947,9 @@ fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, on
                             modifier = Modifier.weight(1f),
                             isActive = isCrosshairActive,
                             themeColor = themeColor,
-                            onLongClick = tool.onLongClick
-                        ) {
-                            coroutineScope.launch(Dispatchers.IO) {
-                                try {
-                                    tool.action.invoke()
-                                } catch (e: Exception) {}
-                            }
-                        }
+                            onLongClick = tool.onLongClick,
+                            onClick = tool.action
+                        )
                     } else {
                         Spacer(modifier = Modifier.weight(1f))
                     }
@@ -944,37 +961,73 @@ fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, on
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-fun ToolItem(title: String, iconRes: Int? = null, icon: ImageVector? = null, modifier: Modifier = Modifier, isActive: Boolean = false, themeColor: Color = Color.White, onLongClick: (() -> Unit)? = null, onClick: () -> Unit) {
+fun ToolItem(title: String, iconRes: Int? = null, icon: ImageVector? = null, modifier: Modifier = Modifier, isActive: Boolean = false, themeColor: Color = Color.White, onLongClick: (() -> Unit)? = null, onClick: suspend () -> String?) {
     val coroutineScope = rememberCoroutineScope()
+    var isProcessing by remember { mutableStateOf(false) }
     var showSuccess by remember { mutableStateOf(false) }
+    var successMsg by remember { mutableStateOf("") }
     
-    val displayTitle = if (showSuccess) {
-        when (title) {
-            "Cleanup" -> "Cleaned!"
-            "Screenshot" -> "Captured!"
-            else -> title
-        }
+    val infiniteTransition = rememberInfiniteTransition()
+    val shimmerAnim by infiniteTransition.animateFloat(
+        initialValue = -1000f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3500, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmer"
+    )
+
+    val contentAlpha by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (showSuccess) 0f else 1f,
+        animationSpec = tween(400)
+    )
+
+    val successAlpha by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (showSuccess) 1f else 0f,
+        animationSpec = tween(400)
+    )
+
+    val displayTitle = if ((isProcessing || showSuccess) && title == "Cleanup") {
+        "Cleaning..."
     } else title
 
     val bgColor by androidx.compose.animation.animateColorAsState(
-        targetValue = if (isActive || showSuccess) Color(0xFFE0E0E0) else Color(0xFF2A2A2A),
+        targetValue = if (isActive) Color(0xFFE0E0E0) else Color(0xFF2A2A2A),
         animationSpec = tween(300),
         label = "bgColorAnim"
     )
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(bgColor)
+            .then(
+                if (isProcessing) Modifier.background(
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFF2A2A2A), Color(0xFF888888), Color(0xFF2A2A2A)),
+                        start = Offset(shimmerAnim, shimmerAnim),
+                        end = Offset(shimmerAnim + 400f, shimmerAnim + 400f)
+                    )
+                ) else Modifier.background(bgColor)
+            )
             .combinedClickable(
                 onClick = {
-                    onClick()
-                    if (title == "Cleanup" || title == "Screenshot") {
-                        coroutineScope.launch {
-                            showSuccess = true
-                            delay(1500)
-                            showSuccess = false
+                    if (isProcessing) return@combinedClickable
+                    coroutineScope.launch(Dispatchers.IO) {
+                        try {
+                            isProcessing = true
+                            val msg = onClick()
+                            isProcessing = false
+                            if (title == "Cleanup" || title == "Screenshot") {
+                                if (msg != null) successMsg = msg
+                                showSuccess = true
+                                delay(1500)
+                                showSuccess = false
+                            }
+                        } catch (e: Exception) {
+                            isProcessing = false
                         }
                     }
                 },
@@ -982,29 +1035,46 @@ fun ToolItem(title: String, iconRes: Int? = null, icon: ImageVector? = null, mod
             )
             .padding(vertical = 14.dp, horizontal = 4.dp)
     ) {
-        val iconTint = if (isActive || showSuccess) Color.Black else Color.White
-        if (iconRes != null) {
-            Icon(
-                painter = androidx.compose.ui.res.painterResource(id = iconRes),
-                contentDescription = displayTitle,
-                tint = iconTint,
-                modifier = Modifier.size(24.dp)
-            )
-        } else if (icon != null) {
-            Icon(
-                imageVector = if (showSuccess) Icons.Default.Check else icon,
-                contentDescription = displayTitle,
-                tint = iconTint,
-                modifier = Modifier.size(24.dp)
+        Box(contentAlignment = Alignment.Center) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.alpha(contentAlpha)
+            ) {
+                val iconTint = if (isActive) Color.Black else Color.White
+                if (iconRes != null) {
+                    Icon(
+                        painter = androidx.compose.ui.res.painterResource(id = iconRes),
+                        contentDescription = title,
+                        tint = iconTint,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = title,
+                        tint = iconTint,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = displayTitle,
+                    color = if (isActive) Color.Black else Color.LightGray,
+                    fontSize = 10.sp,
+                    maxLines = 1,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+
+            Text(
+                text = if (successMsg.isNotEmpty()) successMsg else { if (title == "Screenshot") "Captured!" else "Cleaned!" },
+                color = Color.White,
+                fontSize = 10.sp,
+                maxLines = 2,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier.alpha(successAlpha)
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = displayTitle,
-            color = if (isActive || showSuccess) Color.Black else Color.LightGray,
-            fontSize = 10.sp,
-            maxLines = 1
-        )
     }
 }
 
