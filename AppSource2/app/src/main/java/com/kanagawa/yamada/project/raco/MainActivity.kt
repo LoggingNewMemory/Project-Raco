@@ -25,12 +25,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -202,19 +198,17 @@ class MainActivity : AppCompatActivity() {
 
                             ScreenState.ROOT_NOTICE,
                             ScreenState.NO_ROOT -> {
-                                // Root Notice screen — shown before RacoSec if root isn't granted.
-                                // Also shown if root was revoked after a previous session.
-                                val scope = rememberCoroutineScope()
-                                var isRetrying by remember { mutableStateOf(false) }
+                                // Root Notice screen — upgraded from the original NO_ROOT state.
+                                // Informs the user to grant root via their root manager, then restart.
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .background(MaterialTheme.colorScheme.background),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    androidx.compose.foundation.layout.Column(
+                                    Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(16.dp),
                                         modifier = Modifier.padding(32.dp)
                                     ) {
                                         Text("🔐", style = MaterialTheme.typography.displayLarge)
@@ -226,56 +220,11 @@ class MainActivity : AppCompatActivity() {
                                         )
                                         Text(
                                             "Project Raco requires root access to function.\n" +
-                                            "Please grant root permission when prompted by your root manager (Magisk / KernelSU / APatch).",
+                                            "Please grant root permission via your root manager (Magisk / KernelSU / APatch), then restart the app.",
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                                             textAlign = TextAlign.Center
                                         )
-                                        androidx.compose.material3.Button(
-                                            onClick = {
-                                                scope.launch {
-                                                    isRetrying = true
-                                                    currentScreen = ScreenState.CHECKING_ROOT
-                                                    val rooted = withContext(Dispatchers.IO) { checkRootAccess() }
-                                                    isRetrying = false
-                                                    if (rooted) {
-                                                        // Root granted — now run RacoSec
-                                                        if (BuildConfig.LACCESS) {
-                                                            currentScreen = ScreenState.CHECKING_LICENSE
-                                                            val secResult = RacoSecManager.performStartupCheck(context, true)
-                                                            when (secResult) {
-                                                                is SecCheckResult.NotActivated -> {
-                                                                    currentScreen = ScreenState.LICENSE_SETUP
-                                                                    return@launch
-                                                                }
-                                                                is SecCheckResult.Tampered,
-                                                                is SecCheckResult.ClonedBackup,
-                                                                is SecCheckResult.WrongDevice -> {
-                                                                    currentScreen = ScreenState.TAMPER_BLOCKED
-                                                                    return@launch
-                                                                }
-                                                                else -> {}
-                                                            }
-                                                        }
-                                                        currentScreen = ScreenState.HOME_SCREEN
-                                                    } else {
-                                                        currentScreen = ScreenState.ROOT_NOTICE
-                                                    }
-                                                }
-                                            },
-                                            enabled = !isRetrying,
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            if (isRetrying) {
-                                                androidx.compose.material3.CircularProgressIndicator(
-                                                    modifier = Modifier.size(18.dp),
-                                                    strokeWidth = 2.dp,
-                                                    color = MaterialTheme.colorScheme.onPrimary
-                                                )
-                                                Spacer(Modifier.width(8.dp))
-                                            }
-                                            Text(if (isRetrying) "Requesting..." else "Grant Root Access")
-                                        }
                                     }
                                 }
                             }
