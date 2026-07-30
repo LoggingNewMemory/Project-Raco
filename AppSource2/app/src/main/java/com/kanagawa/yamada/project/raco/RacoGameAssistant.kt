@@ -844,6 +844,14 @@ data class ToolData(val title: String, val iconRes: Int?, val iconVector: ImageV
 @Composable
 fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>, onCollapse: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
+    var isDndActive by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(Unit) {
+        try {
+            isDndActive = android.provider.Settings.Global.getInt(context.contentResolver, "zen_mode", 0) != 0
+        } catch (e: Exception) {}
+    }
+
     val tools = listOf(
         ToolData("Crosshair", R.drawable.ic_crosshair_1, null, { onToggleCrosshair(); null }, onLongClick = { showCrosshairConfigState.value = true }),
         ToolData("Cleanup", null, Icons.Default.CleaningServices, { 
@@ -913,6 +921,15 @@ fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, on
                 }
             }
             null
+        }),
+        ToolData("DND", null, Icons.Default.DoNotDisturbOn, { 
+            isDndActive = !isDndActive
+            if (isDndActive) {
+                Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd notification set_dnd priority")).waitFor()
+            } else {
+                Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd notification set_dnd off")).waitFor()
+            }
+            null
         })
     )
     
@@ -940,12 +957,13 @@ fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, on
                     if (index < tools.size) {
                         val tool = tools[index]
                         val isCrosshairActive = tool.title == "Crosshair" && isCrosshairActiveState.value
+                        val isDndCurrentlyActive = tool.title == "DND" && isDndActive
                         ToolItem(
                             title = tool.title, 
                             iconRes = tool.iconRes,
                             icon = tool.iconVector, 
                             modifier = Modifier.weight(1f),
-                            isActive = isCrosshairActive,
+                            isActive = isCrosshairActive || isDndCurrentlyActive,
                             themeColor = themeColor,
                             onLongClick = tool.onLongClick,
                             onClick = tool.action
@@ -1017,10 +1035,12 @@ fun ToolItem(title: String, iconRes: Int? = null, icon: ImageVector? = null, mod
                     if (isProcessing) return@combinedClickable
                     coroutineScope.launch(Dispatchers.IO) {
                         try {
-                            isProcessing = true
-                            val msg = onClick()
-                            isProcessing = false
                             if (title == "Cleanup" || title == "Screenshot") {
+                                isProcessing = true
+                            }
+                            val msg = onClick()
+                            if (title == "Cleanup" || title == "Screenshot") {
+                                isProcessing = false
                                 if (msg != null) successMsg = msg
                                 showSuccess = true
                                 delay(1500)
