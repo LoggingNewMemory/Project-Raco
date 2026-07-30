@@ -51,6 +51,7 @@ import androidx.compose.foundation.Image
 import android.view.MotionEvent
 import com.kanagawa.yamada.project.raco.GameTools.*
 
+@Suppress("DEPRECATION")
 class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private var composeView: ComposeView? = null
@@ -87,18 +88,6 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
     private var buttonX = sharedPrefs.getInt("overlay_x", 0)
     private var buttonY = sharedPrefs.getInt("overlay_y", 300)
 
-    private fun WindowManager.LayoutParams.applyMaxRefreshRate() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            windowManager.defaultDisplay.supportedModes.maxByOrNull { it.refreshRate }?.let { maxMode ->
-                this.preferredDisplayModeId = maxMode.modeId
-            }
-        }
-        // Fallback for older OEM ROMs that might ignore preferredDisplayModeId
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            this.preferredRefreshRate = windowManager.defaultDisplay.supportedRefreshRates.maxOrNull() ?: 60f
-        }
-    }
-
     init {
         val metrics = android.util.DisplayMetrics()
         windowManager.defaultDisplay.getRealMetrics(metrics)
@@ -120,7 +109,6 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
         }
-        applyMaxRefreshRate()
     }
 
     init {
@@ -314,7 +302,6 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                     PixelFormat.TRANSLUCENT
                 ).apply {
                     gravity = Gravity.CENTER
-                    applyMaxRefreshRate()
                 }
 
                 crosshairView = ComposeView(context).apply {
@@ -388,10 +375,9 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                         y = savedY
                     } else {
                         val metrics = context.resources.displayMetrics
-                        x = (metrics.widthPixels / 2) - 150
-                        y = 100
+                        x = metrics.widthPixels / 2 - 200
+                        y = 80
                     }
-                    applyMaxRefreshRate()
                 }
 
                 infoView = ComposeView(context).apply {
@@ -1090,7 +1076,6 @@ fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: M
         ToolData("Cleanup", null, Icons.Default.CleaningServices, { CleanupTool.execute() }),
         ToolData("Screenshot", null, Icons.Default.CameraAlt, { 
             ScreenshotTool.execute(context, onCollapse)
-            null
         }),
         ToolData("Dnd", null, Icons.Default.DoNotDisturbOn, {
             DndTool.toggle(currentPackage, activeDndState, sharedPrefs)
@@ -1211,9 +1196,9 @@ fun ToolItem(title: String, iconRes: Int? = null, icon: ImageVector? = null, mod
                                 isProcessing = true
                             }
                             val msg = onClick()
-                            if (title == "Cleanup") {
-                                isProcessing = false
-                                if (msg != null) successMsg = msg
+                            isProcessing = false
+                            if (msg != null) {
+                                successMsg = msg
                                 showSuccess = true
                                 delay(1500)
                                 showSuccess = false
