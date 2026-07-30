@@ -63,6 +63,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
     val crosshairOpacityState = mutableStateOf(sharedPrefs.getFloat("crosshair_opacity", 1f))
     val crosshairColorState = mutableStateOf(sharedPrefs.getString("crosshair_color", "White") ?: "White")
     val showCrosshairConfigState = mutableStateOf(false)
+    val showAyundaConfigState = mutableStateOf(false)
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val store = ViewModelStore()
@@ -167,6 +168,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                         crosshairOpacityState = crosshairOpacityState,
                         crosshairColorState = crosshairColorState,
                         showCrosshairConfigState = showCrosshairConfigState,
+                        showAyundaConfigState = showAyundaConfigState,
                         sharedPrefs = sharedPrefs
                     )
                 }
@@ -293,6 +295,7 @@ fun GameSpaceContent(
     crosshairOpacityState: MutableState<Float>,
     crosshairColorState: MutableState<String>,
     showCrosshairConfigState: MutableState<Boolean>,
+    showAyundaConfigState: MutableState<Boolean>,
     sharedPrefs: android.content.SharedPreferences
 ) {
     val themeColor by androidx.compose.animation.animateColorAsState(
@@ -369,6 +372,7 @@ fun GameSpaceContent(
             crosshairOpacityState = crosshairOpacityState,
             crosshairColorState = crosshairColorState,
             showCrosshairConfigState = showCrosshairConfigState,
+            showAyundaConfigState = showAyundaConfigState,
             sharedPrefs = sharedPrefs
         )
     }
@@ -390,6 +394,7 @@ fun GameSpaceDashboard(
     crosshairOpacityState: MutableState<Float>,
     crosshairColorState: MutableState<String>,
     showCrosshairConfigState: MutableState<Boolean>,
+    showAyundaConfigState: MutableState<Boolean>,
     sharedPrefs: android.content.SharedPreferences
 ) {
     var selectedTab by remember { mutableStateOf("Performance") }
@@ -422,21 +427,23 @@ fun GameSpaceDashboard(
                 SidebarItem(
                     icon = Icons.Default.Speed,
                     label = "Performance",
-                    isSelected = selectedTab == "Performance" && !showCrosshairConfigState.value,
+                    isSelected = selectedTab == "Performance" && !showCrosshairConfigState.value && !showAyundaConfigState.value,
                     themeColor = themeColor,
                     onClick = { 
                         selectedTab = "Performance"
                         showCrosshairConfigState.value = false
+                        showAyundaConfigState.value = false
                     }
                 )
                 SidebarItem(
                     icon = Icons.Default.Widgets,
                     label = "Tools",
-                    isSelected = selectedTab == "Tools" || showCrosshairConfigState.value,
+                    isSelected = selectedTab == "Tools" || showCrosshairConfigState.value || showAyundaConfigState.value,
                     themeColor = themeColor,
                     onClick = { 
                         selectedTab = "Tools"
                         showCrosshairConfigState.value = false
+                        showAyundaConfigState.value = false
                     }
                 )
             }
@@ -453,6 +460,7 @@ fun GameSpaceDashboard(
                 AnimatedContent(
                     targetState = when {
                         showCrosshairConfigState.value -> 2
+                        showAyundaConfigState.value -> 3
                         selectedTab == "Performance" -> 0
                         else -> 1
                     },
@@ -486,7 +494,16 @@ fun GameSpaceDashboard(
                                 onToggleCrosshair = onToggleCrosshair, 
                                 themeColor = themeColor,
                                 showCrosshairConfigState = showCrosshairConfigState,
+                                showAyundaConfigState = showAyundaConfigState,
+                                sharedPrefs = sharedPrefs,
                                 onCollapse = onCollapse
+                            )
+                        }
+                        3 -> {
+                            AyundaConfigView(
+                                onDismissRequest = { showAyundaConfigState.value = false },
+                                themeColor = themeColor,
+                                sharedPrefs = sharedPrefs
                             )
                         }
                     }
@@ -842,9 +859,10 @@ fun StatCircle(title: String, value: String, unit: String, progress: Float, high
 data class ToolData(val title: String, val iconRes: Int?, val iconVector: ImageVector?, val action: suspend () -> String?, val onLongClick: (() -> Unit)? = null)
 
 @Composable
-fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>, onCollapse: () -> Unit) {
+fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>, showAyundaConfigState: MutableState<Boolean>, sharedPrefs: android.content.SharedPreferences, onCollapse: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     var isDndActive by remember { mutableStateOf(false) }
+    var isAyundaActive by remember { mutableStateOf(sharedPrefs.getString("active_ayunda_preset", "")?.isNotEmpty() == true) }
     
     LaunchedEffect(Unit) {
         try {
@@ -930,7 +948,27 @@ fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, on
                 Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd notification set_dnd off")).waitFor()
             }
             null
-        })
+        }),
+        ToolData("Ayunda", null, Icons.Default.Palette, {
+            isAyundaActive = !isAyundaActive
+            if (!isAyundaActive) {
+                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1")).waitFor()
+                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f 1.0")).waitFor()
+                sharedPrefs.edit().putString("active_ayunda_preset", "").apply()
+            } else {
+                val lastPreset = sharedPrefs.getString("active_ayunda_preset", "") ?: ""
+                val r = sharedPrefs.getFloat("RGB_R", 1f)
+                val g = sharedPrefs.getFloat("RGB_G", 1f)
+                val b = sharedPrefs.getFloat("RGB_B", 1f)
+                val s = sharedPrefs.getFloat("RGB_S", 1f)
+                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1")).waitFor()
+                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1022 f $s")).waitFor()
+                if (lastPreset.isEmpty()) {
+                    sharedPrefs.edit().putString("active_ayunda_preset", "Custom").apply()
+                }
+            }
+            null
+        }, onLongClick = { showAyundaConfigState.value = true })
     )
     
     Column(
@@ -958,12 +996,13 @@ fun ToolsTab(context: Context, isCrosshairActiveState: MutableState<Boolean>, on
                         val tool = tools[index]
                         val isCrosshairActive = tool.title == "Crosshair" && isCrosshairActiveState.value
                         val isDndCurrentlyActive = tool.title == "DND" && isDndActive
+                        val isAyundaCurrentlyActive = tool.title == "Ayunda" && isAyundaActive
                         ToolItem(
                             title = tool.title, 
                             iconRes = tool.iconRes,
                             icon = tool.iconVector, 
                             modifier = Modifier.weight(1f),
-                            isActive = isCrosshairActive || isDndCurrentlyActive,
+                            isActive = isCrosshairActive || isDndCurrentlyActive || isAyundaCurrentlyActive,
                             themeColor = themeColor,
                             onLongClick = tool.onLongClick,
                             onClick = tool.action
@@ -1204,5 +1243,96 @@ fun CrosshairConfigView(
             },
             valueRange = 0.1f..1f
         )
+    }
+}
+
+@Composable
+fun AyundaConfigView(
+    onDismissRequest: () -> Unit,
+    themeColor: Color,
+    sharedPrefs: android.content.SharedPreferences
+) {
+    val coroutineScope = rememberCoroutineScope()
+    var activePreset by remember { mutableStateOf(sharedPrefs.getString("active_ayunda_preset", "") ?: "") }
+
+    data class PresetData(val title: String, val desc: String, val vals: List<Float>)
+    
+    val presets = listOf(
+        PresetData("Hunter", "Help observe grass fields.", listOf(0.9f, 1.2f, 0.9f, 1.3f)),
+        PresetData("Night Vision", "Better environment for scene exploration.", listOf(0.7f, 1.2f, 1.0f, 0.8f)),
+        PresetData("Eagle Eye", "Aid in enemy recognition.", listOf(1.1f, 1.0f, 0.9f, 1.4f)),
+        PresetData("Ultra-Clear", "Provide an improved visual experience.", listOf(1.05f, 1.05f, 1.05f, 1.2f)),
+        PresetData("Pure", "Reduces stray colors for clarity.", listOf(1.0f, 1.0f, 1.0f, 0.9f)),
+        PresetData("Cyberpunk", "Enhances colors to improve picture impact.", listOf(1.2f, 0.9f, 1.3f, 1.5f)),
+        PresetData("Instrument", "Simulates night vision device effects.", listOf(0.3f, 1.5f, 0.3f, 1.0f)),
+        PresetData("Movie", "Transforms the game style into a movie-like experience.", listOf(1.1f, 1.0f, 0.9f, 0.95f)),
+        PresetData("Sketch", "Transforms the game style into a sketch drawing.", listOf(1.5f, 1.5f, 1.5f, 0.1f)),
+        PresetData("Film", "Transforms the game style into a Lomo film.", listOf(1.2f, 1.1f, 0.8f, 1.1f)),
+        PresetData("Crayon", "Transforms the game style into a crayon drawing.", listOf(1.3f, 1.3f, 1.3f, 1.2f)),
+        PresetData("Oil Painting", "Transforms the game style into an oil painting.", listOf(1.2f, 1.1f, 0.9f, 1.4f))
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Ayunda Presets", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            IconButton(onClick = onDismissRequest, modifier = Modifier.size(24.dp)) {
+                Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = Color.Gray)
+            }
+        }
+        
+        Text("Screen Color Modifiers", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(bottom = 12.dp))
+        
+        presets.forEach { preset ->
+            val name = preset.title
+            val desc = preset.desc
+            val vals = preset.vals
+            
+            val isCurrent = activePreset == name
+            val bgColor = if (isCurrent) themeColor else Color(0xFF2A2A2A)
+            val textColor = if (isCurrent) Color.White else Color.LightGray
+            val descColor = if (isCurrent) Color.White.copy(alpha = 0.7f) else Color.Gray
+            
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(bgColor)
+                    .clickable {
+                        activePreset = name
+                        coroutineScope.launch(Dispatchers.IO) {
+                            sharedPrefs.edit().apply {
+                                putFloat("RGB_R", vals[0])
+                                putFloat("RGB_G", vals[1])
+                                putFloat("RGB_B", vals[2])
+                                putFloat("RGB_S", vals[3])
+                                putString("active_ayunda_preset", name)
+                                apply()
+                            }
+                            Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${vals[3]}")).waitFor()
+                        }
+                    }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(name, fontWeight = FontWeight.SemiBold, color = textColor, fontSize = 14.sp)
+                    Spacer(Modifier.height(4.dp))
+                    Text(desc, color = descColor, fontSize = 10.sp, maxLines = 2)
+                }
+                if (isCurrent) {
+                    Spacer(Modifier.width(12.dp))
+                    Icon(Icons.Default.Check, "Active", tint = Color.White)
+                }
+            }
+        }
     }
 }

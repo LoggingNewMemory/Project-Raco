@@ -111,9 +111,18 @@ fun SystemScreen(onBack: () -> Unit) {
     }
     
     val builtinPresets = mapOf(
-        "Vivid" to listOf(1.2f, 1.1f, 1.1f, 1.3f),
-        "FPS" to listOf(1.0f, 1.2f, 1.0f, 1.1f),
-        "Cinema" to listOf(1.1f, 1.0f, 1.2f, 1.0f)
+        "Hunter" to listOf(0.9f, 1.2f, 0.9f, 1.3f),
+        "Night Vision" to listOf(0.7f, 1.2f, 1.0f, 0.8f),
+        "Eagle Eye" to listOf(1.1f, 1.0f, 0.9f, 1.4f),
+        "Ultra-Clear" to listOf(1.05f, 1.05f, 1.05f, 1.2f),
+        "Pure" to listOf(1.0f, 1.0f, 1.0f, 0.9f),
+        "Cyberpunk" to listOf(1.2f, 0.9f, 1.3f, 1.5f),
+        "Instrument" to listOf(0.3f, 1.5f, 0.3f, 1.0f),
+        "Movie" to listOf(1.1f, 1.0f, 0.9f, 0.95f),
+        "Sketch" to listOf(1.5f, 1.5f, 1.5f, 0.1f),
+        "Film" to listOf(1.2f, 1.1f, 0.8f, 1.1f),
+        "Crayon" to listOf(1.3f, 1.3f, 1.3f, 1.2f),
+        "Oil Painting" to listOf(1.2f, 1.1f, 0.9f, 1.4f)
     )
     var activePresetName by remember { mutableStateOf(prefs.getString("active_ayunda_preset", "") ?: "") }
 
@@ -143,7 +152,6 @@ fun SystemScreen(onBack: () -> Unit) {
                     sysUpdateAyundaScript(rgbR, rgbG, rgbB, rgbS)
                     sysSetAyundaRusdiEnabled(true)
                 }
-                showPresetPage = false
             },
             onPreviewValues = { vals ->
                 scope.launch {
