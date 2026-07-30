@@ -30,15 +30,71 @@ object ScreenshotTool {
                 val exitCode = process.waitFor()
                 
                 withContext(Dispatchers.Main) {
-                    if (exitCode == 0) {
-                        android.widget.Toast.makeText(context, "Screenshot Captured!", android.widget.Toast.LENGTH_SHORT).show()
-                    } else {
-                        android.widget.Toast.makeText(context, "Failed: Code $exitCode", android.widget.Toast.LENGTH_SHORT).show()
+                    val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager
+                    val tv = android.widget.TextView(context).apply {
+                        text = if (exitCode == 0) "Screenshot Captured" else "Failed: Code $exitCode"
+                        setTextColor(android.graphics.Color.WHITE)
+                        textSize = 14f
+                        val shape = android.graphics.drawable.GradientDrawable().apply {
+                            cornerRadius = 50f
+                            setColor(android.graphics.Color.parseColor("#DD333333"))
+                        }
+                        background = shape
+                        setPadding(64, 32, 64, 32)
+                        elevation = 10f
                     }
+                    val params = android.view.WindowManager.LayoutParams(
+                        android.view.WindowManager.LayoutParams.WRAP_CONTENT,
+                        android.view.WindowManager.LayoutParams.WRAP_CONTENT,
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else android.view.WindowManager.LayoutParams.TYPE_PHONE,
+                        android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                        android.graphics.PixelFormat.TRANSLUCENT
+                    ).apply {
+                        gravity = android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL
+                        y = 200
+                        windowAnimations = android.R.style.Animation_Toast
+                    }
+                    
+                    try {
+                        windowManager.addView(tv, params)
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            try { windowManager.removeView(tv) } catch(e: Exception) {}
+                        }, 2000)
+                    } catch (e: Exception) {}
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    android.widget.Toast.makeText(context, "Error: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                    val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager
+                    val tv = android.widget.TextView(context).apply {
+                        text = "Error: ${e.message}"
+                        setTextColor(android.graphics.Color.WHITE)
+                        textSize = 14f
+                        val shape = android.graphics.drawable.GradientDrawable().apply {
+                            cornerRadius = 50f
+                            setColor(android.graphics.Color.parseColor("#DD333333"))
+                        }
+                        background = shape
+                        setPadding(64, 32, 64, 32)
+                        elevation = 10f
+                    }
+                    val params = android.view.WindowManager.LayoutParams(
+                        android.view.WindowManager.LayoutParams.WRAP_CONTENT,
+                        android.view.WindowManager.LayoutParams.WRAP_CONTENT,
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else android.view.WindowManager.LayoutParams.TYPE_PHONE,
+                        android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                        android.graphics.PixelFormat.TRANSLUCENT
+                    ).apply {
+                        gravity = android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL
+                        y = 200
+                        windowAnimations = android.R.style.Animation_Toast
+                    }
+                    
+                    try {
+                        windowManager.addView(tv, params)
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            try { windowManager.removeView(tv) } catch(err: Exception) {}
+                        }, 2000)
+                    } catch (err: Exception) {}
                 }
             }
         }
