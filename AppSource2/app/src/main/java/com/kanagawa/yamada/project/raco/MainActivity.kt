@@ -135,7 +135,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            ProjectRacoTheme(darkTheme = true, seedColor = adaptiveColor) {
+            ProjectRacoTheme(seedColor = adaptiveColor) {
                 var currentScreen by remember { mutableStateOf(ScreenState.CHECKING_LICENSE) }
 
                 LaunchedEffect(Unit) {

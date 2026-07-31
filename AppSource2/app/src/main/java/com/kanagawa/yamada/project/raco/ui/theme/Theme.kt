@@ -45,23 +45,54 @@ fun ProjectRacoTheme(
     val colorScheme = when {
         seedColor != null -> {
             val seedArgb = seedColor.toArgb()
+            
+            // Adjust seed color to guarantee contrast against background
+            var adjustedSeedArgb = seedArgb
+            if (darkTheme) {
+                // For dark theme (black bg), primary needs to be light enough
+                while (androidx.core.graphics.ColorUtils.calculateLuminance(adjustedSeedArgb) < 0.2) {
+                    adjustedSeedArgb = androidx.core.graphics.ColorUtils.blendARGB(adjustedSeedArgb, android.graphics.Color.WHITE, 0.1f)
+                }
+            } else {
+                // For light theme (white bg), primary needs to be dark enough
+                while (androidx.core.graphics.ColorUtils.calculateLuminance(adjustedSeedArgb) > 0.4) {
+                    adjustedSeedArgb = androidx.core.graphics.ColorUtils.blendARGB(adjustedSeedArgb, android.graphics.Color.BLACK, 0.1f)
+                }
+            }
+            val adjustedSeed = androidx.compose.ui.graphics.Color(adjustedSeedArgb)
+            
+            val isLightSeed = androidx.core.graphics.ColorUtils.calculateLuminance(adjustedSeedArgb) > 0.5
+            val onSeedColor = if (isLightSeed) androidx.compose.ui.graphics.Color.Black else androidx.compose.ui.graphics.Color.White
+
             if (darkTheme) {
                 darkColorScheme(
-                    primary = seedColor,
-                    secondary = seedColor.copy(alpha = 0.8f),
-                    tertiary = seedColor.copy(alpha = 0.6f),
+                    primary = adjustedSeed,
+                    onPrimary = onSeedColor,
+                    secondary = adjustedSeed.copy(alpha = 0.8f),
+                    onSecondary = onSeedColor,
+                    tertiary = adjustedSeed.copy(alpha = 0.6f),
+                    onTertiary = onSeedColor,
                     background = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.BLACK, seedArgb, 0.05f)),
+                    onBackground = androidx.compose.ui.graphics.Color.White,
                     surface = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.BLACK, seedArgb, 0.1f)),
-                    surfaceVariant = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.BLACK, seedArgb, 0.15f))
+                    onSurface = androidx.compose.ui.graphics.Color.White,
+                    surfaceVariant = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.BLACK, seedArgb, 0.15f)),
+                    onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFFDDDDDD)
                 )
             } else {
                 lightColorScheme(
-                    primary = seedColor,
-                    secondary = seedColor.copy(alpha = 0.8f),
-                    tertiary = seedColor.copy(alpha = 0.6f),
+                    primary = adjustedSeed,
+                    onPrimary = onSeedColor,
+                    secondary = adjustedSeed.copy(alpha = 0.8f),
+                    onSecondary = onSeedColor,
+                    tertiary = adjustedSeed.copy(alpha = 0.6f),
+                    onTertiary = onSeedColor,
                     background = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.WHITE, seedArgb, 0.05f)),
+                    onBackground = androidx.compose.ui.graphics.Color.Black,
                     surface = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.WHITE, seedArgb, 0.1f)),
-                    surfaceVariant = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.WHITE, seedArgb, 0.15f))
+                    onSurface = androidx.compose.ui.graphics.Color.Black,
+                    surfaceVariant = androidx.compose.ui.graphics.Color(androidx.core.graphics.ColorUtils.blendARGB(android.graphics.Color.WHITE, seedArgb, 0.15f)),
+                    onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFF333333)
                 )
             }
         }
