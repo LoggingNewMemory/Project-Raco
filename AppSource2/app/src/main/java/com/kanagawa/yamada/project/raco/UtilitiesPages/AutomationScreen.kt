@@ -50,15 +50,6 @@ fun AutomationScreen(onBack: () -> Unit) {
     var showAppList by remember { mutableStateOf(false) }
     var showRSwapPage by remember { mutableStateOf(false) }
 
-    if (showAppList) {
-        AppListPage(onBack = { showAppList = false })
-        return
-    }
-    if (showRSwapPage) {
-        RSwapScreen(onBack = { showRSwapPage = false })
-        return
-    }
-
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(true) }
     var dndEnabled by remember { mutableStateOf(false) }
@@ -71,6 +62,15 @@ fun AutomationScreen(onBack: () -> Unit) {
         dndEnabled = Regex("^DND[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
         gameAssistantEnabled = Regex("^GAME_ASSISTANT[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
         isLoading = false
+    }
+
+    if (showAppList) {
+        AppListPage(onBack = { showAppList = false }, gameAssistantEnabled = gameAssistantEnabled)
+        return
+    }
+    if (showRSwapPage) {
+        RSwapScreen(onBack = { showRSwapPage = false })
+        return
     }
 
     Scaffold(
@@ -188,7 +188,7 @@ fun AutomationScreen(onBack: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AppListPage(onBack: () -> Unit) {
+private fun AppListPage(onBack: () -> Unit, gameAssistantEnabled: Boolean) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
@@ -241,6 +241,16 @@ private fun AppListPage(onBack: () -> Unit) {
         
         val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
         sharedPrefs.edit().putStringSet("automation_games", newSet.toSet()).apply()
+        
+        if (gameAssistantEnabled) {
+            scope.launch(Dispatchers.IO) {
+                val disableCmd = """CURRENT=${'$'}(settings get secure enabled_accessibility_services); if [ "${'$'}CURRENT" != "null" ] && [ -n "${'$'}CURRENT" ]; then NEW=${'$'}(echo "${'$'}CURRENT" | sed 's|com.kanagawa.yamada.project.raco/.GameAssistantService||g' | sed 's/::/:/g' | sed 's/^://' | sed 's/:${'$'}//'); if [ -z "${'$'}NEW" ]; then settings put secure enabled_accessibility_services null; else settings put secure enabled_accessibility_services "${'$'}NEW"; fi; fi"""
+                runRoot(disableCmd)
+                kotlinx.coroutines.delay(300)
+                val enableCmd = """CURRENT=${'$'}(settings get secure enabled_accessibility_services); if [ "${'$'}CURRENT" = "null" ] || [ -z "${'$'}CURRENT" ]; then settings put secure enabled_accessibility_services com.kanagawa.yamada.project.raco/.GameAssistantService; else echo "${'$'}CURRENT" | grep -q "com.kanagawa.yamada.project.raco/.GameAssistantService" || settings put secure enabled_accessibility_services "${'$'}CURRENT:com.kanagawa.yamada.project.raco/.GameAssistantService"; fi"""
+                runRoot(enableCmd)
+            }
+        }
     }
 
     if (showAddDialog) {
