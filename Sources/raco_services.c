@@ -288,11 +288,22 @@ int main(int argc, char *argv[]) {
             // Re-read config dynamically so it respects toggles
             load_config("/data/ProjectRaco/raco.txt");
             if (config.rswap == 1) {
+                char loop_dev[256] = {0};
+                
+                FILE *lp = popen("losetup -a | grep /data/ProjectRaco/RSWAP | cut -d: -f1", "r");
+                if (lp) {
+                    if (fgets(loop_dev, sizeof(loop_dev), lp) != NULL) {
+                        loop_dev[strcspn(loop_dev, "\n")] = 0;
+                    }
+                    pclose(lp);
+                }
+
                 FILE *fp = fopen("/proc/swaps", "r");
                 if (fp) {
                     char buffer[1024];
                     while (fgets(buffer, sizeof(buffer), fp) != NULL) {
-                        if (strstr(buffer, "/data/ProjectRaco/RSWAP") != NULL) {
+                        if (strstr(buffer, "/data/ProjectRaco/RSWAP") != NULL || 
+                           (strlen(loop_dev) > 0 && strstr(buffer, loop_dev) != NULL)) {
                             char name[256], type[256];
                             long long size = 0, used = 0, prio = 0;
                             if (sscanf(buffer, "%255s %255s %lld %lld %lld", name, type, &size, &used, &prio) >= 4) {

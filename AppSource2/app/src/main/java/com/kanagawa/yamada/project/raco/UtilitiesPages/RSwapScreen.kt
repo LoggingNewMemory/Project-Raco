@@ -81,7 +81,18 @@ fun RSwapScreen(onBack: () -> Unit) {
                     loadedGames = emptyList()
                 }
                 
-                val swaps = runRootCommand("cat /proc/swaps | grep /data/ProjectRaco/RSWAP").trim()
+                val getSwapStats = """
+                    SWAP_FILE="/data/ProjectRaco/RSWAP"
+                    if grep -q "${'$'}SWAP_FILE" /proc/swaps; then
+                        grep "${'$'}SWAP_FILE" /proc/swaps
+                    else
+                        LOOP_DEV=${'$'}(losetup -a | grep "${'$'}SWAP_FILE" | cut -d: -f1)
+                        if [ -n "${'$'}LOOP_DEV" ]; then
+                            grep "${'$'}LOOP_DEV" /proc/swaps
+                        fi
+                    fi
+                """.trimIndent()
+                val swaps = runRootCommand(getSwapStats).trim()
                 if (swaps.isNotEmpty()) {
                     val parts = swaps.split("\\s+".toRegex())
                     if (parts.size >= 4) {
@@ -120,7 +131,11 @@ fun RSwapScreen(onBack: () -> Unit) {
                     onClick = {
                         scope.launch { 
                             runRootCommand("for file in /data/ProjectRaco/RSWAPTrack/rswap_stop_*; do if [ -f \"\$file\" ]; then pkg=\${file##*_}; for p in \$(pidof \$pkg); do kill -9 \$p; done; rm -f \"\$file\"; fi; done")
-                            runRootCommand("swapoff /data/ProjectRaco/RSWAP; swapon -p 32767 /data/ProjectRaco/RSWAP")
+                            val reenableSwap = """
+                                /system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/rswap off
+                                /system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/rswap on
+                            """.trimIndent()
+                            runRootCommand(reenableSwap)
                         }
                     },
                     icon = { Icon(Icons.Default.DeleteSweep, contentDescription = null) },
@@ -173,12 +188,21 @@ fun RSwapScreen(onBack: () -> Unit) {
                                                     configProgressText = context.getString(R.string.rswap_allocating)
                                                     runRootCommand("fallocate -l ${rswapSize}G /data/ProjectRaco/RSWAP")
                                                     configProgressText = context.getString(R.string.rswap_activating)
-                                                    runRootCommand("chmod 0600 /data/ProjectRaco/RSWAP; mkswap /data/ProjectRaco/RSWAP; swapon -p 32767 /data/ProjectRaco/RSWAP")
+                                                    val enableSwap = """
+                                                        chmod 0600 /data/ProjectRaco/RSWAP
+                                                        mkswap /data/ProjectRaco/RSWAP
+                                                        /system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/rswap on
+                                                    """.trimIndent()
+                                                    runRootCommand(enableSwap)
                                                     runRootCommand("echo 100 > /proc/sys/vm/swappiness")
                                                     runRootCommand("echo \$(( \$(cat /proc/sys/vm/min_free_kbytes) * 12 / 10 )) > /proc/sys/vm/min_free_kbytes")
                                                 } else {
                                                     configProgressText = context.getString(R.string.rswap_removing_old)
-                                                    runRootCommand("swapoff /data/ProjectRaco/RSWAP; rm -f /data/ProjectRaco/RSWAP")
+                                                    val disableSwap = """
+                                                        /system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/rswap off
+                                                        rm -f /data/ProjectRaco/RSWAP
+                                                    """.trimIndent()
+                                                    runRootCommand(disableSwap)
                                                 }
                                                 isConfiguring = false
                                             }
@@ -214,11 +238,20 @@ fun RSwapScreen(onBack: () -> Unit) {
                                                             RSwapLock.mutex.withLock {
                                                                 runRootCommand("grep -q '^RSWAP_SIZE ' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP_SIZE .*/RSWAP_SIZE $value/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP_SIZE $value' >> $AUTOMATION_CONFIG_PATH")
                                                                 runRootCommand("for file in /data/ProjectRaco/RSWAPTrack/rswap_stop_*; do if [ -f \"\$file\" ]; then pkg=\${file##*_}; for p in \$(pidof \$pkg); do kill -9 \$p; done; rm -f \"\$file\"; fi; done")
-                                                                runRootCommand("swapoff /data/ProjectRaco/RSWAP; rm -f /data/ProjectRaco/RSWAP")
+                                                                val disableSwap = """
+                                                                    /system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/rswap off
+                                                                    rm -f /data/ProjectRaco/RSWAP
+                                                                """.trimIndent()
+                                                                runRootCommand(disableSwap)
                                                                 configProgressText = context.getString(R.string.rswap_allocating)
                                                                 runRootCommand("fallocate -l ${value}G /data/ProjectRaco/RSWAP")
                                                                 configProgressText = context.getString(R.string.rswap_activating)
-                                                                runRootCommand("chmod 0600 /data/ProjectRaco/RSWAP; mkswap /data/ProjectRaco/RSWAP; swapon -p 32767 /data/ProjectRaco/RSWAP")
+                                                                val enableSwap = """
+                                                                    chmod 0600 /data/ProjectRaco/RSWAP
+                                                                    mkswap /data/ProjectRaco/RSWAP
+                                                                    /system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/rswap on
+                                                                """.trimIndent()
+                                                                runRootCommand(enableSwap)
                                                                 isConfiguring = false
                                                             }
                                                         }
@@ -298,7 +331,11 @@ fun RSwapScreen(onBack: () -> Unit) {
                                                 scope.launch {
                                                     runRootCommand("for p in \$(pidof $pkg); do kill -9 \$p; done")
                                                     runRootCommand("rm -f /data/ProjectRaco/RSWAPTrack/rswap_stop_$pkg")
-                                                    runRootCommand("swapoff /data/ProjectRaco/RSWAP; swapon -p 32767 /data/ProjectRaco/RSWAP")
+                                                    val reenableSwap = """
+                                                        /system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/rswap off
+                                                        /system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/rswap on
+                                                    """.trimIndent()
+                                                    runRootCommand(reenableSwap)
                                                 }
                                             }) {
                                                 Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.rswap_unload), tint = MaterialTheme.colorScheme.error)

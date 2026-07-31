@@ -244,6 +244,14 @@ build_modules() {
         exit 1
     fi
 
+    echo "[7/7] Building RSWAP Manager..."
+    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
+        -o "$MODULES_DIR/Compiled/rswap" \
+        "$SRC_DIR/rswap.c"; then
+        echo "❌ ERROR: Compilation of RSWAP Manager failed!"
+        exit 1
+    fi
+
     # Strip the binaries to reduce file size and optimize
     echo "🗜️ Stripping Binaries..."
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/raco"
@@ -252,6 +260,7 @@ build_modules() {
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/anya"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/zetamin"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/kobo"
+    $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/rswap"
 
     # ------------------------------------------
     # C. BUILD ANDROID APP

@@ -24,17 +24,17 @@ if [ "$GAME_ASSISTANT" = "1" ]; then
 fi
 
 # RSWAP Boot Initialization
-RSWAP_ENABLED=$(grep '^RSWAP ' /data/ProjectRaco/raco.txt | awk '{print $2}')
+RSWAP_ENABLED=$(grep '^RSWAP ' /data/ProjectRaco/raco.txt | awk '{print $2}' | tr -d '\r')
 if [ "$RSWAP_ENABLED" = "1" ]; then
     if [ ! -f /data/ProjectRaco/RSWAP ]; then
-        RSWAP_SIZE=$(grep '^RSWAP_SIZE ' /data/ProjectRaco/raco.txt | awk '{print $2}')
+        RSWAP_SIZE=$(grep '^RSWAP_SIZE ' /data/ProjectRaco/raco.txt | awk '{print $2}' | tr -d '\r')
         if [ -z "$RSWAP_SIZE" ]; then RSWAP_SIZE="4"; fi
         fallocate -l ${RSWAP_SIZE}G /data/ProjectRaco/RSWAP
     fi
     if [ -f /data/ProjectRaco/RSWAP ]; then
         chmod 0600 /data/ProjectRaco/RSWAP
         mkswap /data/ProjectRaco/RSWAP
-        swapon -p 32767 /data/ProjectRaco/RSWAP
+        /system/bin/linker64 $MODDIR/Compiled/rswap on
         echo 100 > /proc/sys/vm/swappiness
         echo $(( $(cat /proc/sys/vm/min_free_kbytes) * 12 / 10 )) > /proc/sys/vm/min_free_kbytes
     fi
