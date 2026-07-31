@@ -4,7 +4,7 @@ Copyright (C) 2026 Kanagawa Yamada
  */
 
 #include "raco.h"
-#include "racosec_guard.h"  /* RacoSec: license enforcement - PROPRIETARY */
+
 
 // Generic IO Tweaks
 void apply_io_tweaks(const char *iostats, const char *add_random, const char *read_ahead_kb, const char *nr_requests, int lock) {
@@ -437,9 +437,6 @@ void rswap_suspend(const char *pkg) {
 // Main Execution
 
 int main(int argc, char *argv[]) {
-    /* RacoSec: enforce license before ANY execution — no key = immediate reboot */
-    racosec_guard();
-
     if (argc < 2) {
         return 1;
     }
