@@ -125,16 +125,11 @@ object AyundaTool {
         if (isCurrentlyActive) {
             activeAyundaPresetState.value = ""
             sharedPrefs.edit().putString("active_ayunda_preset_$currentPackage", "").apply()
-            val globalPreset = sharedPrefs.getString("active_ayunda_preset", "") ?: ""
-            if (globalPreset.isNotEmpty()) {
-                val r = sharedPrefs.getFloat("RGB_R", 1f)
-                val g = sharedPrefs.getFloat("RGB_G", 1f)
-                val b = sharedPrefs.getFloat("RGB_B", 1f)
-                val s = sharedPrefs.getFloat("RGB_S", 1f)
-                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s")).waitFor()
-                val cmd = "service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f 1.0"
-                Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
-            }
+            val r = sharedPrefs.getFloat("RGB_R", 1f)
+            val g = sharedPrefs.getFloat("RGB_G", 1f)
+            val b = sharedPrefs.getFloat("RGB_B", 1f)
+            val s = sharedPrefs.getFloat("RGB_S", 1f)
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s")).waitFor()
         } else {
             var lastPreset = sharedPrefs.getString("active_ayunda_preset_$currentPackage", "") ?: ""
             if (lastPreset.isEmpty()) {
