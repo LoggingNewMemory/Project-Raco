@@ -67,21 +67,23 @@ class GameAssistantService : AccessibilityService() {
         
         val packageName = event.packageName?.toString() ?: return
         
-        // Ignore System UI (notification bar, volume panel, etc) and Android system dialogs
-        if (packageName == "com.android.systemui" || packageName == "android") return
+        // Ignore System UI (notification bar, volume panel, etc), Android system dialogs, and our own overlay
+        if (packageName == "com.android.systemui" || packageName == "android" || packageName == "com.kanagawa.yamada.project.raco") return
         
         // Ignore keyboards
         if (packageName.contains("inputmethod") || packageName.contains("keyboard")) return
         
-        // Ignore floating windows and overlays (only process full-screen app changes)
-        if (!event.isFullScreen) return
-
-        if (packageName == currentForegroundPackage) return
-        currentForegroundPackage = packageName
-        
         val sharedPrefs = getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
         val addedGames = sharedPrefs.getStringSet("automation_games", emptySet()) ?: emptySet()
         val isGame = addedGames.contains(packageName)
+        
+        // If it's NOT a game and NOT a full-screen window, it's likely just a popup (like a toast or Google Play Games overlay).
+        // We ignore these so they don't accidentally hide the Game Assistant.
+        // We DO NOT ignore non-fullscreen events if it IS a game, so the game is detected instantly.
+        if (!isGame && !event.isFullScreen) return
+
+        if (packageName == currentForegroundPackage) return
+        currentForegroundPackage = packageName
         
         if (isGame && !isCurrentlyInGame) {
             isCurrentlyInGame = true
@@ -113,7 +115,7 @@ class GameAssistantService : AccessibilityService() {
                         cmdStr += "settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec"
                     }
                     
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", cmdStr)).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "$cmdStr > /dev/null 2>&1")).waitFor()
                 } catch (e: Exception) {}
             }
         } else if (!isGame && isCurrentlyInGame) {
@@ -130,7 +132,7 @@ class GameAssistantService : AccessibilityService() {
                         "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload"
                     }
                     val combinedCmd = "$unloadCmd ; settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec"
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", combinedCmd)).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "$combinedCmd > /dev/null 2>&1")).waitFor()
                 } catch (e: Exception) {}
             }
         } else if (isGame && isCurrentlyInGame && packageName != lastGamePackage) {
@@ -163,7 +165,7 @@ class GameAssistantService : AccessibilityService() {
                         cmdStr += "settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec"
                     }
                     
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", cmdStr)).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "$cmdStr > /dev/null 2>&1")).waitFor()
                 } catch (e: Exception) {}
             }
         }

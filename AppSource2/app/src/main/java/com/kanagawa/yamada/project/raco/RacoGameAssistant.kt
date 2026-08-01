@@ -43,6 +43,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineScope
 import androidx.compose.animation.core.*
 import androidx.compose.animation.*
 import androidx.compose.ui.geometry.Offset
@@ -126,6 +127,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         crosshairOpacityState.value = sharedPrefs.getFloat("crosshair_opacity_$packageName", sharedPrefs.getFloat("crosshair_opacity", 1f))
         crosshairColorState.value = sharedPrefs.getString("crosshair_color_$packageName", sharedPrefs.getString("crosshair_color", "White")) ?: "White"
 
+        var combinedCmd = ""
         val savedAyundaPreset = sharedPrefs.getString("active_ayunda_preset_$packageName", "") ?: ""
         activeAyundaPresetState.value = savedAyundaPreset
         if (savedAyundaPreset.isNotEmpty()) {
@@ -133,13 +135,21 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
             val g = sharedPrefs.getFloat("RGB_G_$packageName", 1f)
             val b = sharedPrefs.getFloat("RGB_B_$packageName", 1f)
             val s = sharedPrefs.getFloat("RGB_S_$packageName", 1f)
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s"))
+            combinedCmd += "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s ; "
         }
 
         val savedDndActive = sharedPrefs.getBoolean("dnd_active_$packageName", false)
         activeDndState.value = savedDndActive
         if (savedDndActive) {
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd notification set_dnd priority"))
+            combinedCmd += "cmd notification set_dnd priority ; "
+        }
+
+        if (combinedCmd.isNotEmpty()) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "$combinedCmd > /dev/null 2>&1"))
+                } catch (e: Exception) {}
+            }
         }
 
         val savedCrosshairActive = sharedPrefs.getBoolean("crosshair_active_$packageName", false)
@@ -254,6 +264,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
             }.start()
         }
         
+        var combinedCmd = ""
         val pkg = currentPackageState.value
         val savedAyundaPreset = sharedPrefs.getString("active_ayunda_preset_$pkg", "") ?: ""
         if (savedAyundaPreset.isNotEmpty()) {
@@ -263,14 +274,22 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                 val g = sharedPrefs.getFloat("RGB_G", 1f)
                 val b = sharedPrefs.getFloat("RGB_B", 1f)
                 val s = sharedPrefs.getFloat("RGB_S", 1f)
-                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s"))
+                combinedCmd += "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s ; "
             } else {
-                Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f 1.0"))
+                combinedCmd += "service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f 1.0 ; "
             }
         }
         
         if (activeDndState.value) {
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd notification set_dnd off"))
+            combinedCmd += "cmd notification set_dnd off ; "
+        }
+        
+        if (combinedCmd.isNotEmpty()) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "$combinedCmd > /dev/null 2>&1"))
+                } catch (e: Exception) {}
+            }
         }
         
         isExpanded = false
