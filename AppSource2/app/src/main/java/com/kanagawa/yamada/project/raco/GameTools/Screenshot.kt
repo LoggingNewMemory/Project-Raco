@@ -12,19 +12,17 @@ import kotlinx.coroutines.GlobalScope
 object ScreenshotTool {
     @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
     @Suppress("DEPRECATION")
-    fun execute(context: Context, onCollapse: () -> Unit): String? {
+    fun execute(context: Context, onCollapseWithAction: (action: () -> Unit) -> Unit): String? {
         // Hide the overlay first so it's not in the screenshot
-        Handler(Looper.getMainLooper()).post { onCollapse() }
-
-        // Launch an independent coroutine!
-        // If we run this in the ToolItem's coroutine scope, the moment onCollapse()
-        // hides the UI, the Compose scope is cancelled, killing the screenshot process.
-        kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
-            delay(300) // Wait for collapse animation
-
-            val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US).format(java.util.Date())
-            val dir = "/sdcard/Pictures/ProjectRaco"
-            val path = "$dir/Screenshot_$timestamp.png"
+        Handler(Looper.getMainLooper()).post {
+            onCollapseWithAction {
+                // Launch an independent coroutine!
+                // If we run this in the ToolItem's coroutine scope, the moment onCollapse()
+                // hides the UI, the Compose scope is cancelled, killing the screenshot process.
+                kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
+                    val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US).format(java.util.Date())
+                    val dir = "/sdcard/Pictures/ProjectRaco"
+                    val path = "$dir/Screenshot_$timestamp.png"
             
             try {
                 val cmd = "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/Rshoot cap $path"
@@ -98,6 +96,8 @@ object ScreenshotTool {
                         }, 2000)
                     } catch (err: Exception) {}
                 }
+            }
+        }
             }
         }
         

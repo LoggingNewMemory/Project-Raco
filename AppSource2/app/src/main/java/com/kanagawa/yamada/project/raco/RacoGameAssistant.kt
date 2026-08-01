@@ -192,6 +192,14 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                                 composeView?.animate()?.alpha(1f)?.setDuration(150)?.start()
                             }?.start()
                         },
+                        onCollapseWithAction = { action ->
+                            composeView?.animate()?.alpha(0f)?.setDuration(150)?.withEndAction {
+                                isExpanded = false
+                                updateOverlayLayoutParams()
+                                composeView?.animate()?.alpha(1f)?.setDuration(150)?.start()
+                                action()
+                            }?.start()
+                        },
                         onDragStart = {
                             val metrics = android.util.DisplayMetrics()
                             windowManager.defaultDisplay.getRealMetrics(metrics)
@@ -488,6 +496,7 @@ fun GameSpaceContent(
     isExpanded: Boolean,
     onExpand: () -> Unit,
     onCollapse: () -> Unit,
+    onCollapseWithAction: (action: () -> Unit) -> Unit,
     onDragStart: () -> Unit = {},
     onDrag: (Float, Float) -> Unit,
     context: Context,
@@ -573,6 +582,7 @@ fun GameSpaceContent(
         GameSpaceDashboard(
             currentPackage = currentPackage,
             onCollapse = onCollapse, 
+            onCollapseWithAction = onCollapseWithAction,
             context = context, 
             selectedModeState = selectedModeState, 
             isExecutingState = isExecutingState, 
@@ -599,6 +609,7 @@ fun GameSpaceContent(
 fun GameSpaceDashboard(
     currentPackage: String,
     onCollapse: () -> Unit, 
+    onCollapseWithAction: (action: () -> Unit) -> Unit,
     context: Context, 
     selectedModeState: MutableState<String>, 
     isExecutingState: MutableState<Boolean>, 
@@ -722,7 +733,8 @@ fun GameSpaceDashboard(
                                 isInfoActiveState = isInfoActiveState,
                                 onToggleInfo = onToggleInfo,
                                 sharedPrefs = sharedPrefs,
-                                onCollapse = onCollapse
+                                onCollapse = onCollapse,
+                                onCollapseWithAction = onCollapseWithAction
                             )
                         }
                         3 -> {
@@ -1087,7 +1099,7 @@ fun StatCircle(title: String, value: String, unit: String, progress: Float, high
 data class ToolData(val title: String, val iconRes: Int?, val iconVector: ImageVector?, val action: suspend () -> String?, val onLongClick: (() -> Unit)? = null)
 
 @Composable
-fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>, showAyundaConfigState: MutableState<Boolean>, activeAyundaPresetState: MutableState<String>, activeDndState: MutableState<Boolean>, isInfoActiveState: MutableState<Boolean>, onToggleInfo: () -> Unit, sharedPrefs: android.content.SharedPreferences, onCollapse: () -> Unit) {
+fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>, showAyundaConfigState: MutableState<Boolean>, activeAyundaPresetState: MutableState<String>, activeDndState: MutableState<Boolean>, isInfoActiveState: MutableState<Boolean>, onToggleInfo: () -> Unit, sharedPrefs: android.content.SharedPreferences, onCollapse: () -> Unit, onCollapseWithAction: (action: () -> Unit) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         // Initialization if needed
@@ -1097,7 +1109,7 @@ fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: M
         ToolData("Crosshair", R.drawable.ic_crosshair_1, null, { onToggleCrosshair(); null }, onLongClick = { showCrosshairConfigState.value = true }),
         ToolData("Cleanup", null, Icons.Default.CleaningServices, { CleanupTool.execute() }),
         ToolData("Screenshot", null, Icons.Default.CameraAlt, { 
-            ScreenshotTool.execute(context, onCollapse)
+            ScreenshotTool.execute(context, onCollapseWithAction)
         }),
         ToolData("Dnd", null, Icons.Default.DoNotDisturbOn, {
             DndTool.toggle(currentPackage, activeDndState, sharedPrefs)
