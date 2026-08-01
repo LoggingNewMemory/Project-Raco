@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.draw.clip
@@ -28,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -149,6 +151,7 @@ fun SystemScreen(onBack: () -> Unit) {
                         putString("active_ayunda_preset", name)
                         apply()
                     }
+                    sysRunRoot("service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${vals[3]}")
                     sysUpdateAyundaScript(rgbR, rgbG, rgbB, rgbS)
                     sysSetAyundaRusdiEnabled(true)
                 }
@@ -486,7 +489,28 @@ fun AyundaPresetPage(
 ) {
     androidx.activity.compose.BackHandler(onBack = onBack)
     var editingPreset by remember { mutableStateOf<Pair<String, List<Float>>?>(null) }
-    
+    var deleteConfirmName by remember { mutableStateOf<String?>(null) }
+
+    // Delete confirmation dialog
+    if (deleteConfirmName != null) {
+        AlertDialog(
+            onDismissRequest = { deleteConfirmName = null },
+            icon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text("Delete Preset") },
+            text = { Text("Are you sure you want to delete \"${deleteConfirmName}\"?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDeletePreset(deleteConfirmName!!)
+                    deleteConfirmName = null
+                }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteConfirmName = null }) { Text("Cancel") }
+            }
+        )
+    }
+
+    // Full-page editor
     if (editingPreset != null) {
         val (initName, initVals) = editingPreset!!
         var presetName by remember { mutableStateOf(initName) }
@@ -494,6 +518,7 @@ fun AyundaPresetPage(
         var rgbG by remember { mutableFloatStateOf(initVals[1]) }
         var rgbB by remember { mutableFloatStateOf(initVals[2]) }
         var rgbS by remember { mutableFloatStateOf(initVals[3]) }
+        val isCreating = initName.isEmpty()
 
         LaunchedEffect(Unit) {
             androidx.compose.runtime.snapshotFlow { listOf(rgbR, rgbG, rgbB, rgbS) }
@@ -503,125 +528,272 @@ fun AyundaPresetPage(
                 }
         }
 
-        AlertDialog(
-            onDismissRequest = { 
-                onPreviewValues(currentValues)
-                editingPreset = null 
-            },
-            title = { Text(if (initName.isEmpty()) "Create Preset" else "Edit Preset") },
-            text = {
-                Column(modifier = Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState())) {
-                    OutlinedTextField(
-                        value = presetName,
-                        onValueChange = { presetName = it },
-                        label = { Text("Preset Name") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    Text("Red: ${String.format("%.2f", rgbR)}", color = Color(0xFFEF5350), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-                    Slider(value = rgbR, onValueChange = { rgbR = it }, valueRange = 0f..2f, colors = SliderDefaults.colors(thumbColor = Color(0xFFEF5350), activeTrackColor = Color(0xFFEF5350)))
-                    Spacer(Modifier.height(8.dp))
-                    Text("Green: ${String.format("%.2f", rgbG)}", color = Color(0xFF66BB6A), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-                    Slider(value = rgbG, onValueChange = { rgbG = it }, valueRange = 0f..2f, colors = SliderDefaults.colors(thumbColor = Color(0xFF66BB6A), activeTrackColor = Color(0xFF66BB6A)))
-                    Spacer(Modifier.height(8.dp))
-                    Text("Blue: ${String.format("%.2f", rgbB)}", color = Color(0xFF42A5F5), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-                    Slider(value = rgbB, onValueChange = { rgbB = it }, valueRange = 0f..2f, colors = SliderDefaults.colors(thumbColor = Color(0xFF42A5F5), activeTrackColor = Color(0xFF42A5F5)))
-                    Spacer(Modifier.height(8.dp))
-                    Text("Saturation: ${String.format("%.2f", rgbS)}", color = Color(0xFFAB47BC), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-                    Slider(value = rgbS, onValueChange = { rgbS = it }, valueRange = 0f..2f, colors = SliderDefaults.colors(thumbColor = Color(0xFFAB47BC), activeTrackColor = Color(0xFFAB47BC)))
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        if (presetName.isNotBlank()) {
-                            if (presetName != initName && initName.isNotEmpty()) {
-                                onDeletePreset(initName)
-                            }
-                            val finalVals = listOf(rgbR, rgbG, rgbB, rgbS)
-                            onSavePreset(presetName, finalVals)
-                            onApplyPreset(presetName, finalVals)
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(if (isCreating) "Create Preset" else "Edit Preset") },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            onPreviewValues(currentValues)
                             editingPreset = null
+                        }) { Icon(Icons.Default.Close, null) }
+                    },
+                    actions = {
+                        TextButton(
+                            onClick = {
+                                if (presetName.isNotBlank()) {
+                                    if (presetName != initName && initName.isNotEmpty()) {
+                                        onDeletePreset(initName)
+                                    }
+                                    val finalVals = listOf(rgbR, rgbG, rgbB, rgbS)
+                                    onSavePreset(presetName, finalVals)
+                                    onApplyPreset(presetName, finalVals)
+                                    editingPreset = null
+                                }
+                            },
+                            enabled = presetName.isNotBlank()
+                        ) {
+                            Text("Save", fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.primary,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .verticalScroll(androidx.compose.foundation.rememberScrollState())
+                    .padding(horizontal = 16.dp)
+            ) {
+                OutlinedTextField(
+                    value = presetName,
+                    onValueChange = { presetName = it },
+                    label = { Text("Preset Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                // Color preview card
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Color Preview", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            listOf(
+                                Triple("R", rgbR, Color(0xFFEF5350)),
+                                Triple("G", rgbG, Color(0xFF66BB6A)),
+                                Triple("B", rgbB, Color(0xFF42A5F5)),
+                                Triple("S", rgbS, Color(0xFFAB47BC))
+                            ).forEach { (label, value, color) ->
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .background(color.copy(alpha = (value / 2f).coerceIn(0.1f, 1f)), androidx.compose.foundation.shape.CircleShape)
+                                            .border(2.dp, color, androidx.compose.foundation.shape.CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(label, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    }
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(String.format("%.2f", value), style = MaterialTheme.typography.labelSmall, color = color)
+                                }
+                            }
                         }
                     }
-                ) {
-                    Text("Save")
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { 
-                    onPreviewValues(currentValues)
-                    editingPreset = null 
-                }) {
-                    Text("Cancel")
+
+                Spacer(Modifier.height(24.dp))
+
+                // Sliders
+                listOf(
+                    Triple("Red", rgbR, Color(0xFFEF5350)),
+                    Triple("Green", rgbG, Color(0xFF66BB6A)),
+                    Triple("Blue", rgbB, Color(0xFF42A5F5)),
+                    Triple("Saturation", rgbS, Color(0xFFAB47BC))
+                ).forEachIndexed { idx, (label, value, color) ->
+                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(modifier = Modifier.size(10.dp).background(color, shape = androidx.compose.foundation.shape.CircleShape))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(label, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+                            }
+                            Text(String.format("%.2f", value), fontWeight = FontWeight.Bold, color = color, style = MaterialTheme.typography.bodyMedium)
+                        }
+                        Slider(
+                            value = value,
+                            onValueChange = { newVal ->
+                                when (idx) {
+                                    0 -> rgbR = newVal
+                                    1 -> rgbG = newVal
+                                    2 -> rgbB = newVal
+                                    3 -> rgbS = newVal
+                                }
+                            },
+                            valueRange = 0f..2f,
+                            modifier = Modifier.fillMaxWidth().height(36.dp),
+                            colors = SliderDefaults.colors(
+                                thumbColor = color,
+                                activeTrackColor = color.copy(alpha = 0.8f),
+                                inactiveTrackColor = color.copy(alpha = 0.2f)
+                            )
+                        )
+                    }
                 }
+
+                Spacer(Modifier.height(16.dp))
             }
-        )
+        }
+        return
     }
 
+    // Main preset list page
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Ayunda Presets") },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
+                actions = {
+                    IconButton(onClick = { editingPreset = "" to currentValues }) {
+                        Icon(Icons.Default.Add, "Add Preset")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, titleContentColor = MaterialTheme.colorScheme.primary, navigationIconContentColor = MaterialTheme.colorScheme.primary)
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { editingPreset = "" to currentValues }) {
-                Icon(Icons.Default.Add, "Save Preset")
-            }
-        },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding).fillMaxSize()) {
-            item {
-                Text("Built-in Presets", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(16.dp))
-            }
-            items(builtinPresets.keys.toList()) { name ->
-                val vals = builtinPresets[name]!!
-                val isCurrent = name == activePresetName
-                val bgColor = if (isCurrent) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
-                val contentColor = if (isCurrent) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).background(bgColor, RoundedCornerShape(12.dp)).clickable { onApplyPreset(name, vals) }.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(name, fontWeight = FontWeight.SemiBold, color = contentColor, modifier = Modifier.weight(1f))
-                    if (isCurrent) {
-                        Icon(Icons.Default.Check, "Active", tint = contentColor)
-                    }
-                }
-            }
+        LazyColumn(
+            modifier = Modifier.padding(padding).fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 24.dp)
+        ) {
+            // Custom Presets Section
             if (customPresets.isNotEmpty()) {
                 item {
-                    Text("Custom Presets", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(16.dp))
+                    PresetSectionHeader("Custom Presets")
                 }
                 items(customPresets.keys.toList()) { name ->
                     val vals = customPresets[name]!!
-                    val isCurrent = name == activePresetName
-                    val bgColor = if (isCurrent) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
-                    val contentColor = if (isCurrent) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).background(bgColor, RoundedCornerShape(12.dp)).clickable { onApplyPreset(name, vals) }.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(name, fontWeight = FontWeight.SemiBold, color = contentColor, modifier = Modifier.weight(1f))
-                        if (isCurrent) {
-                            Icon(Icons.Default.Check, "Active", tint = contentColor, modifier = Modifier.padding(end = 8.dp))
-                        }
-                        IconButton(onClick = { editingPreset = name to vals }) {
-                            Icon(Icons.Default.Edit, "Edit", tint = MaterialTheme.colorScheme.primary)
-                        }
-                        IconButton(onClick = { onDeletePreset(name) }) {
-                            Icon(Icons.Default.Delete, "Delete", tint = MaterialTheme.colorScheme.error)
-                        }
-                    }
+                    PresetCard(
+                        name = name,
+                        vals = vals,
+                        isCurrent = name == activePresetName,
+                        onClick = { onApplyPreset(name, vals) },
+                        onEdit = { editingPreset = name to vals },
+                        onDelete = { deleteConfirmName = name }
+                    )
                 }
+                item { Spacer(Modifier.height(8.dp)) }
+            }
+
+            // Built-in Presets Section
+            item {
+                PresetSectionHeader("Built-in Presets")
+            }
+            items(builtinPresets.keys.toList()) { name ->
+                val vals = builtinPresets[name]!!
+                PresetCard(
+                    name = name,
+                    vals = vals,
+                    isCurrent = name == activePresetName,
+                    onClick = { onApplyPreset(name, vals) },
+                    onEdit = null,
+                    onDelete = null
+                )
             }
         }
     }
 }
+
+@Composable
+private fun PresetSectionHeader(title: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(modifier = Modifier.weight(1f).height(1.dp).background(MaterialTheme.colorScheme.outlineVariant))
+        Text(
+            " $title ",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Medium
+        )
+        Box(modifier = Modifier.weight(1f).height(1.dp).background(MaterialTheme.colorScheme.outlineVariant))
+    }
+}
+
+@Composable
+private fun PresetCard(
+    name: String,
+    vals: List<Float>,
+    isCurrent: Boolean,
+    onClick: () -> Unit,
+    onEdit: (() -> Unit)?,
+    onDelete: (() -> Unit)?
+) {
+    val bgColor = if (isCurrent) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+    val contentColor = if (isCurrent) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .background(bgColor, RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Color dots
+        Row(horizontalArrangement = Arrangement.spacedBy((-4).dp)) {
+            Box(modifier = Modifier.size(14.dp).background(Color(0xFFEF5350).copy(alpha = (vals[0] / 2f).coerceIn(0.15f, 1f)), androidx.compose.foundation.shape.CircleShape).border(1.dp, Color(0xFFEF5350).copy(alpha = 0.6f), androidx.compose.foundation.shape.CircleShape))
+            Box(modifier = Modifier.size(14.dp).background(Color(0xFF66BB6A).copy(alpha = (vals[1] / 2f).coerceIn(0.15f, 1f)), androidx.compose.foundation.shape.CircleShape).border(1.dp, Color(0xFF66BB6A).copy(alpha = 0.6f), androidx.compose.foundation.shape.CircleShape))
+            Box(modifier = Modifier.size(14.dp).background(Color(0xFF42A5F5).copy(alpha = (vals[2] / 2f).coerceIn(0.15f, 1f)), androidx.compose.foundation.shape.CircleShape).border(1.dp, Color(0xFF42A5F5).copy(alpha = 0.6f), androidx.compose.foundation.shape.CircleShape))
+        }
+        Spacer(Modifier.width(12.dp))
+
+        // Name
+        Text(name, fontWeight = FontWeight.SemiBold, color = contentColor, modifier = Modifier.weight(1f))
+
+        // Active check
+        if (isCurrent) {
+            Icon(Icons.Default.Check, "Active", tint = contentColor, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(4.dp))
+        }
+
+        // Edit & Delete buttons (custom presets only)
+        if (onEdit != null) {
+            IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Edit, "Edit", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+            }
+        }
+        if (onDelete != null) {
+            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Delete, "Delete", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+            }
+        }
+    }
+}
+
+
