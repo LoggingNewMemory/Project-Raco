@@ -1057,10 +1057,10 @@ fun StatCircle(title: String, value: String, unit: String, progress: Float, high
                 )
             }
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(title, color = Color.Gray, fontSize = 8.sp)
-            Text(value, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            Text(unit, color = Color.Gray, fontSize = 8.sp)
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Text(title, color = Color.Gray, fontSize = 9.sp, maxLines = 1, softWrap = false)
+            Text(value, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+            Text(unit, color = Color.Gray, fontSize = 9.sp, maxLines = 1, softWrap = false)
         }
     }
 }
