@@ -202,9 +202,12 @@ if cp "$MODPATH/ProjectRaco.apk" "/data/local/tmp" >/dev/null 2>&1; then
     ui_print "! Please unzip the module and install the APK manually."
   fi
 
-  # Clean up APK file
+  # Clean up APK file from temp directory
   rm -f /data/local/tmp/ProjectRaco.apk >/dev/null 2>&1
 else
   ui_print "! WARNING: Failed to copy ProjectRaco.apk to temp directory."
   ui_print "! Please unzip the module and install the APK manually."
 fi
+
+# Clean up APK from module directory to save space
+rm -f "$MODPATH/ProjectRaco.apk" >/dev/null 2>&1
