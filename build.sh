@@ -244,11 +244,19 @@ build_modules() {
         exit 1
     fi
 
-    echo "[7/7] Building RSWAP Manager..."
+    echo "[7/8] Building RSWAP Manager..."
     if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/rswap" \
         "$SRC_DIR/rswap.c"; then
         echo "❌ ERROR: Compilation of RSWAP Manager failed!"
+        exit 1
+    fi
+
+    echo "[8/8] Building Rshoot..."
+    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
+        -o "$MODULES_DIR/Compiled/Rshoot" \
+        "$SRC_DIR/Rshoot.c"; then
+        echo "❌ ERROR: Compilation of Rshoot failed!"
         exit 1
     fi
 
@@ -261,6 +269,7 @@ build_modules() {
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/zetamin"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/kobo"
     $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/rswap"
+    $TOOLCHAIN/llvm-strip "$MODULES_DIR/Compiled/Rshoot"
 
     # ------------------------------------------
     # C. BUILD ANDROID APP

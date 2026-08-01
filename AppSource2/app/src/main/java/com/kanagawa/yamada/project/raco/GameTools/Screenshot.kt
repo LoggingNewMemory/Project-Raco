@@ -10,6 +10,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.GlobalScope
 
 object ScreenshotTool {
+    @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
+    @Suppress("DEPRECATION")
     fun execute(context: Context, onCollapse: () -> Unit): String? {
         // Hide the overlay first so it's not in the screenshot
         Handler(Looper.getMainLooper()).post { onCollapse() }
@@ -25,7 +27,7 @@ object ScreenshotTool {
             val path = "$dir/Screenshot_$timestamp.png"
             
             try {
-                val cmd = "mkdir -p $dir && screencap -p > $path && am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://$path"
+                val cmd = "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/Rshoot cap $path"
                 val process = Runtime.getRuntime().exec(arrayOf("su", "-c", cmd))
                 val exitCode = process.waitFor()
                 
