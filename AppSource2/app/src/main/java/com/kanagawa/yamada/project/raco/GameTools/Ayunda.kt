@@ -68,11 +68,18 @@ fun AyundaConfigView(
         
         Text("Screen Color Modifiers", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(bottom = 12.dp))
         
-        presets.forEach { preset ->
-            val name = preset.title
-            val desc = preset.desc
-            val vals = preset.vals
-            
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val customPresets = remember {
+            val uiPrefs = context.getSharedPreferences("raco_ui_prefs", android.content.Context.MODE_PRIVATE)
+            uiPrefs.getStringSet("ayunda_presets", emptySet<String>())?.associate {
+                val parts = it.split("::")
+                val vals = parts[1].split(",").map { v -> v.toFloat() }
+                parts[0] to vals
+            } ?: emptyMap()
+        }
+
+        @Composable
+        fun PresetItem(name: String, desc: String, vals: List<Float>) {
             val isCurrent = activeAyundaPresetState.value == name
             val bgColor = if (isCurrent) themeColor else Color(0xFF2A2A2A)
             val textColor = if (isCurrent) Color.White else Color.LightGray
@@ -93,6 +100,7 @@ fun AyundaConfigView(
                                 putFloat("RGB_B_$currentPackage", vals[2])
                                 putFloat("RGB_S_$currentPackage", vals[3])
                                 putString("active_ayunda_preset_$currentPackage", name)
+                                putString("last_ayunda_preset_$currentPackage", name)
                                 apply()
                             }
                             Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${vals[3]}")).waitFor()
@@ -103,14 +111,45 @@ fun AyundaConfigView(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(name, fontWeight = FontWeight.SemiBold, color = textColor, fontSize = 14.sp)
-                    Spacer(Modifier.height(4.dp))
-                    Text(desc, color = descColor, fontSize = 10.sp, maxLines = 2)
+                    if (desc.isNotEmpty()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(desc, color = descColor, fontSize = 10.sp, maxLines = 2)
+                    }
                 }
                 if (isCurrent) {
                     Spacer(Modifier.width(12.dp))
                     Icon(Icons.Default.Check, "Active", tint = Color.White)
                 }
             }
+        }
+
+        @Composable
+        fun SectionHeader(title: String) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.weight(1f).height(1.dp).background(Color.Gray.copy(alpha = 0.5f)))
+                Text(" $title ", color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                Box(modifier = Modifier.weight(1f).height(1.dp).background(Color.Gray.copy(alpha = 0.5f)))
+            }
+        }
+
+        if (customPresets.isNotEmpty()) {
+            SectionHeader("Custom Preset")
+            customPresets.forEach { (name, vals) ->
+                PresetItem(name, "User defined preset", vals)
+            }
+        }
+
+        if (customPresets.isNotEmpty()) {
+            SectionHeader("Built-in Preset")
+        }
+
+        presets.forEach { preset ->
+            PresetItem(preset.title, preset.desc, preset.vals)
         }
     }
 }
@@ -123,18 +162,21 @@ object AyundaTool {
     ) {
         val isCurrentlyActive = activeAyundaPresetState.value.isNotEmpty()
         if (isCurrentlyActive) {
+            val lastActive = activeAyundaPresetState.value
             activeAyundaPresetState.value = ""
-            sharedPrefs.edit().putString("active_ayunda_preset_$currentPackage", "").apply()
+            sharedPrefs.edit()
+                .putString("active_ayunda_preset_$currentPackage", "")
+                .putString("last_ayunda_preset_$currentPackage", lastActive)
+                .apply()
             val r = sharedPrefs.getFloat("RGB_R", 1f)
             val g = sharedPrefs.getFloat("RGB_G", 1f)
             val b = sharedPrefs.getFloat("RGB_B", 1f)
             val s = sharedPrefs.getFloat("RGB_S", 1f)
             Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s")).waitFor()
         } else {
-            var lastPreset = sharedPrefs.getString("active_ayunda_preset_$currentPackage", "") ?: ""
+            var lastPreset = sharedPrefs.getString("last_ayunda_preset_$currentPackage", "") ?: ""
             if (lastPreset.isEmpty()) {
                 lastPreset = "Hunter" // Default for new games
-                sharedPrefs.edit().putString("active_ayunda_preset_$currentPackage", lastPreset).apply()
                 sharedPrefs.edit().apply {
                     putFloat("RGB_R_$currentPackage", 0.9f)
                     putFloat("RGB_G_$currentPackage", 1.2f)
@@ -143,7 +185,12 @@ object AyundaTool {
                     apply()
                 }
             }
+            sharedPrefs.edit()
+                .putString("active_ayunda_preset_$currentPackage", lastPreset)
+                .putString("last_ayunda_preset_$currentPackage", lastPreset)
+                .apply()
             activeAyundaPresetState.value = lastPreset
+            
             val r = sharedPrefs.getFloat("RGB_R_$currentPackage", 1f)
             val g = sharedPrefs.getFloat("RGB_G_$currentPackage", 1f)
             val b = sharedPrefs.getFloat("RGB_B_$currentPackage", 1f)
