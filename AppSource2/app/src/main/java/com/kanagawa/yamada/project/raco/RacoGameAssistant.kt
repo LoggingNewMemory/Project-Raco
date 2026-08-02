@@ -301,6 +301,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         }
         
         isExpanded = false
+        updateOverlayLayoutParams()
     }
 
     private fun toggleCrosshair(forceState: Boolean? = null) {
@@ -540,6 +541,7 @@ fun GameSpaceContent(
 
         Box(
             modifier = Modifier
+                .wrapContentSize()
                 .size(52.dp)
                 .alpha(alpha)
                 .background(Color.Transparent)
