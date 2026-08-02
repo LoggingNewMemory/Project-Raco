@@ -14,18 +14,6 @@
 -flattenpackagehierarchy
 
 # ── RacoSec Security Package ──────────────────────────────────────────
-# Do NOT keep class names - we want them obfuscated.
-# Only protect method signatures that are reflectively checked.
--keepclassmembers class com.kanagawa.yamada.project.raco.security.RacoAntiCrack {
-    public static boolean verifySignature(android.content.Context);
-    public static boolean isDebuggerAttached();
-    public static boolean runAllChecks(android.content.Context, kotlin.jvm.functions.Function1);
-}
--keepclassmembers class com.kanagawa.yamada.project.raco.security.RacoSecApi {
-    public static * validateKey(java.lang.String, kotlin.coroutines.Continuation);
-    public static * registerKey(java.lang.String, java.lang.String, kotlin.coroutines.Continuation);
-    public static * verifyDevice(java.lang.String, java.lang.String, kotlin.coroutines.Continuation);
-}
 
 # ── Aggressive string encryption (R8 will handle via -optimizations) ──
 -optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
