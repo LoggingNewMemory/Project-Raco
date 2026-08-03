@@ -91,7 +91,13 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
 
     init {
         val metrics = android.util.DisplayMetrics()
-        windowManager.defaultDisplay.getRealMetrics(metrics)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as android.hardware.display.DisplayManager
+            displayManager.getDisplay(android.view.Display.DEFAULT_DISPLAY)?.getRealMetrics(metrics)
+        } else {
+            @Suppress("DEPRECATION")
+            windowManager.defaultDisplay.getRealMetrics(metrics)
+        }
         val buttonSizePx = (52 * metrics.density).toInt()
         buttonX = buttonX.coerceIn(0, Math.max(0, metrics.widthPixels - buttonSizePx))
         buttonY = buttonY.coerceIn(0, Math.max(0, metrics.heightPixels - buttonSizePx))
@@ -202,7 +208,13 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                         },
                         onDragStart = {
                             val metrics = android.util.DisplayMetrics()
-                            windowManager.defaultDisplay.getRealMetrics(metrics)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as android.hardware.display.DisplayManager
+                                displayManager.getDisplay(android.view.Display.DEFAULT_DISPLAY)?.getRealMetrics(metrics)
+                            } else {
+                                @Suppress("DEPRECATION")
+                                windowManager.defaultDisplay.getRealMetrics(metrics)
+                            }
                             val buttonSizePx = (52 * metrics.density).toInt()
                             cachedGameIconMaxX = Math.max(0, metrics.widthPixels - buttonSizePx)
                             cachedGameIconMaxY = Math.max(0, metrics.heightPixels - buttonSizePx)
@@ -320,7 +332,13 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                 isCrosshairActiveState.value = true
                 if (pkg.isNotEmpty()) sharedPrefs.edit().putBoolean("crosshair_active_$pkg", true).apply()
                 val metrics = android.util.DisplayMetrics()
-                windowManager.defaultDisplay.getRealMetrics(metrics)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as android.hardware.display.DisplayManager
+                    displayManager.getDisplay(android.view.Display.DEFAULT_DISPLAY)?.getRealMetrics(metrics)
+                } else {
+                    @Suppress("DEPRECATION")
+                    windowManager.defaultDisplay.getRealMetrics(metrics)
+                }
 
                 val crosshairParams = WindowManager.LayoutParams(
                     WindowManager.LayoutParams.WRAP_CONTENT,
@@ -435,7 +453,13 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                                 isDragging = false
                                 
                                 val metrics = android.util.DisplayMetrics()
-                                windowManager.defaultDisplay.getRealMetrics(metrics)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                    val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as android.hardware.display.DisplayManager
+                                    displayManager.getDisplay(android.view.Display.DEFAULT_DISPLAY)?.getRealMetrics(metrics)
+                                } else {
+                                    @Suppress("DEPRECATION")
+                                    windowManager.defaultDisplay.getRealMetrics(metrics)
+                                }
                                 maxX = Math.max(0, metrics.widthPixels - view.width)
                                 maxY = Math.max(0, metrics.heightPixels - view.height)
                                 
