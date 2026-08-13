@@ -8,11 +8,6 @@
 RACOVER="7.0"
 BUILD="LAB"
 
-# RacoSec Early Access (Anti-Crack) flag
-# 1 = Enable license key enforcement + anti-crack (for distribution)
-# 0 = Disable (open / development builds only)
-LACCESS=1
-
 # ==========================================
 # 1. ENVIRONMENT & CONFIGURATION
 # ==========================================
@@ -178,19 +173,8 @@ build_modules() {
     echo "---------------------------------"
 
     echo "[1/6] Building Project Raco Core (Mode Switcher)..."
-    # Copy RacoSec guard header from Proprietary (if LACCESS=1)
-    if [ "$LACCESS" -eq 1 ]; then
-        echo "     [RacoSec] Injecting native guard (LACCESS=1)..."
-        cp Proprietary/racosec_guard.h "$SRC_DIR/racosec_guard.h"
-        LACCESS_CFLAG="-DLACCESS=1"
-    else
-        echo "     [RacoSec] Anti-crack disabled (LACCESS=0)"
-        LACCESS_CFLAG=""
-        # Create empty stub so #include doesn't fail
-        echo "/* RacoSec stub - LACCESS=0 */" > "$SRC_DIR/racosec_guard.h"
-    fi
 
-    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" $LACCESS_CFLAG \
+    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/Compiled/raco" \
         "$SRC_DIR/raco_main.c" \
         "$SRC_DIR/raco_devices.c" \
@@ -202,7 +186,7 @@ build_modules() {
     fi
 
     echo "[2/6] Building Raco Core Service (Boot Daemon)..."
-    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" $LACCESS_CFLAG \
+    if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
         -o "$MODULES_DIR/CoreSys/raco_service" \
         "$SRC_DIR/raco_services.c" \
         "$SRC_DIR/kobo.c" \
@@ -288,8 +272,7 @@ build_modules() {
 
     echo "Building release APK..."
     cd "AppSource2" || exit 1
-    # Inject LACCESS flag into Gradle so BuildConfig picks it up
-    JAVA_HOME=/usr/lib/jvm/java-17-openjdk ./gradlew assembleRelease -PLACCESS=$LACCESS
+    JAVA_HOME=/usr/lib/jvm/java-17-openjdk ./gradlew assembleRelease
     cd ..
     
     APK_UNSIGNED="AppSource2/app/build/outputs/apk/release/app-release-unsigned.apk"

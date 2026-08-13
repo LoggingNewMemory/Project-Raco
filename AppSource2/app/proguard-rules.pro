@@ -1,34 +1,26 @@
 # =====================================================================
 # Project Raco - ProGuard / R8 Rules
-# RacoSec obfuscation is CRITICAL - do NOT relax these rules.
 # =====================================================================
 
-# ── Keep essential Android framework classes ──────────────────────────
--keepattributes Exceptions,InnerClasses,Signature
+# ── Attributes ────────────────────────────────────────────────────────
+# Keep essentials for Compose/Kotlin, but drop variable tables to save size
+-keepattributes Exceptions,InnerClasses,Signature,*Annotation*,SourceFile,LineNumberTable
 
-# ── Obfuscate everything by default ───────────────────────────────────
-# (R8 full mode handles this; these just reinforce it)
+# ── Aggressive Size Optimizations (Safe) ──────────────────────────────
 -allowaccessmodification
 -overloadaggressively
 -repackageclasses 'r'
 -flattenpackagehierarchy
+-mergeinterfacesaggressively
+-optimizationpasses 5
 
-# ── RacoSec Security Package ──────────────────────────────────────────
-
-# ── Aggressive string encryption (R8 will handle via -optimizations) ──
--optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
--optimizationpasses 7
-
-# ── Rename source file attributes to hide structure ───────────────────
--renamesourcefileattribute X
--keepattributes SourceFile,LineNumberTable
-
-# ── Strip logging in release ──────────────────────────────────────────
+# ── Strip all logging in release to minimize size ─────────────────────
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** v(...);
     public static *** i(...);
-    # Keep e() and w() so errors still surface if needed
+    public static *** w(...);
+    public static *** e(...);
 }
 
 # ── Compose & Kotlin internals ────────────────────────────────────────
@@ -41,12 +33,3 @@
 
 # ── Coil ──────────────────────────────────────────────────────────────
 -dontwarn coil.**
-
-# ── JSON (used in RacoSec API calls) ─────────────────────────────────
--keep class org.json.** { *; }
-
-# ── Prevent reflection-based attacks from reconstructing class tree ───
--keepattributes !LocalVariableTable,!LocalVariableTypeTable
-
-# ── Remove debug info strings ─────────────────────────────────────────
--dontusemixedcaseclassnames

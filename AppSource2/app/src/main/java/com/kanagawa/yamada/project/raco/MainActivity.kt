@@ -45,16 +45,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 
-// RacoSec imports
-import com.kanagawa.yamada.project.raco.BuildConfig
-import com.kanagawa.yamada.project.raco.security.RacoSecManager
-import com.kanagawa.yamada.project.raco.security.RacoSecSetupScreen
-import com.kanagawa.yamada.project.raco.security.SecCheckResult
-
 enum class ScreenState {
-    CHECKING_ROOT, ROOT_NOTICE, NO_ROOT, HOME_SCREEN,
-    // RacoSec states
-    CHECKING_LICENSE, LICENSE_SETUP, TAMPER_BLOCKED
+    CHECKING_ROOT, ROOT_NOTICE, NO_ROOT, HOME_SCREEN
 }
 
 class MainActivity : AppCompatActivity() {
@@ -136,7 +128,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             ProjectRacoTheme(seedColor = adaptiveColor) {
-                var currentScreen by remember { mutableStateOf(ScreenState.CHECKING_LICENSE) }
+                var currentScreen by remember { mutableStateOf(ScreenState.CHECKING_ROOT) }
 
                 LaunchedEffect(Unit) {
                     // ── Step 1: Root check FIRST — user must grant before anything else ──
@@ -145,26 +137,6 @@ class MainActivity : AppCompatActivity() {
                     if (!isRooted) {
                         currentScreen = ScreenState.ROOT_NOTICE
                         return@LaunchedEffect
-                    }
-
-                    // ── Step 2: RacoSec license check (if LACCESS is enabled) ──
-                    if (BuildConfig.LACCESS) {
-                        currentScreen = ScreenState.CHECKING_LICENSE
-                        val secResult = RacoSecManager.performStartupCheck(context, true)
-                        when (secResult) {
-                            is SecCheckResult.Clean,
-                            is SecCheckResult.NetworkUnavailable -> { /* OK — continue */ }
-                            is SecCheckResult.NotActivated -> {
-                                currentScreen = ScreenState.LICENSE_SETUP
-                                return@LaunchedEffect
-                            }
-                            is SecCheckResult.Tampered,
-                            is SecCheckResult.ClonedBackup,
-                            is SecCheckResult.WrongDevice -> {
-                                currentScreen = ScreenState.TAMPER_BLOCKED
-                                return@LaunchedEffect
-                            }
-                        }
                     }
 
                     currentScreen = ScreenState.HOME_SCREEN
@@ -193,7 +165,6 @@ class MainActivity : AppCompatActivity() {
                         animationSpec = androidx.compose.animation.core.tween(durationMillis = 600)
                     ) { targetScreen ->
                         when (targetScreen) {
-                            ScreenState.CHECKING_LICENSE,
                             ScreenState.CHECKING_ROOT -> { /* Black screen while checking */ }
 
                             ScreenState.ROOT_NOTICE,
@@ -226,33 +197,6 @@ class MainActivity : AppCompatActivity() {
                                             textAlign = TextAlign.Center
                                         )
                                     }
-                                }
-                            }
-
-                            ScreenState.LICENSE_SETUP -> {
-                                // Show the RacoSec activation screen
-                                val scope = rememberCoroutineScope()
-                                RacoSecSetupScreen(
-                                    onActivationSuccess = {
-                                        scope.launch {
-                                            currentScreen = ScreenState.CHECKING_ROOT
-                                            val isRooted = withContext(Dispatchers.IO) { checkRootAccess() }
-                                            currentScreen = if (isRooted) ScreenState.HOME_SCREEN else ScreenState.NO_ROOT
-                                        }
-                                    }
-                                )
-                            }
-
-                            ScreenState.TAMPER_BLOCKED -> {
-                                // App should already be crashing from RacoSecManager.
-                                // Fallback message if somehow we land here.
-                                Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-                                    Text(
-                                        "⛔",
-                                        color = Color.Red,
-                                        modifier = Modifier.align(Alignment.Center),
-                                        textAlign = TextAlign.Center
-                                    )
                                 }
                             }
 
