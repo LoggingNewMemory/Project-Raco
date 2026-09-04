@@ -347,11 +347,7 @@ fun RacoScreen(onBack: () -> Unit) {
                     Spacer(modifier = Modifier.height(20.dp))
 
                     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        TextButton(onClick = {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/ProjectRaco")))
-                        }) {
-                            Text(stringResource(R.string.official_project_raco_telegram_group), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                        }
+
                         TextButton(onClick = {
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/KanagawaYamadaCH/2543")))
                         }) {

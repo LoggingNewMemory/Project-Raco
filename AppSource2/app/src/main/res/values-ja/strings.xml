@@ -128,7 +128,6 @@ Project RacoにはRoot権限が必要です</string>
     <string name="tap_to_read">▼ タップして読む</string>
     <string name="zefanya_raco">ゼファニャ Raco</string>
     <string name="yamada_s_neko_maid">山田の猫メイド</string>
-    <string name="official_project_raco_telegram_group">Project Raco 公式Telegramグループ</string>
     <string name="donate_for_project_raco">Project Raco に寄付する</string>
     <string name="set_the_angle_vulkan_graphics_driver_mode">ANGLE/Vulkanグラフィックドライバーモードを設定します。</string>
     <string name="trim_filesystem_for_storage_performance">ストレージパフォーマンスのためにファイルシステムをトリムします。</string>

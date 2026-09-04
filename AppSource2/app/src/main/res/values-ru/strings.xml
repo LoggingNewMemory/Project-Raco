@@ -112,7 +112,6 @@ Project Raco требует Root</string>
     <string name="tap_to_read">▼ Нажмите, чтобы прочитать</string>
     <string name="zefanya_raco">Zefanya Raco</string>
     <string name="yamada_s_neko_maid">Yamada\'s Neko Maid</string>
-    <string name="official_project_raco_telegram_group">Официальная группа Project Raco в Telegram</string>
     <string name="donate_for_project_raco">Пожертвовать на Project Raco</string>
     <string name="set_the_angle_vulkan_graphics_driver_mode">Настройка режима графического драйвера ANGLE/Vulkan.</string>
     <string name="trim_filesystem_for_storage_performance">Очистка (Trim) файловой системы.</string>

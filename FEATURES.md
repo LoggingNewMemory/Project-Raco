@@ -1,92 +1,67 @@
 # Features Documentation
 
-## ⚠️ Critical Compatibility Notice
+## Critical Compatibility Notice
 
 **DO NOT combine this module with any other performance optimization modules.**
 
-Some modules may be compatible, but proceed with caution.
----
-
-## Core Features
-
-### Performance Controls
-- **App-Based Mode Control** - Switch performance modes per application
-- **CPU Max Lock Frequency** - Lock CPU to maximum frequency for sustained performance
-- **GPU Tweaks** - Graphics processor optimizations
-- **RAM Tweaks** - Memory management enhancements
-- **Storage Tweaks** - I/O performance improvements
-- **Max Priority** - RiProG Playboost (Raco Slingshot)
-
-### System Optimizations
-- **GED Tweaks** - Game Engine Daemon optimizations
-- **Mali Scheduling** - Enhanced GPU scheduling for Mali chipsets
-- **Minor Kernel Tweaks** - Low-level system optimizations
-- **LMK Tweak** - Low Memory Killer adjustments
-- **Disable Tracing** - Remove system tracing overhead
-
-### Thermal Management
-- **Anya Disable Thermal Flowstate** *(Addon - Project Raco Exclusive)*
-  - Advanced thermal control system
-  - **Note:** Standard thermal checking via `getprop | grep thermal` doesn't work
-  - **Alternative command:** `ps -A | grep -i thermal`
-
-### Raco App & In-Game Overlays (New!)
-- **Auto Game Monitor** - Automatically detects when a game is launched to apply optimizations and start the overlay
-- **In-Game Overlay Menu** - Access essential tools without leaving the game (Brightness, Volume, etc.)
-- **Floating System Monitor** - Real-time FPS and system info tracking
-- **Game Tools Overlay** - Custom Game Crosshair and Auxiliary Lines (Aux Line)
-- **Quick Controls** - Refresh Rate, Rotation Lock, and RAM Clean directly from the overlay
+Some modules may be compatible, but proceed with caution. The low-level nature of Project Raco means it will likely conflict with other kernel tweakers or memory managers.
 
 ---
 
-### Charging & Battery
-- **Fast Charge** - Accelerated charging speeds
-- **Kobo Fast Charge** - Enhanced fast charging implementation
-- **Disable Lock Frame Rate When Low Battery** - Maintain performance on low battery
-- **FPSGo Tweaks** - KamiGO OSS (Mediatek)
+## Core Technologies (C-Based Daemon)
 
-### Display & Graphics
-- **Ayunda Rusdi Color Enhancer Pro** *(Project Raco Exclusive)* - Advanced color calibration
-- **Downscale Resolution** - Reduce resolution for better performance
-- **Zetamin** *(All in One Screen Tweaks)*
-  - Compatible with SkiaVK/GL render modules
-  - Advanced rendering pipeline optimizations
-- **Disable Frame Rate Limit** - Remove FPS caps (Vestia Zeta Display)
+Project Raco utilizes a compiled C backend (`raco_service`) to apply system-level changes efficiently.
 
-### Rendering Backend
-- **System Graphics Driver Switcher** - Switch between graphics drivers
-- **Raco Slingshot** - **Set SkiaVK as Backend Render** - Vulkan-based Skia rendering
-- **Raco Slingshot** - **Set ANGLE as Renderer** - OpenGL ES translation layer
+### RSwap (Advanced Swap Management)
+- **Direct Block/Loop Swap:** Creates and manages a dedicated `/data/ProjectRaco/RSWAP` file.
+- **Priority Paging:** Ensures swap is active and optimized at a kernel level.
 
-- **Read Here** 
-- [ANGLE Documentation 1](https://chromium.googlesource.com/angle/angle.git/+/HEAD/doc/DevSetupAndroid.md)
-- [ANGLE Documentation 2](https://android.googlesource.com/platform/packages/modules/ANGLE/)
+### Zetamin (Display & Rendering Optimizations)
+- **SurfaceFlinger Tweaks:** Injects props to disable hardware composition overhead, backpressure, and client composition caches.
+- **Render Engine Overrides:** Mount-masks configuration files to enforce SkiaVK (Vulkan-based) or ANGLE (OpenGL ES translation) as the primary renderer.
 
+### Kobo (Fast Charge Control)
+- **Current & Voltage Unlocking:** Bypasses default charging limitations by directly modifying power supply values (e.g., setting max current and voltage constraints).
+- **Thermal Limit Adjustments:** Recalibrates cooling, warm, and hot temperature thresholds to maintain charging speeds.
 
-### Intelligence & Automation
-- **Hamada AI** - Intelligent performance switching
-  - Auto-switch to performance mode during gaming
-  - Auto-switch to power-save when screen is off
-- **Sandevistan Boot** *(Project Raco Exclusive Settings)* - Optimized boot sequence
-- **Auto DND When Playing Games** - Automatic Do Not Disturb mode
+### Anya (Thermal Control Override)
+- **Thermal Flowstate Disabler:** A Project Raco exclusive that halts standard thermal daemon services.
+- **Service Termination:** Scans and forcibly stops kernel thermal drivers (`init.svc.*thermal`) via `resetprop` to prevent aggressive throttling during heavy loads.
 
-### System Maintenance
-- **FStrim & Clear Cache** - Storage optimization and cleanup
-- **Raco Slingshot** - **Kasane Preload** - Preload apps file to improve loading screen and performance 
-- **Raco Plugin** - Extended functionality support
+### Ayunda Rusdi (Color & Screen Enhancements)
+- **Advanced Display Calibration:** Directly modifies screen output parameters for richer, more accurate color representation.
 
-### Battery, Misc
-- **Deep Sleep Opt** - Optimization of Deep Sleep
-- **GMS Doze** - Allow GMS to Doze
-- **Task Optimization** - Change task to optimize memory
-- **RCU, Scheduler, Kernel Optimization** 
-- **Disable some of Kernel Logging** - But not entirely because needed for debugging
-- **Disable Kernel Panic**
-- **Additional LMK Tweaks**
-- **Optimization of Memory Cache**
+---
+
+## CPU, GPU & System Tweaks
+
+- **App-Based Mode Control (Hamada AI):** Intelligently switches performance modes. Automatically detects game launches to enter performance mode, and scales back during screen-off (Doze/Deep Sleep).
+- **GPU Max Lock Frequency:** Dynamically pulls maximum supported frequencies from GPU drivers (including MediaTek's `gpufreq_opp_dump`) and locks them to prevent frame drops.
+- **I/O Tweaks:** Alters scheduler algorithms and random-add parameters across all block devices to reduce read/write latency.
+- **LMK & Memory Tuning:** Optimizes Low Memory Killer limits and system memory caching behavior.
+- **Deep Sleep Optimization:** Configures GMS (Google Mobile Services) to Doze efficiently, reducing background battery drain.
+
+---
+
+## Project Raco Companion App & Game Assistant
+
+The module includes a fully native Kotlin/Jetpack Compose Android app (`ProjectRaco.apk`) that serves as a control center and game enhancement suite.
+
+### In-Game Overlay
+- **Floating System Monitor:** Real-time FPS, RAM usage, and system status overlaid directly onto your games.
+- **Quick Controls:** Instantly toggle Refresh Rate, Rotation Lock, Screen Brightness, and trigger RAM cleanups without minimizing the game.
+- **Game Tools:** 
+  - **Custom Crosshair:** Configurable screen-center crosshairs for shooter games.
+  - **Auxiliary Lines:** On-screen alignment lines for strategic placement.
+  - **Auto DND (Do Not Disturb):** Blocks notifications while gaming.
+
+### App Modules
+- **Core Tweaks Screen:** Interface to manually trigger IO, CPU, and GPU scripts.
+- **Automation Screen:** Configure Hamada AI, Auto DND, and app whitelists.
+- **RSwap & Appearance Screens:** Manage the swapfile size and adjust Ayunda Rusdi color properties.
 
 ---
 
 ## Support & Troubleshooting
 
-For issues or questions, please refer to the main documentation or contact support through [official channels](https://t.me/ProjectRaco).
+For issues or questions, please refer to the main documentation or contact support through the official Project Raco Telegram channel.
