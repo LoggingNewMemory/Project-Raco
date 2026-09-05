@@ -127,7 +127,23 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
 
     fun show(packageName: String) {
         currentPackageState.value = packageName
-        selectedModeState.value = sharedPrefs.getString("raco_game_mode_$packageName", "Awaken") ?: "Awaken"
+        
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                val p = ProcessBuilder("su", "-c", "cat /data/ProjectRaco/modes/$packageName").redirectErrorStream(true).start()
+                val cmdMode = p.inputStream.bufferedReader().use { it.readText() }.trim()
+                p.waitFor()
+                val label = when(cmdMode) {
+                    "1" -> "Balanced"
+                    "2" -> "Powersave"
+                    "4" -> "Awaken"
+                    else -> "Awaken"
+                }
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    selectedModeState.value = label
+                }
+            } catch (e: Exception) {}
+        }
         crosshairTypeState.value = sharedPrefs.getInt("crosshair_type_$packageName", sharedPrefs.getInt("crosshair_type", 1))
         crosshairSizeState.value = sharedPrefs.getFloat("crosshair_size_$packageName", sharedPrefs.getFloat("crosshair_size", 32f))
         crosshairOpacityState.value = sharedPrefs.getFloat("crosshair_opacity_$packageName", sharedPrefs.getFloat("crosshair_opacity", 1f))
@@ -975,6 +991,9 @@ fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: 
                                 isExecutingState.value = true
                                 kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
                                     try {
+                                        if (currentPackage.isNotEmpty()) {
+                                            Runtime.getRuntime().exec(arrayOf("su", "-c", "echo $cmdMode > /data/ProjectRaco/modes/$currentPackage")).waitFor()
+                                        }
                                         val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $cmdMode"))
                                         val reader = process.inputStream.bufferedReader()
                                         while (isActive) {
@@ -990,9 +1009,6 @@ fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: 
                                             selectedModeState.value = modeLabel
                                             executingModeState.value = ""
                                             isExecutingState.value = false
-                                            if (currentPackage.isNotEmpty()) {
-                                                sharedPrefs.edit().putString("raco_game_mode_$currentPackage", modeLabel).apply()
-                                            }
                                         }
                                     }
                                 }

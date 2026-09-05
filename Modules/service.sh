@@ -7,7 +7,6 @@ done
 
 MODDIR=${0%/*}
 
-# Execute the Raco core service in the background
 /system/bin/linker64 $MODDIR/CoreSys/raco_service $MODDIR &
 
 # Execute Ayunda Rusdi (Screen Modifiers) if configured
@@ -53,3 +52,5 @@ if [ "$SILENT_NOTIF" = "0" ]; then
         su -lp 2000 -c "cmd notification post -S bigtext -t 'Project Raco' -i file:///data/local/tmp/logo.png -I file:///data/local/tmp/logo.png 'TagRaco' 'Project Raco - オンライン'" &
     fi
 fi
+# Start the Game Watcher Daemon
+su -c "$MODDIR/CoreSys/raco_watcher" &

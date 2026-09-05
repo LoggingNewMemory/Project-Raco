@@ -22,6 +22,8 @@ static void spoof_thermal_props(const char *state) {
 // Anya Kawaii (Restore thermals)
 // ==========================================
 void exec_anya_kawaii() {
+    pid_t pid = fork();
+    if (pid != 0) return;
     printf("Anya Kawaii Start\n");
 
     // Unmount thermald
@@ -39,12 +41,15 @@ void exec_anya_kawaii() {
            "while read -r svc; do resetprop -n \"init.svc.$svc\" \"stopped\"; start \"$svc\"; done");
 
     spoof_thermal_props("running");
+    exit(0);
 }
 
 // ==========================================
 // Anya Melfissa (Kill thermals)
 // ==========================================
 void exec_anya_melfissa() {
+    pid_t pid = fork();
+    if (pid != 0) return;
     printf("Anya Melfissa Start...\n");
 
     // Kill & stop all thermal processes and services
@@ -71,6 +76,7 @@ void exec_anya_melfissa() {
            "resetprop -n debug.thermal.throttle.support no");
 
     spoof_thermal_props("running");
+    exit(0);
 }
 
 #ifdef STANDALONE

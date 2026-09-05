@@ -240,3 +240,119 @@ raco_read:
     ldp x19, x20, [sp, #16]  // For file pointer
     ldp x29, x30, [sp], #48  // Load Pair: Restore Frame Pointer and Link Register, deallocate 48 bytes
     ret                       // Return
+
+/*
+Function of raco_check_game.
+x0 = pkg_name
+x1 = path_to_game_txt
+Returns 1 if found, 0 if not.
+*/
+.global raco_check_game
+raco_check_game:
+    // Setup stack
+    sub sp, sp, #16384 // Buffer for file
+    sub sp, sp, #64    // For registers
+    stp x19, x20, [sp, #0]
+    stp x21, x22, [sp, #16]
+    stp x23, x24, [sp, #32]
+    stp x25, x30, [sp, #48]
+
+    mov x19, x0 // x19 = pkg
+    mov x25, x1 // x25 = path
+
+    // Open file
+    mov x0, #AT_FDCWD
+    mov x1, x25
+    mov x2, #O_RDONLY
+    mov x3, #0
+    mov x8, #SYS_OPENAT
+    svc #0
+    cmp x0, #0
+    blt .L_cg_not_found
+    mov x20, x0 // x20 = fd
+
+    // Read file
+    mov x0, x20
+    add x1, sp, #64 // buffer starts after the 64 bytes of saved registers
+    mov x2, #16300 // read up to 16300 bytes
+    mov x8, #SYS_READ
+    svc #0
+    cmp x0, #0
+    ble .L_cg_close_not_found
+    mov x21, x0 // x21 = bytes read
+
+    // Close file
+    mov x0, x20
+    mov x8, #SYS_CLOSE
+    svc #0
+
+    // Now buffer is at sp+64, size is x21
+    add x20, sp, #64 // x20 = buffer pointer
+    mov x22, #0      // x22 = buffer index
+
+.L_cg_next_line:
+    cmp x22, x21
+    bge .L_cg_not_found
+
+    mov x23, #0 // index in pkg
+.L_cg_match_char:
+    ldrb w24, [x19, x23]
+    cbz w24, .L_cg_check_end
+
+    add x24, x22, x23
+    cmp x24, x21
+    bge .L_cg_skip_to_next
+
+    ldrb w26, [x20, x24]
+    ldrb w24, [x19, x23]
+    cmp w24, w26
+    bne .L_cg_skip_to_next
+
+    add x23, x23, #1
+    b .L_cg_match_char
+
+.L_cg_check_end:
+    add x24, x22, x23
+    cmp x24, x21
+    bge .L_cg_found
+
+    ldrb w26, [x20, x24]
+    cmp w26, #10 // \n
+    beq .L_cg_found
+    cmp w26, #13 // \r
+    beq .L_cg_found
+
+.L_cg_skip_to_next:
+    add x24, x22, #0
+.L_cg_skip_loop:
+    cmp x24, x21
+    bge .L_cg_not_found
+    ldrb w26, [x20, x24]
+    add x24, x24, #1
+    cmp w26, #10
+    beq .L_cg_next_line_start
+    b .L_cg_skip_loop
+
+.L_cg_next_line_start:
+    mov x22, x24
+    b .L_cg_next_line
+
+.L_cg_close_not_found:
+    mov x0, x20
+    mov x8, #SYS_CLOSE
+    svc #0
+.L_cg_not_found:
+    mov x0, #0
+    b .L_cg_return
+
+.L_cg_found:
+    mov x0, #1
+
+.L_cg_return:
+    ldp x25, x30, [sp, #48]
+    ldp x23, x24, [sp, #32]
+    ldp x21, x22, [sp, #16]
+    ldp x19, x20, [sp, #0]
+    add sp, sp, #64
+    add sp, sp, #16384
+    ret

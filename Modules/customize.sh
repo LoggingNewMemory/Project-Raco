@@ -60,6 +60,8 @@ fi
 
 # Ensure the persistent data directory exists
 mkdir -p /data/ProjectRaco
+mkdir -p /data/ProjectRaco/modes
+chmod 0755 /data/ProjectRaco/modes
 
 if [ -f "$RACO_PERSIST_CONFIG" ]; then
   # Updated to check for space delimiter
@@ -137,10 +139,16 @@ unzip -o "$ZIPFILE" 'Binaries/*' -d $MODPATH >&2
 unzip -o "$ZIPFILE" 'raco.txt' -d $MODPATH >&2
 unzip -o "$ZIPFILE" 'WhitelistKillAll.txt' -d $MODPATH >&2
 
+unzip -o "$ZIPFILE" 'gamelist.txt' -d $MODPATH >&2
+
 # File copy operations
 rm -f "/data/local/tmp/logo.png" >/dev/null 2>&1
 cp "$MODPATH/logo.png" "/data/local/tmp" >/dev/null 2>&1 || abort "! Failed to copy logo.png"
 chmod 644 "/data/local/tmp/logo.png"
+
+
+cp "$MODPATH/gamelist.txt" "/data/ProjectRaco/gamelist.txt" >/dev/null 2>&1
+chmod 644 "/data/ProjectRaco/gamelist.txt"
 
 ui_print " "
 

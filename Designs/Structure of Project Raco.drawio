@@ -5,7 +5,7 @@
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="jfDjjWUG67XrfJvn7yyf-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="630" width="620" x="190" y="1680" as="geometry" />
+          <mxGeometry height="630" width="610" x="200" y="1680" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-32" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
           <mxGeometry height="640" width="1020" x="-840" y="1690" as="geometry" />
@@ -278,43 +278,46 @@
           <mxGeometry height="100" width="295" x="-555" y="2190" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-34" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1" value="Game Assistant Service Design" vertex="1">
-          <mxGeometry height="50" width="170" x="200" y="1690" as="geometry" />
+          <mxGeometry height="50" width="170" x="210" y="1690" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-37" edge="1" parent="1" source="eyppIntXDMKMuIVPNFLS-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="eyppIntXDMKMuIVPNFLS-36">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="eyppIntXDMKMuIVPNFLS-35" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="Using&amp;nbsp;AccessibilityService and listen to&amp;nbsp;&lt;code data-path-to-node=&quot;7,0,0&quot; data-index-in-node=&quot;102&quot;&gt;TYPE_WINDOW_STATE_CHANGED&lt;/code&gt; event&amp;nbsp;" vertex="1">
+        <mxCell id="eyppIntXDMKMuIVPNFLS-35" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;" value="Grab PID then read /proc/[PID]/cmdline" vertex="1">
           <mxGeometry height="60" width="250" x="225" y="1860" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-41" edge="1" parent="1" source="eyppIntXDMKMuIVPNFLS-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="eyppIntXDMKMuIVPNFLS-40">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="eyppIntXDMKMuIVPNFLS-36" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Whenever the user opens an app, closes an app, or switches tasks, this event fires instantly, handing you the packageName of the new foreground app." vertex="1">
+        <mxCell id="eyppIntXDMKMuIVPNFLS-36" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Check if any active pkg match with gamelist.txt&lt;div&gt;Else? Ignore&lt;br&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;(Todo: Custom Assembly function for get this)&lt;/div&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="100" width="250" x="225" y="1950" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-39" edge="1" parent="1" source="eyppIntXDMKMuIVPNFLS-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="eyppIntXDMKMuIVPNFLS-35">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="eyppIntXDMKMuIVPNFLS-38" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Can use to auto grant&lt;div&gt;settings put secure enabled_accessibility_services com.your.package/com.your.package.YourService&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;(TODO: RENAME LATER)&lt;/div&gt;" vertex="1">
-          <mxGeometry height="80" width="300" x="200" y="1750" as="geometry" />
+        <mxCell id="eyppIntXDMKMuIVPNFLS-38" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Monitor&amp;nbsp;/dev/cpuset/top-app/tasks using&amp;nbsp;inotify&amp;nbsp;" vertex="1">
+          <mxGeometry height="40" width="268.75" x="215.63" y="1790" as="geometry" />
         </mxCell>
         <mxCell id="eyppIntXDMKMuIVPNFLS-43" edge="1" parent="1" source="eyppIntXDMKMuIVPNFLS-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="eyppIntXDMKMuIVPNFLS-42">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="eyppIntXDMKMuIVPNFLS-40" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Pass it to C Code, C code will receive it via POSIX (Direct Execution)&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;it will do ProcessBuilder method&lt;div&gt;(using args (Ex: ./raco load))&lt;/div&gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="eyppIntXDMKMuIVPNFLS-40" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="If Match then trigger change execution using&amp;nbsp;/system/bin/linker64&amp;nbsp;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;(Note: This requires to change saved modes due to previous implementation using shared prefs)&lt;/div&gt;" vertex="1">
           <mxGeometry height="110" width="255" x="222.5" y="2080" as="geometry" />
         </mxCell>
-        <mxCell id="eyppIntXDMKMuIVPNFLS-42" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="On C&amp;nbsp;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;catches those arguments natively using the standard int main(int argc, char *argv[])&lt;/div&gt;" vertex="1">
+        <mxCell id="eyppIntXDMKMuIVPNFLS-42" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="If leaving then go balance" vertex="1">
           <mxGeometry height="70" width="257.5" x="221.25" y="2220" as="geometry" />
         </mxCell>
-        <mxCell id="eyppIntXDMKMuIVPNFLS-46" edge="1" parent="1" source="eyppIntXDMKMuIVPNFLS-45" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="eyppIntXDMKMuIVPNFLS-38">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="eyppIntXDMKMuIVPNFLS-45" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="NOTE&lt;div&gt;Because of new android fckery about OOM&lt;/div&gt;&lt;div&gt;We need a silent notification&lt;br&gt;&lt;br&gt;&quot;Project Raco Game Assistant is Running&quot;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;In order to Game Assistant not get killed&lt;/div&gt;" vertex="1">
-          <mxGeometry height="110" width="270" x="530" y="1735" as="geometry" />
+        <mxCell id="eyppIntXDMKMuIVPNFLS-45" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Need the game.txt&lt;div&gt;Copy from Encore game list&lt;/div&gt;&lt;div&gt;(gamelist.txt)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Note: on customize.sh do copy to /data/local/tmp/ProjectRaco&lt;/div&gt;" vertex="1">
+          <mxGeometry height="140" width="295" x="505" y="1700" as="geometry" />
         </mxCell>
         <mxCell id="-kAjleGgzu51XeD0N26q-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Note: It uses RSWAP Binary now" vertex="1">
           <mxGeometry height="60" width="250" x="-830" y="2140" as="geometry" />
+        </mxCell>
+        <mxCell id="qBeMqpGpT6pPjdO0gGIp-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="This procedure is linked with raco game assistant (C) then app is just to manage it + edit game.txt" vertex="1">
+          <mxGeometry height="50" width="295" x="505" y="1850" as="geometry" />
+        </mxCell>
+        <mxCell id="iCtuw4pH8kKN-KeyedLn-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="Handle Case for Floating app&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;- Add global / static integer (ActiveGame=)&lt;/div&gt;&lt;div&gt;- When your inotify watcher triggers a new event in /dev/cpuset/top-app/tasks, do not immediately read the new PID&#39;s cmdline. Instead, add an if (active_game_pid != 0) check to see if you are already tracking a running game.&lt;/div&gt;&lt;div&gt;-&amp;nbsp;&lt;span style=&quot;font-family: &amp;quot;Google Sans Text&amp;quot;, sans-serif; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;If a game is locked, read /proc/[active_game_pid]/cpuset.&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-family: &amp;quot;Google Sans Text&amp;quot;, sans-serif; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;sequence-event ng-star-inserted&quot; style=&quot;font-family: &amp;quot;Google Sans Text&amp;quot;, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;&quot;&gt;&lt;div class=&quot;sequence-event-content&quot; style=&quot;line-height: 1.15 !important; margin-top: 0px !important;&quot;&gt;&lt;div class=&quot;sequence-event-description gds-body-l&quot; style=&quot;line-height: 1.15 !important; margin-top: 0px !important;&quot;&gt;&lt;ul class=&quot;ng-star-inserted&quot; style=&quot;padding-inline-start: 32px; line-height: 1.15 !important; margin-top: 0px !important;&quot;&gt;&lt;li class=&quot;ng-star-inserted&quot; style=&quot;line-height: 1.15 !important; margin-top: 0px !important;&quot;&gt;&lt;p class=&quot;ng-star-inserted&quot; style=&quot;line-height: 1.15 !important; margin-top: 0px !important;&quot;&gt;If the output still contains top-app, the game is still running under the floating app. Ignore the inotify event entirely.&lt;/p&gt;&lt;/li&gt;&lt;li class=&quot;ng-star-inserted&quot; style=&quot;line-height: 1.15 !important; margin-top: 0px !important;&quot;&gt;&lt;p class=&quot;ng-star-inserted&quot; style=&quot;line-height: 1.15 !important; margin-top: 0px !important;&quot;&gt;If the file is missing or the output contains background, the game was closed or minimized&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;div&gt;-&amp;nbsp;If the step above confirms the game is gone, reset active_game_pid = 0. Immediately execute balanced&lt;/div&gt;&lt;div&gt;-&amp;nbsp;If active_game_pid == 0, proceed with your original flowchart logic. Read the new PID&#39;s cmdline and run your custom assembly string-match against game.txt. If it matches, set active_game_pid = [New PID] and exec performance&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;sequence-event ng-star-inserted&quot; style=&quot;font-family: &amp;quot;Google Sans Text&amp;quot;, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;&quot;&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="380" width="290" x="510" y="1910" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

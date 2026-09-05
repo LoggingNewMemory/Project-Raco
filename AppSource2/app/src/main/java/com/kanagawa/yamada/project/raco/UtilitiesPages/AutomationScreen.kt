@@ -192,17 +192,33 @@ private fun AppListPage(onBack: () -> Unit, gameAssistantEnabled: Boolean) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
-    val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
-    var enabledPackages by remember { 
-        mutableStateOf<List<String>>(sharedPrefs.getStringSet("automation_games", emptySet())?.toList() ?: emptyList()) 
-    }
-    
+    var enabledPackages by remember { mutableStateOf<List<String>>(emptyList()) }
     var allInstalledApps by remember { mutableStateOf<List<String>>(emptyList()) }
     var showAddDialog by remember { mutableStateOf(false) }
     var isLoadingAllApps by remember { mutableStateOf(false) }
     
     var isMounted by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { isMounted = true }
+    
+    LaunchedEffect(Unit) {
+        scope.launch {
+            try {
+                val list = runRoot("cat /data/ProjectRaco/gamelist.txt")
+                val rawPackages = list.lines().filter { it.isNotBlank() }
+                
+                val pm = context.packageManager
+                val installedPackages = rawPackages.filter { pkg ->
+                    try {
+                        pm.getPackageInfo(pkg, 0)
+                        true
+                    } catch (e: Exception) {
+                        false
+                    }
+                }
+                enabledPackages = installedPackages
+            } catch (e: Exception) {}
+        }
+        isMounted = true
+    }
     
     androidx.activity.compose.BackHandler(enabled = !showAddDialog) {
         onBack()
@@ -239,16 +255,12 @@ private fun AppListPage(onBack: () -> Unit, gameAssistantEnabled: Boolean) {
         val newSet = if (isEnable) (enabledPackages + pkg).distinct() else enabledPackages.filter { it != pkg }
         enabledPackages = newSet
         
-        val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
-        sharedPrefs.edit().putStringSet("automation_games", newSet.toSet()).apply()
-        
-        if (gameAssistantEnabled) {
-            scope.launch(Dispatchers.IO) {
-                val disableCmd = """CURRENT=${'$'}(settings get secure enabled_accessibility_services); if [ "${'$'}CURRENT" != "null" ] && [ -n "${'$'}CURRENT" ]; then NEW=${'$'}(echo "${'$'}CURRENT" | sed 's|com.kanagawa.yamada.project.raco/.GameAssistantService||g' | sed 's/::/:/g' | sed 's/^://' | sed 's/:${'$'}//'); if [ -z "${'$'}NEW" ]; then settings put secure enabled_accessibility_services null; else settings put secure enabled_accessibility_services "${'$'}NEW"; fi; fi"""
-                runRoot(disableCmd)
-                kotlinx.coroutines.delay(300)
-                val enableCmd = """CURRENT=${'$'}(settings get secure enabled_accessibility_services); if [ "${'$'}CURRENT" = "null" ] || [ -z "${'$'}CURRENT" ]; then settings put secure enabled_accessibility_services com.kanagawa.yamada.project.raco/.GameAssistantService; else echo "${'$'}CURRENT" | grep -q "com.kanagawa.yamada.project.raco/.GameAssistantService" || settings put secure enabled_accessibility_services "${'$'}CURRENT:com.kanagawa.yamada.project.raco/.GameAssistantService"; fi"""
-                runRoot(enableCmd)
+        scope.launch(Dispatchers.IO) {
+            val safePkg = pkg.replace(".", "\\.")
+            if (isEnable) {
+                runRoot("grep -q '^[[:space:]]*${safePkg}[[:space:]]*$' /data/ProjectRaco/gamelist.txt || echo '${pkg}' >> /data/ProjectRaco/gamelist.txt")
+            } else {
+                runRoot("sed -i '/^[[:space:]]*${safePkg}[[:space:]]*$/d' /data/ProjectRaco/gamelist.txt")
             }
         }
     }
@@ -384,55 +396,14 @@ private fun AppListPage(onBack: () -> Unit, gameAssistantEnabled: Boolean) {
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.2f), MaterialTheme.shapes.medium)
                             .padding(16.dp)
                     ) {
-                        Column {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                AppIcon(pkg = pkg, modifier = Modifier.size(32.dp))
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    AppName(pkg = pkg, color = MaterialTheme.colorScheme.onSurface)
-                                }
-                                IconButton(onClick = { toggleApp(pkg, false) }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
-                                }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            AppIcon(pkg = pkg, modifier = Modifier.size(32.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                AppName(pkg = pkg, color = MaterialTheme.colorScheme.onSurface)
                             }
-                            
-                            var gameMode by remember { mutableStateOf(sharedPrefs.getString("game_mode_$pkg", "none") ?: "none") }
-                            var expandedGameMode by remember { mutableStateOf(false) }
-                            val gameModeOptions = listOf(
-                                "none" to stringResource(R.string.game_mode_none),
-                                "standard" to stringResource(R.string.game_mode_standard),
-                                "performance" to stringResource(R.string.game_mode_performance),
-                                "battery" to stringResource(R.string.game_mode_battery)
-                            )
-                            
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                                Text("CMD Game Mode", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                                Box {
-                                    TextButton(onClick = { expandedGameMode = true }) {
-                                        Text(gameModeOptions.find { it.first == gameMode }?.second ?: "None")
-                                    }
-                                    DropdownMenu(
-                                        expanded = expandedGameMode,
-                                        onDismissRequest = { expandedGameMode = false }
-                                    ) {
-                                        gameModeOptions.forEach { (value, label) ->
-                                            DropdownMenuItem(
-                                                text = { Text(label) },
-                                                onClick = {
-                                                    gameMode = value
-                                                    sharedPrefs.edit().putString("game_mode_$pkg", value).apply()
-                                                    expandedGameMode = false
-                                                    scope.launch(Dispatchers.IO) {
-                                                        if (value != "none") {
-                                                            Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd game mode $value $pkg")).waitFor()
-                                                        }
-                                                    }
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
+                            IconButton(onClick = { toggleApp(pkg, false) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                             }
                         }
                     }
