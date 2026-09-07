@@ -78,7 +78,7 @@
     <string name="zetamin_title">Zetamin</string>
     <string name="sandev_boot_title">Arranque Sandevistan</string>
     <string name="raco">Raco</string>
-    <string name="reset">RESTABLECER</string>
+    <string name="reset">Kill All</string>
     <string name="set">Establecer</string>
     <string name="about">Acerca de</string>
     <string name="reset_to_default">Restablecer valores predeterminados</string>

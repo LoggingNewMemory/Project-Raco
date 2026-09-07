@@ -110,7 +110,7 @@ Project RacoにはRoot権限が必要です</string>
     <string name="zetamin_title">Zetamin</string>
     <string name="sandev_boot_title">サンデヴィスタン ブート</string>
     <string name="raco">Raco</string>
-    <string name="reset">リセット</string>
+    <string name="reset">Kill All</string>
     <string name="set">設定</string>
     <string name="about">情報</string>
     <string name="reset_to_default">デフォルトに戻す</string>

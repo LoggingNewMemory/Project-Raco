@@ -94,7 +94,7 @@ Project Raco требует Root</string>
     <string name="zetamin_title">Zetamin</string>
     <string name="sandev_boot_title">Sandevistan Загрузка</string>
     <string name="raco">Raco</string>
-    <string name="reset">СБРОС</string>
+    <string name="reset">Kill All</string>
     <string name="set">Задать</string>
     <string name="about">О программе</string>
     <string name="reset_to_default">Сбросить по умолчанию</string>

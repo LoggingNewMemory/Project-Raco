@@ -91,7 +91,7 @@ Project Raco Memerlukan Root</string>
     <string name="zetamin_title">Zetamin</string>
     <string name="sandev_boot_title">Sandevistan Boot</string>
     <string name="raco">Raco</string>
-    <string name="reset">RESET</string>
+    <string name="reset">Kill All</string>
     <string name="set">Atur</string>
     <string name="about">Tentang</string>
     <string name="reset_to_default">Kembalikan ke Awal</string>
