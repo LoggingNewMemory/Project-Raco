@@ -49,7 +49,7 @@ The module includes a fully native Kotlin/Jetpack Compose Android app (`ProjectR
 
 ### In-Game Overlay
 - **Floating System Monitor:** Real-time FPS, RAM usage, and system status overlaid directly onto your games.
-- **Quick Controls:** Instantly toggle Refresh Rate, Rotation Lock, Screen Brightness, and trigger RAM cleanups without minimizing the game.
+- **Quick Controls:** Rotation Lock, Screen Brightness, and trigger RAM cleanups without minimizing the game.
 - **Game Tools:** 
   - **Custom Crosshair:** Configurable screen-center crosshairs for shooter games.
   - **Auxiliary Lines:** On-screen alignment lines for strategic placement.
