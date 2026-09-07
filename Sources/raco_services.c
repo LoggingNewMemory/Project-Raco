@@ -200,10 +200,6 @@ void apply_system_optimizations() {
         };
         int gpu_count_1 = sizeof(gpu_files_1) / sizeof(gpu_files_1[0]);
         raco_bulk("", gpu_files_1, gpu_count_1, "1", 0);
-
-
-    }
-
     }
 }
 
