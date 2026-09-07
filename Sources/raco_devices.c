@@ -10,6 +10,32 @@ Copyright (C) 2026 Kanagawa Yamada
 // ==============================
 
 
+void mtk_dvfsrc_write(const char *file, const char *val) {
+    char path[256];
+    snprintf(path, sizeof(path), "/sys/kernel/helio-dvfsrc/%s", file);
+    if (access(path, F_OK) == 0) {
+        rawrite(val, path);
+        return;
+    }
+    DIR *dir = opendir("/sys/devices/platform");
+    if (dir) {
+        struct dirent *ent;
+        while ((ent = readdir(dir)) != NULL) {
+            if (strstr(ent->d_name, ".dvfsrc") != NULL) {
+                snprintf(path, sizeof(path), "/sys/devices/platform/%s/helio-dvfsrc/%s", ent->d_name, file);
+                if (access(path, F_OK) == 0) {
+                    rawrite(val, path);
+                } else {
+                    snprintf(path, sizeof(path), "/sys/devices/platform/%s/%s", ent->d_name, file);
+                    rawrite(val, path);
+                }
+                break;
+            }
+        }
+        closedir(dir);
+    }
+}
+
 void mtk_mali_devfreq(const char *mode) {
     DIR *dir = opendir("/sys/class/devfreq");
     if (dir) {
@@ -174,6 +200,9 @@ void mediatek_awaken() {
     // Standalone Mediatek Tweaks
     rawrite("1", "/proc/cpufreq/cpufreq_cci_mode");
     rawrite("3", "/proc/cpufreq/cpufreq_power_mode");
+    mtk_dvfsrc_write("dvfsrc_qos_mode", "1");
+    rawrite("0", "/sys/kernel/fpsgo/fbt/light_loading_policy");
+    rawrite("150", "/sys/kernel/ged/hal/dvfs_margin_value");
     rawrite("1", "/sys/kernel/fpsgo/fbt/ultra_rescue");
     rawrite("0", "/sys/kernel/fpsgo/fbt/thrm_enable");
     rawrite("1", "/sys/module/mtk_fpsgo/parameters/xgf_uboost");
@@ -189,7 +218,7 @@ void mediatek_awaken() {
     }
 
     // GPU Tweaks
-    rawrite("0", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
+    mtk_dvfsrc_write("dvfsrc_req_ddr_opp", "0");
     rawrite("0", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
     // FPSGo Sysfs Force Off
@@ -232,6 +261,8 @@ void mediatek_awaken() {
 
 void mediatek_balanced() {
     mtk_cpu_ppm_limit("balanced");
+    mtk_dvfsrc_write("dvfsrc_qos_mode", "0");
+    rawrite("130", "/sys/kernel/ged/hal/dvfs_margin_value");
     rawrite("0", "/sys/kernel/fpsgo/fbt/ultra_rescue");
     rawrite("1", "/sys/kernel/fpsgo/fbt/thrm_enable");
     rawrite("0", "/sys/module/mtk_fpsgo/parameters/xgf_uboost");
@@ -275,7 +306,7 @@ void mediatek_balanced() {
     rawrite("stop 0", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
 
     // GPU Tweaks
-    rawrite("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
+    mtk_dvfsrc_write("dvfsrc_req_ddr_opp", "-1");
     rawrite("-1", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
     // FPSGo Sysfs Restore
@@ -307,6 +338,8 @@ void mediatek_balanced() {
 
 void mediatek_normal() {
     mtk_cpu_ppm_limit("normal");
+    mtk_dvfsrc_write("dvfsrc_qos_mode", "0");
+    rawrite("130", "/sys/kernel/ged/hal/dvfs_margin_value");
     rawrite("0", "/sys/kernel/fpsgo/fbt/ultra_rescue");
     rawrite("1", "/sys/kernel/fpsgo/fbt/thrm_enable");
     rawrite("0", "/sys/module/mtk_fpsgo/parameters/xgf_uboost");
@@ -350,7 +383,7 @@ void mediatek_normal() {
     rawrite("stop 0", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
 
     // GPU Tweaks
-    rakakikomi("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
+    mtk_dvfsrc_write("dvfsrc_req_ddr_opp", "-1");
     rakakikomi("-1", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
     // FPSGo Sysfs Restore
@@ -382,6 +415,8 @@ void mediatek_normal() {
 
 void mediatek_powersave() {
     mtk_cpu_ppm_limit("powersave");
+    mtk_dvfsrc_write("dvfsrc_qos_mode", "0");
+    rawrite("130", "/sys/kernel/ged/hal/dvfs_margin_value");
     rawrite("1", "/proc/cpufreq/cpufreq_power_mode");
     rawrite("0", "/sys/kernel/fpsgo/fbt/ultra_rescue");
     rawrite("1", "/sys/kernel/fpsgo/fbt/thrm_enable");
@@ -425,7 +460,7 @@ void mediatek_powersave() {
     rawrite("stop 0", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
 
     // GPU Tweaks
-    rakakikomi("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
+    mtk_dvfsrc_write("dvfsrc_req_ddr_opp", "-1");
     rakakikomi("-1", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
     // FPSGo Sysfs Restore
