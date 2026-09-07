@@ -9,6 +9,45 @@ Copyright (C) 2026 Kanagawa Yamada
 // MEDIATEK DEVICES
 // ==============================
 
+
+void mtk_cpu_ppm_limit(const char *mode) {
+    if (access("/proc/ppm/policy/hard_userlimit_max_cpu_freq", F_OK) != 0) return;
+    
+    int cluster_id = 0;
+    for (int i = 0; i < 16; i++) {
+        char path_max[128], path_min[128];
+        snprintf(path_max, sizeof(path_max), "/sys/devices/system/cpu/cpufreq/policy%d/cpuinfo_max_freq", i);
+        snprintf(path_min, sizeof(path_min), "/sys/devices/system/cpu/cpufreq/policy%d/cpuinfo_min_freq", i);
+        
+        if (access(path_max, F_OK) == 0) {
+            char max_f[32] = {0}, min_f[32] = {0};
+            raread(path_max, max_f, sizeof(max_f));
+            raread(path_min, min_f, sizeof(min_f));
+            max_f[strcspn(max_f, "\n")] = 0;
+            min_f[strcspn(min_f, "\n")] = 0;
+            
+            char cmd[64];
+            if (strcmp(mode, "awaken") == 0) {
+                snprintf(cmd, sizeof(cmd), "%d -1", cluster_id); 
+                rawrite(cmd, "/proc/ppm/policy/hard_userlimit_max_cpu_freq");
+                snprintf(cmd, sizeof(cmd), "%d %s", cluster_id, max_f); 
+                rawrite(cmd, "/proc/ppm/policy/hard_userlimit_min_cpu_freq");
+            } else if (strcmp(mode, "powersave") == 0) {
+                snprintf(cmd, sizeof(cmd), "%d %s", cluster_id, min_f); 
+                rawrite(cmd, "/proc/ppm/policy/hard_userlimit_max_cpu_freq");
+                snprintf(cmd, sizeof(cmd), "%d -1", cluster_id); 
+                rawrite(cmd, "/proc/ppm/policy/hard_userlimit_min_cpu_freq");
+            } else {
+                snprintf(cmd, sizeof(cmd), "%d -1", cluster_id); 
+                rawrite(cmd, "/proc/ppm/policy/hard_userlimit_max_cpu_freq");
+                snprintf(cmd, sizeof(cmd), "%d -1", cluster_id); 
+                rawrite(cmd, "/proc/ppm/policy/hard_userlimit_min_cpu_freq");
+            }
+            cluster_id++;
+        }
+    }
+}
+
 void mtk_get_max_freq(char *out) {
     char buffer[4096];
     if (raread("/proc/gpufreq/gpufreq_opp_dump", buffer, sizeof(buffer)) > 0) {
@@ -81,6 +120,7 @@ void mtk_get_min_freq(char *out) {
 // Device Performance Settings
 
 void mediatek_awaken() {
+    mtk_cpu_ppm_limit("awaken");
     // ==============================
     // MISC TWEAKS
     // ==============================
@@ -168,6 +208,7 @@ void mediatek_awaken() {
 }
 
 void mediatek_balanced() {
+    mtk_cpu_ppm_limit("balanced");
     // ==============================
     // MISC TWEAKS
     // ==============================
@@ -237,6 +278,7 @@ void mediatek_balanced() {
 }
 
 void mediatek_normal() {
+    mtk_cpu_ppm_limit("normal");
     // ==============================
     // MISC TWEAKS
     // ==============================
@@ -306,6 +348,7 @@ void mediatek_normal() {
 }
 
 void mediatek_powersave() {
+    mtk_cpu_ppm_limit("powersave");
     // ==============================
     // MISC TWEAKS
     // ==============================
