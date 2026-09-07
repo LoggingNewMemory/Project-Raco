@@ -170,7 +170,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
             try {
                 if (modeName == "COOLDOWN") {
                     withContext(Dispatchers.IO) {
-                        val cmd = "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $modeArg ; grep -q '^STATE' $configPath && sed -i 's|^STATE.*|STATE $modeArg|' $configPath || echo 'STATE $modeArg' >> $configPath"
+                        val cmd = "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $modeArg"
                         Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
                     }
                     
@@ -184,7 +184,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                 } else {
                     withContext(Dispatchers.IO) {
                         val cmd = if (modeName != "CLEAR") {
-                            "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $modeArg ; grep -q '^STATE' $configPath && sed -i 's|^STATE.*|STATE $modeArg|' $configPath || echo 'STATE $modeArg' >> $configPath"
+                            "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $modeArg"
                         } else {
                             "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $modeArg"
                         }

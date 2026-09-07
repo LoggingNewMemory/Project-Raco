@@ -434,6 +434,12 @@ void rswap_suspend(const char *pkg) {
     }
 }
 
+void update_state_in_config(int mode) {
+    char cmd[256];
+    snprintf(cmd, sizeof(cmd), "grep -q '^STATE ' /data/ProjectRaco/raco.txt && sed -i 's/^STATE .*/STATE %d/' /data/ProjectRaco/raco.txt || echo 'STATE %d' >> /data/ProjectRaco/raco.txt", mode, mode);
+    system(cmd);
+}
+
 // Main Execution
 
 int main(int argc, char *argv[]) {
@@ -458,6 +464,7 @@ int main(int argc, char *argv[]) {
             printf("Game Assistant Loaded for: %s\n", argv[2]);
             if (argc >= 4) {
                 int load_mode = atoi(argv[3]);
+                update_state_in_config(load_mode);
                 switch(load_mode) {
                     case 4: mode_awaken(); break;
                     case 3: mode_balanced(); break;
@@ -467,6 +474,7 @@ int main(int argc, char *argv[]) {
                     default: mode_awaken(); break;
                 }
             } else {
+                update_state_in_config(4);
                 mode_awaken();
             }
             rswap_resume(argv[2]);
@@ -477,6 +485,7 @@ int main(int argc, char *argv[]) {
     if (strcmp(argv[1], "unload") == 0) {
         printf("Game Assistant Unloaded\n");
         // Restore to normal mode when exiting a game
+        update_state_in_config(1);
         mode_normal();
         if (argc >= 3) {
             rswap_suspend(argv[2]);
@@ -485,6 +494,9 @@ int main(int argc, char *argv[]) {
     }
 
     int mode = atoi(argv[1]);
+    if (mode > 0 && mode <= 7) {
+        update_state_in_config(mode);
+    }
 
     // Yamada: PLEASE REMEMBER THIS.
     /*
