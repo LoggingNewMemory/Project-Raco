@@ -10,6 +10,24 @@ Copyright (C) 2026 Kanagawa Yamada
 // ==============================
 
 
+void mtk_mali_devfreq(const char *mode) {
+    DIR *dir = opendir("/sys/class/devfreq");
+    if (dir) {
+        struct dirent *ent;
+        while ((ent = readdir(dir)) != NULL) {
+            if (strstr(ent->d_name, "mali") != NULL) {
+                char path[256];
+                snprintf(path, sizeof(path), "/sys/class/devfreq/%s", ent->d_name);
+                if (strcmp(mode, "max") == 0) devfreq_max(path);
+                else if (strcmp(mode, "min") == 0) devfreq_min_perf(path);
+                else if (strcmp(mode, "mid") == 0) devfreq_mid_perf(path);
+                else devfreq_normal(path);
+            }
+        }
+        closedir(dir);
+    }
+}
+
 void mtk_cpu_ppm_limit(const char *mode) {
     if (access("/proc/ppm/policy/hard_userlimit_max_cpu_freq", F_OK) != 0) return;
     
@@ -156,6 +174,11 @@ void mediatek_awaken() {
     // Standalone Mediatek Tweaks
     rawrite("1", "/proc/cpufreq/cpufreq_cci_mode");
     rawrite("3", "/proc/cpufreq/cpufreq_power_mode");
+    rawrite("1", "/sys/kernel/fpsgo/fbt/ultra_rescue");
+    rawrite("0", "/sys/kernel/fpsgo/fbt/thrm_enable");
+    rawrite("1", "/sys/module/mtk_fpsgo/parameters/xgf_uboost");
+    rawrite("1", "/proc/cpufreq/cpufreq_sched_disable");
+    mtk_mali_devfreq("max");
     rawrite("1", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
     if (config.device_mitigation == 1) {
         rawrite("2", "/sys/devices/system/cpu/eas/enable");
@@ -209,6 +232,11 @@ void mediatek_awaken() {
 
 void mediatek_balanced() {
     mtk_cpu_ppm_limit("balanced");
+    rawrite("0", "/sys/kernel/fpsgo/fbt/ultra_rescue");
+    rawrite("1", "/sys/kernel/fpsgo/fbt/thrm_enable");
+    rawrite("0", "/sys/module/mtk_fpsgo/parameters/xgf_uboost");
+    rawrite("0", "/proc/cpufreq/cpufreq_sched_disable");
+    mtk_mali_devfreq("mid");
     // ==============================
     // MISC TWEAKS
     // ==============================
@@ -279,6 +307,11 @@ void mediatek_balanced() {
 
 void mediatek_normal() {
     mtk_cpu_ppm_limit("normal");
+    rawrite("0", "/sys/kernel/fpsgo/fbt/ultra_rescue");
+    rawrite("1", "/sys/kernel/fpsgo/fbt/thrm_enable");
+    rawrite("0", "/sys/module/mtk_fpsgo/parameters/xgf_uboost");
+    rawrite("0", "/proc/cpufreq/cpufreq_sched_disable");
+    mtk_mali_devfreq("normal");
     // ==============================
     // MISC TWEAKS
     // ==============================
@@ -349,6 +382,12 @@ void mediatek_normal() {
 
 void mediatek_powersave() {
     mtk_cpu_ppm_limit("powersave");
+    rawrite("1", "/proc/cpufreq/cpufreq_power_mode");
+    rawrite("0", "/sys/kernel/fpsgo/fbt/ultra_rescue");
+    rawrite("1", "/sys/kernel/fpsgo/fbt/thrm_enable");
+    rawrite("0", "/sys/module/mtk_fpsgo/parameters/xgf_uboost");
+    rawrite("0", "/proc/cpufreq/cpufreq_sched_disable");
+    mtk_mali_devfreq("min");
     // ==============================
     // MISC TWEAKS
     // ==============================
