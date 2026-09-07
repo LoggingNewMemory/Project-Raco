@@ -166,6 +166,11 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         if (savedDndActive) {
             combinedCmd += "cmd notification set_dnd priority ; "
         }
+        
+        val savedUltraTouch = sharedPrefs.getBoolean("ultra_touch_$packageName", false)
+        if (savedUltraTouch) {
+            combinedCmd += "settings put system pointer_speed 7 ; setprop windowsmgr.max_events_per_sec 300 ; "
+        }
 
         if (combinedCmd.isNotEmpty()) {
             CoroutineScope(Dispatchers.IO).launch {
@@ -319,6 +324,11 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         
         if (activeDndState.value) {
             combinedCmd += "cmd notification set_dnd off ; "
+        }
+        
+        val savedUltraTouch = sharedPrefs.getBoolean("ultra_touch_$pkg", false)
+        if (savedUltraTouch) {
+            combinedCmd += "settings delete system pointer_speed ; resetprop --delete windowsmgr.max_events_per_sec ; "
         }
         
         if (combinedCmd.isNotEmpty()) {
