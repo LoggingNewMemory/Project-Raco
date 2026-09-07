@@ -5,7 +5,7 @@
 # ==========================================
 # Uncomment and modify these to skip interactive prompts.
 # Comment them out to return to normal interactive mode.
-RACOVER="7.0"
+RACOVER="8.0"
 
 # ==========================================
 # 1. ENVIRONMENT & CONFIGURATION

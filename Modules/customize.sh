@@ -126,7 +126,7 @@ ui_print "------------------------------------"
 ui_print "            MODULE INFO             "
 ui_print "------------------------------------"
 ui_print "Name : Project Raco"
-ui_print "Version : 7.0"
+ui_print "Version : 8.0"
 ui_print " "
 
 ui_print "      INSTALLING Project Raco       "

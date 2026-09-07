@@ -9,13 +9,13 @@ void rswap_on() {
     int ret = system("swapon -p 32767 /data/ProjectRaco/RSWAP 2>/dev/null");
     
     // Check if it's active
-    if (system("grep -q '/data/ProjectRaco/RSWAP' /proc/swaps") != 0) {
+    if (system("grep -q 'RSWAP' /proc/swaps") != 0) {
         printf("Direct swapon failed or mapped to loop. Checking/mounting loop device...\n");
         // Try loop device fallback
         system("LOOP=$(losetup -f); if [ -n \"$LOOP\" ]; then losetup $LOOP /data/ProjectRaco/RSWAP; swapon -p 32767 $LOOP; fi");
     }
 
-    if (system("grep -q -e '/data/ProjectRaco/RSWAP' -e '^/dev/block/loop' /proc/swaps") == 0) {
+    if (system("grep -q -e 'RSWAP' -e '^/dev/block/loop' /proc/swaps") == 0) {
         printf("RSWAP is active.\n");
     } else {
         printf("Failed to activate RSWAP.\n");
@@ -25,7 +25,8 @@ void rswap_on() {
 void rswap_off() {
     printf("Turning off RSWAP...\n");
     system("swapoff /data/ProjectRaco/RSWAP 2>/dev/null");
-    system("for loop in $(losetup -a | grep '/data/ProjectRaco/RSWAP' | cut -d: -f1); do swapoff \"$loop\" 2>/dev/null; losetup -d \"$loop\" 2>/dev/null; done");
+    system("swapoff /ProjectRaco/RSWAP 2>/dev/null");
+    system("for loop in $(losetup -a | grep 'RSWAP' | cut -d: -f1); do swapoff \"$loop\" 2>/dev/null; losetup -d \"$loop\" 2>/dev/null; done");
     printf("RSWAP is off.\n");
 }
 

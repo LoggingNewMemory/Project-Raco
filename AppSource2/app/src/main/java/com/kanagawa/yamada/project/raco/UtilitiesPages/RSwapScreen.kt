@@ -82,14 +82,8 @@ fun RSwapScreen(onBack: () -> Unit) {
                 }
                 
                 val getSwapStats = """
-                    SWAP_FILE="/data/ProjectRaco/RSWAP"
-                    if grep -q "${'$'}SWAP_FILE" /proc/swaps; then
-                        grep "${'$'}SWAP_FILE" /proc/swaps
-                    else
-                        LOOP_DEV=${'$'}(losetup -a | grep "${'$'}SWAP_FILE" | cut -d: -f1)
-                        if [ -n "${'$'}LOOP_DEV" ]; then
-                            grep "${'$'}LOOP_DEV" /proc/swaps
-                        fi
+                    if grep -q "RSWAP" /proc/swaps; then
+                        grep "RSWAP" /proc/swaps | head -n 1
                     fi
                 """.trimIndent()
                 val swaps = runRootCommand(getSwapStats).trim()
