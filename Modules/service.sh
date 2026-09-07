@@ -37,10 +37,15 @@ if [ "$RSWAP_ENABLED" = "1" ]; then
         echo 100 > /proc/sys/vm/swappiness
         echo $(( $(cat /proc/sys/vm/min_free_kbytes) * 12 / 10 )) > /proc/sys/vm/min_free_kbytes
     fi
+    # Clean up ghost RSWAP track files from before reboot
+    rm -f /data/ProjectRaco/RSWAPTrack/rswap_stop_*
 fi
 
 # Wait briefly to ensure services are started
 sleep 2
+
+# Prime the Kotlin service so it isn't in a stopped state
+su -c "am startservice com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1"
 
 # Send Startup Notification
 SILENT_NOTIF=$(grep '^SILENT_NOTIF ' /data/ProjectRaco/raco.txt | awk '{print $2}')
