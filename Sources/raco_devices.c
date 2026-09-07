@@ -913,10 +913,88 @@ void exynos_powersave() {
 // UNISOC DEVICES
 // ==============================
 
-void unisoc_awaken() { scan_minor_devfreq_and_apply(".gpu", 0); }
-void unisoc_balanced() { scan_minor_devfreq_and_apply(".gpu", 2); }
-void unisoc_normal() { scan_minor_devfreq_and_apply(".gpu", 1); }
-void unisoc_powersave() { scan_minor_devfreq_and_apply(".gpu", 1); }
+static void unisoc_uscfreq_tune(const char *mode) {
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strncmp(ent->d_name, "policy", 6) == 0) {
+                char path[256];
+                snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpufreq/%s/uscfreq", ent->d_name);
+                if (access(path, F_OK) == 0) {
+                    char freq_margin[300]; snprintf(freq_margin, sizeof(freq_margin), "%s/freq_margin", path);
+                    char down_rate[300]; snprintf(down_rate, sizeof(down_rate), "%s/down_rate_limit_us", path);
+                    char up_rate[300]; snprintf(up_rate, sizeof(up_rate), "%s/up_rate_limit_us", path);
+                    
+                    if (strcmp(mode, "awaken") == 0) {
+                        rawrite("50", freq_margin);
+                        rawrite("10000", down_rate);
+                        rawrite("0", up_rate);
+                    } else if (strcmp(mode, "balanced") == 0) {
+                        rawrite("30", freq_margin);
+                        rawrite("2000", down_rate);
+                        rawrite("500", up_rate);
+                    } else if (strcmp(mode, "normal") == 0) {
+                        rawrite("15", freq_margin);
+                        rawrite("1000", down_rate);
+                        rawrite("1000", up_rate);
+                    } else if (strcmp(mode, "powersave") == 0) {
+                        rawrite("5", freq_margin);
+                        rawrite("500", down_rate);
+                        rawrite("2000", up_rate);
+                    }
+                }
+            }
+        }
+        closedir(dir);
+    }
+}
+
+static void unisoc_ddr_tune(const char *mode) {
+    if (strcmp(mode, "awaken") == 0) {
+        rawrite("1866", "/sys/class/devfreq/scene-frequency/sprd-governor/scaling_force_ddr_freq");
+    } else if (strcmp(mode, "balanced") == 0) {
+        rawrite("1244", "/sys/class/devfreq/scene-frequency/sprd-governor/scaling_force_ddr_freq");
+    } else {
+        rawrite("0", "/sys/class/devfreq/scene-frequency/sprd-governor/scaling_force_ddr_freq");
+    }
+}
+
+void unisoc_awaken() {
+    scan_minor_devfreq_and_apply(".gpu", 0);
+    unisoc_uscfreq_tune("awaken");
+    unisoc_ddr_tune("awaken");
+    if (access("/sys/module/zte_misc/parameters/thermal_control_en", F_OK) == 0) {
+        rawrite("0", "/sys/module/zte_misc/parameters/thermal_control_en");
+    }
+}
+
+void unisoc_balanced() {
+    scan_minor_devfreq_and_apply(".gpu", 2);
+    unisoc_uscfreq_tune("balanced");
+    unisoc_ddr_tune("balanced");
+    if (access("/sys/module/zte_misc/parameters/thermal_control_en", F_OK) == 0) {
+        rawrite("1", "/sys/module/zte_misc/parameters/thermal_control_en");
+    }
+}
+
+void unisoc_normal() {
+    scan_minor_devfreq_and_apply(".gpu", 1);
+    unisoc_uscfreq_tune("normal");
+    unisoc_ddr_tune("normal");
+    if (access("/sys/module/zte_misc/parameters/thermal_control_en", F_OK) == 0) {
+        rawrite("1", "/sys/module/zte_misc/parameters/thermal_control_en");
+    }
+}
+
+void unisoc_powersave() {
+    scan_minor_devfreq_and_apply(".gpu", 1);
+    unisoc_uscfreq_tune("powersave");
+    unisoc_ddr_tune("powersave");
+    if (access("/sys/module/zte_misc/parameters/thermal_control_en", F_OK) == 0) {
+        rawrite("1", "/sys/module/zte_misc/parameters/thermal_control_en");
+    }
+}
 
 // ==============================
 // TENSOR DEVICES
