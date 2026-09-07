@@ -7,6 +7,7 @@
 #include <limits.h>
 #include <errno.h>
 #include <poll.h>
+#include <signal.h>
 
 #define TASKS_FILE "/dev/cpuset/top-app/tasks"
 #define GAME_TXT "/data/ProjectRaco/gamelist.txt"
@@ -115,6 +116,9 @@ int get_oom_score_adj(int pid) {
 
 int main() {
     if (daemon(0, 0) == -1) return 1;
+    
+    // Automatically reap child processes to prevent zombie leaks
+    signal(SIGCHLD, SIG_IGN);
     
     int fd = inotify_init();
     if (fd < 0) {
