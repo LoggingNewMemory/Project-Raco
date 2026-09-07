@@ -17,6 +17,7 @@ void rswap_on() {
 
     if (system("grep -q -e 'RSWAP' -e '^/dev/block/loop' /proc/swaps") == 0) {
         printf("RSWAP is active.\n");
+        system("echo 100 > /proc/sys/vm/swappiness 2>/dev/null");
     } else {
         printf("Failed to activate RSWAP.\n");
     }
