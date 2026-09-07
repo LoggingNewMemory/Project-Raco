@@ -14,6 +14,7 @@
 #define EVENT_BUF_LEN (1024 * (EVENT_SIZE + 16))
 
 int active_game_pid = 0;
+char active_game_pkg[256] = {0};
 char gamelist[1024][128];
 int game_count = 0;
 
@@ -67,14 +68,16 @@ void exec_performance(char *pkg) {
     }
 }
 
-void exec_balance(void) {
+void exec_balance(const char *pkg) {
     pid_t pid = fork();
     if (pid == 0) {
         // Tell Kotlin app to hide overlay
         system("am startservice -a com.kanagawa.yamada.project.raco.HIDE_OVERLAY com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1");
         
-        // Unload performance mode
-        system("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload auto 0");
+        // Unload performance mode and suspend game via RSWAP
+        char cmd[512];
+        snprintf(cmd, sizeof(cmd), "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload %s 0", pkg);
+        system(cmd);
         exit(0);
     }
 }
@@ -152,13 +155,11 @@ int main() {
             int score = get_oom_score_adj(active_game_pid);
             
             // If oom_score_adj is between 0 and 300, it's foreground, visible, perceptible, or backup.
-            // When user pulls down control center or uses floating app, game is VISIBLE (100).
-            // When user goes to home screen or another app, game becomes PREVIOUS (700) or CACHED (900+).
             if (score >= 0 && score <= 300) {
                 continue;
             } else {
                 active_game_pid = 0;
-                exec_balance();
+                exec_balance(active_game_pkg);
             }
         }
 
@@ -180,6 +181,8 @@ int main() {
                         if (strlen(cmdline) > 0 && strstr(cmdline, "zygote") == NULL && strstr(cmdline, "<pre-initialized>") == NULL) {
                             if (check_game_in_memory(cmdline)) {
                                 active_game_pid = pid;
+                                strncpy(active_game_pkg, cmdline, sizeof(active_game_pkg) - 1);
+                                active_game_pkg[sizeof(active_game_pkg) - 1] = '\0';
                                 exec_performance(cmdline);
                                 found = 1;
                                 break;
