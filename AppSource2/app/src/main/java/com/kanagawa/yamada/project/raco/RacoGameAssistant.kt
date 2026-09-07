@@ -320,6 +320,8 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
             combinedCmd += "cmd notification set_dnd off ; "
         }
         
+        combinedCmd += "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload auto 0 ; "
+        
         if (combinedCmd.isNotEmpty()) {
             CoroutineScope(Dispatchers.IO).launch {
                 try {

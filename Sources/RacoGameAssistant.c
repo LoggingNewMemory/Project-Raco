@@ -6,6 +6,7 @@
 #include <sys/inotify.h>
 #include <limits.h>
 #include <errno.h>
+#include <poll.h>
 
 #define TASKS_FILE "/dev/cpuset/top-app/tasks"
 #define GAME_TXT "/data/ProjectRaco/gamelist.txt"
@@ -121,11 +122,23 @@ int main() {
     char buffer[EVENT_BUF_LEN];
 
     while (1) {
-        int length = read(fd, buffer, EVENT_BUF_LEN);
-        if (length < 0) {
+        struct pollfd pfd = {fd, POLLIN, 0};
+        int timeout = (active_game_pid != 0) ? 500 : -1;
+        int ready = poll(&pfd, 1, timeout);
+
+        if (ready < 0) {
             if (errno == EINTR) continue;
-            perror("read");
+            perror("poll");
             break;
+        }
+
+        if (ready > 0) {
+            int length = read(fd, buffer, EVENT_BUF_LEN);
+            if (length < 0) {
+                if (errno == EINTR) continue;
+                perror("read");
+                break;
+            }
         }
 
         if (active_game_pid != 0) {
