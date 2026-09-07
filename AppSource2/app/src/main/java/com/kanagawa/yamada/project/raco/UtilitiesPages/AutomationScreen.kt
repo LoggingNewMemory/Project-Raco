@@ -152,7 +152,7 @@ fun AutomationScreen(onBack: () -> Unit) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Group, null, tint = MaterialTheme.colorScheme.primary)
                             Spacer(Modifier.width(12.dp))
-                            Text(stringResource(R.string.enable_service), modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.companion_mode), modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
                             Switch(
                                 checked = companionModeEnabled,
                                 onCheckedChange = { newValue ->
