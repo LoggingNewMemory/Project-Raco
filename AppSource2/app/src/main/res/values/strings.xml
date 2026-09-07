@@ -62,7 +62,7 @@
     <string name="playboost_title">RiProG Playboost</string>
     <string name="extra_settings_title">Extra Settings</string>
     <string name="anya_installer_title">Anya Thermal</string>
-    <string name="anya_installer_desc">Disable / Enable Thermal | Anya Flowstate</string>
+    <string name="anya_installer_desc">Disable Thermal in Performance (Or in Game), Enable thermal on normal condition</string>
     <string name="kobo_title">Kobo Fast Charge</string>
     <string name="kobo_desc">Fast Charging Add On</string>
     <string name="zetamin_title">Zetamin</string>

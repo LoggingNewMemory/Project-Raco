@@ -56,7 +56,7 @@
     <string name="search_apps_hint">Поиск приложений...</string>
     <string name="slingshot_graphics_warning">Некоторые игры могут сломаться, некоторые могут улучшить производительность, а некоторые могут даже не запуститься. Но не бойтесь попробовать!</string>
     <string name="extra_settings_title">Дополнительные настройки</string>
-    <string name="anya_installer_desc">Отключить / Включить тротлинг | Anya Flowstate</string>
+    <string name="anya_installer_desc">Отключение терморегулирования в режиме производительности (или в игре), включение терморегулирования в нормальном состоянии</string>
     <string name="kobo_fast_charge">Быстрая зарядка Kobo</string>
     <string name="kobo_desc">Дополнение для быстрой зарядки</string>
     <string name="zetamin_desc">Все настройки дисплея в одном</string>

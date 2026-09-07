@@ -53,7 +53,7 @@
     <string name="search_apps_hint">Cari aplikasi...</string>
     <string name="slingshot_graphics_warning">Beberapa game mungkin rusak, Beberapa mungkin meningkatkan performa, Beberapa mungkin tidak bisa dibuka. Tapi jangan takut untuk mencobanya dulu!</string>
     <string name="extra_settings_title">Pengaturan Ekstra</string>
-    <string name="anya_installer_desc">Nonaktifkan / Aktifkan Thermal | Anya Flowstate</string>
+    <string name="anya_installer_desc">Nonaktifkan Thermal di Performa (Atau di dalam Game), Aktifkan thermal pada kondisi normal</string>
     <string name="kobo_fast_charge">Pengisian Cepat Kobo</string>
     <string name="kobo_desc">Add On Pengisian Cepat</string>
     <string name="zetamin_desc">Tweak Layar All in One</string>

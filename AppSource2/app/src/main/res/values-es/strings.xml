@@ -51,7 +51,7 @@
     <string name="start_preload">Iniciar Slingshot</string>
     <string name="slingshot_graphics_warning">Algunos juegos pueden fallar, otros pueden mejorar el rendimiento, y otros pueden ni siquiera iniciar. ¡Pero no tengas miedo de probarlo primero!</string>
     <string name="extra_settings_title">Ajustes Extra</string>
-    <string name="anya_installer_desc">Desactivar / Activar Thermal | Anya Flowstate</string>
+    <string name="anya_installer_desc">Deshabilita la térmica en Rendimiento (o en Juego), Habilita la térmica en condición normal</string>
     <string name="kobo_fast_charge">Kobo Carga Rápida</string>
     <string name="kobo_desc">Complemento de carga rápida</string>
     <string name="zetamin_desc">Ajustes de pantalla Todo en Uno</string>

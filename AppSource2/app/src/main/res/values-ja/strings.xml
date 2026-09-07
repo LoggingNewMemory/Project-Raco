@@ -72,7 +72,7 @@
     <string name="search_apps_hint">アプリを検索...</string>
     <string name="slingshot_graphics_warning">一部のゲームは動作しない、パフォーマンスが向上する、あるいは起動しない可能性があります。ですが、恐れずにまずは試してみてください！</string>
     <string name="extra_settings_title">追加設定</string>
-    <string name="anya_installer_desc">サーマル無効化 / 有効化 | Anya Flowstate</string>
+    <string name="anya_installer_desc">パフォーマンス（またはゲーム）でサーマルを無効にし、通常状態でサーマルを有効にする</string>
     <string name="kobo_fast_charge">Kobo 急速充電</string>
     <string name="kobo_desc">急速充電アドオン</string>
     <string name="zetamin_desc">オールインワンディスプレイ調整</string>
