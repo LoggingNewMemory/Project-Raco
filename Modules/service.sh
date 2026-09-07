@@ -45,6 +45,8 @@ fi
 sleep 2
 
 # Prime the Kotlin service so it isn't in a stopped state
+# We also whitelist it in deviceidle so it can start background services silently without persistent notifications!
+su -c "dumpsys deviceidle whitelist +com.kanagawa.yamada.project.raco >/dev/null 2>&1"
 su -c "am startservice com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1"
 
 # Send Startup Notification
