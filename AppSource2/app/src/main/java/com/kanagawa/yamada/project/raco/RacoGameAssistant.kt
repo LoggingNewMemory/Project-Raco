@@ -150,6 +150,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         crosshairColorState.value = sharedPrefs.getString("crosshair_color_$packageName", sharedPrefs.getString("crosshair_color", "White")) ?: "White"
 
         var combinedCmd = ""
+        
         val savedAyundaPreset = sharedPrefs.getString("active_ayunda_preset_$packageName", "") ?: ""
         activeAyundaPresetState.value = savedAyundaPreset
         if (savedAyundaPreset.isNotEmpty()) {
@@ -319,8 +320,6 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         if (activeDndState.value) {
             combinedCmd += "cmd notification set_dnd off ; "
         }
-        
-        combinedCmd += "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload auto 0 ; "
         
         if (combinedCmd.isNotEmpty()) {
             CoroutineScope(Dispatchers.IO).launch {

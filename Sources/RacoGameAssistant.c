@@ -44,7 +44,7 @@ int check_game_in_memory(const char *cmdline) {
 void exec_performance(char *pkg) {
     pid_t pid = fork();
     if (pid == 0) {
-        char cmd[512];
+        char cmd[1024];
         int mode = 4;
         char path[256];
         snprintf(path, sizeof(path), "/data/ProjectRaco/modes/%s", pkg);
@@ -56,7 +56,12 @@ void exec_performance(char *pkg) {
             }
             fclose(f);
         }
+        // Load performance mode
         snprintf(cmd, sizeof(cmd), "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load %s %d", pkg, mode);
+        system(cmd);
+        
+        // Tell Kotlin app to show overlay
+        snprintf(cmd, sizeof(cmd), "am start-foreground-service -a com.kanagawa.yamada.project.raco.SHOW_OVERLAY -e package \"%s\" com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1", pkg);
         system(cmd);
         exit(0);
     }
@@ -65,6 +70,10 @@ void exec_performance(char *pkg) {
 void exec_balance(void) {
     pid_t pid = fork();
     if (pid == 0) {
+        // Tell Kotlin app to hide overlay
+        system("am start-foreground-service -a com.kanagawa.yamada.project.raco.HIDE_OVERLAY com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1");
+        
+        // Unload performance mode
         system("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload auto 0");
         exit(0);
     }
@@ -86,22 +95,19 @@ void get_cmdline(int pid, char *cmdline, size_t size) {
     }
 }
 
-int get_cpuset(int pid, char *cpuset, size_t size) {
+int get_oom_score_adj(int pid) {
     char path[256];
-    snprintf(path, sizeof(path), "/proc/%d/cgroup", pid);
+    snprintf(path, sizeof(path), "/proc/%d/oom_score_adj", pid);
     FILE *f = fopen(path, "r");
     if (f) {
-        char line[256];
-        while (fgets(line, sizeof(line), f)) {
-            if (strstr(line, "cpuset")) {
-                strncpy(cpuset, line, size);
-                fclose(f);
-                return 1;
-            }
+        int score = 0;
+        if (fscanf(f, "%d", &score) == 1) {
+            fclose(f);
+            return score;
         }
         fclose(f);
     }
-    return 0;
+    return -1;
 }
 
 int main() {
@@ -122,6 +128,7 @@ int main() {
     char buffer[EVENT_BUF_LEN];
 
     while (1) {
+        // Use poll with a 500ms timeout only when a game is active
         struct pollfd pfd = {fd, POLLIN, 0};
         int timeout = (active_game_pid != 0) ? 500 : -1;
         int ready = poll(&pfd, 1, timeout);
@@ -142,10 +149,12 @@ int main() {
         }
 
         if (active_game_pid != 0) {
-            char cpuset[256] = {0};
-            int ret = get_cpuset(active_game_pid, cpuset, sizeof(cpuset));
+            int score = get_oom_score_adj(active_game_pid);
             
-            if (ret && strstr(cpuset, "top-app")) {
+            // If oom_score_adj is between 0 and 300, it's foreground, visible, perceptible, or backup.
+            // When user pulls down control center or uses floating app, game is VISIBLE (100).
+            // When user goes to home screen or another app, game becomes PREVIOUS (700) or CACHED (900+).
+            if (score >= 0 && score <= 300) {
                 continue;
             } else {
                 active_game_pid = 0;

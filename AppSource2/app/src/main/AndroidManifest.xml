@@ -50,15 +50,12 @@
         <service
             android:name=".GameAssistantService"
             android:label="Project Raco Game Assistant"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:foregroundServiceType="specialUse"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
+                <action android:name="com.kanagawa.yamada.project.raco.SHOW_OVERLAY" />
+                <action android:name="com.kanagawa.yamada.project.raco.HIDE_OVERLAY" />
             </intent-filter>
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/accessibility_service_config" />
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Game profile tracking" />
