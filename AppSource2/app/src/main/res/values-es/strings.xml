@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+    <string name="companion_mode">Modo Compañero</string>
+    <string name="companion_mode_desc">Deshabilita la superposición de juego de Raco. Habilítalo si deseas usar tu GameSpace OEM.</string>
     <string name="power_save_desc">Priorizar eficiencia sobre rendimiento</string>
     <string name="balanced_desc">Equilibrar eficiencia y rendimiento</string>
     <string name="performance_desc">Priorizar rendimiento sobre eficiencia</string>

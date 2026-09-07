@@ -43,6 +43,20 @@ int check_game_in_memory(const char *cmdline) {
     return 0;
 }
 
+int is_companion_mode() {
+    FILE *f = fopen("/data/ProjectRaco/raco.txt", "r");
+    if (!f) return 0;
+    char line[128];
+    while (fgets(line, sizeof(line), f)) {
+        if (strncmp(line, "COMPANION_MODE 1", 16) == 0) {
+            fclose(f);
+            return 1;
+        }
+    }
+    fclose(f);
+    return 0;
+}
+
 void exec_performance(char *pkg) {
     pid_t pid = fork();
     if (pid == 0) {
@@ -62,9 +76,11 @@ void exec_performance(char *pkg) {
         snprintf(cmd, sizeof(cmd), "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load %s %d", pkg, mode);
         system(cmd);
         
-        // Tell Kotlin app to show overlay
-        snprintf(cmd, sizeof(cmd), "am startservice -a com.kanagawa.yamada.project.raco.SHOW_OVERLAY -e package \"%s\" com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1", pkg);
-        system(cmd);
+        // Tell Kotlin app to show overlay (if not Companion Mode)
+        if (!is_companion_mode()) {
+            snprintf(cmd, sizeof(cmd), "am startservice -a com.kanagawa.yamada.project.raco.SHOW_OVERLAY -e package \"%s\" com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1", pkg);
+            system(cmd);
+        }
         exit(0);
     }
 }
@@ -72,8 +88,10 @@ void exec_performance(char *pkg) {
 void exec_balance(const char *pkg) {
     pid_t pid = fork();
     if (pid == 0) {
-        // Tell Kotlin app to hide overlay
-        system("am startservice -a com.kanagawa.yamada.project.raco.HIDE_OVERLAY com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1");
+        // Tell Kotlin app to hide overlay (if not Companion Mode)
+        if (!is_companion_mode()) {
+            system("am startservice -a com.kanagawa.yamada.project.raco.HIDE_OVERLAY com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1");
+        }
         
         // Unload performance mode and suspend game via RSWAP
         char cmd[512];

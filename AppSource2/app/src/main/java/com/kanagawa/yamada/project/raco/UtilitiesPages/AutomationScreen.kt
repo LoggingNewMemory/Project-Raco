@@ -54,6 +54,7 @@ fun AutomationScreen(onBack: () -> Unit) {
     var isLoading by remember { mutableStateOf(true) }
     var dndEnabled by remember { mutableStateOf(false) }
     var gameAssistantEnabled by remember { mutableStateOf(false) }
+    var companionModeEnabled by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     
@@ -61,6 +62,7 @@ fun AutomationScreen(onBack: () -> Unit) {
         val config = runRoot("cat $AUTOMATION_CONFIG_PATH")
         dndEnabled = Regex("^DND[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
         gameAssistantEnabled = Regex("^GAME_ASSISTANT[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
+        companionModeEnabled = Regex("^COMPANION_MODE[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
         isLoading = false
     }
 
@@ -128,6 +130,36 @@ fun AutomationScreen(onBack: () -> Unit) {
                                                 }
                                             }
                                         }
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+            // Companion Mode Card
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(stringResource(R.string.companion_mode), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(4.dp))
+                        Text(stringResource(R.string.companion_mode_desc), style = MaterialTheme.typography.bodySmall)
+                        Spacer(Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Group, null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(12.dp))
+                            Text(stringResource(R.string.enable_service), modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                            Switch(
+                                checked = companionModeEnabled,
+                                onCheckedChange = { newValue ->
+                                    companionModeEnabled = newValue
+                                    scope.launch {
+                                        val v = if (newValue) "1" else "0"
+                                        runRoot("grep -q '^COMPANION_MODE ' $AUTOMATION_CONFIG_PATH && sed -i 's/^COMPANION_MODE .*/COMPANION_MODE $v/' $AUTOMATION_CONFIG_PATH || echo 'COMPANION_MODE $v' >> $AUTOMATION_CONFIG_PATH")
                                     }
                                 }
                             )

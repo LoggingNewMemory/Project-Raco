@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+    <string name="companion_mode">Mode Pendamping</string>
+    <string name="companion_mode_desc">Menonaktifkan overlay in-game Raco. Aktifkan ini jika Anda ingin menggunakan GameSpace bawaan pabrik.</string>
     <string name="power_save_desc">Memprioritaskan Baterai Di Atas Performa</string>
     <string name="balanced_desc">Seimbangkan Baterai dan Performa</string>
     <string name="performance_desc">Memprioritaskan Performa Di Atas Baterai</string>

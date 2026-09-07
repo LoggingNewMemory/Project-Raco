@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+    <string name="companion_mode">Режим компаньона</string>
+    <string name="companion_mode_desc">Отключает внутриигровой оверлей Raco. Включите это, если хотите использовать свой OEM GameSpace.</string>
     <string name="power_save_desc">Приоритет батареи над производительностью</string>
     <string name="balanced_desc">Баланс батареи и производительности</string>
     <string name="performance_desc">Приоритет производительности над батареей</string>

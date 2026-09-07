@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+    <string name="companion_mode">コンパニオンモード</string>
+    <string name="companion_mode_desc">Racoのゲーム内オーバーレイを無効にします。OEMのGameSpaceを使用する場合は、これを有効にしてください。</string>
     <string name="power_save_desc">バッテリーを優先（パフォーマンス最小）</string>
     <string name="balanced_desc">バッテリーとパフォーマンスのバランス</string>
     <string name="performance_desc">パフォーマンスを優先（バッテリー最小）</string>
