@@ -204,15 +204,6 @@ void apply_system_optimizations() {
 
     }
 
-    // 10. GED Tweaks
-    {
-        const char *ged_base = "/sys/module/ged/parameters";
-        const char *ged_files[] = {
-            "gx_boost_on", "gx_game_mode", "ged_smart_boost", "enable_gpu_boost",
-            "ged_boost_enable", "cpu_boost_policy", "boost_extra"
-        };
-        int ged_count = sizeof(ged_files) / sizeof(ged_files[0]);
-        raco_bulk(ged_base, ged_files, ged_count, "0", 1);
     }
 }
 

@@ -154,7 +154,7 @@ void mode_awaken() {
     printf("PROGRESS: 50\n"); fflush(stdout);
     carlotta_cpu(80);
 
-    corin_storage("deadline", "1");
+    corin_storage("none", "1");
     pid_t sys_pid_awaken = fork();
     if (sys_pid_awaken == 0) {
         rawrite("3", "/proc/sys/vm/drop_caches");
@@ -209,7 +209,7 @@ void mode_balanced() {
     rakakikomi("120", "/proc/sys/vm/vfs_cache_pressure");
     carlotta_cpu(55);
 
-    corin_storage("deadline", "1");
+    corin_storage("none", "1");
     pid_t sys_pid_balanced = fork();
     if (sys_pid_balanced == 0) {
         rawrite("3", "/proc/sys/vm/drop_caches");
@@ -257,7 +257,7 @@ void mode_powersave() {
     rakakikomi("100", "/proc/sys/vm/vfs_cache_pressure");
     carlotta_cpu(40);
 
-    corin_storage("deadline", "2");
+    corin_storage("none", "2");
     pid_t sys_pid_powersave = fork();
     if (sys_pid_powersave == 0) {
         rawrite("3", "/proc/sys/vm/drop_caches");
@@ -309,7 +309,7 @@ void mode_normal() {
     rakakikomi("120", "/proc/sys/vm/vfs_cache_pressure");
     carlotta_cpu(55);
 
-    corin_storage("deadline", "1");
+    corin_storage("none", "1");
     pid_t sys_pid_normal = fork();
     if (sys_pid_normal == 0) {
         system("settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec; "
