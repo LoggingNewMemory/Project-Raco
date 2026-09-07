@@ -284,8 +284,8 @@ void mode_powersave() {
     
     printf("PROGRESS: 70\n"); fflush(stdout);
     // CPU SETTINGS
-    // 1. Set powersave gov
-    change_cpu_gov("powersave");
+    // 1. Set powersave gov to default gov
+    change_cpu_gov(config.default_gov);
     printf("PROGRESS: 90\n"); fflush(stdout);
     usleep(150000);
     // 2. Apply limits
