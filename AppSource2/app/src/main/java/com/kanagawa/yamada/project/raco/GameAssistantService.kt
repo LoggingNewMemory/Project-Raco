@@ -19,11 +19,9 @@ class GameAssistantService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannel()
         Handler(Looper.getMainLooper()).post {
             gameSpaceOverlay = RacoGameAssistant(this)
         }
-        showForegroundNotification()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -46,30 +44,6 @@ class GameAssistantService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
-
-    private fun showForegroundNotification() {
-        val notification = Notification.Builder(this, "raco_game_assistant")
-            .setContentTitle("Raco Game Assistant is Running")
-            .setSmallIcon(android.R.drawable.ic_menu_manage)
-            .setOngoing(true)
-            .build()
-        startForeground(1, notification)
-    }
-
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "raco_game_assistant",
-                "Game Assistant",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Keeps the Game Assistant alive in the background"
-                setShowBadge(false)
-            }
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(channel)
-        }
-    }
 
     override fun onDestroy() {
         super.onDestroy()

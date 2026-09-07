@@ -61,7 +61,7 @@ void exec_performance(char *pkg) {
         system(cmd);
         
         // Tell Kotlin app to show overlay
-        snprintf(cmd, sizeof(cmd), "am start-foreground-service -a com.kanagawa.yamada.project.raco.SHOW_OVERLAY -e package \"%s\" com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1", pkg);
+        snprintf(cmd, sizeof(cmd), "am startservice -a com.kanagawa.yamada.project.raco.SHOW_OVERLAY -e package \"%s\" com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1", pkg);
         system(cmd);
         exit(0);
     }
@@ -71,7 +71,7 @@ void exec_balance(void) {
     pid_t pid = fork();
     if (pid == 0) {
         // Tell Kotlin app to hide overlay
-        system("am start-foreground-service -a com.kanagawa.yamada.project.raco.HIDE_OVERLAY com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1");
+        system("am startservice -a com.kanagawa.yamada.project.raco.HIDE_OVERLAY com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1");
         
         // Unload performance mode
         system("/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload auto 0");
