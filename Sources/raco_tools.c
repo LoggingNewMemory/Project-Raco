@@ -514,10 +514,9 @@ void cpufreq_powersave() {
                     }
                 } else {
                     FreqData mid_f = get_target_freq(avail_path, 3);
-                    if (mid_f.freq != -1 && raread(info_path, hw_min_buf, sizeof(hw_min_buf)) > 0) {
+                    if (mid_f.freq != -1) {
                         char mid_val[32];
                         snprintf(mid_val, sizeof(mid_val), "%ld", mid_f.freq);
-                        rawrite(hw_min_buf, min_path);
                         rawrite(mid_val, max_path);
                     }
                 }

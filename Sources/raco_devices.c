@@ -51,10 +51,33 @@ void mtk_cpu_ppm_limit(const char *mode) {
                 snprintf(cmd, sizeof(cmd), "%d %s", cluster_id, max_f); 
                 rawrite(cmd, "/proc/ppm/policy/hard_userlimit_min_cpu_freq");
             } else if (strcmp(mode, "powersave") == 0) {
-                snprintf(cmd, sizeof(cmd), "%d %s", cluster_id, min_f); 
+                char avail_path[128];
+                snprintf(avail_path, sizeof(avail_path), "/sys/devices/system/cpu/cpufreq/policy%d/scaling_available_frequencies", i);
+                FreqData target;
+                if (config.ultra_powersave == 1) {
+                    target = get_target_freq(avail_path, 1); // 1 = minfreq
+                } else if (config.lite_powersave == 1) {
+                    target = get_target_freq(avail_path, 2); // 2 = midfreq
+                } else {
+                    target = get_target_freq(avail_path, 3); // 3 = -2 from max
+                }
+                char target_str[32];
+                if (target.freq != -1) {
+                    snprintf(target_str, sizeof(target_str), "%ld", target.freq);
+                } else {
+                    strncpy(target_str, min_f, sizeof(target_str)); // Fallback
+                }
+                
+                snprintf(cmd, sizeof(cmd), "%d %s", cluster_id, target_str); 
                 rawrite(cmd, "/proc/ppm/policy/hard_userlimit_max_cpu_freq");
-                snprintf(cmd, sizeof(cmd), "%d -1", cluster_id); 
-                rawrite(cmd, "/proc/ppm/policy/hard_userlimit_min_cpu_freq");
+                
+                if (config.ultra_powersave == 1) {
+                    snprintf(cmd, sizeof(cmd), "%d %s", cluster_id, min_f);
+                    rawrite(cmd, "/proc/ppm/policy/hard_userlimit_min_cpu_freq");
+                } else {
+                    snprintf(cmd, sizeof(cmd), "%d -1", cluster_id); 
+                    rawrite(cmd, "/proc/ppm/policy/hard_userlimit_min_cpu_freq");
+                }
             } else {
                 snprintf(cmd, sizeof(cmd), "%d -1", cluster_id); 
                 rawrite(cmd, "/proc/ppm/policy/hard_userlimit_max_cpu_freq");
