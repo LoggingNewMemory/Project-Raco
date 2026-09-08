@@ -261,6 +261,7 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
     var useAngle by remember { mutableStateOf(sharedPrefs.getBoolean("use_angle_$pkg", false)) }
     var useSkia by remember { mutableStateOf(sharedPrefs.getBoolean("use_skia_$pkg", false)) }
     var usePlayboost by remember { mutableStateOf(sharedPrefs.getBoolean("use_playboost_$pkg", false)) }
+    var downscaleRatio by remember { mutableFloatStateOf(sharedPrefs.getFloat("downscale_$pkg", 1.0f)) }
     
     var isExecuting by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
@@ -276,6 +277,16 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                     }
                     if (useAngle) {
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global angle_gl_driver_selection_pkgs $pkg && settings put global angle_gl_driver_selection_values angle")).waitFor()
+                    }
+                    if (downscaleRatio < 1.0f) {
+                        // Force using am compat (The kill-shot method)
+                        val percent = (downscaleRatio * 100).toInt()
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat disable DOWNSCALE_30 $pkg && am compat disable DOWNSCALE_40 $pkg && am compat disable DOWNSCALE_50 $pkg && am compat disable DOWNSCALE_60 $pkg && am compat disable DOWNSCALE_70 $pkg && am compat disable DOWNSCALE_80 $pkg && am compat disable DOWNSCALE_90 $pkg")).waitFor()
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable DOWNSCALED $pkg")).waitFor()
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable DOWNSCALE_$percent $pkg")).waitFor()
+                    } else {
+                        // Reset all am compat flags
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat disable DOWNSCALED $pkg && am compat disable DOWNSCALE_30 $pkg && am compat disable DOWNSCALE_40 $pkg && am compat disable DOWNSCALE_50 $pkg && am compat disable DOWNSCALE_60 $pkg && am compat disable DOWNSCALE_70 $pkg && am compat disable DOWNSCALE_80 $pkg && am compat disable DOWNSCALE_90 $pkg")).waitFor()
                     }
                 }
                 
@@ -340,6 +351,18 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                 Text(stringResource(R.string.skia_title), modifier = Modifier.weight(1f), color = Color.White)
                 Switch(checked = useSkia, onCheckedChange = { useSkia = it; sharedPrefs.edit().putBoolean("use_skia_$pkg", it).apply() })
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(stringResource(R.string.downscale_title) + ": " + if (downscaleRatio < 1.0f) String.format("%.1f", downscaleRatio) else "1.0 (Off)", color = Color.White)
+            Slider(
+                value = downscaleRatio,
+                onValueChange = { 
+                    downscaleRatio = it
+                    sharedPrefs.edit().putFloat("downscale_$pkg", it).apply()
+                },
+                valueRange = 0.5f..1.0f,
+                steps = 4
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.playboost_title), modifier = Modifier.weight(1f), color = Color.White)
                 Switch(checked = usePlayboost, onCheckedChange = { usePlayboost = it; sharedPrefs.edit().putBoolean("use_playboost_$pkg", it).apply() })

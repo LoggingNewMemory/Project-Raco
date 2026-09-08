@@ -209,4 +209,5 @@
     <string name="rswap_unload">Unload Game</string>
     <string name="rswap_unload_all">Unload All Games</string>
     <string name="manual_flush">Manual Flush</string>
+    <string name="downscale_title">Downscale Resolution</string>
 </resources>
