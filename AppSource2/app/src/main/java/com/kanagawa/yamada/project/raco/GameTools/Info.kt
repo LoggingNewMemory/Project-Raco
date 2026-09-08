@@ -8,7 +8,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Switch
+import androidx.compose.foundation.border
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -133,28 +137,100 @@ fun InfoOverlayView(context: Context, currentPackage: String) {
         }
     }
 
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(4.dp))
-            .background(Color(0xFF1E1E1E).copy(alpha = 0.85f))
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Schedule, contentDescription = "Time", tint = Color.LightGray, modifier = Modifier.size(15.dp))
-            Spacer(Modifier.width(4.dp))
-            Text(currentTime, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+    val sharedPrefs = remember { context.getSharedPreferences("raco_prefs", Context.MODE_PRIVATE) }
+    var showTime by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_time", true)) }
+    var showFps by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_fps", true)) }
+    var showBattery by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_battery", true)) }
+
+    DisposableEffect(sharedPrefs) {
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
+            if (key == "overlay_show_time") showTime = prefs.getBoolean("overlay_show_time", true)
+            if (key == "overlay_show_fps") showFps = prefs.getBoolean("overlay_show_fps", true)
+            if (key == "overlay_show_battery") showBattery = prefs.getBoolean("overlay_show_battery", true)
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Layers, contentDescription = "FPS", tint = Color.LightGray, modifier = Modifier.size(15.dp))
-            Spacer(Modifier.width(4.dp))
-            Text("${currentFps}FPS", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        sharedPrefs.registerOnSharedPreferenceChangeListener(listener)
+        onDispose {
+            sharedPrefs.unregisterOnSharedPreferenceChangeListener(listener)
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.BatteryFull, contentDescription = "Battery", tint = Color.LightGray, modifier = Modifier.size(15.dp))
-            Spacer(Modifier.width(4.dp))
-            Text("$currentBattery%", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+    }
+
+    if (showTime || showFps || showBattery) {
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color(0xFF1E1E1E).copy(alpha = 0.85f))
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            if (showTime) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Schedule, contentDescription = "Time", tint = Color.LightGray, modifier = Modifier.size(15.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(currentTime, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+            if (showFps) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Layers, contentDescription = "FPS", tint = Color.LightGray, modifier = Modifier.size(15.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("${currentFps}FPS", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+            if (showBattery) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.BatteryFull, contentDescription = "Battery", tint = Color.LightGray, modifier = Modifier.size(15.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("$currentBattery%", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun InfoConfigView(
+    onDismissRequest: () -> Unit,
+    sharedPrefs: android.content.SharedPreferences
+) {
+    var showTime by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_time", true)) }
+    var showFps by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_fps", true)) }
+    var showBattery by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_battery", true)) }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Sys Status Settings", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            IconButton(onClick = onDismissRequest, modifier = Modifier.size(24.dp)) {
+                Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = Color.Gray)
+            }
+        }
+        
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Text("Show Clock", modifier = Modifier.weight(1f), color = Color.White)
+            Switch(checked = showTime, onCheckedChange = { showTime = it; sharedPrefs.edit().putBoolean("overlay_show_time", it).apply() })
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Text("Show Battery", modifier = Modifier.weight(1f), color = Color.White)
+            Switch(checked = showBattery, onCheckedChange = { showBattery = it; sharedPrefs.edit().putBoolean("overlay_show_battery", it).apply() })
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .background(Color(0xFFFFB74D).copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                        .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                ) {
+                    Text("BETA", color = Color(0xFFFFB74D), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.width(6.dp))
+                Text("Show FPS", color = Color.White)
+            }
+            Switch(checked = showFps, onCheckedChange = { showFps = it; sharedPrefs.edit().putBoolean("overlay_show_fps", it).apply() })
         }
     }
 }

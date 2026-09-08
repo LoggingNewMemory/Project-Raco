@@ -6,6 +6,7 @@ import androidx.compose.ui.res.stringResource
 import android.content.pm.PackageManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -133,6 +134,44 @@ fun AutomationScreen(onBack: () -> Unit) {
                                     }
                                 }
                             )
+                        }
+                        
+                        // Overlay Customization Toggles
+                        Spacer(Modifier.height(8.dp))
+                        androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                        Spacer(Modifier.height(8.dp))
+                        
+                        val context = androidx.compose.ui.platform.LocalContext.current
+                        val sharedPrefs = remember { context.getSharedPreferences("raco_prefs", android.content.Context.MODE_PRIVATE) }
+                        var showTime by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_time", true)) }
+                        var showBattery by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_battery", true)) }
+                        var showFps by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_fps", true)) }
+
+                        Text("Overlay Customization", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                        Spacer(Modifier.height(8.dp))
+                        
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                            Text("Show Clock", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                            Switch(checked = showTime, onCheckedChange = { showTime = it; sharedPrefs.edit().putBoolean("overlay_show_time", it).apply() })
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                            Text("Show Battery", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                            Switch(checked = showBattery, onCheckedChange = { showBattery = it; sharedPrefs.edit().putBoolean("overlay_show_battery", it).apply() })
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                                androidx.compose.foundation.layout.Box(
+                                    modifier = Modifier
+                                        .background(Color(0xFFFFB74D).copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                                        .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(4.dp))
+                                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                                ) {
+                                    Text("BETA", color = Color(0xFFFFB74D), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                }
+                                Spacer(Modifier.width(6.dp))
+                                Text("Show FPS", style = MaterialTheme.typography.bodyMedium)
+                            }
+                            Switch(checked = showFps, onCheckedChange = { showFps = it; sharedPrefs.edit().putBoolean("overlay_show_fps", it).apply() })
                         }
                     }
                 }

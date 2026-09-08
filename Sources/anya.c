@@ -57,7 +57,7 @@ void exec_anya_melfissa() {
            "cut -d: -f1 | tr -d '[]' | sed 's/init\\.svc\\.//g' | "
            "while read -r svc; do stop \"$svc\"; done; "
            "killall -9 thermald 2>/dev/null; "
-           "pgrep -l 'thermal' | grep -v -iE 'hal|hardware\\.thermal' | cut -d' ' -f1 | xargs -r kill -9 2>/dev/null");
+           "pgrep -l 'thermal' | grep -v -iE 'hal|hardware\\.thermal' | cut -d' ' -f1 | while read -r pid; do kill -9 \"$pid\" 2>/dev/null; done");
 
     // Block thermald & clean configs
     system("mount -o bind /dev/null /vendor/bin/thermald 2>/dev/null; "

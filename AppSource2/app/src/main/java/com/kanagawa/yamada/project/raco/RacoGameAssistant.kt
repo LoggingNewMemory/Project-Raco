@@ -13,6 +13,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -69,6 +71,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
     val crosshairOpacityState = mutableStateOf(sharedPrefs.getFloat("crosshair_opacity", 1f))
     val crosshairColorState = mutableStateOf(sharedPrefs.getString("crosshair_color", "White") ?: "White")
     val showCrosshairConfigState = mutableStateOf(false)
+    val showInfoConfigState = mutableStateOf(false)
     val showAyundaConfigState = mutableStateOf(false)
     val activeAyundaPresetState = mutableStateOf("")
     val activeDndState = mutableStateOf(false)
@@ -264,6 +267,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                         crosshairOpacityState = crosshairOpacityState,
                         crosshairColorState = crosshairColorState,
                         showCrosshairConfigState = showCrosshairConfigState,
+                        showInfoConfigState = showInfoConfigState,
                         showAyundaConfigState = showAyundaConfigState,
                         activeAyundaPresetState = activeAyundaPresetState,
                         activeDndState = activeDndState,
@@ -562,6 +566,7 @@ fun GameSpaceContent(
     crosshairOpacityState: MutableState<Float>,
     crosshairColorState: MutableState<String>,
     showCrosshairConfigState: MutableState<Boolean>,
+    showInfoConfigState: MutableState<Boolean>,
     showAyundaConfigState: MutableState<Boolean>,
     activeAyundaPresetState: MutableState<String>,
     activeDndState: MutableState<Boolean>,
@@ -617,10 +622,19 @@ fun GameSpaceContent(
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = 0.15f))
                     .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape)
-                    .clickable { 
-                        lastInteraction = System.currentTimeMillis()
-                        onExpand() 
-                    },
+                    .then(
+                        @OptIn(ExperimentalFoundationApi::class)
+                        Modifier.combinedClickable(
+                            onClick = {
+                                lastInteraction = System.currentTimeMillis()
+                                onExpand()
+                            },
+                            onLongClick = {
+                                lastInteraction = System.currentTimeMillis()
+                                onToggleInfo()
+                            }
+                        )
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -648,6 +662,7 @@ fun GameSpaceContent(
             crosshairOpacityState = crosshairOpacityState,
             crosshairColorState = crosshairColorState,
             showCrosshairConfigState = showCrosshairConfigState,
+            showInfoConfigState = showInfoConfigState,
             showAyundaConfigState = showAyundaConfigState,
             activeAyundaPresetState = activeAyundaPresetState,
             activeDndState = activeDndState,
@@ -675,6 +690,7 @@ fun GameSpaceDashboard(
     crosshairOpacityState: MutableState<Float>,
     crosshairColorState: MutableState<String>,
     showCrosshairConfigState: MutableState<Boolean>,
+    showInfoConfigState: MutableState<Boolean>,
     showAyundaConfigState: MutableState<Boolean>,
     activeAyundaPresetState: MutableState<String>,
     activeDndState: MutableState<Boolean>,
@@ -712,23 +728,25 @@ fun GameSpaceDashboard(
                 SidebarItem(
                     icon = Icons.Default.Speed,
                     label = "Performance",
-                    isSelected = selectedTab == "Performance" && !showCrosshairConfigState.value && !showAyundaConfigState.value,
+                    isSelected = selectedTab == "Performance" && !showCrosshairConfigState.value && !showAyundaConfigState.value && !showInfoConfigState.value,
                     themeColor = themeColor,
                     onClick = { 
                         selectedTab = "Performance"
                         showCrosshairConfigState.value = false
                         showAyundaConfigState.value = false
+                        showInfoConfigState.value = false
                     }
                 )
                 SidebarItem(
                     icon = Icons.Default.Widgets,
                     label = "Tools",
-                    isSelected = selectedTab == "Tools" || showCrosshairConfigState.value || showAyundaConfigState.value,
+                    isSelected = selectedTab == "Tools" || showCrosshairConfigState.value || showAyundaConfigState.value || showInfoConfigState.value,
                     themeColor = themeColor,
                     onClick = { 
                         selectedTab = "Tools"
                         showCrosshairConfigState.value = false
                         showAyundaConfigState.value = false
+                        showInfoConfigState.value = false
                     }
                 )
             }
@@ -746,6 +764,7 @@ fun GameSpaceDashboard(
                     targetState = when {
                         showCrosshairConfigState.value -> 2
                         showAyundaConfigState.value -> 3
+                        showInfoConfigState.value -> 4
                         selectedTab == "Performance" -> 0
                         else -> 1
                     },
@@ -769,6 +788,12 @@ fun GameSpaceDashboard(
                                 sharedPrefs = sharedPrefs
                             )
                         }
+                        4 -> {
+                            InfoConfigView(
+                                onDismissRequest = { showInfoConfigState.value = false },
+                                sharedPrefs = sharedPrefs
+                            )
+                        }
                         0 -> {
                             PerformanceTab(context, currentPackage, selectedModeState, isExecutingState, executingModeState, themeColor, sharedPrefs)
                         }
@@ -780,6 +805,7 @@ fun GameSpaceDashboard(
                                 onToggleCrosshair = onToggleCrosshair, 
                                 themeColor = themeColor,
                                 showCrosshairConfigState = showCrosshairConfigState,
+                                showInfoConfigState = showInfoConfigState,
                                 showAyundaConfigState = showAyundaConfigState,
                                 activeAyundaPresetState = activeAyundaPresetState,
                                 activeDndState = activeDndState,
@@ -1152,7 +1178,7 @@ fun StatCircle(title: String, value: String, unit: String, progress: Float, high
 data class ToolData(val title: String, val iconRes: Int?, val iconVector: ImageVector?, val action: suspend () -> String?, val onLongClick: (() -> Unit)? = null)
 
 @Composable
-fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>, showAyundaConfigState: MutableState<Boolean>, activeAyundaPresetState: MutableState<String>, activeDndState: MutableState<Boolean>, isInfoActiveState: MutableState<Boolean>, onToggleInfo: () -> Unit, sharedPrefs: android.content.SharedPreferences, onCollapse: () -> Unit, onCollapseWithAction: (action: () -> Unit) -> Unit) {
+fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: MutableState<Boolean>, onToggleCrosshair: () -> Unit, themeColor: Color, showCrosshairConfigState: MutableState<Boolean>, showInfoConfigState: MutableState<Boolean>, showAyundaConfigState: MutableState<Boolean>, activeAyundaPresetState: MutableState<String>, activeDndState: MutableState<Boolean>, isInfoActiveState: MutableState<Boolean>, onToggleInfo: () -> Unit, sharedPrefs: android.content.SharedPreferences, onCollapse: () -> Unit, onCollapseWithAction: (action: () -> Unit) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         // Initialization if needed
@@ -1172,7 +1198,7 @@ fun ToolsTab(context: Context, currentPackage: String, isCrosshairActiveState: M
             AyundaTool.toggle(currentPackage, activeAyundaPresetState, sharedPrefs)
             null
         }, onLongClick = { showAyundaConfigState.value = true }),
-        ToolData("Device Info", null, Icons.Default.DeveloperBoard, { onToggleInfo(); null })
+        ToolData("Device Info", null, Icons.Default.DeveloperBoard, { onToggleInfo(); null }, onLongClick = { showInfoConfigState.value = true })
     )
     
     Column(
