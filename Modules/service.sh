@@ -7,6 +7,9 @@ done
 
 MODDIR=${0%/*}
 
+# Erase STATE so the app resets each state after reboot
+sed -i 's/^STATE.*/STATE/' /data/ProjectRaco/raco.txt
+
 /system/bin/linker64 $MODDIR/CoreSys/raco_service $MODDIR &
 
 # Execute Ayunda Rusdi (Screen Modifiers) if configured

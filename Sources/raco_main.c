@@ -436,7 +436,7 @@ void rswap_suspend(const char *pkg) {
 
 void update_state_in_config(int mode) {
     char cmd[256];
-    snprintf(cmd, sizeof(cmd), "grep -q '^STATE ' /data/ProjectRaco/raco.txt && sed -i 's/^STATE .*/STATE %d/' /data/ProjectRaco/raco.txt || echo 'STATE %d' >> /data/ProjectRaco/raco.txt", mode, mode);
+    snprintf(cmd, sizeof(cmd), "grep -q '^STATE' /data/ProjectRaco/raco.txt && sed -i 's/^STATE.*/STATE %d/' /data/ProjectRaco/raco.txt || echo 'STATE %d' >> /data/ProjectRaco/raco.txt", mode, mode);
     system(cmd);
 }
 
