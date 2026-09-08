@@ -89,76 +89,45 @@ void mtk_cpu_ppm_limit(const char *mode) {
     }
 }
 
-void mtk_get_max_freq(char *out) {
-    char buffer[4096];
-    if (raread("/proc/gpufreq/gpufreq_opp_dump", buffer, sizeof(buffer)) > 0) {
-        long max_val = 0;
-        char *saveptr;
-        char *line = strtok_r(buffer, "\n", &saveptr);
-
-        while (line != NULL) {
-            char *f_ptr = strstr(line, "freq = ");
-            if (f_ptr) {
-                long val = atol(f_ptr + 7);
-                if (val > max_val) max_val = val;
-            }
-            line = strtok_r(NULL, "\n", &saveptr);
-        }
-        if (max_val > 0) snprintf(out, 32, "%ld", max_val);
-        else strcpy(out, "");
-    } else {
-        strcpy(out, "");
-    }
-}
-
 void mtk_get_mid_freq(char *out) {
     char buffer[4096];
-    int indices[50];
     int count = 0; 
-
-    if (raread("/proc/gpufreqv2/gpu_working_opp_table", buffer, sizeof(buffer)) > 0 || 
+    if (raread("/proc/gpufreqv2/gpu_working_opp_table", buffer, sizeof(buffer)) > 0 ||
         raread("/proc/gpufreq/gpufreq_opp_dump", buffer, sizeof(buffer)) > 0) {
         char *saveptr;
         char *line = strtok_r(buffer, "\n", &saveptr);
-
         while (line != NULL && count < 50) {
-            char *bracket = strchr(line, '[');
-            if (bracket) {
-                indices[count] = atol(bracket + 1);
-                count++;
-            }
+            if (strchr(line, '[')) count++;
             line = strtok_r(NULL, "\n", &saveptr);
         }
     }
-    if (count > 0) snprintf(out, 32, "%d", indices[(count - 1) / 2]);
+    if (count > 0) snprintf(out, 32, "%d", (count - 1) / 2);
     else strcpy(out, "");
 }
 
-void mtk_get_min_freq(char *out) {
+void mtk_disable_gpu_custom_boost() {
     char buffer[4096];
-    int indices[50];
     int count = 0; 
-
-    if (raread("/proc/gpufreqv2/gpu_working_opp_table", buffer, sizeof(buffer)) > 0 || 
+    
+    if (raread("/proc/gpufreqv2/gpu_working_opp_table", buffer, sizeof(buffer)) > 0 ||
         raread("/proc/gpufreq/gpufreq_opp_dump", buffer, sizeof(buffer)) > 0) {
         char *saveptr;
         char *line = strtok_r(buffer, "\n", &saveptr);
-
         while (line != NULL && count < 50) {
-            char *bracket = strchr(line, '[');
-            if (bracket) {
-                indices[count] = atol(bracket + 1);
-                count++;
-            }
+            if (strchr(line, '[')) count++;
             line = strtok_r(NULL, "\n", &saveptr);
         }
     }
-    // The last element is the highest index number (lowest frequency)
-    if (count > 0) snprintf(out, 32, "%d", indices[count - 1]);
-    else strcpy(out, "");
+    
+    if (count > 0) {
+        char min_idx[32];
+        snprintf(min_idx, 32, "%d", count - 1); // Exact lowest frequency index
+        rawrite(min_idx, "/sys/kernel/ged/hal/custom_boost_gpu_freq");
+    } else {
+        // Absolute fallback if reading the tables completely fails
+        rawrite("100", "/sys/kernel/ged/hal/custom_boost_gpu_freq");
+    }
 }
-
-// Device Performance Settings
 
 void mediatek_awaken() {
     mtk_cpu_ppm_limit("awaken");
@@ -239,12 +208,13 @@ void mediatek_awaken() {
     // ==============================
     // GPU & FREQ TWEAKS
     // ==============================
-    if (access("/proc/gpufreqv2/fix_target_opp_index", F_OK) == 0) {
-        rawrite("0", "/proc/gpufreqv2/fix_target_opp_index");
+    if (config.lite_performance == 1) {
+        char mid_idx[32];
+        mtk_get_mid_freq(mid_idx);
+        if (strlen(mid_idx) > 0) rakakikomi(mid_idx, "/proc/gpufreqv2/fix_target_opp_index");
+        else rakakikomi("0", "/proc/gpufreqv2/fix_target_opp_index");
     } else {
-        char max_freq[32];
-        mtk_get_max_freq(max_freq);
-        if (strlen(max_freq) > 0) rawrite(max_freq, "/proc/gpufreq/gpufreq_opp_freq");
+        rakakikomi("0", "/proc/gpufreqv2/fix_target_opp_index");
     }
 
     // Defreq Tweaks
@@ -317,12 +287,9 @@ void mediatek_balanced() {
     // ==============================
     // GPU & FREQ TWEAKS
     // ==============================
-    rawrite("0", "/proc/gpufreq/gpufreq_opp_freq");
-    rawrite("-1", "/proc/gpufreqv2/fix_target_opp_index");
-
-    char mid_idx[32];
-    mtk_get_mid_freq(mid_idx);
-    if (strlen(mid_idx) > 0) rawrite(mid_idx, "/sys/kernel/ged/hal/custom_boost_gpu_freq");
+    rakakikomi("0", "/proc/gpufreq/gpufreq_opp_freq");
+    rakakikomi("-1", "/proc/gpufreqv2/fix_target_opp_index");
+    mtk_disable_gpu_custom_boost();
 
     // Defreq Tweaks
     devfreq_mid_perf("/sys/class/devfreq/mtk-dvfsrc-devfreq");
@@ -394,10 +361,7 @@ void mediatek_normal() {
     // ==============================
     rakakikomi("0", "/proc/gpufreq/gpufreq_opp_freq");
     rakakikomi("-1", "/proc/gpufreqv2/fix_target_opp_index");
-
-    char min_idx[32];
-    mtk_get_min_freq(min_idx);
-    if (strlen(min_idx) > 0) rawrite(min_idx, "/sys/kernel/ged/hal/custom_boost_gpu_freq");
+    mtk_disable_gpu_custom_boost();
 
     // Defreq Tweaks
     devfreq_normal("/sys/class/devfreq/mtk-dvfsrc-devfreq");
@@ -471,10 +435,7 @@ void mediatek_powersave() {
     
     rakakikomi("0", "/proc/gpufreq/gpufreq_opp_freq");
     rakakikomi("-1", "/proc/gpufreqv2/fix_target_opp_index");
-
-    char min_idx[32];
-    mtk_get_min_freq(min_idx);
-    if (strlen(min_idx) > 0) rawrite(min_idx, "/sys/kernel/ged/hal/custom_boost_gpu_freq");
+    mtk_disable_gpu_custom_boost();
 
     // Defreq Tweaks
     devfreq_normal("/sys/class/devfreq/mtk-dvfsrc-devfreq");
