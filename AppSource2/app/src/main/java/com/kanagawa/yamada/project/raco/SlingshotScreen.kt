@@ -352,7 +352,23 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                 Switch(checked = useSkia, onCheckedChange = { useSkia = it; sharedPrefs.edit().putBoolean("use_skia_$pkg", it).apply() })
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Text(stringResource(R.string.downscale_title) + ": " + if (downscaleRatio < 1.0f) String.format("%.1f", downscaleRatio) else "1.0 (Off)", color = Color.White)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .background(Color(0xFFFFB74D).copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                        .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = "BETA",
+                        color = Color(0xFFFFB74D),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(stringResource(R.string.downscale_title) + ": " + if (downscaleRatio < 1.0f) String.format("%.1f", downscaleRatio) else "1.0 (Off)", color = Color.White)
+            }
             Slider(
                 value = downscaleRatio,
                 onValueChange = { 
