@@ -41,11 +41,11 @@ if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
   exit 1
 fi
 
-echo "Building Raco Watcher (Game Assistant Daemon)..."
+echo "Building Raco Game Assistant Service (Daemon)..."
 if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
   -o "$MODULES_DIR/CoreSys/RacoGameAssistantService" \
   "$SRC_DIR/RacoGameAssistant.c"; then
-  echo " ERROR: Compilation of Raco Watcher failed!"
+  echo " ERROR: Compilation of Raco Game Assistant Service failed!"
   exit 1
 fi
 $TOOLCHAIN/llvm-strip "$MODULES_DIR/CoreSys/RacoGameAssistantService"
