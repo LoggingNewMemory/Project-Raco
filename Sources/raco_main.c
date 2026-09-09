@@ -442,9 +442,16 @@ void update_state_in_config(int mode) {
 
 // Main Execution
 
+extern char current_pkg[256];
+
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         return 1;
+    }
+
+    if (argc >= 3) {
+        strncpy(current_pkg, argv[2], sizeof(current_pkg) - 1);
+        current_pkg[sizeof(current_pkg) - 1] = '\0';
     }
 
     load_config("/data/ProjectRaco/raco.txt");

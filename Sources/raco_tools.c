@@ -211,12 +211,22 @@ void notification(const char *message) {
     }
 }
 
+char current_pkg[256] = "";
+
 void clear_slingshot() {
     pid_t pid = fork();
     if (pid == 0) {
-        system("settings delete global angle_debug_package; "
-               "settings delete global angle_gl_driver_all_angle; "
-               "setprop debug.hwui.renderer \"\"");
+        system("settings delete global angle_debug_package >/dev/null 2>&1; "
+               "settings delete global angle_gl_driver_all_angle >/dev/null 2>&1; "
+               "settings delete global angle_gl_driver_selection_pkgs >/dev/null 2>&1; "
+               "settings delete global angle_gl_driver_selection_values >/dev/null 2>&1; "
+               "resetprop --delete debug.hwui.renderer >/dev/null 2>&1");
+               
+        if (strlen(current_pkg) > 0) {
+            char cmd[256];
+            snprintf(cmd, sizeof(cmd), "am compat reset-all --no-kill %s >/dev/null 2>&1", current_pkg);
+            system(cmd);
+        }
         exit(0);
     }
 }
