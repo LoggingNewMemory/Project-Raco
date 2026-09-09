@@ -18,13 +18,6 @@ if [ "$AYUNDA_RUSDI" = "1" ]; then
     sh "$MODDIR/CoreSys/AyundaRusdi.sh" &
 fi
 
-# Forcefully auto-grant and enable the Game Assistant Accessibility Service
-GAME_ASSISTANT=$(grep '^GAME_ASSISTANT ' /data/ProjectRaco/raco.txt | awk '{print $2}')
-if [ "$GAME_ASSISTANT" = "1" ]; then
-    su -c "settings put secure accessibility_enabled 1"
-    su -c "CURRENT=\$(settings get secure enabled_accessibility_services); if [ \"\$CURRENT\" = \"null\" ] || [ -z \"\$CURRENT\" ]; then settings put secure enabled_accessibility_services com.kanagawa.yamada.project.raco/.GameAssistantService; else echo \"\$CURRENT\" | grep -q \"com.kanagawa.yamada.project.raco/.GameAssistantService\" || settings put secure enabled_accessibility_services \"\$CURRENT:com.kanagawa.yamada.project.raco/.GameAssistantService\"; fi" &
-fi
-
 # RSWAP Boot Initialization
 RSWAP_ENABLED=$(grep '^RSWAP ' /data/ProjectRaco/raco.txt | awk '{print $2}' | tr -d '\r')
 if [ "$RSWAP_ENABLED" = "1" ]; then
@@ -63,4 +56,7 @@ if [ "$SILENT_NOTIF" = "0" ]; then
     fi
 fi
 # Start the Game Watcher Daemon
-su -c "$MODDIR/CoreSys/raco_watcher" &
+GAME_ASSISTANT=$(grep '^GAME_ASSISTANT ' /data/ProjectRaco/raco.txt | awk '{print $2}')
+if [ "$GAME_ASSISTANT" = "1" ]; then
+    su -c "$MODDIR/CoreSys/RacoGameAssistantService" &
+fi

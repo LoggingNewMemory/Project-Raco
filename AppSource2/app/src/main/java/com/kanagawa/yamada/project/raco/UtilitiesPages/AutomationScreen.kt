@@ -120,10 +120,9 @@ fun AutomationScreen(onBack: () -> Unit) {
                                         val v = if (newValue) "1" else "0"
                                         runRoot("grep -q '^GAME_ASSISTANT ' $AUTOMATION_CONFIG_PATH && sed -i 's/^GAME_ASSISTANT .*/GAME_ASSISTANT $v/' $AUTOMATION_CONFIG_PATH || echo 'GAME_ASSISTANT $v' >> $AUTOMATION_CONFIG_PATH")
                                         if (newValue) {
-                                            runRoot("settings put secure accessibility_enabled 1")
-                                            runRoot("""CURRENT=${'$'}(settings get secure enabled_accessibility_services); if [ "${'$'}CURRENT" = "null" ] || [ -z "${'$'}CURRENT" ]; then settings put secure enabled_accessibility_services com.kanagawa.yamada.project.raco/.GameAssistantService; else echo "${'$'}CURRENT" | grep -q "com.kanagawa.yamada.project.raco/.GameAssistantService" || settings put secure enabled_accessibility_services "${'$'}CURRENT:com.kanagawa.yamada.project.raco/.GameAssistantService"; fi""")
+                                            runRoot("/data/adb/modules/ProjectRaco/CoreSys/RacoGameAssistantService &")
                                         } else {
-                                            runRoot("""CURRENT=${'$'}(settings get secure enabled_accessibility_services); if [ "${'$'}CURRENT" != "null" ] && [ -n "${'$'}CURRENT" ]; then NEW=${'$'}(echo "${'$'}CURRENT" | sed 's|com.kanagawa.yamada.project.raco/.GameAssistantService||g' | sed 's/::/:/g' | sed 's/^://' | sed 's/:${'$'}//'); if [ -z "${'$'}NEW" ]; then settings put secure enabled_accessibility_services null; else settings put secure enabled_accessibility_services "${'$'}NEW"; fi; fi""")
+                                            runRoot("killall -9 RacoGameAssistantService")
                                             kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
                                                 RSwapLock.mutex.withLock {
                                                     runRoot("grep -q '^RSWAP ' $AUTOMATION_CONFIG_PATH && sed -i 's/^RSWAP .*/RSWAP 0/' $AUTOMATION_CONFIG_PATH || echo 'RSWAP 0' >> $AUTOMATION_CONFIG_PATH")

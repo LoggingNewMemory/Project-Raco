@@ -43,12 +43,12 @@ fi
 
 echo "Building Raco Watcher (Game Assistant Daemon)..."
 if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" \
-  -o "$MODULES_DIR/CoreSys/raco_watcher" \
+  -o "$MODULES_DIR/CoreSys/RacoGameAssistantService" \
   "$SRC_DIR/RacoGameAssistant.c"; then
   echo " ERROR: Compilation of Raco Watcher failed!"
   exit 1
 fi
-$TOOLCHAIN/llvm-strip "$MODULES_DIR/CoreSys/raco_watcher"
+$TOOLCHAIN/llvm-strip "$MODULES_DIR/CoreSys/RacoGameAssistantService"
 
 echo "[4/6] Building Anya Standalone..."
 if ! $TOOLCHAIN/aarch64-linux-android$API-clang -Wall -O2 -I"$SRC_DIR" -DSTANDALONE \
