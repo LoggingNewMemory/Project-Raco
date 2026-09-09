@@ -137,7 +137,7 @@ fun InfoOverlayView(context: Context, currentPackage: String) {
         }
     }
 
-    val sharedPrefs = remember { context.getSharedPreferences("raco_prefs", Context.MODE_PRIVATE) }
+    val sharedPrefs = remember { context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE) }
     var showTime by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_time", true)) }
     var showFps by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_fps", true)) }
     var showBattery by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_battery", true)) }
@@ -191,11 +191,19 @@ fun InfoOverlayView(context: Context, currentPackage: String) {
 @Composable
 fun InfoConfigView(
     onDismissRequest: () -> Unit,
+    onDisableInfo: () -> Unit,
     sharedPrefs: android.content.SharedPreferences
 ) {
     var showTime by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_time", true)) }
     var showFps by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_fps", true)) }
     var showBattery by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_battery", true)) }
+
+    fun checkAndDisableAll(time: Boolean, fps: Boolean, battery: Boolean) {
+        if (!time && !fps && !battery) {
+            onDisableInfo()
+            onDismissRequest()
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
@@ -211,11 +219,19 @@ fun InfoConfigView(
         
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Text("Show Clock", modifier = Modifier.weight(1f), color = Color.White)
-            Switch(checked = showTime, onCheckedChange = { showTime = it; sharedPrefs.edit().putBoolean("overlay_show_time", it).apply() })
+            Switch(checked = showTime, onCheckedChange = { 
+                showTime = it
+                sharedPrefs.edit().putBoolean("overlay_show_time", it).apply()
+                checkAndDisableAll(it, showFps, showBattery)
+            })
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Text("Show Battery", modifier = Modifier.weight(1f), color = Color.White)
-            Switch(checked = showBattery, onCheckedChange = { showBattery = it; sharedPrefs.edit().putBoolean("overlay_show_battery", it).apply() })
+            Switch(checked = showBattery, onCheckedChange = { 
+                showBattery = it
+                sharedPrefs.edit().putBoolean("overlay_show_battery", it).apply()
+                checkAndDisableAll(showTime, showFps, it)
+            })
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
@@ -230,7 +246,11 @@ fun InfoConfigView(
                 Spacer(Modifier.width(6.dp))
                 Text("Show FPS", color = Color.White)
             }
-            Switch(checked = showFps, onCheckedChange = { showFps = it; sharedPrefs.edit().putBoolean("overlay_show_fps", it).apply() })
+            Switch(checked = showFps, onCheckedChange = { 
+                showFps = it
+                sharedPrefs.edit().putBoolean("overlay_show_fps", it).apply()
+                checkAndDisableAll(showTime, it, showBattery)
+            })
         }
     }
 }

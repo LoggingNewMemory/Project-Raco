@@ -791,6 +791,7 @@ fun GameSpaceDashboard(
                         4 -> {
                             InfoConfigView(
                                 onDismissRequest = { showInfoConfigState.value = false },
+                                onDisableInfo = { if (isInfoActiveState.value) onToggleInfo() },
                                 sharedPrefs = sharedPrefs
                             )
                         }
