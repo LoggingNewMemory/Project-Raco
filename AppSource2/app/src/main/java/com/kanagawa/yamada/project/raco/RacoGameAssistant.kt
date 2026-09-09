@@ -137,7 +137,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                 val cmdMode = p.inputStream.bufferedReader().use { it.readText() }.trim()
                 p.waitFor()
                 val label = when(cmdMode) {
-                    "1" -> "Balanced"
+                    "3" -> "Balanced"
                     "2" -> "Powersave"
                     "4" -> "Awaken"
                     else -> "Awaken"
@@ -950,7 +950,7 @@ fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: 
         ) {
             val modes = listOf(
                 Triple("Powersave", "2", Color(0xFF4CAF50)),
-                Triple("Balanced", "1", Color(0xFF2196F3)),
+                Triple("Balanced", "3", Color(0xFF2196F3)),
                 Triple("Awaken", "4", Color(0xFFFF5722))
             )
             
