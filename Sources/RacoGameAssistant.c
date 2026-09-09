@@ -152,10 +152,12 @@ int main() {
 
     char buffer[EVENT_BUF_LEN];
 
+    int pending_check = 0;
+
     while (1) {
-        // Use poll with a 500ms timeout only when a game is active
+        // Use poll with a 500ms timeout when active, 100ms when waiting for init, 2000ms fallback
         struct pollfd pfd = {fd, POLLIN, 0};
-        int timeout = (active_game_pid != 0) ? 500 : -1;
+        int timeout = (active_game_pid != 0) ? 500 : (pending_check ? 100 : 2000);
         int ready = poll(&pfd, 1, timeout);
 
         if (ready < 0) {
@@ -186,37 +188,30 @@ int main() {
         }
 
         if (active_game_pid == 0) {
-            // Load the gamelist into memory ONCE per trigger event instead of per PID
             load_gamelist();
-            
-            int retry = 0;
             int found = 0;
+            pending_check = 0;
             
-            // 40 retries * 50ms = 2.0 seconds total wait time, but 4x faster polling
-            while (retry < 40 && !found) {
-                FILE *tasks_file = fopen(TASKS_FILE, "r");
-                if (tasks_file) {
-                    int pid;
-                    while (fscanf(tasks_file, "%d", &pid) > 0) {
-                        char cmdline[256];
-                        get_cmdline(pid, cmdline, sizeof(cmdline));
-                        if (strlen(cmdline) > 0 && strstr(cmdline, "zygote") == NULL && strstr(cmdline, "<pre-initialized>") == NULL) {
-                            if (check_game_in_memory(cmdline)) {
-                                active_game_pid = pid;
-                                strncpy(active_game_pkg, cmdline, sizeof(active_game_pkg) - 1);
-                                active_game_pkg[sizeof(active_game_pkg) - 1] = '\0';
-                                exec_performance(cmdline);
-                                found = 1;
-                                break;
-                            }
+            FILE *tasks_file = fopen(TASKS_FILE, "r");
+            if (tasks_file) {
+                int pid;
+                while (fscanf(tasks_file, "%d", &pid) > 0) {
+                    char cmdline[256];
+                    get_cmdline(pid, cmdline, sizeof(cmdline));
+                    if (strlen(cmdline) > 0) {
+                        if (strstr(cmdline, "zygote") != NULL || strstr(cmdline, "<pre-initialized>") != NULL) {
+                            pending_check = 1;
+                        } else if (check_game_in_memory(cmdline)) {
+                            active_game_pid = pid;
+                            strncpy(active_game_pkg, cmdline, sizeof(active_game_pkg) - 1);
+                            active_game_pkg[sizeof(active_game_pkg) - 1] = '\0';
+                            exec_performance(cmdline);
+                            found = 1;
+                            break;
                         }
                     }
-                    fclose(tasks_file);
                 }
-                if (!found) {
-                    usleep(50000); 
-                    retry++;
-                }
+                fclose(tasks_file);
             }
         }
     }
