@@ -69,8 +69,6 @@ void route_soc(int mode) {
 void carlotta_cpu(int hardlock) {
     pid_t pid_fork = fork();
     if (pid_fork == 0) {
-        system("setprop debug.hwui.use_hint_manager true");
-        system("setprop debug.sf.enable_adpf_cpu_hint true");
 
         long long u1 = 0, n1 = 0, s1 = 0, i1 = 0, io1 = 0, irq1 = 0, sirq1 = 0, st1 = 0;
         long long u2 = 0, n2 = 0, s2 = 0, i2 = 0, io2 = 0, irq2 = 0, sirq2 = 0, st2 = 0;
@@ -299,6 +297,11 @@ void mode_powersave() {
     notification("Powersave Mode Activated");
 }
 
+void clear_adpf() {
+    system("setprop debug.hwui.use_hint_manager false");
+    system("setprop debug.sf.enable_adpf_cpu_hint false");
+}
+
 void mode_normal() {
     printf("PROGRESS: 20\n"); fflush(stdout);
     printf("PROGRESS: 50\n"); fflush(stdout);
@@ -308,6 +311,7 @@ void mode_normal() {
     rakakikomi("3", "/proc/sys/vm/page-cluster");
     rakakikomi("120", "/proc/sys/vm/vfs_cache_pressure");
     carlotta_cpu(55);
+    clear_adpf();
 
     corin_storage("none", "1");
     pid_t sys_pid_normal = fork();
