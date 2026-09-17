@@ -282,11 +282,15 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                         // Force using am compat (The kill-shot method)
                         val percent = (downscaleRatio * 100).toInt()
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat disable DOWNSCALE_30 $pkg && am compat disable DOWNSCALE_40 $pkg && am compat disable DOWNSCALE_50 $pkg && am compat disable DOWNSCALE_60 $pkg && am compat disable DOWNSCALE_70 $pkg && am compat disable DOWNSCALE_80 $pkg && am compat disable DOWNSCALE_90 $pkg")).waitFor()
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable FORCE_RESIZE_APP $pkg")).waitFor()
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable ALWAYS_SANDBOX_DISPLAY_APIS $pkg")).waitFor()
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable DOWNSCALED $pkg")).waitFor()
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable DOWNSCALE_$percent $pkg")).waitFor()
                     } else {
                         // Reset all am compat flags
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat disable DOWNSCALED $pkg && am compat disable DOWNSCALE_30 $pkg && am compat disable DOWNSCALE_40 $pkg && am compat disable DOWNSCALE_50 $pkg && am compat disable DOWNSCALE_60 $pkg && am compat disable DOWNSCALE_70 $pkg && am compat disable DOWNSCALE_80 $pkg && am compat disable DOWNSCALE_90 $pkg")).waitFor()
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat disable FORCE_RESIZE_APP $pkg")).waitFor()
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat disable ALWAYS_SANDBOX_DISPLAY_APIS $pkg")).waitFor()
                     }
                 }
                 
