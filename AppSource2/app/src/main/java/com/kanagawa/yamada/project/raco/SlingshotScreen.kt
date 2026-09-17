@@ -379,8 +379,8 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                     downscaleRatio = it
                     sharedPrefs.edit().putFloat("downscale_$pkg", it).apply()
                 },
-                valueRange = 0.5f..1.0f,
-                steps = 4
+                valueRange = 0.3f..1.0f,
+                steps = 6
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
