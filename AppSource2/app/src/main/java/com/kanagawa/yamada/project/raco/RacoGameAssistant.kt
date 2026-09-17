@@ -1065,6 +1065,42 @@ fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: 
         }
         
         Spacer(modifier = Modifier.height(16.dp))
+        var useAdpf by remember { mutableStateOf(sharedPrefs.getBoolean("adpf_$currentPackage", false)) }
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Toggle ADPF",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = "Enable Android Dynamic Performance Framework (ADPF) hints.",
+                    color = Color.Gray,
+                    fontSize = 10.sp
+                )
+            }
+            androidx.compose.material3.Switch(
+                checked = useAdpf,
+                onCheckedChange = { 
+                    useAdpf = it
+                    if (currentPackage.isNotEmpty()) {
+                        sharedPrefs.edit().putBoolean("adpf_$currentPackage", it).apply()
+                    }
+                    kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            if (it) {
+                                Runtime.getRuntime().exec(arrayOf("su", "-c", "setprop debug.hwui.use_hint_manager true; setprop debug.sf.enable_adpf_cpu_hint true; setprop debug.sf.frame_rate_multiple_en 1")).waitFor()
+                            } else {
+                                Runtime.getRuntime().exec(arrayOf("su", "-c", "setprop debug.hwui.use_hint_manager false; setprop debug.sf.enable_adpf_cpu_hint false; setprop debug.sf.frame_rate_multiple_en 0")).waitFor()
+                            }
+                        } catch(e: Exception){}
+                    }
+                }
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
         
         Text(
             text = "Touch response",
