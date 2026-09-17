@@ -1090,9 +1090,9 @@ fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: 
                     kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
                         try {
                             if (it) {
-                                Runtime.getRuntime().exec(arrayOf("su", "-c", "setprop debug.hwui.use_hint_manager true; setprop debug.sf.enable_adpf_cpu_hint true; setprop debug.sf.frame_rate_multiple_en 1")).waitFor()
+                                Runtime.getRuntime().exec(arrayOf("su", "-c", "setprop debug.hwui.use_hint_manager true; setprop debug.sf.enable_adpf_cpu_hint true")).waitFor()
                             } else {
-                                Runtime.getRuntime().exec(arrayOf("su", "-c", "setprop debug.hwui.use_hint_manager false; setprop debug.sf.enable_adpf_cpu_hint false; setprop debug.sf.frame_rate_multiple_en 0")).waitFor()
+                                Runtime.getRuntime().exec(arrayOf("su", "-c", "setprop debug.hwui.use_hint_manager false; setprop debug.sf.enable_adpf_cpu_hint false")).waitFor()
                             }
                         } catch(e: Exception){}
                     }
