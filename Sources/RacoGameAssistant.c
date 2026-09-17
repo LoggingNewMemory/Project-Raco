@@ -129,7 +129,7 @@ int get_oom_score_adj(int pid) {
         }
         fclose(f);
     }
-    return -1;
+    return -9999;
 }
 
 int main() {
@@ -178,8 +178,8 @@ int main() {
         if (active_game_pid != 0) {
             int score = get_oom_score_adj(active_game_pid);
             
-            // If oom_score_adj is between 0 and 300, it's foreground, visible, perceptible, or backup.
-            if (score >= 0 && score <= 300) {
+            // If oom_score_adj is <= 300, it's foreground, visible, or we boosted it to -1000.
+            if (score != -9999 && score <= 300) {
                 continue;
             } else {
                 active_game_pid = 0;
