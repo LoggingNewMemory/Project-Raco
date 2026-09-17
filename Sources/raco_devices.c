@@ -584,6 +584,24 @@ void snapdragon_set_kgsl_pwrlevel(int mode) {
 }
 
 // Device Performance Settings
+void snapdragon_sched_tune(int mode) {
+    if (mode == 0) { // Awaken
+        rawrite("75", "/proc/sys/kernel/sched_upmigrate");
+        rawrite("65", "/proc/sys/kernel/sched_downmigrate");
+        rawrite("85", "/proc/sys/kernel/sched_group_upmigrate");
+        rawrite("8", "/proc/sys/kernel/sched_group_downmigrate");
+    } else if (mode == 2) { // Balanced
+        rawrite("85", "/proc/sys/kernel/sched_upmigrate");
+        rawrite("75", "/proc/sys/kernel/sched_downmigrate");
+        rawrite("90", "/proc/sys/kernel/sched_group_upmigrate");
+        rawrite("8", "/proc/sys/kernel/sched_group_downmigrate");
+    } else { // Normal/Powersave
+        rawrite("95", "/proc/sys/kernel/sched_upmigrate");
+        rawrite("85", "/proc/sys/kernel/sched_downmigrate");
+        rawrite("100", "/proc/sys/kernel/sched_group_upmigrate");
+        rawrite("10", "/proc/sys/kernel/sched_group_downmigrate");
+    }
+}
 
 void snapdragon_awaken() {
     // ==============================
@@ -620,6 +638,7 @@ void snapdragon_awaken() {
     rawrite("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
 
     snapdragon_core_ctl_apply("0", 1);
+    snapdragon_sched_tune(0);
 
     // ==============================
     // GPU & FREQ TWEAKS
@@ -661,6 +680,7 @@ void snapdragon_balanced() {
     rakakikomi("N", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
 
     snapdragon_core_ctl_apply("0", 0);
+    snapdragon_sched_tune(2);
 
     // ==============================
     // GPU & FREQ TWEAKS
@@ -700,6 +720,7 @@ void snapdragon_normal() {
     rakakikomi("N", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
 
     snapdragon_core_ctl_apply("0", 0);
+    snapdragon_sched_tune(1);
 
     // ==============================
     // GPU & FREQ TWEAKS
@@ -739,6 +760,7 @@ void snapdragon_powersave() {
     rakakikomi("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
 
     snapdragon_core_ctl_apply("0", 0);
+    snapdragon_sched_tune(1);
 
     // ==============================
     // GPU & FREQ TWEAKS
