@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -267,11 +269,42 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    fun clearSlingshot() {
+        isExecuting = true
+        coroutineScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "sh /data/adb/modules/ProjectRaco/CoreSys/ClearSlingshot.sh $pkg")).waitFor()
+                }
+                
+                useAngle = false
+                useSkia = false
+                usePlayboost = false
+                downscaleRatio = 1.0f
+                sharedPrefs.edit().apply {
+                    putBoolean("use_angle_$pkg", false)
+                    putBoolean("use_skia_$pkg", false)
+                    putBoolean("use_playboost_$pkg", false)
+                    putFloat("downscale_$pkg", 1.0f)
+                    apply()
+                }
+                
+                snackbarHostState.showSnackbar("Slingshot settings cleared!")
+            } catch (e: Exception) {
+            } finally {
+                isExecuting = false
+            }
+        }
+    }
+
     fun executeSlingshot() {
         isExecuting = true
         coroutineScope.launch {
             try {
                 withContext(Dispatchers.IO) {
+                    // Expand clear slingshot case: clean everything first
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "sh /data/adb/modules/ProjectRaco/CoreSys/ClearSlingshot.sh $pkg")).waitFor()
+                    
                     if (useSkia) {
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "setprop debug.hwui.renderer skiavk")).waitFor()
                     }
@@ -281,16 +314,10 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                     if (downscaleRatio < 1.0f) {
                         // Force using am compat (The kill-shot method)
                         val percent = (downscaleRatio * 100).toInt()
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat disable DOWNSCALE_30 $pkg && am compat disable DOWNSCALE_40 $pkg && am compat disable DOWNSCALE_50 $pkg && am compat disable DOWNSCALE_60 $pkg && am compat disable DOWNSCALE_70 $pkg && am compat disable DOWNSCALE_80 $pkg && am compat disable DOWNSCALE_90 $pkg")).waitFor()
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable FORCE_RESIZE_APP $pkg")).waitFor()
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable ALWAYS_SANDBOX_DISPLAY_APIS $pkg")).waitFor()
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable DOWNSCALED $pkg")).waitFor()
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable DOWNSCALE_$percent $pkg")).waitFor()
-                    } else {
-                        // Reset all am compat flags
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat disable DOWNSCALED $pkg && am compat disable DOWNSCALE_30 $pkg && am compat disable DOWNSCALE_40 $pkg && am compat disable DOWNSCALE_50 $pkg && am compat disable DOWNSCALE_60 $pkg && am compat disable DOWNSCALE_70 $pkg && am compat disable DOWNSCALE_80 $pkg && am compat disable DOWNSCALE_90 $pkg")).waitFor()
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat disable FORCE_RESIZE_APP $pkg")).waitFor()
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat disable ALWAYS_SANDBOX_DISPLAY_APIS $pkg")).waitFor()
                     }
                 }
                 
@@ -338,7 +365,7 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { pd ->
-        Column(modifier = Modifier.fillMaxSize().padding(pd).padding(16.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(pd).verticalScroll(rememberScrollState()).padding(16.dp)) {
             AppIcon(pkg = pkg, modifier = Modifier.size(80.dp).align(Alignment.CenterHorizontally))
             Spacer(modifier = Modifier.height(16.dp))
             AppName(pkg = pkg, modifier = Modifier.align(Alignment.CenterHorizontally), style = MaterialTheme.typography.titleLarge, color = Color.White)
@@ -355,7 +382,14 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                 Text(stringResource(R.string.skia_title), modifier = Modifier.weight(1f), color = Color.White)
                 Switch(checked = useSkia, onCheckedChange = { useSkia = it; sharedPrefs.edit().putBoolean("use_skia_$pkg", it).apply() })
             }
+            
             Spacer(modifier = Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.playboost_title), modifier = Modifier.weight(1f), color = Color.White)
+                Switch(checked = usePlayboost, onCheckedChange = { usePlayboost = it; sharedPrefs.edit().putBoolean("use_playboost_$pkg", it).apply() })
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 androidx.compose.foundation.layout.Box(
                     modifier = Modifier
@@ -382,10 +416,14 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                 valueRange = 0.3f..1.0f,
                 steps = 6
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.playboost_title), modifier = Modifier.weight(1f), color = Color.White)
-                Switch(checked = usePlayboost, onCheckedChange = { usePlayboost = it; sharedPrefs.edit().putBoolean("use_playboost_$pkg", it).apply() })
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = { clearSlingshot() },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("RESET Slingshot")
             }
             
             Spacer(modifier = Modifier.height(32.dp))
@@ -400,6 +438,8 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                     androidx.compose.material3.Text(stringResource(R.string.slingshot_graphics_warning), style = androidx.compose.material3.MaterialTheme.typography.bodySmall, color = androidx.compose.ui.graphics.Color(0xFFFFB74D))
                 }
             }
+            
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }
