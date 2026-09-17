@@ -34,6 +34,25 @@ void load_gamelist() {
     }
 }
 
+int get_tgid(int tid) {
+    char path[256];
+    snprintf(path, sizeof(path), "/proc/%d/status", tid);
+    FILE *f = fopen(path, "r");
+    if (f) {
+        char line[256];
+        while (fgets(line, sizeof(line), f)) {
+            if (strncmp(line, "Tgid:", 5) == 0) {
+                int tgid = tid;
+                sscanf(line + 5, "%d", &tgid);
+                fclose(f);
+                return tgid;
+            }
+        }
+        fclose(f);
+    }
+    return tid;
+}
+
 int check_game_in_memory(const char *cmdline) {
     for (int i = 0; i < game_count; i++) {
         if (strcmp(cmdline, gamelist[i]) == 0) {
@@ -202,7 +221,7 @@ int main() {
                         if (strstr(cmdline, "zygote") != NULL || strstr(cmdline, "<pre-initialized>") != NULL) {
                             pending_check = 1;
                         } else if (check_game_in_memory(cmdline)) {
-                            active_game_pid = pid;
+                            active_game_pid = get_tgid(pid);
                             strncpy(active_game_pkg, cmdline, sizeof(active_game_pkg) - 1);
                             active_game_pkg[sizeof(active_game_pkg) - 1] = '\0';
                             exec_performance(cmdline);
