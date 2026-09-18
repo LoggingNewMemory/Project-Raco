@@ -302,20 +302,8 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
         coroutineScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    // Expand clear slingshot case: clean everything first
-                    Runtime.getRuntime().exec(arrayOf("su", "-c", "sh /data/adb/modules/ProjectRaco/CoreSys/ClearSlingshot.sh $pkg")).waitFor()
-                    
-                    if (useSkia) {
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "setprop debug.hwui.renderer skiavk")).waitFor()
-                    }
-                    if (useAngle) {
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global angle_gl_driver_selection_pkgs $pkg && settings put global angle_gl_driver_selection_values angle")).waitFor()
-                    }
-                    if (downscaleRatio < 1.0f) {
-                        // Force using am compat (The kill-shot method)
-                        val percent = (downscaleRatio * 100).toInt()
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable DOWNSCALE_$percent \$pkg")).waitFor()
-                    }
+                    val cmd = "sh /data/adb/modules/ProjectRaco/CoreSys/SlingshotExec.sh $pkg $useSkia $useAngle $downscaleRatio"
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
                 }
                 
                 val intent = context.packageManager.getLaunchIntentForPackage(pkg)
