@@ -368,24 +368,24 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
         Column(modifier = Modifier.fillMaxWidth().padding(pd).verticalScroll(rememberScrollState()).padding(16.dp)) {
             AppIcon(pkg = pkg, modifier = Modifier.size(80.dp).align(Alignment.CenterHorizontally))
             Spacer(modifier = Modifier.height(16.dp))
-            AppName(pkg = pkg, modifier = Modifier.align(Alignment.CenterHorizontally), style = MaterialTheme.typography.titleLarge, color = Color.White)
+            AppName(pkg = pkg, modifier = Modifier.align(Alignment.CenterHorizontally), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(32.dp))
             
             Text("Configuration", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(16.dp))
             
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.angle_title), modifier = Modifier.weight(1f), color = Color.White)
+                Text(stringResource(R.string.angle_title), modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface)
                 Switch(checked = useAngle, onCheckedChange = { useAngle = it; sharedPrefs.edit().putBoolean("use_angle_$pkg", it).apply() })
             }
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.skia_title), modifier = Modifier.weight(1f), color = Color.White)
+                Text(stringResource(R.string.skia_title), modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface)
                 Switch(checked = useSkia, onCheckedChange = { useSkia = it; sharedPrefs.edit().putBoolean("use_skia_$pkg", it).apply() })
             }
             
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.playboost_title), modifier = Modifier.weight(1f), color = Color.White)
+                Text(stringResource(R.string.playboost_title), modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface)
                 Switch(checked = usePlayboost, onCheckedChange = { usePlayboost = it; sharedPrefs.edit().putBoolean("use_playboost_$pkg", it).apply() })
             }
             
@@ -405,7 +405,7 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                     )
                 }
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(stringResource(R.string.downscale_title) + ": " + if (downscaleRatio < 1.0f) String.format("%.1f", downscaleRatio) else "1.0 (Off)", color = Color.White)
+                Text(stringResource(R.string.downscale_title) + ": " + if (downscaleRatio < 1.0f) String.format("%.1f", downscaleRatio) else "1.0 (Off)", color = MaterialTheme.colorScheme.onSurface)
             }
             Slider(
                 value = downscaleRatio,
