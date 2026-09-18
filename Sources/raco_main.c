@@ -491,13 +491,7 @@ int main(int argc, char *argv[]) {
             }
             rswap_resume(argv[2]);
             
-            char game_mode_str[32] = "performance";
-            if (load_mode == 2) strcpy(game_mode_str, "battery");
-            else if (load_mode == 3 || load_mode == 1) strcpy(game_mode_str, "standard");
-            
-            char game_cmd[256];
-            snprintf(game_cmd, sizeof(game_cmd), "cmd game mode %s %s >/dev/null 2>&1 &", game_mode_str, argv[2]);
-            system(game_cmd);
+
         }
         return 0;
     }
@@ -510,9 +504,7 @@ int main(int argc, char *argv[]) {
         if (argc >= 3) {
             rswap_suspend(argv[2]);
             
-            char game_cmd[256];
-            snprintf(game_cmd, sizeof(game_cmd), "cmd game mode standard %s >/dev/null 2>&1 &", argv[2]);
-            system(game_cmd);
+
         }
         return 0;
     }
