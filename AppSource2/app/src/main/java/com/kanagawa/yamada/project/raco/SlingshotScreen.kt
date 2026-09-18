@@ -314,8 +314,6 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                     if (downscaleRatio < 1.0f) {
                         // Force using am compat (The kill-shot method)
                         val percent = (downscaleRatio * 100).toInt()
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable FORCE_RESIZE_APP $pkg")).waitFor()
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable ALWAYS_SANDBOX_DISPLAY_APIS $pkg")).waitFor()
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable DOWNSCALED $pkg")).waitFor()
                         Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable DOWNSCALE_$percent $pkg")).waitFor()
                     }
