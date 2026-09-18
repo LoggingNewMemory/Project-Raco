@@ -202,4 +202,9 @@ Project RacoにはRoot権限が必要です</string>
     <string name="game_mode_standard">標準</string>
     <string name="game_mode_performance">パフォーマンス</string>
     <string name="game_mode_battery">バッテリー</string>
+    <string name="anya_disabled">無効</string>
+    <string name="anya_gen1">Anya Gen 1</string>
+    <string name="anya_gen2">Anya Gen 2</string>
+    <string name="anya_gen1_desc">Anya Gen 1: サービス終了メソッド</string>
+    <string name="anya_gen2_desc">Anya Gen 2: tempとcdevの偽装 (注: 一部のROMでクラッシュする可能性があります)</string>
 </resources>

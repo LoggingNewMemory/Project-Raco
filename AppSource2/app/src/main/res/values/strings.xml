@@ -210,4 +210,9 @@
     <string name="rswap_unload_all">Unload All Games</string>
     <string name="manual_flush">Manual Flush</string>
     <string name="downscale_title">Downscale Resolution</string>
+    <string name="anya_disabled">Disabled</string>
+    <string name="anya_gen1">Anya Gen 1</string>
+    <string name="anya_gen2">Anya Gen 2</string>
+    <string name="anya_gen1_desc">Anya Gen 1: Kill service method</string>
+    <string name="anya_gen2_desc">Anya Gen 2: Spoof temp and cdev (Note: On some ROM might crash)</string>
 </resources>

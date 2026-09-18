@@ -202,4 +202,9 @@ Project Raco требует Root</string>
     <string name="rswap_unload">Выгрузить игру</string>
     <string name="rswap_unload_all">Выгрузить все игры</string>
     <string name="manual_flush">Ручная очистка</string>
+    <string name="anya_disabled">Отключено</string>
+    <string name="anya_gen1">Anya Gen 1</string>
+    <string name="anya_gen2">Anya Gen 2</string>
+    <string name="anya_gen1_desc">Anya Gen 1: Метод завершения служб</string>
+    <string name="anya_gen2_desc">Anya Gen 2: Подмена temp и cdev (Примечание: На некоторых прошивках может вызывать сбой)</string>
 </resources>

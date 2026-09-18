@@ -173,6 +173,7 @@ void load_config(const char *config_path) {
         if (parsed >= 1) {
             if (strcmp(key, "SOC") == 0 && parsed == 2) config.soc = atol(value);
             else if (strcmp(key, "ANYA") == 0 && parsed == 2) config.anya = atol(value);
+            else if (strcmp(key, "ANYA_GEN2") == 0 && parsed == 2) config.anya_gen2 = atol(value);
             else if (strcmp(key, "LEGACY_NOTIF") == 0 && parsed == 2) config.legacy_notif = atol(value);
             else if (strcmp(key, "SILENT_NOTIF") == 0 && parsed == 2) config.silent_notif = atol(value);
             else if (strcmp(key, "DEVICE_MITIGATION") == 0 && parsed == 2) config.device_mitigation = atol(value);
@@ -245,13 +246,17 @@ void dnd_on() {
 
 #ifndef STANDALONE
 void anyamelfissa() {
-    if (config.anya == 1) {
+    if (config.anya_gen2 == 1) {
+        exec_anya_melfissa_gen2();
+    } else if (config.anya == 1) {
         exec_anya_melfissa();
     }
 }
 
 void anyakawaii() {
-    if (config.anya == 1) {
+    if (config.anya_gen2 == 1) {
+        exec_anya_kawaii_gen2();
+    } else if (config.anya == 1) {
         exec_anya_kawaii();
     }
 }

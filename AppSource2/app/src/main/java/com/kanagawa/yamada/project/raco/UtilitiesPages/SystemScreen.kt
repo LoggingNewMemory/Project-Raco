@@ -77,6 +77,7 @@ fun SystemScreen(onBack: () -> Unit) {
 
     // State
     var anyaThermalEnabled by remember { mutableStateOf(false) }
+    var anyaThermalGen2 by remember { mutableStateOf(false) }
     var sandevIncluded by remember { mutableStateOf(false) }
     var sandevDurationText by remember { mutableStateOf("10") }
 
@@ -173,6 +174,7 @@ fun SystemScreen(onBack: () -> Unit) {
         fun parseFlag(key: String) = Regex("^$key[ \\t]+(\\d)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) == "1"
 
         anyaThermalEnabled = parseFlag("ANYA")
+        anyaThermalGen2 = parseFlag("ANYA_GEN2")
         sandevIncluded = parseFlag("INCLUDE_SANDEV")
         sandevDurationText = Regex("^SANDEV_DUR[ \\t]+(\\d+)", RegexOption.MULTILINE).find(config)?.groupValues?.getOrNull(1) ?: "10"
 
@@ -223,18 +225,46 @@ fun SystemScreen(onBack: () -> Unit) {
                 SystemCard(stringResource(R.string.anya_installer_title)) {
                     Text(stringResource(R.string.anya_installer_desc), style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Thermostat, null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.width(12.dp))
-                        Text(stringResource(R.string.enable_anya_thermal_flowstate), Modifier.weight(1f), fontWeight = FontWeight.Bold)
-                        Switch(checked = anyaThermalEnabled, enabled = !isBusyAnya, onCheckedChange = { newVal ->
-                            isBusyAnya = true
-                            anyaThermalEnabled = newVal
-                            scope.launch {
-                                sysWriteKey("ANYA", if (newVal) "1" else "0")
-                                isBusyAnya = false
-                            }
-                        })
+                    
+                    Text(stringResource(R.string.anya_gen1_desc), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.anya_gen2_desc), style = MaterialTheme.typography.bodySmall)
+                    Spacer(Modifier.height(16.dp))
+
+                    val activeAnya = if (anyaThermalGen2) 2 else if (anyaThermalEnabled) 1 else 0
+
+                    listOf(
+                        stringResource(R.string.anya_disabled) to 0, 
+                        stringResource(R.string.anya_gen1) to 1, 
+                        stringResource(R.string.anya_gen2) to 2
+                    ).forEach { (label, value) ->
+                        OutlinedButton(
+                            onClick = {
+                                isBusyAnya = true
+                                scope.launch {
+                                    if (value == 1) {
+                                        sysWriteKey("ANYA", "1")
+                                        sysWriteKey("ANYA_GEN2", "0")
+                                        anyaThermalEnabled = true
+                                        anyaThermalGen2 = false
+                                    } else if (value == 2) {
+                                        sysWriteKey("ANYA", "0")
+                                        sysWriteKey("ANYA_GEN2", "1")
+                                        anyaThermalEnabled = false
+                                        anyaThermalGen2 = true
+                                    } else {
+                                        sysWriteKey("ANYA", "0")
+                                        sysWriteKey("ANYA_GEN2", "0")
+                                        anyaThermalEnabled = false
+                                        anyaThermalGen2 = false
+                                    }
+                                    isBusyAnya = false
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            enabled = !isBusyAnya,
+                            colors = if (activeAnya == value) ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
+                                     else ButtonDefaults.outlinedButtonColors()
+                        ) { Text(label) }
                     }
                 }
             }

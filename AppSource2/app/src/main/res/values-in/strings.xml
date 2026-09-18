@@ -199,4 +199,9 @@ Project Raco Memerlukan Root</string>
     <string name="rswap_unload">Bongkar Game</string>
     <string name="rswap_unload_all">Bongkar Semua Game</string>
     <string name="manual_flush">Pembersihan Manual</string>
+    <string name="anya_disabled">Dinonaktifkan</string>
+    <string name="anya_gen1">Anya Gen 1</string>
+    <string name="anya_gen2">Anya Gen 2</string>
+    <string name="anya_gen1_desc">Anya Gen 1: Metode matikan layanan</string>
+    <string name="anya_gen2_desc">Anya Gen 2: Memalsukan temp dan cdev (Catatan: Pada beberapa ROM mungkin crash)</string>
 </resources>

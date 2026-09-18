@@ -22,6 +22,7 @@ extern int raco_read (const char *path, char *out_buffer, unsigned int max_size)
 typedef struct {
     int soc;
     int anya;
+    int anya_gen2;
     int legacy_notif;
     int silent_notif;
     int device_mitigation;
@@ -54,6 +55,8 @@ void kobo_fast_charge();
 void zetamin_optimize();
 void exec_anya_melfissa();
 void exec_anya_kawaii();
+void exec_anya_melfissa_gen2();
+void exec_anya_kawaii_gen2();
 
 // Tool of raco_tool.c Declaration
 void rawrite(const char *val, const char *path);

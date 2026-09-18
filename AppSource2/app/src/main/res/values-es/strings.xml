@@ -180,4 +180,9 @@
     <string name="rswap_unload">Descargar Juego</string>
     <string name="rswap_unload_all">Descargar Todos los Juegos</string>
     <string name="manual_flush">Vaciado Manual</string>
+    <string name="anya_disabled">Deshabilitado</string>
+    <string name="anya_gen1">Anya Gen 1</string>
+    <string name="anya_gen2">Anya Gen 2</string>
+    <string name="anya_gen1_desc">Anya Gen 1: Método de matar servicio</string>
+    <string name="anya_gen2_desc">Anya Gen 2: Falsificar temp y cdev (Nota: En algunas ROM podría fallar)</string>
 </resources>
