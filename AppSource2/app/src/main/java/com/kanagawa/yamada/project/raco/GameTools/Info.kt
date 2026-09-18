@@ -192,7 +192,8 @@ fun InfoOverlayView(context: Context, currentPackage: String) {
 fun InfoConfigView(
     onDismissRequest: () -> Unit,
     onDisableInfo: () -> Unit,
-    sharedPrefs: android.content.SharedPreferences
+    sharedPrefs: android.content.SharedPreferences,
+    themeColor: Color
 ) {
     var showTime by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_time", true)) }
     var showFps by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_fps", true)) }
@@ -219,19 +220,33 @@ fun InfoConfigView(
         
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Text("Show Clock", modifier = Modifier.weight(1f), color = Color.White)
-            Switch(checked = showTime, onCheckedChange = { 
-                showTime = it
-                sharedPrefs.edit().putBoolean("overlay_show_time", it).apply()
-                checkAndDisableAll(it, showFps, showBattery)
-            })
+            Switch(
+                checked = showTime, 
+                onCheckedChange = { 
+                    showTime = it
+                    sharedPrefs.edit().putBoolean("overlay_show_time", it).apply()
+                    checkAndDisableAll(it, showFps, showBattery)
+                },
+                colors = androidx.compose.material3.SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = themeColor
+                )
+            )
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Text("Show Battery", modifier = Modifier.weight(1f), color = Color.White)
-            Switch(checked = showBattery, onCheckedChange = { 
-                showBattery = it
-                sharedPrefs.edit().putBoolean("overlay_show_battery", it).apply()
-                checkAndDisableAll(showTime, showFps, it)
-            })
+            Switch(
+                checked = showBattery, 
+                onCheckedChange = { 
+                    showBattery = it
+                    sharedPrefs.edit().putBoolean("overlay_show_battery", it).apply()
+                    checkAndDisableAll(showTime, showFps, it)
+                },
+                colors = androidx.compose.material3.SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = themeColor
+                )
+            )
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
@@ -246,11 +261,18 @@ fun InfoConfigView(
                 Spacer(Modifier.width(6.dp))
                 Text("Show FPS", color = Color.White)
             }
-            Switch(checked = showFps, onCheckedChange = { 
-                showFps = it
-                sharedPrefs.edit().putBoolean("overlay_show_fps", it).apply()
-                checkAndDisableAll(showTime, it, showBattery)
-            })
+            Switch(
+                checked = showFps, 
+                onCheckedChange = { 
+                    showFps = it
+                    sharedPrefs.edit().putBoolean("overlay_show_fps", it).apply()
+                    checkAndDisableAll(showTime, it, showBattery)
+                },
+                colors = androidx.compose.material3.SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = themeColor
+                )
+            )
         }
     }
 }

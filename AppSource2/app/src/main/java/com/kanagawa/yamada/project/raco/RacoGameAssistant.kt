@@ -792,7 +792,8 @@ fun GameSpaceDashboard(
                             InfoConfigView(
                                 onDismissRequest = { showInfoConfigState.value = false },
                                 onDisableInfo = { if (isInfoActiveState.value) onToggleInfo() },
-                                sharedPrefs = sharedPrefs
+                                sharedPrefs = sharedPrefs,
+                                themeColor = themeColor
                             )
                         }
                         0 -> {
@@ -1096,7 +1097,11 @@ fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: 
                             }
                         } catch(e: Exception){}
                     }
-                }
+                },
+                colors = androidx.compose.material3.SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = themeColor
+                )
             )
         }
         
