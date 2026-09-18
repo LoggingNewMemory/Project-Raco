@@ -490,8 +490,11 @@ int main(int argc, char *argv[]) {
                 mode_awaken();
             }
             rswap_resume(argv[2]);
+<<<<<<< HEAD
             
 
+=======
+>>>>>>> b1d4a280fcedbae72292442dc63d540e74c12a6f
         }
         return 0;
     }
@@ -503,8 +506,11 @@ int main(int argc, char *argv[]) {
         mode_normal();
         if (argc >= 3) {
             rswap_suspend(argv[2]);
+<<<<<<< HEAD
             
 
+=======
+>>>>>>> b1d4a280fcedbae72292442dc63d540e74c12a6f
         }
         return 0;
     }

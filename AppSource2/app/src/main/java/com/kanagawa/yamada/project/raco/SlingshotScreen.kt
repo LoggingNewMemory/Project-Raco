@@ -302,8 +302,28 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
         coroutineScope.launch {
             try {
                 withContext(Dispatchers.IO) {
+<<<<<<< HEAD
                     val cmd = "sh /data/adb/modules/ProjectRaco/CoreSys/SlingshotExec.sh $pkg $useSkia $useAngle $downscaleRatio"
                     Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
+=======
+                    // Expand clear slingshot case: clean everything first
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "sh /data/adb/modules/ProjectRaco/CoreSys/ClearSlingshot.sh $pkg")).waitFor()
+                    
+                    if (useSkia) {
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "setprop debug.hwui.renderer skiavk")).waitFor()
+                    }
+                    if (useAngle) {
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global angle_gl_driver_selection_pkgs $pkg && settings put global angle_gl_driver_selection_values angle")).waitFor()
+                    }
+                    if (downscaleRatio < 1.0f) {
+                        // Force using am compat (The kill-shot method)
+                        val percent = (downscaleRatio * 100).toInt()
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable FORCE_RESIZE_APP $pkg")).waitFor()
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable ALWAYS_SANDBOX_DISPLAY_APIS $pkg")).waitFor()
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable DOWNSCALED $pkg")).waitFor()
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am compat enable DOWNSCALE_$percent $pkg")).waitFor()
+                    }
+>>>>>>> b1d4a280fcedbae72292442dc63d540e74c12a6f
                 }
                 
                 val intent = context.packageManager.getLaunchIntentForPackage(pkg)
