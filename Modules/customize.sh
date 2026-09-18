@@ -23,7 +23,7 @@ merge_configs() {
     local escaped_key=$(echo "$key" | sed -e 's/[]\/$*.^[]/\\&/g')
     
     # 3. Inject old values into the clean template
-    if grep -q "^${escaped_key} " "$temp_config"; then
+    if grep -q "^${escaped_key} " "$temp_config" 2>/dev/null; then
       sed -i "s/^${escaped_key} .*/${key} ${value}/" "$temp_config"
     fi
   done < "$persistent_config"
@@ -31,6 +31,31 @@ merge_configs() {
   # 4. Overwrite persistent file with the clean, updated version
   mv "$temp_config" "$persistent_config"
   ui_print "- Settings merged successfully."
+}
+
+merge_lists() {
+  local new_template="$1"
+  local persistent_list="$2"
+  local temp_list="$MODPATH/list.tmp"
+
+  ui_print "- Merging your previous lists..."
+  
+  # 1. Start with the clean/tidy template
+  cp "$new_template" "$temp_list"
+
+  # 2. Read values from the old file.
+  while read -r line || [ -n "$line" ]; do
+    [[ "$line" =~ ^# ]] || [ -z "$line" ] && continue    
+    
+    # 3. Append old values if they are not in the template
+    if ! grep -Fxq "$line" "$temp_list"; then
+      echo "$line" >> "$temp_list"
+    fi
+  done < "$persistent_list"
+
+  # 4. Overwrite persistent file with the clean, updated version
+  mv "$temp_list" "$persistent_list"
+  ui_print "- Lists merged successfully."
 }
 
 # --- Main Script Execution ---
@@ -147,8 +172,15 @@ cp "$MODPATH/logo.png" "/data/local/tmp" >/dev/null 2>&1 || abort "! Failed to c
 chmod 644 "/data/local/tmp/logo.png"
 
 
-cp "$MODPATH/gamelist.txt" "/data/ProjectRaco/gamelist.txt" >/dev/null 2>&1
+if [ ! -f "/data/ProjectRaco/gamelist.txt" ]; then
+  ui_print "- Creating default gamelist..."
+  cp "$MODPATH/gamelist.txt" "/data/ProjectRaco/gamelist.txt" >/dev/null 2>&1
+else
+  ui_print "- Saved gamelist found."
+  merge_lists "$MODPATH/gamelist.txt" "/data/ProjectRaco/gamelist.txt"
+fi
 chmod 644 "/data/ProjectRaco/gamelist.txt"
+rm -f "$MODPATH/gamelist.txt"
 
 ui_print " "
 
@@ -185,6 +217,9 @@ sed -i "s/^SOC .*/SOC $SOC/" "$RACO_PERSIST_CONFIG"
 if [ ! -f "/data/ProjectRaco/WhitelistKillAll.txt" ]; then
   ui_print "- Creating default WhitelistKillAll..."
   cp "$MODPATH/WhitelistKillAll.txt" "/data/ProjectRaco/WhitelistKillAll.txt"
+else
+  ui_print "- Saved WhitelistKillAll found."
+  merge_lists "$MODPATH/WhitelistKillAll.txt" "/data/ProjectRaco/WhitelistKillAll.txt"
 fi
 
 # Clean up the template file from the module directory.

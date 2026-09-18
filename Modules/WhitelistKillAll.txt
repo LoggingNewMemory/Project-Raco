@@ -1,1 +1,2 @@
 com.google.android.inputmethod.latin
+com.kanagawa.yamada.project.raco
