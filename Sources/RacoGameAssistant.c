@@ -240,12 +240,18 @@ int main() {
                         if (strstr(cmdline, "zygote") != NULL || strstr(cmdline, "<pre-initialized>") != NULL) {
                             pending_check = 1;
                         } else if (check_game_in_memory(cmdline)) {
-                            active_game_pid = get_tgid(pid);
-                            strncpy(active_game_pkg, cmdline, sizeof(active_game_pkg) - 1);
-                            active_game_pkg[sizeof(active_game_pkg) - 1] = '\0';
-                            exec_performance(cmdline);
-                            found = 1;
-                            break;
+                            int tgid = get_tgid(pid);
+                            int score = get_oom_score_adj(tgid);
+                            
+                            // Prevent infinite loops: only activate if the game is genuinely in the foreground (score <= 300).
+                            if (score != -9999 && score <= 300) {
+                                active_game_pid = tgid;
+                                strncpy(active_game_pkg, cmdline, sizeof(active_game_pkg) - 1);
+                                active_game_pkg[sizeof(active_game_pkg) - 1] = '\0';
+                                exec_performance(cmdline);
+                                found = 1;
+                                break;
+                            }
                         }
                     }
                 }
