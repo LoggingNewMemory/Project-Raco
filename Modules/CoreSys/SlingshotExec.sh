@@ -27,3 +27,6 @@ fi
 if [ "$DOWNSCALE_RATIO" != "1.0" ] && [ "$DOWNSCALE_RATIO" != "1.0f" ]; then
     cmd game set --downscale "$DOWNSCALE_RATIO" "$PKG" >/dev/null 2>&1
 fi
+
+# Launch the app natively via monkey (bypassing any Kotlin startActivity quirks)
+monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
