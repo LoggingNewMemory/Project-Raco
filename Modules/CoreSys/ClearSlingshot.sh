@@ -6,6 +6,8 @@ if [ -z "$PKG" ]; then
     exit 1
 fi
 
+cmd game reset "$PKG" >/dev/null 2>&1
+
 am compat disable DOWNSCALED "$PKG" >/dev/null 2>&1
 am compat disable DOWNSCALE_30 "$PKG" >/dev/null 2>&1
 am compat disable DOWNSCALE_35 "$PKG" >/dev/null 2>&1
