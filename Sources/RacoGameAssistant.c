@@ -76,24 +76,41 @@ int is_companion_mode() {
     return 0;
 }
 
+int is_rswap_enabled() {
+    FILE *f = fopen("/data/ProjectRaco/raco.txt", "r");
+    if (!f) return 0;
+    char line[128];
+    while (fgets(line, sizeof(line), f)) {
+        if (strncmp(line, "RSWAP 1", 7) == 0) {
+            fclose(f);
+            return 1;
+        }
+    }
+    fclose(f);
+    return 0;
+}
+
 void exec_performance(char *pkg) {
     pid_t pid = fork();
     if (pid == 0) {
         char cmd[1024];
-        int mode = 4;
-        char path[256];
-        snprintf(path, sizeof(path), "/data/ProjectRaco/modes/%s", pkg);
-        FILE *f = fopen(path, "r");
-        if (f) {
-            char val[16];
-            if (fgets(val, sizeof(val), f)) {
-                mode = atoi(val);
+        
+        if (is_rswap_enabled()) {
+            int mode = 4;
+            char path[256];
+            snprintf(path, sizeof(path), "/data/ProjectRaco/modes/%s", pkg);
+            FILE *f = fopen(path, "r");
+            if (f) {
+                char val[16];
+                if (fgets(val, sizeof(val), f)) {
+                    mode = atoi(val);
+                }
+                fclose(f);
             }
-            fclose(f);
+            // Load performance mode
+            snprintf(cmd, sizeof(cmd), "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load %s %d", pkg, mode);
+            system(cmd);
         }
-        // Load performance mode
-        snprintf(cmd, sizeof(cmd), "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load %s %d", pkg, mode);
-        system(cmd);
         
         // Tell Kotlin app to show overlay (if not Companion Mode)
         if (!is_companion_mode()) {
@@ -112,10 +129,12 @@ void exec_balance(const char *pkg) {
             system("am startservice -a com.kanagawa.yamada.project.raco.HIDE_OVERLAY com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1");
         }
         
-        // Unload performance mode and suspend game via RSWAP
-        char cmd[512];
-        snprintf(cmd, sizeof(cmd), "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload %s 0", pkg);
-        system(cmd);
+        if (is_rswap_enabled()) {
+            // Unload performance mode and suspend game via RSWAP
+            char cmd[512];
+            snprintf(cmd, sizeof(cmd), "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload %s 0", pkg);
+            system(cmd);
+        }
         exit(0);
     }
 }
