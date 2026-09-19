@@ -54,11 +54,11 @@
     <string name="current_driver">Current:</string>
     <string name="legacy_notif_title">Legacy Notification</string>
     <string name="legacy_notif_description">Use Legacy Notification In Case Notification Doesn\'t Show In Some ROMs</string>
-    <string name="slingshot_title">Raco Slingshot</string>
+    <string name="slingshot_title">Raco Launchpad</string>
     <string name="angle_title">Launch using ANGLE Graphics</string>
     <string name="skia_title">Use SkiaVK as default Skia backend</string>
-    <string name="start_preload">Start Slingshot</string>
-    <string name="slingshot_graphics_warning">Some games might broken, Some might improve performance, Some might don\'t even Launch. But don\'t be afraid to try it first! If Broken, press RESET Slingshot.</string>
+    <string name="start_preload">Launch Game</string>
+    <string name="slingshot_graphics_warning">Some games might broken, Some might improve performance, Some might don\'t even Launch. But don\'t be afraid to try it first! If Broken, press RESET Launchpad.</string>
     <string name="playboost_title">RiProG Playboost</string>
     <string name="extra_settings_title">Extra Settings</string>
     <string name="anya_installer_title">Anya Thermal</string>

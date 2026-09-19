@@ -135,42 +135,33 @@ fun AutomationScreen(onBack: () -> Unit) {
                             )
                         }
                         
-                        // Overlay Customization Toggles
+                        // RiProG Playboost Toggle
                         Spacer(Modifier.height(8.dp))
                         androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                         Spacer(Modifier.height(8.dp))
                         
                         val context = androidx.compose.ui.platform.LocalContext.current
                         val sharedPrefs = remember { context.getSharedPreferences("raco_prefs", android.content.Context.MODE_PRIVATE) }
-                        var showTime by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_time", true)) }
-                        var showBattery by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_battery", true)) }
-                        var showFps by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_fps", true)) }
+                        var playboostEnabled by remember { mutableStateOf(sharedPrefs.getBoolean("playboost_global", false)) }
 
-                        Text("Overlay Customization", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                        Text("Performance Tweaks", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                         Spacer(Modifier.height(8.dp))
                         
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Text("Show Clock", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                            Switch(checked = showTime, onCheckedChange = { showTime = it; sharedPrefs.edit().putBoolean("overlay_show_time", it).apply() })
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Text("Show Battery", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                            Switch(checked = showBattery, onCheckedChange = { showBattery = it; sharedPrefs.edit().putBoolean("overlay_show_battery", it).apply() })
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                                androidx.compose.foundation.layout.Box(
-                                    modifier = Modifier
-                                        .background(Color(0xFFFFB74D).copy(alpha = 0.2f), RoundedCornerShape(4.dp))
-                                        .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(4.dp))
-                                        .padding(horizontal = 4.dp, vertical = 2.dp)
-                                ) {
-                                    Text("BETA", color = Color(0xFFFFB74D), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Icon(Icons.Default.Speed, null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(12.dp))
+                            Text(stringResource(R.string.playboost_title), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                            Switch(
+                                checked = playboostEnabled,
+                                onCheckedChange = { newValue ->
+                                    playboostEnabled = newValue
+                                    sharedPrefs.edit().putBoolean("playboost_global", newValue).apply()
+                                    scope.launch {
+                                        val v = if (newValue) "1" else "0"
+                                        runRoot("grep -q '^RIPROG_PLAYBOOST ' $AUTOMATION_CONFIG_PATH && sed -i 's/^RIPROG_PLAYBOOST .*/RIPROG_PLAYBOOST $v/' $AUTOMATION_CONFIG_PATH || echo 'RIPROG_PLAYBOOST $v' >> $AUTOMATION_CONFIG_PATH")
+                                    }
                                 }
-                                Spacer(Modifier.width(6.dp))
-                                Text("Show FPS", style = MaterialTheme.typography.bodyMedium)
-                            }
-                            Switch(checked = showFps, onCheckedChange = { showFps = it; sharedPrefs.edit().putBoolean("overlay_show_fps", it).apply() })
+                            )
                         }
                     }
                 }

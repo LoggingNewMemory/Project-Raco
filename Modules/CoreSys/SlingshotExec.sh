@@ -10,9 +10,6 @@ if [ -z "$PKG" ]; then
 fi
 
 # Clean previous slingshot configuration
-
-# Force stop the app so downscaling applies correctly on cold boot
-am force-stop "$PKG"
 su -c "sh /data/adb/modules/ProjectRaco/CoreSys/ClearSlingshot.sh \"$PKG\""
 
 # Apply SkiaVK
@@ -35,4 +32,3 @@ if [ "$DOWNSCALE_RATIO" != "1.0" ] && [ "$DOWNSCALE_RATIO" != "1.0f" ]; then
         cmd game downscale "$DOWNSCALE_RATIO" "$PKG" >/dev/null 2>&1
     fi
 fi
-

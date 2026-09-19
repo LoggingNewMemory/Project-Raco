@@ -90,6 +90,20 @@ int is_rswap_enabled() {
     return 0;
 }
 
+int is_playboost_enabled() {
+    FILE *f = fopen("/data/ProjectRaco/raco.txt", "r");
+    if (!f) return 0;
+    char line[128];
+    while (fgets(line, sizeof(line), f)) {
+        if (strncmp(line, "RIPROG_PLAYBOOST 1", 18) == 0) {
+            fclose(f);
+            return 1;
+        }
+    }
+    fclose(f);
+    return 0;
+}
+
 void exec_performance(char *pkg) {
     pid_t pid = fork();
     if (pid == 0) {
@@ -109,6 +123,10 @@ void exec_performance(char *pkg) {
             }
             // Load performance mode
             snprintf(cmd, sizeof(cmd), "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load %s %d", pkg, mode);
+            system(cmd);
+        }
+        if (is_playboost_enabled()) {
+            snprintf(cmd, sizeof(cmd), "pid=$(pgrep -f %s | head -n 1); if [ -n \"$pid\" ]; then for task in /proc/$pid/task/*; do tid=$(basename $task); taskset -p ffffffff $tid; done; fi", pkg);
             system(cmd);
         }
         

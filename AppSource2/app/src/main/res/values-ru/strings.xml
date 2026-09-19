@@ -52,9 +52,9 @@
     <string name="legacy_notif_description">Включите, если уведомления не отображаются</string>
     <string name="angle_title">Запуск с графикой ANGLE</string>
     <string name="skia_title">Использовать SkiaVK как Skia бэкенд по умолчанию</string>
-    <string name="start_preload">Начать Slingshot</string>
+    <string name="start_preload">Launch Game</string>
     <string name="search_apps_hint">Поиск приложений...</string>
-    <string name="slingshot_graphics_warning">Некоторые игры могут сломаться, некоторые могут улучшить производительность, а некоторые могут даже не запуститься. Но не бойтесь попробовать! Если что-то пошло не так, нажмите RESET Slingshot.</string>
+    <string name="slingshot_graphics_warning">Некоторые игры могут сломаться, некоторые могут улучшить производительность, а некоторые могут даже не запуститься. Но не бойтесь попробовать! Если что-то пошло не так, нажмите RESET Launchpad.</string>
     <string name="extra_settings_title">Дополнительные настройки</string>
     <string name="anya_installer_desc">Отключение терморегулирования в режиме производительности (или в игре), включение терморегулирования в нормальном состоянии</string>
     <string name="kobo_fast_charge">Быстрая зарядка Kobo</string>

@@ -49,9 +49,9 @@
     <string name="legacy_notif_description">Gunakan Notifikasi Legacy Jika Notifikasi Tidak Muncul Di Beberapa ROM</string>
     <string name="angle_title">Jalankan dengan Grafis ANGLE</string>
     <string name="skia_title">Gunakan SkiaVK sebagai backend Skia default</string>
-    <string name="start_preload">Mulai Slingshot</string>
+    <string name="start_preload">Launch Game</string>
     <string name="search_apps_hint">Cari aplikasi...</string>
-    <string name="slingshot_graphics_warning">Beberapa game mungkin rusak, Beberapa mungkin meningkatkan performa, Beberapa mungkin tidak bisa dibuka. Tapi jangan takut untuk mencobanya dulu! Jika Rusak, tekan RESET Slingshot.</string>
+    <string name="slingshot_graphics_warning">Beberapa game mungkin rusak, Beberapa mungkin meningkatkan performa, Beberapa mungkin tidak bisa dibuka. Tapi jangan takut untuk mencobanya dulu! Jika Rusak, tekan RESET Launchpad.</string>
     <string name="extra_settings_title">Pengaturan Ekstra</string>
     <string name="anya_installer_desc">Nonaktifkan Thermal di Performa (Atau di dalam Game), Aktifkan thermal pada kondisi normal</string>
     <string name="kobo_fast_charge">Pengisian Cepat Kobo</string>

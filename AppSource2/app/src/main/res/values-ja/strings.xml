@@ -65,12 +65,12 @@
     <string name="current_driver">現在:</string>
     <string name="legacy_notif_title">レガシー通知</string>
     <string name="legacy_notif_description">一部のROMで通知が表示されない場合にレガシー通知を使用する</string>
-    <string name="slingshot_title">Raco スリングショット</string>
+    <string name="slingshot_title">Raco Launchpad</string>
     <string name="angle_title">ANGLE グラフィックスを使用して起動</string>
     <string name="skia_title">SkiaVKをデフォルトのSkiaバックエンドとして使用</string>
-    <string name="start_preload">Slingshot 開始</string>
+    <string name="start_preload">Launch Game</string>
     <string name="search_apps_hint">アプリを検索...</string>
-    <string name="slingshot_graphics_warning">一部のゲームは動作しない、パフォーマンスが向上する、あるいは起動しない可能性があります。ですが、恐れずにまずは試してみてください！ 問題が発生した場合は、RESET Slingshotを押してください。</string>
+    <string name="slingshot_graphics_warning">一部のゲームは動作しない、パフォーマンスが向上する、あるいは起動しない可能性があります。ですが、恐れずにまずは試してみてください！ 問題が発生した場合は、RESET Launchpadを押してください。</string>
     <string name="extra_settings_title">追加設定</string>
     <string name="anya_installer_desc">パフォーマンス（またはゲーム）でサーマルを無効にし、通常状態でサーマルを有効にする</string>
     <string name="kobo_fast_charge">Kobo 急速充電</string>

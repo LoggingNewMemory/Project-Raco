@@ -209,7 +209,7 @@ fun SlingshotMainScreen(onBack: () -> Unit, onOpenConfig: (String) -> Unit) {
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Tap the button below or the + icon in the top right to select games for Slingshot.",
+                            text = "Tap the button below or the + icon in the top right to select games for Launchpad.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -262,7 +262,6 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
     
     var useAngle by remember { mutableStateOf(sharedPrefs.getBoolean("use_angle_$pkg", false)) }
     var useSkia by remember { mutableStateOf(sharedPrefs.getBoolean("use_skia_$pkg", false)) }
-    var usePlayboost by remember { mutableStateOf(sharedPrefs.getBoolean("use_playboost_$pkg", false)) }
     var downscaleRatio by remember { mutableFloatStateOf(sharedPrefs.getFloat("downscale_$pkg", 1.0f)) }
     
     var isExecuting by remember { mutableStateOf(false) }
@@ -279,17 +278,15 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                 
                 useAngle = false
                 useSkia = false
-                usePlayboost = false
                 downscaleRatio = 1.0f
                 sharedPrefs.edit().apply {
                     putBoolean("use_angle_$pkg", false)
                     putBoolean("use_skia_$pkg", false)
-                    putBoolean("use_playboost_$pkg", false)
                     putFloat("downscale_$pkg", 1.0f)
                     apply()
                 }
                 
-                snackbarHostState.showSnackbar("Slingshot settings cleared!")
+                snackbarHostState.showSnackbar("Launchpad settings cleared!")
             } catch (e: Exception) {
             } finally {
                 isExecuting = false
@@ -306,6 +303,9 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                     Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
                 }
                 
+                // Allow GameManager to process the config before launching
+                kotlinx.coroutines.delay(500)
+                
                 val intent = context.packageManager.getLaunchIntentForPackage(pkg)
                 if (intent != null) {
                     intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -316,13 +316,6 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                 
                 snackbarHostState.showSnackbar(context.getString(R.string.payload_deployed_to, pkg))
                 
-                if (usePlayboost) {
-                    coroutineScope.launch(Dispatchers.IO) {
-                        Thread.sleep(3000)
-                        val script = "pid=\$(pgrep -f $pkg | head -n 1); if [ -n \"\$pid\" ]; then for task in /proc/\$pid/task/*; do tid=\$(basename \$task); taskset -p ffffffff \$tid; done; fi"
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", script)).waitFor()
-                    }
-                }
             } catch (e: Exception) {
             } finally {
                 isExecuting = false
@@ -368,12 +361,6 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                 Switch(checked = useSkia, onCheckedChange = { useSkia = it; sharedPrefs.edit().putBoolean("use_skia_$pkg", it).apply() })
             }
             
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.playboost_title), modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface)
-                Switch(checked = usePlayboost, onCheckedChange = { usePlayboost = it; sharedPrefs.edit().putBoolean("use_playboost_$pkg", it).apply() })
-            }
-            
             Spacer(modifier = Modifier.height(16.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 androidx.compose.foundation.layout.Box(
@@ -408,7 +395,7 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("RESET Slingshot")
+                Text("RESET Launchpad")
             }
             
             Spacer(modifier = Modifier.height(32.dp))
