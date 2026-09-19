@@ -10,6 +10,9 @@ if [ -z "$PKG" ]; then
 fi
 
 # Clean previous slingshot configuration
+
+# Force stop the app so downscaling applies correctly on cold boot
+am force-stop "$PKG"
 su -c "sh /data/adb/modules/ProjectRaco/CoreSys/ClearSlingshot.sh \"$PKG\""
 
 # Apply SkiaVK
@@ -23,10 +26,13 @@ if [ "$USE_ANGLE" = "true" ]; then
     settings put global angle_gl_driver_selection_values angle
 fi
 
-# Apply Downscale via Game Manager (the proper way without crop)
+# Apply Downscale via Game Manager (API aware)
 if [ "$DOWNSCALE_RATIO" != "1.0" ] && [ "$DOWNSCALE_RATIO" != "1.0f" ]; then
-    cmd game set --downscale "$DOWNSCALE_RATIO" "$PKG" >/dev/null 2>&1
+    SDK_INT=$(getprop ro.build.version.sdk)
+    if [ "$SDK_INT" -ge 33 ]; then
+        cmd game set --downscale "$DOWNSCALE_RATIO" "$PKG" >/dev/null 2>&1
+    else
+        cmd game downscale "$DOWNSCALE_RATIO" "$PKG" >/dev/null 2>&1
+    fi
 fi
 
-# Launch the app natively via monkey (bypassing any Kotlin startActivity quirks)
-monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1

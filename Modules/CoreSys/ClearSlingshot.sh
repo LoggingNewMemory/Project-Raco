@@ -6,7 +6,12 @@ if [ -z "$PKG" ]; then
     exit 1
 fi
 
-cmd game reset "$PKG" >/dev/null 2>&1
+SDK_INT=$(getprop ro.build.version.sdk)
+if [ "$SDK_INT" -ge 33 ]; then
+    cmd game reset "$PKG" >/dev/null 2>&1
+else
+    cmd game downscale 1.0 "$PKG" >/dev/null 2>&1
+fi
 am compat reset-all "$PKG" >/dev/null 2>&1
 
 echo "Cleared Slingshot compatibility flags for $PKG"

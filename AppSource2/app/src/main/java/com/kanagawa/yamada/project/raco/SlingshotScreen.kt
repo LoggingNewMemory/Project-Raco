@@ -306,6 +306,14 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
                     Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
                 }
                 
+                val intent = context.packageManager.getLaunchIntentForPackage(pkg)
+                if (intent != null) {
+                    intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    context.startActivity(intent)
+                } else {
+                    snackbarHostState.showSnackbar("Could not launch app")
+                }
+                
                 snackbarHostState.showSnackbar(context.getString(R.string.payload_deployed_to, pkg))
                 
                 if (usePlayboost) {
