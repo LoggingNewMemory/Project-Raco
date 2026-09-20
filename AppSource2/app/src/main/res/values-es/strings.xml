@@ -185,4 +185,10 @@
     <string name="anya_gen2">Anya Gen 2</string>
     <string name="anya_gen1_desc">Anya Gen 1: Método de matar servicio</string>
     <string name="anya_gen2_desc">Anya Gen 2: Falsificar temp y cdev (Nota: En algunas ROM podría fallar)</string>
+    <string name="glass_modifier_title">Modificador de Cristal</string>
+    <string name="mesh_background_hue">Rueda de colores</string>
+    <string name="color_purple">Morado</string>
+    <string name="color_red">Rojo</string>
+    <string name="color_blue">Azul</string>
+    <string name="color_brown">Marrón</string>
 </resources>

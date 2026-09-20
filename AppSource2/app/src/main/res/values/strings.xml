@@ -215,4 +215,10 @@
     <string name="anya_gen2">Anya Gen 2</string>
     <string name="anya_gen1_desc">Anya Gen 1: Kill service method</string>
     <string name="anya_gen2_desc">Anya Gen 2: Spoof temp and cdev (Note: On some ROM might crash)</string>
+    <string name="glass_modifier_title">Glass Modifier</string>
+    <string name="mesh_background_hue">Color Wheel</string>
+    <string name="color_purple">Purple</string>
+    <string name="color_red">Red</string>
+    <string name="color_blue">Blue</string>
+    <string name="color_brown">Brown</string>
 </resources>

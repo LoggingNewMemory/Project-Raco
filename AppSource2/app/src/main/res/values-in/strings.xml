@@ -204,4 +204,10 @@ Project Raco Memerlukan Root</string>
     <string name="anya_gen2">Anya Gen 2</string>
     <string name="anya_gen1_desc">Anya Gen 1: Metode matikan layanan</string>
     <string name="anya_gen2_desc">Anya Gen 2: Memalsukan temp dan cdev (Catatan: Pada beberapa ROM mungkin crash)</string>
+    <string name="glass_modifier_title">Modifikator Kaca</string>
+    <string name="mesh_background_hue">Roda Warna</string>
+    <string name="color_purple">Ungu</string>
+    <string name="color_red">Merah</string>
+    <string name="color_blue">Biru</string>
+    <string name="color_brown">Coklat</string>
 </resources>

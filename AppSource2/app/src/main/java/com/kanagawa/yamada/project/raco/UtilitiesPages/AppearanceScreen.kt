@@ -110,6 +110,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
     var isInstallingBanner by remember { mutableStateOf(false) }
     var isInstallingBg by remember { mutableStateOf(false) }
     var adaptiveColorBg by remember { mutableStateOf(false) }
+    var meshHue by remember { mutableFloatStateOf(260f) }
 
     val bannerCropLauncher = rememberLauncherForActivityResult(com.canhub.cropper.CropImageContract()) { result ->
         if (result.isSuccessful) {
@@ -197,6 +198,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
             val bgPath = sharedPrefs.getString("background_image_path", "")
             bgExists = !bgPath.isNullOrEmpty() && File(bgPath).exists()
             adaptiveColorBg = sharedPrefs.getBoolean("adaptive_color_enabled", false)
+            meshHue = sharedPrefs.getFloat("mesh_hue", 260f)
             isLoading = false
         }
 
@@ -405,6 +407,53 @@ fun AppearanceScreen(onBack: () -> Unit) {
                         valueRange = 0f..30f,
                         steps = 5
                     )
+                }
+            }
+
+            // Glass Modifier Card
+            item {
+                AppearanceCard(stringResource(R.string.glass_modifier_title)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.ColorLens, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.mesh_background_hue), modifier = Modifier.weight(1f))
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        HueColorWheel(
+                            hue = meshHue,
+                            onHueChange = { 
+                                meshHue = it 
+                                context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                                    .edit().putFloat("mesh_hue", it).apply()
+                            }
+                        )
+                    }
+                    
+                    Spacer(Modifier.height(16.dp))
+                    
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        val presets = listOf(
+                            Pair(stringResource(R.string.color_purple), 260f),
+                            Pair(stringResource(R.string.color_red), 0f),
+                            Pair(stringResource(R.string.color_blue), 220f),
+                            Pair(stringResource(R.string.color_brown), 30f)
+                        )
+                        presets.forEach { (name, hue) ->
+                            Button(
+                                onClick = { 
+                                    meshHue = hue
+                                    context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                                        .edit().putFloat("mesh_hue", hue).apply()
+                                },
+                                modifier = Modifier.weight(1f).padding(horizontal = 2.dp),
+                                contentPadding = PaddingValues(4.dp)
+                            ) {
+                                Text(name, style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                    }
                 }
             }
 

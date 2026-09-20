@@ -207,4 +207,10 @@ Project RacoにはRoot権限が必要です</string>
     <string name="anya_gen2">Anya Gen 2</string>
     <string name="anya_gen1_desc">Anya Gen 1: サービス終了メソッド</string>
     <string name="anya_gen2_desc">Anya Gen 2: tempとcdevの偽装 (注: 一部のROMでクラッシュする可能性があります)</string>
+    <string name="glass_modifier_title">ガラスモディファイア</string>
+    <string name="mesh_background_hue">カラーホイール</string>
+    <string name="color_purple">紫</string>
+    <string name="color_red">赤</string>
+    <string name="color_blue">青</string>
+    <string name="color_brown">茶色</string>
 </resources>

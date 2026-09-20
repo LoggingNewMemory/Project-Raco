@@ -74,6 +74,7 @@ class MainActivity : AppCompatActivity() {
             val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
             var bannerPath by remember { mutableStateOf(sharedPrefs.getString("banner_image_path", "") ?: "") }
             var bannerUpdateTrigger by remember { mutableStateOf(sharedPrefs.getLong("banner_update_timestamp", 0L)) }
+            var meshHue by remember { mutableFloatStateOf(sharedPrefs.getFloat("mesh_hue", 260f)) }
             
             DisposableEffect(Unit) {
                 bgImagePath = sharedPrefs.getString("background_image_path", "") ?: ""
@@ -82,6 +83,7 @@ class MainActivity : AppCompatActivity() {
                 isAdaptiveEnabled = sharedPrefs.getBoolean("adaptive_color_enabled", false)
                 bannerPath = sharedPrefs.getString("banner_image_path", "") ?: ""
                 bannerUpdateTrigger = sharedPrefs.getLong("banner_update_timestamp", 0L)
+                meshHue = sharedPrefs.getFloat("mesh_hue", 260f)
                 
                 val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
                     when (key) {
@@ -91,6 +93,7 @@ class MainActivity : AppCompatActivity() {
                         "adaptive_color_enabled" -> isAdaptiveEnabled = prefs.getBoolean(key, false)
                         "banner_image_path" -> bannerPath = prefs.getString(key, "") ?: ""
                         "banner_update_timestamp" -> bannerUpdateTrigger = prefs.getLong(key, 0L)
+                        "mesh_hue" -> meshHue = prefs.getFloat(key, 260f)
                     }
                 }
                 sharedPrefs.registerOnSharedPreferenceChangeListener(listener)
@@ -146,7 +149,15 @@ class MainActivity : AppCompatActivity() {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFF1E1E2E),
+                                    Color(0xFF2D2B55),
+                                    Color(0xFF1E1E2E)
+                                )
+                            )
+                        )
                 ) {
                     if (bgImagePath.isNotEmpty() && java.io.File(bgImagePath).exists()) {
                         coil.compose.AsyncImage(
@@ -157,6 +168,37 @@ class MainActivity : AppCompatActivity() {
                                 .fillMaxSize()
                                 .alpha(bgOpacity)
                                 .blur(bgBlur.dp)
+                        )
+                    } else {
+                        val color1 = Color.hsv(meshHue, 0.6f, 0.96f)
+                        val color2 = Color.hsv((meshHue - 40f + 360f) % 360f, 0.7f, 0.96f)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.radialGradient(
+                                        colors = listOf(
+                                            color1.copy(alpha = 0.3f),
+                                            Color.Transparent
+                                        ),
+                                        center = androidx.compose.ui.geometry.Offset(100f, 200f),
+                                        radius = 800f
+                                    )
+                                )
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.radialGradient(
+                                        colors = listOf(
+                                            color2.copy(alpha = 0.25f),
+                                            Color.Transparent
+                                        ),
+                                        center = androidx.compose.ui.geometry.Offset(800f, 1500f),
+                                        radius = 1000f
+                                    )
+                                )
                         )
                     }
 
