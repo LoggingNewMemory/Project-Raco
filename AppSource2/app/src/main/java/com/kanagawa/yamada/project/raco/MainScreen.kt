@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco
 
+import com.kanagawa.yamada.project.raco.ui.theme.GlassCard
+
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 
@@ -300,7 +302,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
 
                     item {
                         // Banner
-                        Card(
+                        GlassCard(
                             elevation = CardDefaults.cardElevation(2.dp),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth().clickable { onNavigate(Screen.Raco) }
@@ -336,7 +338,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                     item {
                         // Status Row
                         Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max)) {
-                            Card(
+                            GlassCard(
                                 modifier = Modifier.weight(1f).fillMaxHeight(),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
@@ -350,7 +352,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                                 }
                             }
                             Spacer(modifier = Modifier.width(10.dp))
-                            Card(
+                            GlassCard(
                                 modifier = Modifier.weight(1f).fillMaxHeight(),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
@@ -444,7 +446,7 @@ fun ControlRow(title: String, desc: String, icon: ImageVector, bgColor: Color, i
         label = "progressAnim"
     )
 
-    Card(
+    GlassCard(
         colors = CardDefaults.cardColors(containerColor = bgColor),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth().pointerInput(Unit) {
@@ -499,7 +501,7 @@ fun ControlRow(title: String, desc: String, icon: ImageVector, bgColor: Color, i
 
 @Composable
 fun FeatureCard(title: String, icon: ImageVector, onClick: () -> Unit) {
-    Card(
+    GlassCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth().clickable { onClick() }

@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco.UtilitiesPages
 
+import com.kanagawa.yamada.project.raco.ui.theme.GlassCard
+
 import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.verticalScroll
 
@@ -491,7 +493,7 @@ fun SystemScreen(onBack: () -> Unit) {
 
 @Composable
 private fun SystemCard(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Card(
+    GlassCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth()
@@ -614,7 +616,7 @@ fun AyundaPresetPage(
                 Spacer(Modifier.height(24.dp))
 
                 // Color preview card
-                Card(
+                GlassCard(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth()

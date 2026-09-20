@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco
 
+import com.kanagawa.yamada.project.raco.ui.theme.GlassCard
+
 import androidx.compose.ui.draw.alpha
 import androidx.compose.animation.with
 
@@ -168,7 +170,7 @@ fun UtilitiesScreen(onBack: () -> Unit) {
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(filteredItems) { item ->
-                                Card(
+                                GlassCard(
                                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                                     shape = RoundedCornerShape(12.dp),
                                     modifier = Modifier

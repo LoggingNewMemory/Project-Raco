@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco.UtilitiesPages
 
+import com.kanagawa.yamada.project.raco.ui.theme.GlassCard
+
 import androidx.compose.ui.draw.alpha
 
 import com.kanagawa.yamada.project.raco.R
@@ -102,7 +104,7 @@ fun ExtraSettingsScreen(onBack: () -> Unit) {
                 items(EXTRA_TOGGLE_ITEMS.size) { index ->
                     val item = EXTRA_TOGGLE_ITEMS[index]
                     val checked = toggleStates[item.key] ?: false
-                    Card(
+                    GlassCard(
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)

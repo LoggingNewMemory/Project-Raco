@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco.UtilitiesPages
 
+import com.kanagawa.yamada.project.raco.ui.theme.GlassCard
+
 import androidx.compose.ui.draw.alpha
 
 import com.kanagawa.yamada.project.raco.R
@@ -413,7 +415,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
 
 @Composable
 private fun AppearanceCard(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Card(
+    GlassCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth()

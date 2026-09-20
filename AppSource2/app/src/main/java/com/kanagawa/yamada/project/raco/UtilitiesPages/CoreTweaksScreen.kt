@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco.UtilitiesPages
 
+import com.kanagawa.yamada.project.raco.ui.theme.GlassCard
+
 import androidx.compose.ui.draw.alpha
 
 import com.kanagawa.yamada.project.raco.R
@@ -121,7 +123,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
         )
         LazyColumn(modifier = Modifier.padding(padding).padding(horizontal = 16.dp).alpha(alpha), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             item {
-                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                GlassCard(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                     Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
                         Text(stringResource(R.string.fix_tweaks), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
 
@@ -157,7 +159,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
             }
 
             item {
-                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                GlassCard(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(stringResource(R.string.custom_cpu_governor), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                         Spacer(modifier = Modifier.height(4.dp))

@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco
 
+import com.kanagawa.yamada.project.raco.ui.theme.GlassCard
+
 import androidx.compose.ui.draw.alpha
 
 import com.kanagawa.yamada.project.raco.R
@@ -399,7 +401,7 @@ fun SlingshotConfigScreen(pkg: String, onBack: () -> Unit) {
             }
             
             Spacer(modifier = Modifier.height(32.dp))
-            androidx.compose.material3.Card(
+            GlassCard(
                 colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFFFFA726).copy(alpha = 0.1f)),
                 border = androidx.compose.foundation.BorderStroke(1.dp, androidx.compose.ui.graphics.Color(0xFFFFA726).copy(alpha = 0.3f)),
                 modifier = androidx.compose.ui.Modifier.fillMaxWidth()

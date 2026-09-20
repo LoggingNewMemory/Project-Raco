@@ -105,8 +105,13 @@ fun ProjectRacoTheme(
         else -> LightColorScheme
     }
 
+    val finalColorScheme = colorScheme.copy(
+        surface = colorScheme.surface.copy(alpha = 0.15f),
+        surfaceVariant = colorScheme.surfaceVariant.copy(alpha = 0.25f)
+    )
+
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = finalColorScheme,
         typography = Typography,
         content = content
     )

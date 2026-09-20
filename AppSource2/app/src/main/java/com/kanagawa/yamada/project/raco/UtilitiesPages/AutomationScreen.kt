@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco.UtilitiesPages
 
+import com.kanagawa.yamada.project.raco.ui.theme.GlassCard
+
 import androidx.compose.ui.draw.alpha
 import com.kanagawa.yamada.project.raco.R
 import androidx.compose.ui.res.stringResource
@@ -98,7 +100,7 @@ fun AutomationScreen(onBack: () -> Unit) {
         ) {
             // Game Assistant Card
             item {
-                Card(
+                GlassCard(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -168,7 +170,7 @@ fun AutomationScreen(onBack: () -> Unit) {
             }
             // Companion Mode Card
             item {
-                Card(
+                GlassCard(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -198,7 +200,7 @@ fun AutomationScreen(onBack: () -> Unit) {
             }
             // RSWAP Card
             item {
-                Card(
+                GlassCard(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -222,7 +224,7 @@ fun AutomationScreen(onBack: () -> Unit) {
             
             // App List Card
             item {
-                Card(
+                GlassCard(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()

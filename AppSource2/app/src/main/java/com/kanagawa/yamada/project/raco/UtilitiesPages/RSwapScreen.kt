@@ -1,5 +1,7 @@
 package com.kanagawa.yamada.project.raco.UtilitiesPages
 
+import com.kanagawa.yamada.project.raco.ui.theme.GlassCard
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -153,7 +155,7 @@ fun RSwapScreen(onBack: () -> Unit) {
         ) {
             // Config Card
             item {
-                Card(
+                GlassCard(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -277,7 +279,7 @@ fun RSwapScreen(onBack: () -> Unit) {
             // Status Card and Game List
             if (rswapEnabled && !isConfiguring) {
                 item {
-                    Card(
+                    GlassCard(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
