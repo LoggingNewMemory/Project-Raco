@@ -449,6 +449,7 @@ fun ControlRow(title: String, desc: String, icon: ImageVector, bgColor: Color, i
     GlassCard(
         colors = CardDefaults.cardColors(containerColor = bgColor),
         shape = RoundedCornerShape(12.dp),
+        applyAlpha = !isCurrent,
         modifier = Modifier.fillMaxWidth().pointerInput(Unit) {
             var totalDrag = 0f
             detectHorizontalDragGestures(

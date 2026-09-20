@@ -30,12 +30,13 @@ fun GlassCard(
         contentColor = Color.White
     ),
     elevation: CardElevation = CardDefaults.cardElevation(0.dp),
+    applyAlpha: Boolean = true,
     border: BorderStroke? = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)),
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val baseColor = colors.containerColor
-    val finalBgColor = if (baseColor.alpha > 0.5f) baseColor.copy(alpha = 0.15f) else baseColor
+    val finalBgColor = if (applyAlpha && baseColor.alpha > 0.5f) baseColor.copy(alpha = 0.15f) else baseColor
 
     val darkTheme = isSystemInDarkTheme()
     val borderColor = if (darkTheme) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.4f)
