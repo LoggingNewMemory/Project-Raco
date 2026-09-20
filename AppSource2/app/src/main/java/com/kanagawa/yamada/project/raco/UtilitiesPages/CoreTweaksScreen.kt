@@ -161,7 +161,7 @@ fun CoreTweaksScreen(onBack: () -> Unit) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(stringResource(R.string.custom_cpu_governor), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(stringResource(R.string.select_the_cpu_scaling_governor_takes_effect_after_applying_a_profile), style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.select_the_cpu_scaling_governor_takes_effect_on_balanced_mode), style = MaterialTheme.typography.bodySmall)
                         Spacer(modifier = Modifier.height(16.dp))
                         if (availableGovernors.isEmpty()) {
                             Text(stringResource(R.string.no_governors_found_or_root_access_denied), color = MaterialTheme.colorScheme.error)

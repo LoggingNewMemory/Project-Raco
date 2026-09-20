@@ -101,7 +101,7 @@ Project Raco Memerlukan Root</string>
     <string name="game_app_list">Daftar Aplikasi Game</string>
     <string name="manage_the_list_of_apps_that_trigger_performance_mode_automatically">Kelola daftar aplikasi yang secara otomatis memicu mode Performa.</string>
     <string name="open_app_list">Buka Daftar Aplikasi</string>
-    <string name="select_the_cpu_scaling_governor_takes_effect_after_applying_a_profile">Pilih governor CPU. Berlaku setelah menerapkan profil.</string>
+    <string name="select_the_cpu_scaling_governor_takes_effect_on_balanced_mode">Pilih governor CPU. Berlaku pada mode Seimbang.</string>
     <string name="no_governors_found_or_root_access_denied">Tidak ada governor ditemukan atau akses root ditolak.</string>
     <string name="governor">Governor</string>
     <string name="english">English</string>

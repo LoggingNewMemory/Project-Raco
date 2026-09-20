@@ -104,7 +104,7 @@ Project Raco требует Root</string>
     <string name="game_app_list">Список игр</string>
     <string name="manage_the_list_of_apps_that_trigger_performance_mode_automatically">Управление приложениями, автоматически включающими режим Производительность.</string>
     <string name="open_app_list">Открыть список приложений</string>
-    <string name="select_the_cpu_scaling_governor_takes_effect_after_applying_a_profile">Выбор говернора процессора. Вступает в силу после применения профиля.</string>
+    <string name="select_the_cpu_scaling_governor_takes_effect_on_balanced_mode">Выбор говернора процессора. Вступает в силу в режиме Баланс.</string>
     <string name="no_governors_found_or_root_access_denied">Говерноры не найдены или нет root-доступа.</string>
     <string name="governor">Говернор</string>
     <string name="english">English</string>
