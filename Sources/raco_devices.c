@@ -9,6 +9,20 @@ Copyright (C) 2026 Kanagawa Yamada
 // MEDIATEK DEVICES
 // ==============================
 
+void set_gpu_governor(const char *target, const char *gov) {
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir("/sys/class/devfreq")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (strstr(ent->d_name, target)) {
+                char path[256];
+                snprintf(path, sizeof(path), "/sys/class/devfreq/%s/governor", ent->d_name);
+                rawrite(gov, path);
+            }
+        }
+        closedir(dir);
+    }
+}
 
 void mtk_mali_devfreq(const char *mode) {
     DIR *dir = opendir("/sys/class/devfreq");
@@ -221,6 +235,7 @@ void mediatek_awaken() {
     if (config.device_mitigation != 1) {
         devfreq_max("/sys/class/devfreq/mtk-dvfsrc-devfreq");
     }
+    set_gpu_governor("mali", "performance");
 }
 
 void mediatek_balanced() {
@@ -293,6 +308,7 @@ void mediatek_balanced() {
 
     // Defreq Tweaks
     devfreq_mid_perf("/sys/class/devfreq/mtk-dvfsrc-devfreq");
+    set_gpu_governor("mali", "userspace");
 }
 
 void mediatek_normal() {
@@ -365,6 +381,7 @@ void mediatek_normal() {
 
     // Defreq Tweaks
     devfreq_normal("/sys/class/devfreq/mtk-dvfsrc-devfreq");
+    set_gpu_governor("mali", "simple_ondemand");
 }
 
 void mediatek_powersave() {
@@ -439,6 +456,7 @@ void mediatek_powersave() {
 
     // Defreq Tweaks
     devfreq_normal("/sys/class/devfreq/mtk-dvfsrc-devfreq");
+    set_gpu_governor("mali", "powersave");
 }
 
 // ==============================
@@ -648,6 +666,7 @@ void snapdragon_awaken() {
     if (config.device_mitigation != 1) {
         devfreq_max("/sys/class/kgsl/kgsl-3d0/devfreq");
     }
+    rawrite("performance", "/sys/class/kgsl/kgsl-3d0/devfreq/governor");
 }
 
 void snapdragon_balanced() {
@@ -688,6 +707,7 @@ void snapdragon_balanced() {
 
     snapdragon_devfreq_apply(2);
     devfreq_mid_perf("/sys/class/kgsl/kgsl-3d0/devfreq");
+    rawrite("userspace", "/sys/class/kgsl/kgsl-3d0/devfreq/governor");
 }
 
 void snapdragon_normal() {
@@ -728,6 +748,7 @@ void snapdragon_normal() {
 
     snapdragon_devfreq_apply(1);
     devfreq_normal("/sys/class/kgsl/kgsl-3d0/devfreq");
+    rawrite("msm-adreno-tz", "/sys/class/kgsl/kgsl-3d0/devfreq/governor");
 }
 
 void snapdragon_powersave() {
@@ -768,6 +789,7 @@ void snapdragon_powersave() {
 
     snapdragon_devfreq_apply(1);
     devfreq_normal("/sys/class/kgsl/kgsl-3d0/devfreq");
+    rawrite("powersave", "/sys/class/kgsl/kgsl-3d0/devfreq/governor");
 }
 
 // =================================================================
@@ -842,6 +864,7 @@ void exynos_awaken() {
     }
     set_custom_gpu_bounds("/sys/kernel/gpu", "gpu_available_frequencies", "gpu_max_clock", "gpu_min_clock", 0);
     scan_minor_devfreq_and_apply("devfreq_mif", 0);
+    set_gpu_governor("mali", "performance");
 }
 
 void exynos_balanced() {
@@ -858,6 +881,7 @@ void exynos_balanced() {
     }
     set_custom_gpu_bounds("/sys/kernel/gpu", "gpu_available_frequencies", "gpu_max_clock", "gpu_min_clock", 2);
     scan_minor_devfreq_and_apply("devfreq_mif", 2);
+    set_gpu_governor("mali", "userspace");
 }
 
 void exynos_normal() {
@@ -874,10 +898,12 @@ void exynos_normal() {
     }
     set_custom_gpu_bounds("/sys/kernel/gpu", "gpu_available_frequencies", "gpu_max_clock", "gpu_min_clock", 1);
     scan_minor_devfreq_and_apply("devfreq_mif", 1);
+    set_gpu_governor("mali", "simple_ondemand");
 }
 
 void exynos_powersave() {
     set_custom_gpu_bounds("/sys/kernel/gpu", "gpu_available_frequencies", "gpu_max_clock", "gpu_min_clock", 1);   
+    set_gpu_governor("mali", "powersave");
 }
 
 // ==============================
@@ -938,6 +964,7 @@ void unisoc_awaken() {
     if (access("/sys/module/zte_misc/parameters/thermal_control_en", F_OK) == 0) {
         rawrite("0", "/sys/module/zte_misc/parameters/thermal_control_en");
     }
+    set_gpu_governor(".gpu", "performance");
 }
 
 void unisoc_balanced() {
@@ -947,6 +974,7 @@ void unisoc_balanced() {
     if (access("/sys/module/zte_misc/parameters/thermal_control_en", F_OK) == 0) {
         rawrite("1", "/sys/module/zte_misc/parameters/thermal_control_en");
     }
+    set_gpu_governor(".gpu", "sprd-governor");
 }
 
 void unisoc_normal() {
@@ -956,6 +984,7 @@ void unisoc_normal() {
     if (access("/sys/module/zte_misc/parameters/thermal_control_en", F_OK) == 0) {
         rawrite("1", "/sys/module/zte_misc/parameters/thermal_control_en");
     }
+    set_gpu_governor(".gpu", "simple_ondemand");
 }
 
 void unisoc_powersave() {
@@ -965,6 +994,7 @@ void unisoc_powersave() {
     if (access("/sys/module/zte_misc/parameters/thermal_control_en", F_OK) == 0) {
         rawrite("1", "/sys/module/zte_misc/parameters/thermal_control_en");
     }
+    set_gpu_governor(".gpu", "powersave");
 }
 
 // ==============================
@@ -984,6 +1014,7 @@ void tensor_awaken() {
         }
         closedir(dir);
     }
+    set_gpu_governor("mali", "performance");
 }
 
 void tensor_balanced() {
@@ -999,6 +1030,7 @@ void tensor_balanced() {
         }
         closedir(dir);
     }
+    set_gpu_governor("mali", "userspace");
 }
 
 void tensor_normal() {
@@ -1014,6 +1046,7 @@ void tensor_normal() {
         }
         closedir(dir);
     }
+    set_gpu_governor("mali", "simple_ondemand");
 }
 
 void tensor_powersave() {
@@ -1029,6 +1062,7 @@ void tensor_powersave() {
         }
         closedir(dir);
     }
+    set_gpu_governor("mali", "powersave");
 }
 
 // ==============================
