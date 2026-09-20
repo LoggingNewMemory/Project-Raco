@@ -111,6 +111,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
     var isInstallingBg by remember { mutableStateOf(false) }
     var adaptiveColorBg by remember { mutableStateOf(false) }
     var meshHue by remember { mutableFloatStateOf(260f) }
+    var meshEnabled by remember { mutableStateOf(true) }
 
     val bannerCropLauncher = rememberLauncherForActivityResult(com.canhub.cropper.CropImageContract()) { result ->
         if (result.isSuccessful) {
@@ -199,6 +200,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
             bgExists = !bgPath.isNullOrEmpty() && File(bgPath).exists()
             adaptiveColorBg = sharedPrefs.getBoolean("adaptive_color_enabled", false)
             meshHue = sharedPrefs.getFloat("mesh_hue", 260f)
+            meshEnabled = sharedPrefs.getBoolean("mesh_enabled", true)
             isLoading = false
         }
 
@@ -420,39 +422,69 @@ fun AppearanceScreen(onBack: () -> Unit) {
                     }
                     Spacer(Modifier.height(16.dp))
                     
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        HueColorWheel(
-                            hue = meshHue,
-                            onHueChange = { 
-                                meshHue = it 
-                                context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
-                                    .edit().putFloat("mesh_hue", it).apply()
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            HueColorWheel(
+                                hue = meshHue,
+                                onHueChange = { 
+                                    meshHue = it 
+                                    meshEnabled = true
+                                    context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                                        .edit().putFloat("mesh_hue", it).putBoolean("mesh_enabled", true).apply()
+                                }
+                            )
+                        }
+                        
+                        Spacer(Modifier.width(16.dp))
+                        
+                        Column(
+                            modifier = Modifier.weight(0.6f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            val presets = listOf(
+                                Pair(stringResource(R.string.color_purple), 260f),
+                                Pair(stringResource(R.string.color_red), 0f),
+                                Pair(stringResource(R.string.color_blue), 220f),
+                                Pair(stringResource(R.string.color_brown), 30f)
+                            )
+                            presets.forEach { (name, hue) ->
+                                Button(
+                                    onClick = { 
+                                        meshHue = hue
+                                        meshEnabled = true
+                                        context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                                            .edit().putFloat("mesh_hue", hue).putBoolean("mesh_enabled", true).apply()
+                                    },
+                                    modifier = Modifier.fillMaxWidth().height(36.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    contentPadding = PaddingValues(0.dp)
+                                ) {
+                                    Text(name, style = MaterialTheme.typography.labelLarge)
+                                }
                             }
-                        )
+                        }
                     }
                     
                     Spacer(Modifier.height(16.dp))
                     
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        val presets = listOf(
-                            Pair(stringResource(R.string.color_purple), 260f),
-                            Pair(stringResource(R.string.color_red), 0f),
-                            Pair(stringResource(R.string.color_blue), 220f),
-                            Pair(stringResource(R.string.color_brown), 30f)
-                        )
-                        presets.forEach { (name, hue) ->
-                            Button(
-                                onClick = { 
-                                    meshHue = hue
-                                    context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
-                                        .edit().putFloat("mesh_hue", hue).apply()
-                                },
-                                modifier = Modifier.weight(1f).padding(horizontal = 2.dp),
-                                contentPadding = PaddingValues(4.dp)
-                            ) {
-                                Text(name, style = MaterialTheme.typography.labelSmall)
-                            }
-                        }
+                    Button(
+                        onClick = { 
+                            meshEnabled = false
+                            context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                                .edit().putBoolean("mesh_enabled", false).apply()
+                        },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(stringResource(R.string.disable_color_hue), style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }

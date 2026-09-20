@@ -213,4 +213,5 @@ Project RacoにはRoot権限が必要です</string>
     <string name="color_red">赤</string>
     <string name="color_blue">青</string>
     <string name="color_brown">茶色</string>
+    <string name="disable_color_hue">カラーヒューを無効化</string>
 </resources>

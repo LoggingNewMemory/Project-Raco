@@ -210,4 +210,5 @@ Project Raco Memerlukan Root</string>
     <string name="color_red">Merah</string>
     <string name="color_blue">Biru</string>
     <string name="color_brown">Coklat</string>
+    <string name="disable_color_hue">Nonaktifkan Rona Warna</string>
 </resources>

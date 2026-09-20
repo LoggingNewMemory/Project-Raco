@@ -213,4 +213,5 @@ Project Raco требует Root</string>
     <string name="color_red">Красный</string>
     <string name="color_blue">Синий</string>
     <string name="color_brown">Коричневый</string>
+    <string name="disable_color_hue">Отключить оттенок цвета</string>
 </resources>
