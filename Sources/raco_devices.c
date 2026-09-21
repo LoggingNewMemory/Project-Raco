@@ -158,8 +158,6 @@ void mediatek_awaken() {
     int ged_count = sizeof(ged_files) / sizeof(ged_files[0]);
     raco_bulk(ged_base, ged_files, ged_count, "1", 1);
 
-    // Disable GED KPI
-    rawrite("0", "/sys/module/ged/parameters/is_GED_KPI_enabled");
 
     // PNPMGR
     const char *pnp_base = "/sys/pnpmgr";
@@ -198,11 +196,6 @@ void mediatek_awaken() {
     rawrite("0", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
     rawrite("0", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
-    // FPSGo Sysfs Force Off
-    rawrite("0", "/sys/kernel/fpsgo/common/fpsgo_enable");
-    rawrite("0", "/sys/kernel/fpsgo/fbt/fbt_enable");
-    rawrite("0", "/sys/kernel/fpsgo/fstb/fstb_self_ctrl_fps_enable");
-    rawrite("0", "/sys/module/mtk_fpsgo/parameters/fstb_self_ctrl_fps_enable");
 
     // Power Limits
     if (config.device_mitigation == 1) {
@@ -258,8 +251,6 @@ void mediatek_balanced() {
     int ged_count = sizeof(ged_files) / sizeof(ged_files[0]);
     raco_bulk(ged_base, ged_files, ged_count, "0", 1);
 
-    // Disable GED KPI
-    rawrite("1", "/sys/module/ged/parameters/is_GED_KPI_enabled");
 
     // PNPMGR
     const char *pnp_base = "/sys/pnpmgr";
@@ -286,11 +277,6 @@ void mediatek_balanced() {
     rawrite("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
     rawrite("-1", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
-    // FPSGo Sysfs Restore
-    rawrite("1", "/sys/kernel/fpsgo/common/fpsgo_enable");
-    rawrite("1", "/sys/kernel/fpsgo/fbt/fbt_enable");
-    rawrite("1", "/sys/kernel/fpsgo/fstb/fstb_self_ctrl_fps_enable");
-    rawrite("1", "/sys/module/mtk_fpsgo/parameters/fstb_self_ctrl_fps_enable");
 
     // Power Limits
     const char *power_limits[] = {
@@ -331,8 +317,6 @@ void mediatek_normal() {
     int ged_count = sizeof(ged_files) / sizeof(ged_files[0]);
     raco_bulk(ged_base, ged_files, ged_count, "0", 1);
 
-    // Disable GED KPI
-    rawrite("1", "/sys/module/ged/parameters/is_GED_KPI_enabled");
 
     // PNPMGR
     const char *pnp_base = "/sys/pnpmgr";
@@ -359,11 +343,6 @@ void mediatek_normal() {
     rakakikomi("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
     rakakikomi("-1", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
-    // FPSGo Sysfs Restore
-    rawrite("1", "/sys/kernel/fpsgo/common/fpsgo_enable");
-    rawrite("1", "/sys/kernel/fpsgo/fbt/fbt_enable");
-    rawrite("1", "/sys/kernel/fpsgo/fstb/fstb_self_ctrl_fps_enable");
-    rawrite("1", "/sys/module/mtk_fpsgo/parameters/fstb_self_ctrl_fps_enable");
 
     // Power Limits
     const char *power_limits[] = {
@@ -405,8 +384,6 @@ void mediatek_powersave() {
     int ged_count = sizeof(ged_files) / sizeof(ged_files[0]);
     raco_bulk(ged_base, ged_files, ged_count, "0", 1);
 
-    // Disable GED KPI
-    rawrite("1", "/sys/module/ged/parameters/is_GED_KPI_enabled");
 
     // PNPMGR
     const char *pnp_base = "/sys/pnpmgr";
@@ -432,11 +409,6 @@ void mediatek_powersave() {
     rakakikomi("-1", "/sys/devices/platform/10012000.dvfsrc/helio-dvfsrc/dvfsrc_req_ddr_opp");
     rakakikomi("-1", "/sys/kernel/helio-dvfsrc/dvfsrc_force_vcore_dvfs_opp");
 
-    // FPSGo Sysfs Restore
-    rawrite("1", "/sys/kernel/fpsgo/common/fpsgo_enable");
-    rawrite("1", "/sys/kernel/fpsgo/fbt/fbt_enable");
-    rawrite("1", "/sys/kernel/fpsgo/fstb/fstb_self_ctrl_fps_enable");
-    rawrite("1", "/sys/module/mtk_fpsgo/parameters/fstb_self_ctrl_fps_enable");
 
     // Power Limits
     const char *power_limits[] = {
