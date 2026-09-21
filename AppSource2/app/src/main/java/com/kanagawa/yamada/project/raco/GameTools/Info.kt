@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Switch
@@ -29,6 +30,7 @@ fun InfoOverlayView(context: Context, currentPackage: String) {
     var currentTime by remember { mutableStateOf(java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())) }
     var currentFps by remember { mutableStateOf(0) }
     var currentBattery by remember { mutableStateOf(100) }
+    var currentTemp by remember { mutableStateOf(0f) }
 
     LaunchedEffect(currentPackage) {
         val bm = context.getSystemService(Context.BATTERY_SERVICE) as android.os.BatteryManager
@@ -61,8 +63,11 @@ fun InfoOverlayView(context: Context, currentPackage: String) {
                 currentTime = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
                 currentBattery = bm.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)
                 
-                // Calculate FPS matching Kaorios 1:1 logic
-                val fps = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                val (tempVal, fps) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val tOutput = runCmd("cat /sys/class/power_supply/battery/temp").firstOrNull()
+                    val tInt = tOutput?.toIntOrNull() ?: 0
+                    val tempResult = tInt / 10f
+
                     var calculatedFps = 0.0
                     try {
                         val timeStatsOutput = runCmd("dumpsys SurfaceFlinger --timestats -dump").joinToString("\n")
@@ -118,8 +123,10 @@ fun InfoOverlayView(context: Context, currentPackage: String) {
                             }
                         }
                     } catch (e: Exception) {}
-                    calculatedFps
+                    Pair(tempResult, calculatedFps)
                 }
+                
+                currentTemp = tempVal
                 if (fps > 0) {
                     currentFps = kotlin.math.round(fps).toInt()
                 } else if (fps == 0.0 && previousMaxTime > 0L) {
@@ -141,12 +148,14 @@ fun InfoOverlayView(context: Context, currentPackage: String) {
     var showTime by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_time", true)) }
     var showFps by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_fps", true)) }
     var showBattery by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_battery", true)) }
+    var showTemp by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_temp", true)) }
 
     DisposableEffect(sharedPrefs) {
         val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
             if (key == "overlay_show_time") showTime = prefs.getBoolean("overlay_show_time", true)
             if (key == "overlay_show_fps") showFps = prefs.getBoolean("overlay_show_fps", true)
             if (key == "overlay_show_battery") showBattery = prefs.getBoolean("overlay_show_battery", true)
+            if (key == "overlay_show_temp") showTemp = prefs.getBoolean("overlay_show_temp", true)
         }
         sharedPrefs.registerOnSharedPreferenceChangeListener(listener)
         onDispose {
@@ -154,34 +163,41 @@ fun InfoOverlayView(context: Context, currentPackage: String) {
         }
     }
 
-    if (showTime || showFps || showBattery) {
+    if (showTime || showFps || showBattery || showTemp) {
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(4.dp))
                 .background(Color(0xFF1E1E1E).copy(alpha = 0.85f))
-                .padding(horizontal = 12.dp, vertical = 4.dp),
+                .padding(horizontal = 6.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             if (showTime) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Schedule, contentDescription = "Time", tint = Color.LightGray, modifier = Modifier.size(15.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(currentTime, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Icon(Icons.Default.Schedule, contentDescription = "Time", tint = Color.LightGray, modifier = Modifier.size(12.dp))
+                    Spacer(Modifier.width(2.dp))
+                    Text(currentTime, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
             if (showFps) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Layers, contentDescription = "FPS", tint = Color.LightGray, modifier = Modifier.size(15.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("${currentFps}FPS", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Icon(Icons.Default.Layers, contentDescription = "FPS", tint = Color.LightGray, modifier = Modifier.size(12.dp))
+                    Spacer(Modifier.width(2.dp))
+                    Text("${currentFps}FPS", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
             if (showBattery) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.BatteryFull, contentDescription = "Battery", tint = Color.LightGray, modifier = Modifier.size(15.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("$currentBattery%", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Icon(Icons.Default.BatteryFull, contentDescription = "Battery", tint = Color.LightGray, modifier = Modifier.size(12.dp))
+                    Spacer(Modifier.width(2.dp))
+                    Text("$currentBattery%", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+            if (showTemp) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Thermostat, contentDescription = "Temperature", tint = Color.LightGray, modifier = Modifier.size(12.dp))
+                    Spacer(Modifier.width(2.dp))
+                    Text(String.format(java.util.Locale.US, "%.1f°C", currentTemp), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -198,9 +214,10 @@ fun InfoConfigView(
     var showTime by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_time", true)) }
     var showFps by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_fps", true)) }
     var showBattery by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_battery", true)) }
+    var showTemp by remember { mutableStateOf(sharedPrefs.getBoolean("overlay_show_temp", true)) }
 
-    fun checkAndDisableAll(time: Boolean, fps: Boolean, battery: Boolean) {
-        if (!time && !fps && !battery) {
+    fun checkAndDisableAll(time: Boolean, fps: Boolean, battery: Boolean, temp: Boolean) {
+        if (!time && !fps && !battery && !temp) {
             onDisableInfo()
             onDismissRequest()
         }
@@ -225,7 +242,7 @@ fun InfoConfigView(
                 onCheckedChange = { 
                     showTime = it
                     sharedPrefs.edit().putBoolean("overlay_show_time", it).apply()
-                    checkAndDisableAll(it, showFps, showBattery)
+                    checkAndDisableAll(it, showFps, showBattery, showTemp)
                 },
                 colors = androidx.compose.material3.SwitchDefaults.colors(
                     checkedThumbColor = Color.White,
@@ -240,7 +257,7 @@ fun InfoConfigView(
                 onCheckedChange = { 
                     showBattery = it
                     sharedPrefs.edit().putBoolean("overlay_show_battery", it).apply()
-                    checkAndDisableAll(showTime, showFps, it)
+                    checkAndDisableAll(showTime, showFps, it, showTemp)
                 },
                 colors = androidx.compose.material3.SwitchDefaults.colors(
                     checkedThumbColor = Color.White,
@@ -266,7 +283,22 @@ fun InfoConfigView(
                 onCheckedChange = { 
                     showFps = it
                     sharedPrefs.edit().putBoolean("overlay_show_fps", it).apply()
-                    checkAndDisableAll(showTime, it, showBattery)
+                    checkAndDisableAll(showTime, it, showBattery, showTemp)
+                },
+                colors = androidx.compose.material3.SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = themeColor
+                )
+            )
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Text("Show Temp", modifier = Modifier.weight(1f), color = Color.White)
+            Switch(
+                checked = showTemp, 
+                onCheckedChange = { 
+                    showTemp = it
+                    sharedPrefs.edit().putBoolean("overlay_show_temp", it).apply()
+                    checkAndDisableAll(showTime, showFps, showBattery, it)
                 },
                 colors = androidx.compose.material3.SwitchDefaults.colors(
                     checkedThumbColor = Color.White,
