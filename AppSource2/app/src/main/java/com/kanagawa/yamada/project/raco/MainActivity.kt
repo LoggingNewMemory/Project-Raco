@@ -75,6 +75,8 @@ class MainActivity : AppCompatActivity() {
             var bannerPath by remember { mutableStateOf(sharedPrefs.getString("banner_image_path", "") ?: "") }
             var bannerUpdateTrigger by remember { mutableStateOf(sharedPrefs.getLong("banner_update_timestamp", 0L)) }
             var meshHue by remember { mutableFloatStateOf(sharedPrefs.getFloat("mesh_hue", 260f)) }
+            var meshSat by remember { mutableFloatStateOf(sharedPrefs.getFloat("mesh_sat", 0.6f)) }
+            var meshVal by remember { mutableFloatStateOf(sharedPrefs.getFloat("mesh_val", 0.96f)) }
             var meshEnabled by remember { mutableStateOf(sharedPrefs.getBoolean("mesh_enabled", true)) }
             
             DisposableEffect(Unit) {
@@ -85,6 +87,8 @@ class MainActivity : AppCompatActivity() {
                 bannerPath = sharedPrefs.getString("banner_image_path", "") ?: ""
                 bannerUpdateTrigger = sharedPrefs.getLong("banner_update_timestamp", 0L)
                 meshHue = sharedPrefs.getFloat("mesh_hue", 260f)
+                meshSat = sharedPrefs.getFloat("mesh_sat", 0.6f)
+                meshVal = sharedPrefs.getFloat("mesh_val", 0.96f)
                 meshEnabled = sharedPrefs.getBoolean("mesh_enabled", true)
                 
                 val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
@@ -96,6 +100,8 @@ class MainActivity : AppCompatActivity() {
                         "banner_image_path" -> bannerPath = prefs.getString(key, "") ?: ""
                         "banner_update_timestamp" -> bannerUpdateTrigger = prefs.getLong(key, 0L)
                         "mesh_hue" -> meshHue = prefs.getFloat(key, 260f)
+                        "mesh_sat" -> meshSat = prefs.getFloat(key, 0.6f)
+                        "mesh_val" -> meshVal = prefs.getFloat(key, 0.96f)
                         "mesh_enabled" -> meshEnabled = prefs.getBoolean(key, true)
                     }
                 }
@@ -180,8 +186,8 @@ class MainActivity : AppCompatActivity() {
                         )
                     } else {
                         if (meshEnabled) {
-                            val color1 = Color.hsv(meshHue, 0.6f, 0.96f)
-                            val color2 = Color.hsv((meshHue - 40f + 360f) % 360f, 0.7f, 0.96f)
+                            val color1 = Color.hsv(meshHue, meshSat, meshVal)
+                            val color2 = Color.hsv((meshHue - 40f + 360f) % 360f, (meshSat + 0.1f).coerceAtMost(1f), meshVal)
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()

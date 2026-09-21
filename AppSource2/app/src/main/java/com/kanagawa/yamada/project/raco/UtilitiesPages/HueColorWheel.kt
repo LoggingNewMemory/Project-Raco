@@ -22,6 +22,8 @@ import kotlin.math.sin
 @Composable
 fun HueColorWheel(
     hue: Float,
+    sat: Float = 1f,
+    value: Float = 1f,
     onHueChange: (Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -87,7 +89,7 @@ fun HueColorWheel(
                 center = Offset(thumbX, thumbY),
             )
             drawCircle(
-                color = Color.hsv(hue, 1f, 1f),
+                color = Color.hsv(hue, sat, value),
                 radius = 12.dp.toPx(),
                 center = Offset(thumbX, thumbY)
             )
