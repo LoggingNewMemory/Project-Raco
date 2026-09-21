@@ -956,7 +956,7 @@ void unisoc_normal() {
     if (access("/sys/module/zte_misc/parameters/thermal_control_en", F_OK) == 0) {
         rawrite("1", "/sys/module/zte_misc/parameters/thermal_control_en");
     }
-    set_gpu_governor(".gpu", "simple_ondemand");
+    set_gpu_governor(".gpu", "sprd-governor");
 }
 
 void unisoc_powersave() {
