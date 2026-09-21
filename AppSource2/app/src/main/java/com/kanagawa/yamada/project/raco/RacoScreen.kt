@@ -303,7 +303,7 @@ fun RacoScreen(onBack: () -> Unit) {
                     .fillMaxWidth()
                     .offset(y = -overlapAmount)
                     .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(24.dp)
             ) {
                 Column {
