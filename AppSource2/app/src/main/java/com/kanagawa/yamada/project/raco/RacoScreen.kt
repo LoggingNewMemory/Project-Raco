@@ -41,27 +41,19 @@ import androidx.activity.compose.BackHandler
 import android.media.MediaPlayer
 
 private val dialogues = listOf(
-    "Welcome. Please scroll down to read more.",
-    "I am Zefanya... though most call me Raco.",
-    "Yamada-sama requested I greet you.",
-    "Don't stare too much... it is embarrassing.",
-    "I was just tidying up the pixels here.",
-    "My ears? Yes, they are real. Please do not touch.",
-    "I hope you are not carrying any red laser pointers.",
-    "I cannot responsible for my actions if I see a red dot.",
-    "Yamada-sama is likely coding right now.",
-    "I have to ensure he remembers to eat and sleep.",
-    "Being a childhood friend is... a lot of work.",
-    "My tail moves on its own. Pay it no mind.",
-    "Do you require refreshments? I can brew some tea.",
-    "I prefer warm fish over expensive dinners.",
-    "The data below is accurate. I verified it myself.",
-    "I am not cold... I am just composed.",
-    "...",
-    "You are quite patient to stay here with me.",
-    "I do not dislike your company, I suppose.",
-    "Feel free to check the Telegram group later.",
-    "I will remain here. Please, proceed."
+    "You keep tapping. Do you need something, or are you just easily amused?",
+    "My name is Zefanya. Yamada calls me Raco. Either is fine.",
+    "Since we are childhood friends of the same age, I suppose I understand Yamada better than anyone.", 
+    "I am Japanese, in case you couldn't tell.",
+    "I may be 180cm and 80kg, but I am still very light on my feet. I am a cat girl, after all.",            
+    "I am a hidden member of KanaDev_IS. I prefer observing quietly from the background.",      
+    "I am not glaring at you. This is just my resting face.",
+    "If you have a red laser pointer, keep it hidden. I lose all my composure when I see one.",         
+    "A cup of hot tea and a plate of warm fish. That is all I need to be content.",
+    "I am a straight, traditional Christian girl. I was born on September 4th.",
+    "I have zero tolerance for 'karbit' attitudes or LGBTQ+ discourse. Let us focus on something else.",     
+    "Yamada is probably forgetting to eat again. I will have to remind him.",
+    "Are you still here? ...Fine. I don't mind."
 )
 
 @Composable
