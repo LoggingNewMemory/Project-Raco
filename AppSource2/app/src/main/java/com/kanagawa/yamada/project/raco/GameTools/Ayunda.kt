@@ -107,7 +107,7 @@ fun AyundaConfigView(
                                 putString("last_ayunda_preset_$currentPackage", name)
                                 apply()
                             }
-                            val cmdStr = "service call SurfaceFlinger 1015 i32 1 f \${vals[0]} f 0 f 0 f 0 f 0 f \${vals[1]} f 0 f 0 f 0 f 0 f \${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f \${vals[3]}"
+                            val cmdStr = "service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${vals[3]}"
                             Runtime.getRuntime().exec(arrayOf("su", "-c", cmdStr)).waitFor()
                         }
                     }
