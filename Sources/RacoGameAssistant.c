@@ -109,22 +109,21 @@ void exec_performance(char *pkg) {
     if (pid == 0) {
         char cmd[1024];
         
-        if (is_rswap_enabled()) {
-            int mode = 4;
-            char path[256];
-            snprintf(path, sizeof(path), "/data/ProjectRaco/modes/%s", pkg);
-            FILE *f = fopen(path, "r");
-            if (f) {
-                char val[16];
-                if (fgets(val, sizeof(val), f)) {
-                    mode = atoi(val);
-                }
-                fclose(f);
+        int mode = 4;
+        char path[256];
+        snprintf(path, sizeof(path), "/data/ProjectRaco/modes/%s", pkg);
+        FILE *f = fopen(path, "r");
+        if (f) {
+            char val[16];
+            if (fgets(val, sizeof(val), f)) {
+                mode = atoi(val);
             }
-            // Load performance mode
-            snprintf(cmd, sizeof(cmd), "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load %s %d", pkg, mode);
-            system(cmd);
+            fclose(f);
         }
+        // Load performance mode
+        snprintf(cmd, sizeof(cmd), "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load %s %d", pkg, mode);
+        system(cmd);
+
         if (is_playboost_enabled()) {
             snprintf(cmd, sizeof(cmd), "pid=$(pgrep -f %s | head -n 1); if [ -n \"$pid\" ]; then for task in /proc/$pid/task/*; do tid=$(basename $task); taskset -p ffffffff $tid; done; fi", pkg);
             system(cmd);
@@ -147,12 +146,10 @@ void exec_balance(const char *pkg) {
             system("am startservice -a com.kanagawa.yamada.project.raco.HIDE_OVERLAY com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1");
         }
         
-        if (is_rswap_enabled()) {
-            // Unload performance mode and suspend game via RSWAP
-            char cmd[512];
-            snprintf(cmd, sizeof(cmd), "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload %s 0", pkg);
-            system(cmd);
-        }
+        // Unload performance mode and suspend game via RSWAP
+        char cmd[512];
+        snprintf(cmd, sizeof(cmd), "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco unload %s 0", pkg);
+        system(cmd);
         exit(0);
     }
 }
