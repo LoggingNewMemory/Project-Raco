@@ -36,18 +36,13 @@ fun AyundaConfigView(
     data class PresetData(val title: String, val desc: String, val vals: List<Float>)
     
     val presets = listOf(
-        PresetData("Hunter", "Help observe grass fields.", listOf(0.9f, 1.2f, 0.9f, 1.3f)),
-        PresetData("Night Vision", "Better environment for scene exploration.", listOf(0.7f, 1.2f, 1.0f, 0.8f)),
+        PresetData("Vivid", "Enhances colors to improve picture impact.", listOf(1.2f, 1.1f, 1.1f, 1.3f)),
+        PresetData("Vivid+", "Maximum color saturation.", listOf(1.3f, 1.2f, 1.2f, 2.0f)),
+        PresetData("B&W", "Grayscale display.", listOf(1.0f, 1.0f, 1.0f, 0.0f)),
+        PresetData("Invert", "Inverted colors.", listOf(1.0f, 1.0f, 1.0f, 1.0f)),
         PresetData("Eagle Eye", "Aid in enemy recognition.", listOf(1.1f, 1.0f, 0.9f, 1.4f)),
-        PresetData("Ultra-Clear", "Provide an improved visual experience.", listOf(1.05f, 1.05f, 1.05f, 1.2f)),
-        PresetData("Pure", "Reduces stray colors for clarity.", listOf(1.0f, 1.0f, 1.0f, 0.9f)),
-        PresetData("Cyberpunk", "Enhances colors to improve picture impact.", listOf(1.2f, 0.9f, 1.3f, 1.5f)),
-        PresetData("Instrument", "Simulates night vision device effects.", listOf(0.3f, 1.5f, 0.3f, 1.0f)),
-        PresetData("Movie", "Transforms the game style into a movie-like experience.", listOf(1.1f, 1.0f, 0.9f, 0.95f)),
-        PresetData("Sketch", "Transforms the game style into a sketch drawing.", listOf(1.5f, 1.5f, 1.5f, 0.1f)),
-        PresetData("Film", "Transforms the game style into a Lomo film.", listOf(1.2f, 1.1f, 0.8f, 1.1f)),
-        PresetData("Crayon", "Transforms the game style into a crayon drawing.", listOf(1.3f, 1.3f, 1.3f, 1.2f)),
-        PresetData("Oil Painting", "Transforms the game style into an oil painting.", listOf(1.2f, 1.1f, 0.9f, 1.4f))
+        PresetData("Night Vis.", "Better environment for scene exploration.", listOf(0.7f, 1.2f, 1.0f, 0.8f)),
+        PresetData("Warm", "Warmer color temperature.", listOf(1.1f, 1.0f, 0.9f, 1.0f))
     )
 
     Column(
@@ -103,7 +98,8 @@ fun AyundaConfigView(
                                 putString("last_ayunda_preset_$currentPackage", name)
                                 apply()
                             }
-                            Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${vals[3]}")).waitFor()
+                            val invertCmd = "settings put secure accessibility_display_inversion_enabled ${if (name == "Invert") 1 else 0}"
+                            Runtime.getRuntime().exec(arrayOf("su", "-c", "$invertCmd ; service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${vals[3]}")).waitFor()
                         }
                     }
                     .padding(16.dp),
@@ -172,15 +168,15 @@ object AyundaTool {
             val g = sharedPrefs.getFloat("RGB_G", 1f)
             val b = sharedPrefs.getFloat("RGB_B", 1f)
             val s = sharedPrefs.getFloat("RGB_S", 1f)
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s")).waitFor()
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 0 ; service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s")).waitFor()
         } else {
             var lastPreset = sharedPrefs.getString("last_ayunda_preset_$currentPackage", "") ?: ""
             if (lastPreset.isEmpty()) {
-                lastPreset = "Hunter" // Default for new games
+                lastPreset = "Vivid" // Default for new games
                 sharedPrefs.edit().apply {
-                    putFloat("RGB_R_$currentPackage", 0.9f)
-                    putFloat("RGB_G_$currentPackage", 1.2f)
-                    putFloat("RGB_B_$currentPackage", 0.9f)
+                    putFloat("RGB_R_$currentPackage", 1.2f)
+                    putFloat("RGB_G_$currentPackage", 1.1f)
+                    putFloat("RGB_B_$currentPackage", 1.1f)
                     putFloat("RGB_S_$currentPackage", 1.3f)
                     apply()
                 }
@@ -195,7 +191,8 @@ object AyundaTool {
             val g = sharedPrefs.getFloat("RGB_G_$currentPackage", 1f)
             val b = sharedPrefs.getFloat("RGB_B_$currentPackage", 1f)
             val s = sharedPrefs.getFloat("RGB_S_$currentPackage", 1f)
-            val cmd = "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s"
+            val invertCmd = "settings put secure accessibility_display_inversion_enabled \${if (lastPreset == \"Invert\") 1 else 0}"
+            val cmd = "$invertCmd ; service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s"
             Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
         }
     }
