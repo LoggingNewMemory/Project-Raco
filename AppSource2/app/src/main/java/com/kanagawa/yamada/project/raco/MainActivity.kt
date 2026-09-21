@@ -156,12 +156,14 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 val baseBackground = if (meshEnabled) {
+                    val colorEnd = Color.hsv(meshHue, meshSat * 0.5f, meshVal * 0.12f)
+                    val colorMid = Color.hsv(meshHue, meshSat, meshVal * 0.25f)
                     Modifier.background(
                         Brush.linearGradient(
                             colors = listOf(
-                                Color(0xFF1E1E2E),
-                                Color(0xFF2D2B55),
-                                Color(0xFF1E1E2E)
+                                colorEnd,
+                                colorMid,
+                                colorEnd
                             )
                         )
                     )
@@ -184,39 +186,39 @@ class MainActivity : AppCompatActivity() {
                                 .alpha(bgOpacity)
                                 .blur(bgBlur.dp)
                         )
-                    } else {
-                        if (meshEnabled) {
-                            val color1 = Color.hsv(meshHue, meshSat, meshVal)
-                            val color2 = Color.hsv((meshHue - 40f + 360f) % 360f, (meshSat + 0.1f).coerceAtMost(1f), meshVal)
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        Brush.radialGradient(
-                                            colors = listOf(
-                                                color1.copy(alpha = 0.3f),
-                                                Color.Transparent
-                                            ),
-                                            center = androidx.compose.ui.geometry.Offset(100f, 200f),
-                                            radius = 800f
-                                        )
+                    }
+                    
+                    if (meshEnabled) {
+                        val color1 = Color.hsv(meshHue, meshSat, meshVal)
+                        val color2 = Color.hsv((meshHue - 40f + 360f) % 360f, (meshSat + 0.1f).coerceAtMost(1f), meshVal)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.radialGradient(
+                                        colors = listOf(
+                                            color1.copy(alpha = 0.3f),
+                                            Color.Transparent
+                                        ),
+                                        center = androidx.compose.ui.geometry.Offset(100f, 200f),
+                                        radius = 800f
                                     )
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        Brush.radialGradient(
-                                            colors = listOf(
-                                                color2.copy(alpha = 0.25f),
-                                                Color.Transparent
-                                            ),
-                                            center = androidx.compose.ui.geometry.Offset(800f, 1500f),
-                                            radius = 1000f
-                                        )
+                                )
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.radialGradient(
+                                        colors = listOf(
+                                            color2.copy(alpha = 0.25f),
+                                            Color.Transparent
+                                        ),
+                                        center = androidx.compose.ui.geometry.Offset(800f, 1500f),
+                                        radius = 1000f
                                     )
-                            )
-                        }
+                                )
+                        )
                     }
 
                     androidx.compose.animation.Crossfade(
