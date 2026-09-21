@@ -12,7 +12,6 @@ if [ "$SDK_INT" -ge 33 ]; then
 else
     cmd game downscale 1.0 "$PKG" >/dev/null 2>&1
 fi
-am compat reset-all "$PKG" >/dev/null 2>&1
 
 echo "Cleared Slingshot compatibility flags for $PKG"
 settings delete global angle_gl_driver_selection_pkgs >/dev/null 2>&1

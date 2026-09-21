@@ -191,7 +191,6 @@ void mode_awaken() {
     cpufreq_awaken();
     route_soc(4);
 
-    clear_slingshot();
     anyamelfissa();
     dnd_on();
     printf("PROGRESS: 100\n"); fflush(stdout);
@@ -238,7 +237,6 @@ void mode_balanced() {
     cpufreq_balanced();
     route_soc(3);
 
-    clear_slingshot();
     anyakawaii();
     dnd_off();
     printf("PROGRESS: 100\n"); fflush(stdout);
@@ -290,7 +288,6 @@ void mode_powersave() {
     cpufreq_powersave();
     route_soc(2);
 
-    clear_slingshot();
     anyakawaii();
     dnd_off();
     printf("PROGRESS: 100\n"); fflush(stdout);
@@ -344,7 +341,6 @@ void mode_normal() {
     cpufreq_normal();
     route_soc(1);
 
-    clear_slingshot();
     anyakawaii();
     dnd_off();
     printf("PROGRESS: 100\n"); fflush(stdout);

@@ -66,7 +66,6 @@ void raco_bulk(const char *base, const char **files, int count, const char *val,
 
 void load_config(const char *config_path);
 void notification(const char *message);
-void clear_slingshot();
 void kill_all();
 void run_fstrim();
 void clear_cache();
