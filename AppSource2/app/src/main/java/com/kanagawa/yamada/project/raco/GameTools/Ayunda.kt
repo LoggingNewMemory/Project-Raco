@@ -33,16 +33,26 @@ fun AyundaConfigView(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    data class PresetData(val title: String, val desc: String, val vals: List<Float>)
+    data class PresetData(val title: String, val vals: List<Float>)
     
     val presets = listOf(
-        PresetData("Vivid", "Enhances colors to improve picture impact.", listOf(1.2f, 1.1f, 1.1f, 1.3f)),
-        PresetData("Vivid+", "Maximum color saturation.", listOf(1.3f, 1.2f, 1.2f, 2.0f)),
-        PresetData("B&W", "Grayscale display.", listOf(1.0f, 1.0f, 1.0f, 0.0f)),
-        PresetData("Invert", "Inverted colors.", listOf(1.0f, 1.0f, 1.0f, 1.0f)),
-        PresetData("Eagle Eye", "Aid in enemy recognition.", listOf(1.1f, 1.0f, 0.9f, 1.4f)),
-        PresetData("Night Vis.", "Better environment for scene exploration.", listOf(0.7f, 1.2f, 1.0f, 0.8f)),
-        PresetData("Warm", "Warmer color temperature.", listOf(1.1f, 1.0f, 0.9f, 1.0f))
+        PresetData("Vivid", listOf(1.2f, 1.1f, 1.1f, 1.3f)),
+        PresetData("Vivid+", listOf(1.3f, 1.2f, 1.2f, 2.0f)),
+        PresetData("B&W", listOf(1.0f, 1.0f, 1.0f, 0.0f)),
+        PresetData("Eagle Eye", listOf(1.1f, 1.0f, 0.9f, 1.4f)),
+        PresetData("Night Vision", listOf(0.7f, 1.2f, 1.0f, 0.8f)),
+        PresetData("Warm", listOf(1.1f, 1.0f, 0.9f, 1.0f)),
+        PresetData("Hunter", listOf(0.9f, 1.2f, 0.9f, 1.3f)),
+        PresetData("Sniper", listOf(1.1f, 1.1f, 0.9f, 1.2f)),
+        PresetData("Ultra-Clear", listOf(1.05f, 1.05f, 1.05f, 1.2f)),
+        PresetData("Pure", listOf(1.0f, 1.0f, 1.0f, 0.9f)),
+        PresetData("Cyberpunk", listOf(1.2f, 0.9f, 1.3f, 1.5f)),
+        PresetData("Instrument", listOf(0.3f, 1.5f, 0.3f, 1.0f)),
+        PresetData("Movie", listOf(1.1f, 1.0f, 0.9f, 0.95f)),
+        PresetData("Sketch", listOf(1.5f, 1.5f, 1.5f, 0.1f)),
+        PresetData("Film", listOf(1.2f, 1.1f, 0.8f, 1.1f)),
+        PresetData("Crayon", listOf(1.3f, 1.3f, 1.3f, 1.2f)),
+        PresetData("Oil Painting", listOf(1.2f, 1.1f, 0.9f, 1.4f))
     )
 
     Column(
@@ -74,11 +84,10 @@ fun AyundaConfigView(
         }
 
         @Composable
-        fun PresetItem(name: String, desc: String, vals: List<Float>) {
+        fun PresetItem(name: String, vals: List<Float>) {
             val isCurrent = activeAyundaPresetState.value == name
             val bgColor = if (isCurrent) themeColor else Color(0xFF2A2A2A)
             val textColor = if (isCurrent) Color.White else Color.LightGray
-            val descColor = if (isCurrent) Color.White.copy(alpha = 0.7f) else Color.Gray
             
             Row(
                 modifier = Modifier
@@ -98,8 +107,8 @@ fun AyundaConfigView(
                                 putString("last_ayunda_preset_$currentPackage", name)
                                 apply()
                             }
-                            val invertCmd = "settings put secure accessibility_display_inversion_enabled ${if (name == "Invert") 1 else 0}"
-                            Runtime.getRuntime().exec(arrayOf("su", "-c", "$invertCmd ; service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${vals[3]}")).waitFor()
+                            val cmdStr = "service call SurfaceFlinger 1015 i32 1 f \${vals[0]} f 0 f 0 f 0 f 0 f \${vals[1]} f 0 f 0 f 0 f 0 f \${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f \${vals[3]}"
+                            Runtime.getRuntime().exec(arrayOf("su", "-c", cmdStr)).waitFor()
                         }
                     }
                     .padding(16.dp),
@@ -107,10 +116,6 @@ fun AyundaConfigView(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(name, fontWeight = FontWeight.SemiBold, color = textColor, fontSize = 14.sp)
-                    if (desc.isNotEmpty()) {
-                        Spacer(Modifier.height(4.dp))
-                        Text(desc, color = descColor, fontSize = 10.sp, maxLines = 2)
-                    }
                 }
                 if (isCurrent) {
                     Spacer(Modifier.width(12.dp))
@@ -136,7 +141,7 @@ fun AyundaConfigView(
         if (customPresets.isNotEmpty()) {
             SectionHeader("Custom Preset")
             customPresets.forEach { (name, vals) ->
-                PresetItem(name, "User defined preset", vals)
+                PresetItem(name, vals)
             }
         }
 
@@ -145,7 +150,7 @@ fun AyundaConfigView(
         }
 
         presets.forEach { preset ->
-            PresetItem(preset.title, preset.desc, preset.vals)
+            PresetItem(preset.title, preset.vals)
         }
     }
 }
@@ -168,7 +173,7 @@ object AyundaTool {
             val g = sharedPrefs.getFloat("RGB_G", 1f)
             val b = sharedPrefs.getFloat("RGB_B", 1f)
             val s = sharedPrefs.getFloat("RGB_S", 1f)
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure accessibility_display_inversion_enabled 0 ; service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s")).waitFor()
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s")).waitFor()
         } else {
             var lastPreset = sharedPrefs.getString("last_ayunda_preset_$currentPackage", "") ?: ""
             if (lastPreset.isEmpty()) {
@@ -191,8 +196,7 @@ object AyundaTool {
             val g = sharedPrefs.getFloat("RGB_G_$currentPackage", 1f)
             val b = sharedPrefs.getFloat("RGB_B_$currentPackage", 1f)
             val s = sharedPrefs.getFloat("RGB_S_$currentPackage", 1f)
-            val invertCmd = "settings put secure accessibility_display_inversion_enabled \${if (lastPreset == \"Invert\") 1 else 0}"
-            val cmd = "$invertCmd ; service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s"
+            val cmd = "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s"
             Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
         }
     }
