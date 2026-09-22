@@ -106,7 +106,11 @@ fun AutomationScreen(onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(Modifier.padding(16.dp)) {
-                        Text(stringResource(R.string.game_assistant), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.game_assistant), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                            Spacer(Modifier.width(8.dp))
+                            com.kanagawa.yamada.project.raco.ui.theme.BetaBadge()
+                        }
                         Spacer(Modifier.height(4.dp))
                         Text(stringResource(R.string.game_assistant_desc), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))

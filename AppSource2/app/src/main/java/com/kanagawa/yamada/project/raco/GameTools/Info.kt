@@ -267,14 +267,7 @@ fun InfoConfigView(
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                androidx.compose.foundation.layout.Box(
-                    modifier = Modifier
-                        .background(Color(0xFFFFB74D).copy(alpha = 0.2f), RoundedCornerShape(4.dp))
-                        .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(4.dp))
-                        .padding(horizontal = 4.dp, vertical = 2.dp)
-                ) {
-                    Text("BETA", color = Color(0xFFFFB74D), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
+                com.kanagawa.yamada.project.raco.ui.theme.BetaBadge()
                 Spacer(Modifier.width(6.dp))
                 Text("Show FPS", color = Color.White)
             }
