@@ -312,18 +312,19 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         
         var combinedCmd = ""
         val pkg = currentPackageState.value
-        val savedAyundaPreset = sharedPrefs.getString("active_ayunda_preset_$pkg", "") ?: ""
-        if (savedAyundaPreset.isNotEmpty()) {
-            val globalPreset = sharedPrefs.getString("active_ayunda_preset", "") ?: ""
-            if (globalPreset.isNotEmpty()) {
-                val r = sharedPrefs.getFloat("RGB_R", 1f)
-                val g = sharedPrefs.getFloat("RGB_G", 1f)
-                val b = sharedPrefs.getFloat("RGB_B", 1f)
-                val s = sharedPrefs.getFloat("RGB_S", 1f)
-                combinedCmd += "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s ; "
-            } else {
-                combinedCmd += "service call SurfaceFlinger 1015 i32 1 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1.0 f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f 1.0 ; "
+        var gameAyundaActive = false
+        try {
+            val modeFile = java.io.File("/data/ProjectRaco/modes/$pkg")
+            if (modeFile.exists()) {
+                val lines = modeFile.readLines()
+                if (lines.size >= 3) {
+                    gameAyundaActive = true
+                }
             }
+        } catch (e: Exception) {}
+
+        if (gameAyundaActive) {
+            combinedCmd += "rm -f /data/ProjectRaco/ayunda_active ; sh /data/adb/modules/ProjectRaco/CoreSys/AyundaRusdi.sh >/dev/null 2>&1 ; "
         }
         
         if (activeDndState.value) {

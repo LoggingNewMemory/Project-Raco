@@ -496,9 +496,11 @@ int main(int argc, char *argv[]) {
         // Restore to normal mode when exiting a game
         update_state_in_config(1);
         mode_normal();
+        
+        system("if [ -f /data/ProjectRaco/ayunda_active ]; then sh /data/adb/modules/ProjectRaco/CoreSys/AyundaRusdi.sh >/dev/null 2>&1; rm -f /data/ProjectRaco/ayunda_active; fi &");
+
         if (argc >= 3) {
             rswap_suspend(argv[2]);
-            
         }
         return 0;
     }

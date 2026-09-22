@@ -98,16 +98,17 @@ fun AyundaConfigView(
                     .clickable {
                         activeAyundaPresetState.value = name
                         coroutineScope.launch(Dispatchers.IO) {
-                            sharedPrefs.edit().apply {
-                                putFloat("RGB_R_$currentPackage", vals[0])
-                                putFloat("RGB_G_$currentPackage", vals[1])
-                                putFloat("RGB_B_$currentPackage", vals[2])
-                                putFloat("RGB_S_$currentPackage", vals[3])
-                                putString("active_ayunda_preset_$currentPackage", name)
-                                putString("last_ayunda_preset_$currentPackage", name)
-                                apply()
-                            }
-                            val cmdStr = "service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${vals[3]}"
+                            var currentMode = 4
+                            try {
+                                val modeFile = java.io.File("/data/ProjectRaco/modes/$currentPackage")
+                                if (modeFile.exists()) {
+                                    val lines = modeFile.readLines()
+                                    if (lines.isNotEmpty()) currentMode = lines[0].toIntOrNull() ?: 4
+                                }
+                            } catch (e: Exception) {}
+                            
+                            val newContent = "$currentMode\\n${vals[0]} ${vals[1]} ${vals[2]} ${vals[3]}\\n$name\\n"
+                            val cmdStr = "echo -e '$newContent' > /data/ProjectRaco/modes/$currentPackage ; touch /data/ProjectRaco/ayunda_active ; service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${vals[3]}"
                             Runtime.getRuntime().exec(arrayOf("su", "-c", cmdStr)).waitFor()
                         }
                     }
@@ -162,41 +163,56 @@ object AyundaTool {
         sharedPrefs: android.content.SharedPreferences
     ) {
         val isCurrentlyActive = activeAyundaPresetState.value.isNotEmpty()
-        if (isCurrentlyActive) {
-            val lastActive = activeAyundaPresetState.value
-            activeAyundaPresetState.value = ""
-            sharedPrefs.edit()
-                .putString("active_ayunda_preset_$currentPackage", "")
-                .putString("last_ayunda_preset_$currentPackage", lastActive)
-                .apply()
-            val r = sharedPrefs.getFloat("RGB_R", 1f)
-            val g = sharedPrefs.getFloat("RGB_G", 1f)
-            val b = sharedPrefs.getFloat("RGB_B", 1f)
-            val s = sharedPrefs.getFloat("RGB_S", 1f)
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s")).waitFor()
-        } else {
-            var lastPreset = sharedPrefs.getString("last_ayunda_preset_$currentPackage", "") ?: ""
-            if (lastPreset.isEmpty()) {
-                lastPreset = "Vivid" // Default for new games
-                sharedPrefs.edit().apply {
-                    putFloat("RGB_R_$currentPackage", 1.2f)
-                    putFloat("RGB_G_$currentPackage", 1.1f)
-                    putFloat("RGB_B_$currentPackage", 1.1f)
-                    putFloat("RGB_S_$currentPackage", 1.3f)
-                    apply()
+        var currentMode = 4
+        var lastPreset = "Vivid"
+        var r = 1.2f; var g = 1.1f; var b = 1.1f; var s = 1.3f
+        
+        try {
+            val modeFile = java.io.File("/data/ProjectRaco/modes/$currentPackage")
+            if (modeFile.exists()) {
+                val lines = modeFile.readLines()
+                if (lines.isNotEmpty()) currentMode = lines[0].toIntOrNull() ?: 4
+                if (lines.size >= 3) {
+                    val rgb = lines[1].split(" ")
+                    if (rgb.size >= 4) {
+                        r = rgb[0].toFloatOrNull() ?: r
+                        g = rgb[1].toFloatOrNull() ?: g
+                        b = rgb[2].toFloatOrNull() ?: b
+                        s = rgb[3].toFloatOrNull() ?: s
+                    }
+                    lastPreset = lines[2]
                 }
             }
-            sharedPrefs.edit()
-                .putString("active_ayunda_preset_$currentPackage", lastPreset)
-                .putString("last_ayunda_preset_$currentPackage", lastPreset)
-                .apply()
-            activeAyundaPresetState.value = lastPreset
+        } catch (e: Exception) {}
+
+        if (isCurrentlyActive) {
+            activeAyundaPresetState.value = ""
+            val cmdStr = "echo -e '$currentMode\\n$r $g $b $s\\n$lastPreset' > /data/ProjectRaco/modes/${currentPackage}.bak ; echo '$currentMode' > /data/ProjectRaco/modes/$currentPackage"
+            Runtime.getRuntime().exec(arrayOf("su", "-c", cmdStr)).waitFor()
             
-            val r = sharedPrefs.getFloat("RGB_R_$currentPackage", 1f)
-            val g = sharedPrefs.getFloat("RGB_G_$currentPackage", 1f)
-            val b = sharedPrefs.getFloat("RGB_B_$currentPackage", 1f)
-            val s = sharedPrefs.getFloat("RGB_S_$currentPackage", 1f)
-            val cmd = "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s"
+            // Restore System Ayunda
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "rm -f /data/ProjectRaco/ayunda_active ; sh /data/adb/modules/ProjectRaco/CoreSys/AyundaRusdi.sh >/dev/null 2>&1")).waitFor()
+        } else {
+            try {
+                val bakFile = java.io.File("/data/ProjectRaco/modes/${currentPackage}.bak")
+                if (bakFile.exists()) {
+                    val lines = bakFile.readLines()
+                    if (lines.size >= 3) {
+                        val rgb = lines[1].split(" ")
+                        if (rgb.size >= 4) {
+                            r = rgb[0].toFloatOrNull() ?: r
+                            g = rgb[1].toFloatOrNull() ?: g
+                            b = rgb[2].toFloatOrNull() ?: b
+                            s = rgb[3].toFloatOrNull() ?: s
+                        }
+                        lastPreset = lines[2]
+                    }
+                }
+            } catch (e: Exception) {}
+            
+            activeAyundaPresetState.value = lastPreset
+            val newContent = "$currentMode\\n$r $g $b $s\\n$lastPreset\\n"
+            val cmd = "echo -e '$newContent' > /data/ProjectRaco/modes/$currentPackage ; touch /data/ProjectRaco/ayunda_active ; service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s"
             Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
         }
     }
