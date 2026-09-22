@@ -237,6 +237,39 @@ int main() {
             if (score != -9999 && score <= 300) {
                 continue;
             } else {
+                // Check if another process of the same game took over foreground
+                int handed_over = 0;
+                FILE *tasks_file = fopen(TASKS_FILE, "r");
+                if (tasks_file) {
+                    int pid;
+                    while (fscanf(tasks_file, "%d", &pid) > 0) {
+                        char cmdline[256];
+                        get_cmdline(pid, cmdline, sizeof(cmdline));
+                        if (strlen(cmdline) > 0) {
+                            char base_pkg[256];
+                            strncpy(base_pkg, cmdline, sizeof(base_pkg));
+                            base_pkg[sizeof(base_pkg) - 1] = '\0';
+                            char *colon = strchr(base_pkg, ':');
+                            if (colon) *colon = '\0';
+
+                            if (strcmp(base_pkg, active_game_pkg) == 0) {
+                                int tgid = get_tgid(pid);
+                                int new_score = get_oom_score_adj(tgid);
+                                if (new_score != -9999 && new_score <= 300) {
+                                    active_game_pid = tgid;
+                                    handed_over = 1;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    fclose(tasks_file);
+                }
+                
+                if (handed_over) {
+                    continue;
+                }
+                
                 active_game_pid = 0;
                 exec_balance(active_game_pkg);
             }
