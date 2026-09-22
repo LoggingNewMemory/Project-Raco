@@ -25,19 +25,10 @@ class GameAssistantService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent != null) {
-            val action = intent.action
-            if (action == "com.kanagawa.yamada.project.raco.SHOW_OVERLAY") {
-                val pkg = intent.getStringExtra("package") ?: ""
-                if (pkg.isNotEmpty()) {
-                    Handler(Looper.getMainLooper()).post {
-                        gameSpaceOverlay?.show(pkg)
-                    }
-                }
-            } else if (action == "com.kanagawa.yamada.project.raco.HIDE_OVERLAY") {
-                Handler(Looper.getMainLooper()).post {
-                    gameSpaceOverlay?.hide()
-                }
+        val pkg = intent?.getStringExtra("package") ?: ""
+        if (pkg.isNotEmpty()) {
+            Handler(Looper.getMainLooper()).post {
+                gameSpaceOverlay?.show(pkg)
             }
         }
         return START_STICKY

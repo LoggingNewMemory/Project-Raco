@@ -131,7 +131,7 @@ void exec_performance(char *pkg) {
         
         // Tell Kotlin app to show overlay (if not Companion Mode)
         if (!is_companion_mode()) {
-            snprintf(cmd, sizeof(cmd), "cmd activity start-service --user current -a com.kanagawa.yamada.project.raco.SHOW_OVERLAY -e package \"%s\" com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1", pkg);
+            snprintf(cmd, sizeof(cmd), "cmd activity start-service --user current -e package \"%s\" com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1", pkg);
             system(cmd);
         }
         exit(0);
@@ -144,7 +144,7 @@ void exec_balance(const char *pkg) {
         // Tell Kotlin app to hide overlay (if not Companion Mode)
         if (!is_companion_mode()) {
             char cmd[512];
-            snprintf(cmd, sizeof(cmd), "cmd activity start-service --user current -a com.kanagawa.yamada.project.raco.HIDE_OVERLAY com.kanagawa.yamada.project.raco/.GameAssistantService >/dev/null 2>&1");
+            snprintf(cmd, sizeof(cmd), "am force-stop com.kanagawa.yamada.project.raco >/dev/null 2>&1");
             system(cmd);
         }
         

@@ -51,10 +51,6 @@
             android:name=".GameAssistantService"
             android:label="Project Raco Game Assistant"
             android:exported="true">
-            <intent-filter>
-                <action android:name="com.kanagawa.yamada.project.raco.SHOW_OVERLAY" />
-                <action android:name="com.kanagawa.yamada.project.raco.HIDE_OVERLAY" />
-            </intent-filter>
         </service>
 
         <meta-data
