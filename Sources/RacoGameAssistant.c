@@ -256,18 +256,26 @@ int main() {
                     if (strlen(cmdline) > 0) {
                         if (strstr(cmdline, "zygote") != NULL || strstr(cmdline, "<pre-initialized>") != NULL) {
                             pending_check = 1;
-                        } else if (check_game_in_memory(cmdline)) {
-                            int tgid = get_tgid(pid);
-                            int score = get_oom_score_adj(tgid);
-                            
-                            // Prevent infinite loops: only activate if the game is genuinely in the foreground (score <= 300).
-                            if (score != -9999 && score <= 300) {
-                                active_game_pid = tgid;
-                                strncpy(active_game_pkg, cmdline, sizeof(active_game_pkg) - 1);
-                                active_game_pkg[sizeof(active_game_pkg) - 1] = '\0';
-                                exec_performance(cmdline);
-                                found = 1;
-                                break;
+                        } else {
+                            char base_pkg[256];
+                            strncpy(base_pkg, cmdline, sizeof(base_pkg));
+                            base_pkg[sizeof(base_pkg) - 1] = '\0';
+                            char *colon = strchr(base_pkg, ':');
+                            if (colon) *colon = '\0';
+
+                            if (check_game_in_memory(base_pkg)) {
+                                int tgid = get_tgid(pid);
+                                int score = get_oom_score_adj(tgid);
+                                
+                                // Prevent infinite loops: only activate if the game is genuinely in the foreground (score <= 300).
+                                if (score != -9999 && score <= 300) {
+                                    active_game_pid = tgid;
+                                    strncpy(active_game_pkg, base_pkg, sizeof(active_game_pkg) - 1);
+                                    active_game_pkg[sizeof(active_game_pkg) - 1] = '\0';
+                                    exec_performance(base_pkg);
+                                    found = 1;
+                                    break;
+                                }
                             }
                         }
                     }
