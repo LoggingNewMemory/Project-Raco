@@ -320,7 +320,7 @@ fun SystemScreen(onBack: () -> Unit) {
                                         text = label,
                                         fontWeight = FontWeight.SemiBold,
                                         style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        color = color
                                     )
                                 }
                                 Text(
@@ -677,7 +677,7 @@ fun AyundaPresetPage(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(modifier = Modifier.size(10.dp).background(color, shape = androidx.compose.foundation.shape.CircleShape))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(label, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+                                Text(label, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge, color = color)
                             }
                             Text(String.format("%.2f", value), fontWeight = FontWeight.Bold, color = color, style = MaterialTheme.typography.bodyMedium)
                         }
