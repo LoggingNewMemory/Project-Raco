@@ -110,25 +110,28 @@ void exec_performance(char *pkg) {
         char cmd[1024];
         
         int mode = 4;
-        char path[256];
-        snprintf(path, sizeof(path), "/data/ProjectRaco/modes/%s", pkg);
-        FILE *f = fopen(path, "r");
-        if (f) {
-            char line[256];
-            // Line 1: CPU Mode
-            if (fgets(line, sizeof(line), f)) {
-                mode = atoi(line);
-            }
-            // Line 2: Ayunda RGB Values (R G B S)
-            if (fgets(line, sizeof(line), f)) {
-                float r, g, b, s;
-                if (sscanf(line, "%f %f %f %f", &r, &g, &b, &s) == 4) {
-                    char sf_cmd[512];
-                    snprintf(sf_cmd, sizeof(sf_cmd), "touch /data/ProjectRaco/ayunda_active ; service call SurfaceFlinger 1015 i32 1 f %f f 0 f 0 f 0 f 0 f %f f 0 f 0 f 0 f 0 f %f f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f %f", r, g, b, s);
-                    system(sf_cmd);
+        
+        if (!is_companion_mode()) {
+            char path[256];
+            snprintf(path, sizeof(path), "/data/ProjectRaco/modes/%s", pkg);
+            FILE *f = fopen(path, "r");
+            if (f) {
+                char line[256];
+                // Line 1: CPU Mode
+                if (fgets(line, sizeof(line), f)) {
+                    mode = atoi(line);
                 }
+                // Line 2: Ayunda RGB Values (R G B S)
+                if (fgets(line, sizeof(line), f)) {
+                    float r, g, b, s;
+                    if (sscanf(line, "%f %f %f %f", &r, &g, &b, &s) == 4) {
+                        char sf_cmd[512];
+                        snprintf(sf_cmd, sizeof(sf_cmd), "touch /data/ProjectRaco/ayunda_active ; service call SurfaceFlinger 1015 i32 1 f %f f 0 f 0 f 0 f 0 f %f f 0 f 0 f 0 f 0 f %f f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f %f", r, g, b, s);
+                        system(sf_cmd);
+                    }
+                }
+                fclose(f);
             }
-            fclose(f);
         }
         // Load performance mode
         snprintf(cmd, sizeof(cmd), "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco load %s %d", pkg, mode);
