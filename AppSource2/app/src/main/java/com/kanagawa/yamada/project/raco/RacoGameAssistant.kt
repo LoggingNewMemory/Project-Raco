@@ -154,15 +154,15 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
 
         var combinedCmd = ""
         
-        val savedAyundaPreset = sharedPrefs.getString("active_ayunda_preset_$packageName", "") ?: ""
+        var savedAyundaPreset = ""
+        try {
+            val modeFile = java.io.File("/data/ProjectRaco/modes/$packageName")
+            if (modeFile.exists()) {
+                val lines = modeFile.readLines()
+                if (lines.size >= 3) savedAyundaPreset = lines[2]
+            }
+        } catch (e: Exception) {}
         activeAyundaPresetState.value = savedAyundaPreset
-        if (savedAyundaPreset.isNotEmpty()) {
-            val r = sharedPrefs.getFloat("RGB_R_$packageName", 1f)
-            val g = sharedPrefs.getFloat("RGB_G_$packageName", 1f)
-            val b = sharedPrefs.getFloat("RGB_B_$packageName", 1f)
-            val s = sharedPrefs.getFloat("RGB_S_$packageName", 1f)
-            combinedCmd += "service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s ; "
-        }
 
         val savedDndActive = sharedPrefs.getBoolean("dnd_active_$packageName", false)
         activeDndState.value = savedDndActive
