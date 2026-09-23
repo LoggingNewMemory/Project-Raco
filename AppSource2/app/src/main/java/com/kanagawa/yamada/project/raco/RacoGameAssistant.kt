@@ -324,7 +324,11 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         } catch (e: Exception) {}
 
         if (gameAyundaActive) {
-            combinedCmd += "rm -f /data/ProjectRaco/ayunda_active ; sh /data/adb/modules/ProjectRaco/CoreSys/AyundaRusdi.sh >/dev/null 2>&1 ; "
+            val hideCmd = """
+                rm -f /data/ProjectRaco/ayunda_active
+                sh /data/adb/modules/ProjectRaco/CoreSys/AyundaRusdi.sh >/dev/null 2>&1
+            """.trimIndent()
+            combinedCmd += "$hideCmd ; "
         }
         
         if (activeDndState.value) {
@@ -1032,7 +1036,11 @@ fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: 
                                 kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
                                     try {
                                         if (currentPackage.isNotEmpty()) {
-                                            Runtime.getRuntime().exec(arrayOf("su", "-c", "echo $cmdMode > /data/ProjectRaco/modes/$currentPackage")).waitFor()
+                                            val writeCmd = """
+                                                echo $cmdMode > /data/ProjectRaco/modes/$currentPackage
+                                                chmod 666 /data/ProjectRaco/modes/$currentPackage
+                                            """.trimIndent()
+                                            Runtime.getRuntime().exec(arrayOf("su", "-c", writeCmd)).waitFor()
                                         }
                                         val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $cmdMode"))
                                         val reader = process.inputStream.bufferedReader()

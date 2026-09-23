@@ -108,7 +108,13 @@ fun AyundaConfigView(
                             } catch (e: Exception) {}
                             
                             val newContent = "$currentMode\\n${vals[0]} ${vals[1]} ${vals[2]} ${vals[3]}\\n$name\\n"
-                            val cmdStr = "echo -e '$newContent' > /data/ProjectRaco/modes/$currentPackage ; touch /data/ProjectRaco/ayunda_active ; service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${vals[3]}"
+                            val cmdStr = """
+                                echo -e '$newContent' > /data/ProjectRaco/modes/$currentPackage
+                                chmod 666 /data/ProjectRaco/modes/$currentPackage
+                                touch /data/ProjectRaco/ayunda_active
+                                service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1
+                                service call SurfaceFlinger 1022 f ${vals[3]}
+                            """.trimIndent()
                             Runtime.getRuntime().exec(arrayOf("su", "-c", cmdStr)).waitFor()
                         }
                     }
@@ -187,7 +193,11 @@ object AyundaTool {
 
         if (isCurrentlyActive) {
             activeAyundaPresetState.value = ""
-            val cmdStr = "echo -e '$currentMode\\n$r $g $b $s\\n$lastPreset' > /data/ProjectRaco/modes/${currentPackage}.bak ; echo '$currentMode' > /data/ProjectRaco/modes/$currentPackage"
+            val cmdStr = """
+                echo -e '$currentMode\\n$r $g $b $s\\n$lastPreset' > /data/ProjectRaco/modes/${currentPackage}.bak
+                echo '$currentMode' > /data/ProjectRaco/modes/$currentPackage
+                chmod 666 /data/ProjectRaco/modes/${currentPackage}.bak /data/ProjectRaco/modes/$currentPackage
+            """.trimIndent()
             Runtime.getRuntime().exec(arrayOf("su", "-c", cmdStr)).waitFor()
             
             // Restore System Ayunda
@@ -212,7 +222,13 @@ object AyundaTool {
             
             activeAyundaPresetState.value = lastPreset
             val newContent = "$currentMode\\n$r $g $b $s\\n$lastPreset\\n"
-            val cmd = "echo -e '$newContent' > /data/ProjectRaco/modes/$currentPackage ; touch /data/ProjectRaco/ayunda_active ; service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s"
+            val cmd = """
+                echo -e '$newContent' > /data/ProjectRaco/modes/$currentPackage
+                chmod 666 /data/ProjectRaco/modes/$currentPackage
+                touch /data/ProjectRaco/ayunda_active
+                service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1
+                service call SurfaceFlinger 1022 f $s
+            """.trimIndent()
             Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
         }
     }
