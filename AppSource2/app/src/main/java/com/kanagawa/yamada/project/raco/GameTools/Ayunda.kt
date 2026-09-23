@@ -100,15 +100,19 @@ fun AyundaConfigView(
                         coroutineScope.launch(Dispatchers.IO) {
                             var currentMode = 4
                             try {
-                                val modeFile = java.io.File("/data/ProjectRaco/modes/$currentPackage")
-                                if (modeFile.exists()) {
-                                    val lines = modeFile.readLines()
-                                    if (lines.isNotEmpty()) currentMode = lines[0].toIntOrNull() ?: 4
-                                }
+                                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /data/ProjectRaco/modes/$currentPackage 2>/dev/null"))
+                                val lines = process.inputStream.bufferedReader().readLines()
+                                if (lines.isNotEmpty()) currentMode = lines[0].toIntOrNull() ?: 4
                             } catch (e: Exception) {}
                             
                             val newContent = "$currentMode\\n${vals[0]} ${vals[1]} ${vals[2]} ${vals[3]}\\n$name\\n"
-                            val cmdStr = "echo -e '$newContent' > /data/ProjectRaco/modes/$currentPackage ; touch /data/ProjectRaco/ayunda_active ; service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f ${vals[3]}"
+                            val cmdStr = """
+                                echo -e '$newContent' > /data/ProjectRaco/modes/$currentPackage
+                                chmod 666 /data/ProjectRaco/modes/$currentPackage
+                                touch /data/ProjectRaco/ayunda_active
+                                service call SurfaceFlinger 1015 i32 1 f ${vals[0]} f 0 f 0 f 0 f 0 f ${vals[1]} f 0 f 0 f 0 f 0 f ${vals[2]} f 0 f 0 f 0 f 0 f 1
+                                service call SurfaceFlinger 1022 f ${vals[3]}
+                            """.trimIndent()
                             Runtime.getRuntime().exec(arrayOf("su", "-c", cmdStr)).waitFor()
                         }
                     }
@@ -168,10 +172,10 @@ object AyundaTool {
         var r = 1.2f; var g = 1.1f; var b = 1.1f; var s = 1.3f
         
         try {
-            val modeFile = java.io.File("/data/ProjectRaco/modes/$currentPackage")
-            if (modeFile.exists()) {
-                val lines = modeFile.readLines()
-                if (lines.isNotEmpty()) currentMode = lines[0].toIntOrNull() ?: 4
+            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /data/ProjectRaco/modes/$currentPackage 2>/dev/null"))
+            val lines = process.inputStream.bufferedReader().readLines()
+            if (lines.isNotEmpty()) {
+                currentMode = lines[0].toIntOrNull() ?: 4
                 if (lines.size >= 3) {
                     val rgb = lines[1].split(" ")
                     if (rgb.size >= 4) {
@@ -187,32 +191,40 @@ object AyundaTool {
 
         if (isCurrentlyActive) {
             activeAyundaPresetState.value = ""
-            val cmdStr = "echo -e '$currentMode\\n$r $g $b $s\\n$lastPreset' > /data/ProjectRaco/modes/${currentPackage}.bak ; echo '$currentMode' > /data/ProjectRaco/modes/$currentPackage"
+            val cmdStr = """
+                echo -e '$currentMode\\n$r $g $b $s\\n$lastPreset' > /data/ProjectRaco/modes/${currentPackage}.bak
+                echo '$currentMode' > /data/ProjectRaco/modes/$currentPackage
+                chmod 666 /data/ProjectRaco/modes/${currentPackage}.bak /data/ProjectRaco/modes/$currentPackage
+            """.trimIndent()
             Runtime.getRuntime().exec(arrayOf("su", "-c", cmdStr)).waitFor()
             
             // Restore System Ayunda
             Runtime.getRuntime().exec(arrayOf("su", "-c", "rm -f /data/ProjectRaco/ayunda_active ; sh /data/adb/modules/ProjectRaco/CoreSys/AyundaRusdi.sh >/dev/null 2>&1")).waitFor()
         } else {
             try {
-                val bakFile = java.io.File("/data/ProjectRaco/modes/${currentPackage}.bak")
-                if (bakFile.exists()) {
-                    val lines = bakFile.readLines()
-                    if (lines.size >= 3) {
-                        val rgb = lines[1].split(" ")
-                        if (rgb.size >= 4) {
-                            r = rgb[0].toFloatOrNull() ?: r
-                            g = rgb[1].toFloatOrNull() ?: g
-                            b = rgb[2].toFloatOrNull() ?: b
-                            s = rgb[3].toFloatOrNull() ?: s
-                        }
-                        lastPreset = lines[2]
+                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /data/ProjectRaco/modes/${currentPackage}.bak 2>/dev/null"))
+                val lines = process.inputStream.bufferedReader().readLines()
+                if (lines.size >= 3) {
+                    val rgb = lines[1].split(" ")
+                    if (rgb.size >= 4) {
+                        r = rgb[0].toFloatOrNull() ?: r
+                        g = rgb[1].toFloatOrNull() ?: g
+                        b = rgb[2].toFloatOrNull() ?: b
+                        s = rgb[3].toFloatOrNull() ?: s
                     }
+                    lastPreset = lines[2]
                 }
             } catch (e: Exception) {}
             
             activeAyundaPresetState.value = lastPreset
             val newContent = "$currentMode\\n$r $g $b $s\\n$lastPreset\\n"
-            val cmd = "echo -e '$newContent' > /data/ProjectRaco/modes/$currentPackage ; touch /data/ProjectRaco/ayunda_active ; service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1 ; service call SurfaceFlinger 1022 f $s"
+            val cmd = """
+                echo -e '$newContent' > /data/ProjectRaco/modes/$currentPackage
+                chmod 666 /data/ProjectRaco/modes/$currentPackage
+                touch /data/ProjectRaco/ayunda_active
+                service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1
+                service call SurfaceFlinger 1022 f $s
+            """.trimIndent()
             Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
         }
     }

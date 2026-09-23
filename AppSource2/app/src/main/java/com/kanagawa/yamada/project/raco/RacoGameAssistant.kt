@@ -156,11 +156,9 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         
         var savedAyundaPreset = ""
         try {
-            val modeFile = java.io.File("/data/ProjectRaco/modes/$packageName")
-            if (modeFile.exists()) {
-                val lines = modeFile.readLines()
-                if (lines.size >= 3) savedAyundaPreset = lines[2]
-            }
+            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /data/ProjectRaco/modes/$packageName 2>/dev/null"))
+            val lines = process.inputStream.bufferedReader().readLines()
+            if (lines.size >= 3) savedAyundaPreset = lines[2]
         } catch (e: Exception) {}
         activeAyundaPresetState.value = savedAyundaPreset
 
@@ -314,12 +312,10 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         val pkg = currentPackageState.value
         var gameAyundaActive = false
         try {
-            val modeFile = java.io.File("/data/ProjectRaco/modes/$pkg")
-            if (modeFile.exists()) {
-                val lines = modeFile.readLines()
-                if (lines.size >= 3) {
-                    gameAyundaActive = true
-                }
+            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /data/ProjectRaco/modes/$pkg 2>/dev/null"))
+            val lines = process.inputStream.bufferedReader().readLines()
+            if (lines.size >= 3) {
+                gameAyundaActive = true
             }
         } catch (e: Exception) {}
 
@@ -1032,7 +1028,15 @@ fun PerformanceTab(context: Context, currentPackage: String, selectedModeState: 
                                 kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
                                     try {
                                         if (currentPackage.isNotEmpty()) {
-                                            Runtime.getRuntime().exec(arrayOf("su", "-c", "echo $cmdMode > /data/ProjectRaco/modes/$currentPackage")).waitFor()
+                                            val updateCmd = """
+                                                if [ -f /data/ProjectRaco/modes/$currentPackage ]; then
+                                                    sed -i '1s/.*/$cmdMode/' /data/ProjectRaco/modes/$currentPackage
+                                                else
+                                                    echo $cmdMode > /data/ProjectRaco/modes/$currentPackage
+                                                fi
+                                                chmod 666 /data/ProjectRaco/modes/$currentPackage
+                                            """.trimIndent()
+                                            Runtime.getRuntime().exec(arrayOf("su", "-c", updateCmd)).waitFor()
                                         }
                                         val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $cmdMode"))
                                         val reader = process.inputStream.bufferedReader()
