@@ -60,7 +60,7 @@ private suspend fun sysSetAyundaRusdiEnabled(enabled: Boolean) {
 }
 
 private suspend fun sysUpdateAyundaScript(r: Float, g: Float, b: Float, s: Float) {
-    val scriptPath = "/data/adb/modules/ProjectRaco/CoreSys/AyundaRusdi.sh"
+    val scriptPath = "/data/ProjectRaco/AyundaRusdi.sh"
     val content = """#!/system/bin/sh
 # Project Raco - Screen Modifier Boot Settings
 service call SurfaceFlinger 1015 i32 1 f $r f 0 f 0 f 0 f 0 f $g f 0 f 0 f 0 f 0 f $b f 0 f 0 f 0 f 0 f 1

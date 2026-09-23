@@ -15,7 +15,7 @@ sed -i 's/^STATE.*/STATE/' /data/ProjectRaco/raco.txt
 # Execute Ayunda Rusdi (Screen Modifiers) if configured
 AYUNDA_RUSDI=$(grep '^AYUNDA_RUSDI ' /data/ProjectRaco/raco.txt | awk '{print $2}')
 if [ "$AYUNDA_RUSDI" = "1" ]; then
-    sh "$MODDIR/CoreSys/AyundaRusdi.sh" &
+    sh "/data/ProjectRaco/AyundaRusdi.sh" &
 fi
 
 # RSWAP Boot Initialization

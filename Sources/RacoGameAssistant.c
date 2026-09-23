@@ -158,7 +158,7 @@ void exec_balance(const char *pkg) {
             system(cmd);
         }
         
-        system("if [ -f /data/ProjectRaco/ayunda_active ]; then sh /data/adb/modules/ProjectRaco/CoreSys/AyundaRusdi.sh >/dev/null 2>&1; rm -f /data/ProjectRaco/ayunda_active; fi &");
+        system("if [ -f /data/ProjectRaco/ayunda_active ]; then sh /data/ProjectRaco/AyundaRusdi.sh >/dev/null 2>&1; rm -f /data/ProjectRaco/ayunda_active; fi &");
         
         // Unload performance mode and suspend game via RSWAP
         char cmd[512];

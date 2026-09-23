@@ -320,7 +320,11 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         } catch (e: Exception) {}
 
         if (gameAyundaActive) {
-            combinedCmd += "rm -f /data/ProjectRaco/ayunda_active ; sh /data/adb/modules/ProjectRaco/CoreSys/AyundaRusdi.sh >/dev/null 2>&1 ; "
+            val hideCmd = """
+                rm -f /data/ProjectRaco/ayunda_active
+                sh /data/ProjectRaco/AyundaRusdi.sh >/dev/null 2>&1
+            """.trimIndent()
+            combinedCmd += "$hideCmd ; "
         }
         
         if (activeDndState.value) {

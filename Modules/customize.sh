@@ -190,6 +190,12 @@ if [ ! -f "/data/ProjectRaco/WhitelistKillAll.txt" ]; then
   cp "$MODPATH/WhitelistKillAll.txt" "/data/ProjectRaco/WhitelistKillAll.txt"
 fi
 
+if [ ! -f "/data/ProjectRaco/AyundaRusdi.sh" ]; then
+  ui_print "- Sending Ayunda Rusdi..."
+  cp "$MODPATH/CoreSys/AyundaRusdi.sh" "/data/ProjectRaco/AyundaRusdi.sh"
+  chmod 777 "/data/ProjectRaco/AyundaRusdi.sh"
+fi
+
 # Clean up the template file from the module directory.
 rm -f "$RACO_MODULE_TEMPLATE"
 rm -f "$MODPATH/WhitelistKillAll.txt"

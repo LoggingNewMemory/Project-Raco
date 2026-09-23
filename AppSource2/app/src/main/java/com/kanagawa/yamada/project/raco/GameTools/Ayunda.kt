@@ -199,7 +199,7 @@ object AyundaTool {
             Runtime.getRuntime().exec(arrayOf("su", "-c", cmdStr)).waitFor()
             
             // Restore System Ayunda
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "rm -f /data/ProjectRaco/ayunda_active ; sh /data/adb/modules/ProjectRaco/CoreSys/AyundaRusdi.sh >/dev/null 2>&1")).waitFor()
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "rm -f /data/ProjectRaco/ayunda_active ; sh /data/ProjectRaco/AyundaRusdi.sh >/dev/null 2>&1")).waitFor()
         } else {
             try {
                 val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /data/ProjectRaco/modes/${currentPackage}.bak 2>/dev/null"))
