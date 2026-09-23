@@ -134,7 +134,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
             try {
                 val p = ProcessBuilder("su", "-c", "cat /data/ProjectRaco/modes/$packageName").redirectErrorStream(true).start()
-                val cmdMode = p.inputStream.bufferedReader().use { it.readText() }.trim()
+                val cmdMode = p.inputStream.bufferedReader().use { it.readLine() }?.trim() ?: "4"
                 p.waitFor()
                 val label = when(cmdMode) {
                     "3" -> "Balanced"
