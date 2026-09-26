@@ -120,27 +120,7 @@ void mtk_get_mid_freq(char *out) {
 }
 
 void mtk_disable_gpu_custom_boost() {
-    char buffer[4096];
-    int count = 0; 
-    
-    if (raread("/proc/gpufreqv2/gpu_working_opp_table", buffer, sizeof(buffer)) > 0 ||
-        raread("/proc/gpufreq/gpufreq_opp_dump", buffer, sizeof(buffer)) > 0) {
-        char *saveptr;
-        char *line = strtok_r(buffer, "\n", &saveptr);
-        while (line != NULL && count < 50) {
-            if (strchr(line, '[')) count++;
-            line = strtok_r(NULL, "\n", &saveptr);
-        }
-    }
-    
-    if (count > 0) {
-        char min_idx[32];
-        snprintf(min_idx, 32, "%d", count - 1); // Exact lowest frequency index
-        rawrite(min_idx, "/sys/kernel/ged/hal/custom_boost_gpu_freq");
-    } else {
-        // Absolute fallback if reading the tables completely fails
-        rawrite("100", "/sys/kernel/ged/hal/custom_boost_gpu_freq");
-    }
+    rawrite("\n", "/sys/kernel/ged/hal/custom_boost_gpu_freq");
 }
 
 void mediatek_awaken() {
