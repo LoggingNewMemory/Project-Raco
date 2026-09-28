@@ -530,3 +530,17 @@ xyz.aethersx2.android
 com.fun.lastwar.gp
 com.onemb.shadowborn
 com.bilibili.trickcal
+com.kitkagames.fallbuddies
+com.efootball.konami
+com.x.aniimos
+net.roslegacy.prod
+com.kompasproductions.summertimesaga
+com.learningplace.howtofish
+com.BlackSaltGames.DREDGE
+com.F2Games.GBDE
+com.OskarStalberg.Townscaper
+info.flowersoft.theotown.theotown
+jp.co.ofcr.cm00
+com.levelinfinite.sgameGlobal.huawei
+com.tencent.igfit
+com.tencent.tmgp.codev
