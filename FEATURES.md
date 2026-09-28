@@ -35,7 +35,7 @@ Project Raco utilizes a compiled C backend (`raco_service`) to apply system-leve
 
 ## CPU, GPU & System Tweaks
 
-- **App-Based Mode Control (Hamada AI):** Intelligently switches performance modes. Automatically detects game launches to enter performance mode, and scales back during screen-off (Doze/Deep Sleep).
+- **App-Based Mode Control (Game Assistant):** Intelligently switches performance modes. Automatically detects game launches to enter performance mode, and scales back during screen-off (Doze/Deep Sleep).
 - **GPU Max Lock Frequency:** Dynamically pulls maximum supported frequencies from GPU drivers (including MediaTek's `gpufreq_opp_dump`) and locks them to prevent frame drops.
 - **I/O Tweaks:** Alters scheduler algorithms and random-add parameters across all block devices to reduce read/write latency.
 - **LMK & Memory Tuning:** Optimizes Low Memory Killer limits and system memory caching behavior.
@@ -57,7 +57,7 @@ The module includes a fully native Kotlin/Jetpack Compose Android app (`ProjectR
 
 ### App Modules
 - **Core Tweaks Screen:** Interface to manually trigger IO, CPU, and GPU scripts.
-- **Automation Screen:** Configure Hamada AI, Auto DND, and app whitelists.
+- **Automation Screen:** Configure Game Assistant, Auto DND, and app whitelists.
 - **RSwap & Appearance Screens:** Manage the swapfile size and adjust Ayunda Rusdi color properties.
 
 ---
