@@ -344,13 +344,24 @@ void mediatek_normal() {
 }
 
 void mediatek_powersave() {
+/*
+NOTE!!!
+
+Mediatek gpufreqv2 have a problem. If try to go back to default from powersave
+It still stucked to minfreq. Therefore it's wise to keep GPU untouched on powersave
+
+Strangely, if from performance to normal, it works properly. So I must say it's 
+From Mediatek GPU Driver itself. 
+
+Signed-off-by: KanagawaYamada albert.wesley.dion@gmail.com
+*/
     mtk_cpu_ppm_limit("powersave");
     rawrite("1", "/proc/cpufreq/cpufreq_power_mode");
     rawrite("0", "/sys/kernel/fpsgo/fbt/ultra_rescue");
     rawrite("1", "/sys/kernel/fpsgo/fbt/thrm_enable");
     rawrite("0", "/sys/module/mtk_fpsgo/parameters/xgf_uboost");
     rawrite("0", "/proc/cpufreq/cpufreq_sched_disable");
-    mtk_mali_devfreq("min");
+    mtk_mali_devfreq("normal");
     // ==============================
     // MISC TWEAKS
     // ==============================
@@ -408,7 +419,7 @@ void mediatek_powersave() {
 
     // Defreq Tweaks
     devfreq_normal("/sys/class/devfreq/mtk-dvfsrc-devfreq");
-    set_gpu_governor("mali", "powersave");
+    set_gpu_governor("mali", "simple_ondemand");
 }
 
 // ==============================
