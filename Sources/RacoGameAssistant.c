@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <poll.h>
 #include <signal.h>
+#include <sys/stat.h>
 
 #define TASKS_FILE "/dev/cpuset/top-app/tasks"
 #define GAME_TXT "/data/ProjectRaco/gamelist.txt"
@@ -16,21 +17,49 @@
 
 int active_game_pid = 0;
 char active_game_pkg[256] = {0};
-char gamelist[1024][128];
+char **gamelist = NULL;
 int game_count = 0;
+int gamelist_capacity = 0;
+time_t last_gamelist_mtime = 0;
+
+int compare_strings(const void *a, const void *b) {
+    return strcmp(*(const char **)a, *(const char **)b);
+}
 
 void load_gamelist() {
-    game_count = 0;
-    FILE *f = fopen(GAME_TXT, "r");
-    if (f) {
-        char line[128];
-        while (fgets(line, sizeof(line), f) && game_count < 1024) {
-            line[strcspn(line, "\r\n")] = 0;
-            if (strlen(line) > 0) {
-                strcpy(gamelist[game_count++], line);
-            }
+    struct stat st;
+    if (stat(GAME_TXT, &st) == 0) {
+        if (st.st_mtime == last_gamelist_mtime) {
+            return;
         }
-        fclose(f);
+        last_gamelist_mtime = st.st_mtime;
+    } else {
+        return;
+    }
+
+    FILE *f = fopen(GAME_TXT, "r");
+    if (!f) return;
+
+    for (int i = 0; i < game_count; i++) {
+        free(gamelist[i]);
+    }
+    game_count = 0;
+
+    char line[128];
+    while (fgets(line, sizeof(line), f)) {
+        line[strcspn(line, "\r\n")] = 0;
+        if (strlen(line) > 0) {
+            if (game_count >= gamelist_capacity) {
+                gamelist_capacity = gamelist_capacity == 0 ? 1024 : gamelist_capacity * 2;
+                gamelist = realloc(gamelist, gamelist_capacity * sizeof(char *));
+            }
+            gamelist[game_count++] = strdup(line);
+        }
+    }
+    fclose(f);
+
+    if (game_count > 0) {
+        qsort(gamelist, game_count, sizeof(char *), compare_strings);
     }
 }
 
@@ -54,12 +83,10 @@ int get_tgid(int tid) {
 }
 
 int check_game_in_memory(const char *cmdline) {
-    for (int i = 0; i < game_count; i++) {
-        if (strcmp(cmdline, gamelist[i]) == 0) {
-            return 1;
-        }
-    }
-    return 0;
+    if (game_count == 0 || !gamelist) return 0;
+    char *key = (char *)cmdline;
+    char **result = bsearch(&key, gamelist, game_count, sizeof(char *), compare_strings);
+    return result != NULL;
 }
 
 int is_companion_mode() {
