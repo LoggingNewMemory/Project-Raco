@@ -229,8 +229,7 @@ void mediatek_balanced() {
         "ged_boost_enable", "gx_frc_mode", "cpu_boost_policy", "boost_extra"
     };
     int ged_count = sizeof(ged_files) / sizeof(ged_files[0]);
-    raco_bulk(ged_base, ged_files, ged_count, "0", 1);
-
+    raco_bulk(ged_base, ged_files, ged_count, "0", 0);
 
     // PNPMGR
     const char *pnp_base = "/sys/pnpmgr";
@@ -295,8 +294,7 @@ void mediatek_normal() {
         "ged_boost_enable", "gx_frc_mode", "cpu_boost_policy", "boost_extra"
     };
     int ged_count = sizeof(ged_files) / sizeof(ged_files[0]);
-    raco_bulk(ged_base, ged_files, ged_count, "0", 1);
-
+    raco_bulk(ged_base, ged_files, ged_count, "0", 0);
 
     // PNPMGR
     const char *pnp_base = "/sys/pnpmgr";
@@ -373,8 +371,7 @@ Signed-off-by: KanagawaYamada albert.wesley.dion@gmail.com
         "ged_boost_enable", "gx_frc_mode", "cpu_boost_policy", "boost_extra"
     };
     int ged_count = sizeof(ged_files) / sizeof(ged_files[0]);
-    raco_bulk(ged_base, ged_files, ged_count, "0", 1);
-
+    raco_bulk(ged_base, ged_files, ged_count, "0", 0);
 
     // PNPMGR
     const char *pnp_base = "/sys/pnpmgr";
