@@ -10,4 +10,5 @@ Designs/Exported
 Modules/Compiled/*
 !Modules/Compiled/.gitkeep
 Modules/CoreSys/*
-!Modules/CoreSys/.gitkeep
+!Modules/CoreSys/.gitkeepGenSha.sh
+Modules/ShaList.txt

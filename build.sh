@@ -72,6 +72,11 @@ build_modules() {
         rm "customize.sh.tmp"
     fi
 
+    # Generate SHA-256 Hashes
+    if [ -f "../GenSha.sh" ]; then
+        bash ../GenSha.sh
+    fi
+
     ZIP_NAME="${MODULE_ID}-${VERSION}.zip"
     ZIP_PATH="../$BUILD_DIR/$ZIP_NAME"
     zip -q -r "$ZIP_PATH" ./* -x "*.gitkeep"

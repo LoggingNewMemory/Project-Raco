@@ -140,6 +140,13 @@ unzip -o "$ZIPFILE" 'raco.txt' -d $MODPATH >&2
 unzip -o "$ZIPFILE" 'WhitelistKillAll.txt' -d $MODPATH >&2
 
 unzip -o "$ZIPFILE" 'gamelist.txt' -d $MODPATH >&2
+unzip -o "$ZIPFILE" 'ShaList.txt' -d $MODPATH >&2
+unzip -o "$ZIPFILE" 'Verify.sh' -d $MODPATH >&2
+
+# Run integrity check
+if [ -f "$MODPATH/Verify.sh" ]; then
+  . "$MODPATH/Verify.sh"
+fi
 
 # File copy operations
 rm -f "/data/local/tmp/logo.png" >/dev/null 2>&1
