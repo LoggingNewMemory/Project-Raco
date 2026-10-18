@@ -44,7 +44,7 @@ fun Credits(
     val contributors = listOf(
         "Rem01 Gaming", "MiAzami", "Kazuyoo", "RiProG",
         "HoyoSlave", "Koneko_dev", "Not_ValentineSTCV",
-        "Andreyka4_45", "Zexshia", "kaminarich",
+        "Andreyka4_45", "kaminarich",
         "fuckyoustan", "Xyanz_25", "hirauki", "KanaDev_IS",
         "And all testers"
     )
