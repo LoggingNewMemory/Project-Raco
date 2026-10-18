@@ -97,7 +97,7 @@
     <string name="zefanya_raco">Zefanya Raco</string>
     <string name="yamada_s_neko_maid">Yamada's Neko Maid</string>
     <string name="donate_for_project_raco">Поддержать Project Raco</string>
-    <string name="set_the_angle_vulkan_graphics_driver_mode">Установить режим графического драйвера ANGLE/Vulkan.</string>
+    <string name="graphics_driver_desc">Выберите предпочтительный графический драйвер (По умолчанию, Игровой драйвер или Драйвер разработчика).</string>
     <string name="trim_filesystem_for_storage_performance">Оптимизация (trim) файловой системы для повышения скорости накопителя.</string>
     <string name="remove_system_cache_partition_contents">Очистить кэш системного раздела.</string>
     <string name="no_results_found_1">Ничего не найдено.</string>

@@ -422,7 +422,7 @@ fun SystemScreen(onBack: () -> Unit) {
             // Graphics Driver Card
             item {
                 SystemCard(stringResource(R.string.graphics_driver)) {
-                    Text(stringResource(R.string.set_the_angle_vulkan_graphics_driver_mode), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.graphics_driver_desc), style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))
                     val currentDriverStr = when (graphicsDriver) {
                         1 -> stringResource(R.string.graphics_driver_game)

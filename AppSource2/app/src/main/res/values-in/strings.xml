@@ -97,7 +97,7 @@
     <string name="zefanya_raco">Zefanya Raco</string>
     <string name="yamada_s_neko_maid">Yamada's Neko Maid</string>
     <string name="donate_for_project_raco">Donasi untuk Project Raco</string>
-    <string name="set_the_angle_vulkan_graphics_driver_mode">Atur mode driver grafis ANGLE/Vulkan.</string>
+    <string name="graphics_driver_desc">Pilih preferensi driver grafis (Default, Game Driver, atau Driver Pengembang) untuk aplikasi.</string>
     <string name="trim_filesystem_for_storage_performance">Trim sistem file untuk meningkatkan performa penyimpanan.</string>
     <string name="remove_system_cache_partition_contents">Hapus isi partisi cache sistem.</string>
     <string name="no_results_found_1">Tidak ada hasil ditemukan.</string>

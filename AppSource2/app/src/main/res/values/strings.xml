@@ -97,7 +97,7 @@
     <string name="zefanya_raco">Zefanya Raco</string>
     <string name="yamada_s_neko_maid">Yamada\'s Neko Maid</string>
     <string name="donate_for_project_raco">Donate for Project Raco</string>
-    <string name="set_the_angle_vulkan_graphics_driver_mode">Set the ANGLE/Vulkan graphics driver mode.</string>
+    <string name="graphics_driver_desc">Select the graphics driver preference (Default, Game Driver, or Developer Driver) for system apps.</string>
     <string name="trim_filesystem_for_storage_performance">Trim filesystem for storage performance.</string>
     <string name="remove_system_cache_partition_contents">Remove system cache partition contents.</string>
     <string name="no_results_found_1">No results found.</string>

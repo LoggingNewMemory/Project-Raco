@@ -97,7 +97,7 @@
     <string name="zefanya_raco">Zefanya Raco</string>
     <string name="yamada_s_neko_maid">Yamada's Neko Maid</string>
     <string name="donate_for_project_raco">Project Racoに寄付する</string>
-    <string name="set_the_angle_vulkan_graphics_driver_mode">ANGLE/Vulkanグラフィックドライバーの動作モードを設定します。</string>
+    <string name="graphics_driver_desc">アプリ向けのグラフィックドライバー（デフォルト、ゲームドライバー、開発者用）を選択します。</string>
     <string name="trim_filesystem_for_storage_performance">ファイルシステムをトリム (Trim) してストレージの応答速度を向上させます。</string>
     <string name="remove_system_cache_partition_contents">システムキャッシュパーティションの内容を消去します。</string>
     <string name="no_results_found_1">該当する結果が見つかりません。</string>
