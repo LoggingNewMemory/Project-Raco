@@ -95,7 +95,7 @@
     <string name="raco_l2d">[ RACO L2D ]</string>
     <string name="tap_to_read">▼ Нажмите для чтения</string>
     <string name="zefanya_raco">Zefanya Raco</string>
-    <string name="yamada_s_neko_maid">Yamada's Neko Maid</string>
+    <string name="yamada_s_neko_maid">Yamada\'s Neko Maid</string>
     <string name="donate_for_project_raco">Поддержать Project Raco</string>
     <string name="graphics_driver_desc">Выберите предпочтительный графический драйвер (По умолчанию, Игровой драйвер или Драйвер разработчика).</string>
     <string name="trim_filesystem_for_storage_performance">Оптимизация (trim) файловой системы для повышения скорости накопителя.</string>
