@@ -383,31 +383,27 @@ void change_cpu_gov(const char *gov) {
 }
 
 // Frequency Control (CPUFreq)
-// 1:1 replicate of 5.0 method
-
 
 void cpufreq_awaken() {
     if (config.alter_cpu_method == 1) return;
     
-    // 2. Apply Max Perf
     DIR *dir;
     struct dirent *ent;
     if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
             if (strncmp(ent->d_name, "policy", 6) == 0) {
-                const char *cpu_idx = ent->d_name + 6;
-                char path[256], min_path[256], max_path[256], info_path[256], avail_path[256];
+                char path[256], min_path[256], max_path[256], info_path[256];
                 snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpufreq/%s", ent->d_name);
                 snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", path);
                 snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", path);
-                snprintf(avail_path, sizeof(avail_path), "/sys/devices/system/cpu/cpu%s/cpufreq/scaling_available_frequencies", cpu_idx);
+                snprintf(info_path, sizeof(info_path), "%s/cpuinfo_max_freq", path);
 
                 char hw_max_buf[32] = {0};
-
-                snprintf(info_path, sizeof(info_path), "/sys/devices/system/cpu/cpu%s/cpufreq/cpuinfo_max_freq", cpu_idx);
                 if (raread(info_path, hw_max_buf, sizeof(hw_max_buf)) <= 0) continue;
 
                 if (config.lite_performance == 1) {
+                    char avail_path[256];
+                    snprintf(avail_path, sizeof(avail_path), "%s/scaling_available_frequencies", path);
                     FreqData mid_f = get_target_freq(avail_path, 2);
                     if (mid_f.freq != -1) {
                         char mid_val[32];
