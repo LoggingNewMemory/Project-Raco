@@ -384,22 +384,38 @@ void change_cpu_gov(const char *gov) {
 
 // Frequency Control (CPUFreq)
 
-void cpufreq_awaken() {
+typedef enum {
+    CPUFREQ_AWAKEN,
+    CPUFREQ_BALANCED,
+    CPUFREQ_NORMAL,
+    CPUFREQ_POWERSAVE
+} CpuFreqProfile;
+
+static void apply_cpufreq(CpuFreqProfile profile) {
     if (config.alter_cpu_method == 1) return;
-    
+
     DIR *dir;
     struct dirent *ent;
-    if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
-            if (strncmp(ent->d_name, "policy", 6) == 0) {
-                char path[256], min_path[256], max_path[256], info_path[256];
-                snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpufreq/%s", ent->d_name);
-                snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", path);
-                snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", path);
-                snprintf(info_path, sizeof(info_path), "%s/cpuinfo_max_freq", path);
+    if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) == NULL) return;
 
-                char hw_max_buf[32] = {0};
-                if (raread(info_path, hw_max_buf, sizeof(hw_max_buf)) <= 0) continue;
+    while ((ent = readdir(dir)) != NULL) {
+        if (strncmp(ent->d_name, "policy", 6) != 0) continue;
+
+        char path[256], min_path[256], max_path[256], min_info[256], max_info[256];
+        snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpufreq/%s", ent->d_name);
+        snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", path);
+        snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", path);
+        snprintf(min_info, sizeof(min_info), "%s/cpuinfo_min_freq", path);
+        snprintf(max_info, sizeof(max_info), "%s/cpuinfo_max_freq", path);
+
+        char hw_min[32] = {0};
+        char hw_max[32] = {0};
+        raread(min_info, hw_min, sizeof(hw_min));
+        raread(max_info, hw_max, sizeof(hw_max));
+
+        switch (profile) {
+            case CPUFREQ_AWAKEN: {
+                if (hw_max[0] == '\0') break;
 
                 if (config.lite_performance == 1) {
                     char avail_path[256];
@@ -408,129 +424,76 @@ void cpufreq_awaken() {
                     if (mid_f.freq != -1) {
                         char mid_val[32];
                         snprintf(mid_val, sizeof(mid_val), "%ld", mid_f.freq);
-                        rawrite(hw_max_buf, max_path);
+                        rawrite(hw_max, max_path);
                         rawrite(mid_val, min_path);
-                    } else {
-                        rawrite(hw_max_buf, max_path);
-                        rawrite(hw_max_buf, min_path);
+                        break;
                     }
-                } else {
-                    rawrite(hw_max_buf, max_path);
-                    rawrite(hw_max_buf, min_path);
                 }
+                rawrite(hw_max, max_path);
+                rawrite(hw_max, min_path);
+                break;
             }
-        }
-        closedir(dir);
-    }
-}
 
-void cpufreq_balanced() {
-    if (config.alter_cpu_method == 1) return;
-    
-    DIR *dir;
-    struct dirent *ent;
-    if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
-            if (strncmp(ent->d_name, "policy", 6) == 0) {
-                char path[256], avail_path[256], info_path[256], min_path[256], max_path[256];
-                snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpufreq/%s", ent->d_name);
+            case CPUFREQ_BALANCED: {
+                if (hw_max[0] == '\0') break;
+
+                char avail_path[256];
                 snprintf(avail_path, sizeof(avail_path), "%s/scaling_available_frequencies", path);
-                snprintf(info_path, sizeof(info_path), "%s/cpuinfo_max_freq", path);
-                snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", path);
-                snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", path);
-
                 FreqData mid_f = get_target_freq(avail_path, 2);
-
-                char hw_max_buf[32] = {0};
-
-                if (mid_f.freq != -1 && raread(info_path, hw_max_buf, sizeof(hw_max_buf)) > 0) {
+                if (mid_f.freq != -1) {
                     char mid_val[32];
                     snprintf(mid_val, sizeof(mid_val), "%ld", mid_f.freq);
-
-                    rakakikomi(hw_max_buf, max_path);
+                    rakakikomi(hw_max, max_path);
                     rakakikomi(mid_val, min_path);
                 }
+                break;
             }
-        }
-        closedir(dir);
-    }
-}
 
-void cpufreq_normal() {
-    if (config.alter_cpu_method == 1) return;
-    
-    DIR *dir;
-    struct dirent *ent;
-    if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
-            if (strncmp(ent->d_name, "policy", 6) == 0) {
-                char path[256], min_info[256], max_info[256], min_path[256], max_path[256];
-                snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpufreq/%s", ent->d_name);
-                snprintf(min_info, sizeof(min_info), "%s/cpuinfo_min_freq", path);
-                snprintf(max_info, sizeof(max_info), "%s/cpuinfo_max_freq", path);
-                snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", path);
-                snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", path);
-
-                char hw_min_buf[32] = {0};
-                char hw_max_buf[32] = {0};
-
-                if (raread(min_info, hw_min_buf, sizeof(hw_min_buf)) > 0 && raread(max_info, hw_max_buf, sizeof(hw_max_buf)) > 0) {
-                    rakakikomi(hw_max_buf, max_path);
-                    rakakikomi(hw_min_buf, min_path);
+            case CPUFREQ_NORMAL: {
+                if (hw_min[0] != '\0' && hw_max[0] != '\0') {
+                    rakakikomi(hw_max, max_path);
+                    rakakikomi(hw_min, min_path);
                 }
+                break;
             }
-        }
-        closedir(dir);
-    }
-}
 
-void cpufreq_powersave() {
-    if (config.alter_cpu_method == 1) return;
-    
-    // 2. Apply Min Perf
-    DIR *dir;
-    struct dirent *ent;
-    if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
-            if (strncmp(ent->d_name, "policy", 6) == 0) {
-                char path[256], info_path[256], min_path[256], max_path[256];
-                snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpufreq/%s", ent->d_name);
-                snprintf(info_path, sizeof(info_path), "%s/cpuinfo_min_freq", path);
-                snprintf(min_path, sizeof(min_path), "%s/scaling_min_freq", path);
-                snprintf(max_path, sizeof(max_path), "%s/scaling_max_freq", path);
-
-                char hw_min_buf[32] = {0};
+            case CPUFREQ_POWERSAVE: {
+                if (hw_min[0] == '\0') break;
 
                 if (config.ultra_powersave == 1) {
-                    if (raread(info_path, hw_min_buf, sizeof(hw_min_buf)) > 0) {
-                        rawrite(hw_min_buf, min_path);
-                        rawrite(hw_min_buf, max_path);
-                    }
-                } else if (config.lite_powersave == 1) {
-                    char avail_path[256];
-                    snprintf(avail_path, sizeof(avail_path), "%s/scaling_available_frequencies", path);
-                    FreqData mid_f = get_target_freq(avail_path, 2);
-                    if (mid_f.freq != -1 && raread(info_path, hw_min_buf, sizeof(hw_min_buf)) > 0) {
-                        char mid_val[32];
-                        snprintf(mid_val, sizeof(mid_val), "%ld", mid_f.freq);
-                        rawrite(hw_min_buf, min_path);
-                        rawrite(mid_val, max_path);
-                    }
+                    rawrite(hw_min, min_path);
+                    rawrite(hw_min, max_path);
                 } else {
+                    int step = (config.lite_powersave == 1) ? 2 : 3;
                     char avail_path[256];
                     snprintf(avail_path, sizeof(avail_path), "%s/scaling_available_frequencies", path);
-                    FreqData mid_f = get_target_freq(avail_path, 3);
+                    FreqData mid_f = get_target_freq(avail_path, step);
                     if (mid_f.freq != -1) {
                         char mid_val[32];
                         snprintf(mid_val, sizeof(mid_val), "%ld", mid_f.freq);
-                        if (raread(info_path, hw_min_buf, sizeof(hw_min_buf)) > 0) {
-                            rawrite(hw_min_buf, min_path);
-                        }
+                        rawrite(hw_min, min_path);
                         rawrite(mid_val, max_path);
                     }
                 }
+                break;
             }
         }
-        closedir(dir);
     }
+    closedir(dir);
+}
+
+void cpufreq_awaken() {
+    apply_cpufreq(CPUFREQ_AWAKEN);
+}
+
+void cpufreq_balanced() {
+    apply_cpufreq(CPUFREQ_BALANCED);
+}
+
+void cpufreq_normal() {
+    apply_cpufreq(CPUFREQ_NORMAL);
+}
+
+void cpufreq_powersave() {
+    apply_cpufreq(CPUFREQ_POWERSAVE);
 }
