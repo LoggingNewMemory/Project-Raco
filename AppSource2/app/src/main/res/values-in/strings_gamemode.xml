@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="ps4_enter">Mode Game</string>
+    <string name="ps4_title">MODE GAME</string>
+    <string name="ps4_start">MULAI</string>
+    <string name="ps4_starting">MEMULAI…</string>
+    <string name="ps4_last_played">TERAKHIR DIMAINKAN</string>
+    <string name="ps4_launch_failed">Tidak bisa membuka game ini</string>
+    <string name="ps4_no_games_title">Belum ada game</string>
+    <string name="ps4_no_games_desc">Tambahkan game di Utilities → Automation → Game App List, lalu kembali ke sini.</string>
+    <string name="ps4_exit">Keluar Mode Game</string>
+    <string name="ps4_exit_title">Keluar dari Mode Game?</string>
+    <string name="ps4_exit_desc">Kamu akan kembali ke tampilan Raco standar.</string>
+    <string name="ps4_stay">Tetap di sini</string>
+    <string name="ps4_leave">Keluar</string>
+    <string name="ps4_mode_bar">MODE PERFORMA</string>
+    <string name="ps4_eco_desc">Hemat daya, tetap adem</string>
+    <string name="ps4_balanced_desc">Mulus untuk main harian</string>
+    <string name="ps4_awaken_desc">Performa maksimum</string>
+    <string name="ps4_overlay_applying">MENERAPKAN PROFIL…</string>
+    <string name="ps4_overlay_done">%1$s AKTIF</string>
+    <string name="ps4_overlay_failed">TIDAK SELESAI</string>
+    <string name="ps4_settings">Pengaturan Mode Game</string>
+    <string name="ps4_theme">Tema</string>
+    <string name="ps4_bg_image">Background sendiri</string>
+    <string name="ps4_bg_pick">Pilih gambar</string>
+    <string name="ps4_bg_use">Pakai gambarku sebagai background</string>
+    <string name="ps4_sound">Suara</string>
+    <string name="ps4_sfx">Efek suara</string>
+    <string name="ps4_music">Musik latar</string>
+    <string name="ps4_music_source_default">Ambient bawaan</string>
+    <string name="ps4_music_pick">Pilih file musik</string>
+    <string name="ps4_music_reset">Pakai bawaan</string>
+    <string name="ps4_volume">Volume</string>
+    <string name="ps4_close">Tutup</string>
+    <string name="ps4_all_settings">Pengaturan</string>
+    <string name="ps4_look">Tema &amp; Suara</string>
+    <string name="ps4_menu_raco">Raco</string>
+    <string name="ps4_menu_about">Tentang</string>
+    <string name="ps4_menu_utilities_desc">Core tweaks, otomatisasi, sistem, tampilan, PixelSleep, bypass charging</string>
+    <string name="ps4_back">Kembali</string>
+</resources>

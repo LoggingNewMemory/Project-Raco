@@ -19,6 +19,7 @@
 package com.kanagawa.yamada.project.raco
 
 import com.kanagawa.yamada.project.raco.ui.theme.GlassCard
+import com.kanagawa.yamada.project.raco.gamemode.GameModeState
 
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
@@ -75,8 +76,95 @@ object ExecutionManager {
     var executionProgress by mutableFloatStateOf(0f)
     var cooldownTimeRemaining by mutableIntStateOf(0)
     var currentMode by mutableStateOf("NONE")
+    /** true when the last execute() ran to completion (false while running / cancelled / failed). */
+    var lastRunOk by mutableStateOf(true)
     var executionJob: Job? = null
     val scope = kotlinx.coroutines.CoroutineScope(Dispatchers.Main + kotlinx.coroutines.SupervisorJob())
+
+    private const val CONFIG_PATH = "/data/ProjectRaco/raco.txt"
+
+    suspend fun fetchActiveMode(): String = withContext(Dispatchers.IO) {
+        try {
+            val output = withTimeoutOrNull(3000L) {
+                val process = ProcessBuilder("su", "-c", "awk '/^STATE/ {print $2}' " + CONFIG_PATH).redirectErrorStream(true).start()
+                val text = process.inputStream.bufferedReader().use { it.readText().trim() }
+                process.waitFor()
+                text
+            } ?: "NONE"
+            when (output) {
+                "4" -> "PERFORMANCE"
+                "1" -> "BALANCED"
+                "3" -> "BALANCED_PERF"
+                "2" -> "POWER_SAVE"
+                "5" -> "GAMING_PRO"
+                "6" -> "COOLDOWN"
+                "7" -> "NONE"
+                else -> "NONE"
+            }
+        } catch (e: Exception) { "NONE" }
+    }
+
+    /** Runs the raco binary for [modeArg]. Callers are responsible for the root check. */
+    fun execute(modeArg: String, modeName: String) {
+        if (isExecuting) return
+        isExecuting = true
+        executingMode = modeArg
+        executionProgress = 0f
+        lastRunOk = false
+        executionJob = scope.launch {
+            var wasCancelled = false
+            try {
+                if (modeName == "COOLDOWN") {
+                    withContext(Dispatchers.IO) {
+                        val cmd = "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $modeArg"
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
+                    }
+
+                    for (i in 120 downTo 1) {
+                        cooldownTimeRemaining = i
+                        executionProgress = (120 - i) / 120f
+                        delay(1000)
+                    }
+                    cooldownTimeRemaining = 0
+                    executionProgress = 1f
+                } else {
+                    withContext(Dispatchers.IO) {
+                        val cmd = "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $modeArg"
+
+                        val process = Runtime.getRuntime().exec(arrayOf("su", "-c", cmd))
+                        val reader = process.inputStream.bufferedReader()
+                        while (true) {
+                            val line = reader.readLine() ?: break
+                            if (line.startsWith("PROGRESS:")) {
+                                line.substringAfter("PROGRESS:").trim().toFloatOrNull()?.let {
+                                    val progressVal = it / 100f
+                                    executionProgress = if (progressVal >= 1f) 0.95f else progressVal
+                                }
+                                if (line.contains("PROGRESS: 100")) break
+                            }
+                        }
+
+                        process.waitFor() // Ensure the script and sed command finish
+                        executionProgress = 1f
+                    }
+                }
+                currentMode = if (modeName == "CLEAR") "NONE" else modeName
+                lastRunOk = true
+            } catch (e: CancellationException) {
+                wasCancelled = true
+            } catch (e: Exception) {
+            } finally {
+                isExecuting = false
+                executingMode = ""
+                executionProgress = 0f
+                currentMode = fetchActiveMode()
+
+                if (modeName == "COOLDOWN" && !wasCancelled && cooldownTimeRemaining == 0) {
+                    execute("1", "BALANCED")
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -130,25 +218,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
         } catch (e: Exception) { "Unknown" }
     }
 
-    suspend fun fetchActiveMode(): String = withContext(Dispatchers.IO) {
-        try {
-            val output = withTimeoutOrNull(3000L) {
-                val process = ProcessBuilder("su", "-c", "awk '/^STATE/ {print $2}' " + configPath).redirectErrorStream(true).start()
-                val text = process.inputStream.bufferedReader().use { it.readText().trim() }
-                process.waitFor()
-                text
-            } ?: "NONE"
-            when (output) {
-                "4" -> "PERFORMANCE"
-                "1" -> "BALANCED"
-                "2" -> "POWER_SAVE"
-                "5" -> "GAMING_PRO"
-                "6" -> "COOLDOWN"
-                "7" -> "NONE"
-                else -> "NONE"
-            }
-        } catch (e: Exception) { "NONE" }
-    }
+    suspend fun fetchActiveMode(): String = ExecutionManager.fetchActiveMode()
 
     suspend fun checkGameAssistant(): Boolean = withContext(Dispatchers.IO) {
         try {
@@ -182,65 +252,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
 
     fun executeScript(modeArg: String, modeName: String) {
         if (!hasRoot || ExecutionManager.isExecuting) return
-        ExecutionManager.isExecuting = true
-        ExecutionManager.executingMode = modeArg
-        ExecutionManager.executionProgress = 0f
-        ExecutionManager.executionJob = ExecutionManager.scope.launch {
-            var wasCancelled = false
-            try {
-                if (modeName == "COOLDOWN") {
-                    withContext(Dispatchers.IO) {
-                        val cmd = "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $modeArg"
-                        Runtime.getRuntime().exec(arrayOf("su", "-c", cmd)).waitFor()
-                    }
-                    
-                    for (i in 120 downTo 1) {
-                        ExecutionManager.cooldownTimeRemaining = i
-                        ExecutionManager.executionProgress = (120 - i) / 120f
-                        delay(1000)
-                    }
-                    ExecutionManager.cooldownTimeRemaining = 0
-                    ExecutionManager.executionProgress = 1f
-                } else {
-                    withContext(Dispatchers.IO) {
-                        val cmd = if (modeName != "CLEAR") {
-                            "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $modeArg"
-                        } else {
-                            "/system/bin/linker64 /data/adb/modules/ProjectRaco/Compiled/raco $modeArg"
-                        }
-                        
-                        val process = Runtime.getRuntime().exec(arrayOf("su", "-c", cmd))
-                        val reader = process.inputStream.bufferedReader()
-                        while (true) {
-                            val line = reader.readLine() ?: break
-                            if (line.startsWith("PROGRESS:")) {
-                                line.substringAfter("PROGRESS:").trim().toFloatOrNull()?.let {
-                                    val progressVal = it / 100f
-                                    ExecutionManager.executionProgress = if (progressVal >= 1f) 0.95f else progressVal
-                                }
-                                if (line.contains("PROGRESS: 100")) break
-                            }
-                        }
-                        
-                        process.waitFor() // Ensure the script and sed command finish
-                        ExecutionManager.executionProgress = 1f
-                    }
-                }
-                ExecutionManager.currentMode = if (modeName == "CLEAR") "NONE" else modeName
-            } catch (e: CancellationException) {
-                wasCancelled = true
-            } catch (e: Exception) {
-            } finally {
-                ExecutionManager.isExecuting = false
-                ExecutionManager.executingMode = ""
-                ExecutionManager.executionProgress = 0f
-                ExecutionManager.currentMode = fetchActiveMode()
-                
-                if (modeName == "COOLDOWN" && !wasCancelled && ExecutionManager.cooldownTimeRemaining == 0) {
-                    executeScript("1", "BALANCED")
-                }
-            }
-        }
+        ExecutionManager.execute(modeArg, modeName)
     }
 
     fun cancelExecution(canceledText: String) {
@@ -294,6 +306,10 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { GameModeState.setActive(context, true) }) {
+                            Icon(Icons.Default.SportsEsports, contentDescription = stringResource(R.string.ps4_enter), tint = MaterialTheme.colorScheme.primary)
+                        }
                         Box {
                             var languageExpanded by remember { mutableStateOf(false) }
                             IconButton(onClick = { languageExpanded = true }) {
@@ -313,6 +329,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                                 androidx.compose.material3.DropdownMenuItem(text = { Text("日本語") }, onClick = { setLang("ja") })
                                 androidx.compose.material3.DropdownMenuItem(text = { Text("Русский") }, onClick = { setLang("ru") })
                             }
+                        }
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="ps4_enter">Game Mode</string>
+    <string name="ps4_title">GAME MODE</string>
+    <string name="ps4_start">START</string>
+    <string name="ps4_starting">STARTING…</string>
+    <string name="ps4_last_played">LAST PLAYED</string>
+    <string name="ps4_launch_failed">Unable to open this game</string>
+    <string name="ps4_no_games_title">No games yet</string>
+    <string name="ps4_no_games_desc">Add games in Utilities → Automation → Game App List, then come back.</string>
+    <string name="ps4_exit">Exit Game Mode</string>
+    <string name="ps4_exit_title">Leave Game Mode?</string>
+    <string name="ps4_exit_desc">You will return to the standard Raco interface.</string>
+    <string name="ps4_stay">Stay</string>
+    <string name="ps4_leave">Leave</string>
+    <string name="ps4_mode_bar">PERFORMANCE MODE</string>
+    <string name="ps4_eco_desc">Save power, stay cool</string>
+    <string name="ps4_balanced_desc">Smooth everyday play</string>
+    <string name="ps4_awaken_desc">Maximum performance</string>
+    <string name="ps4_overlay_applying">APPLYING PROFILE…</string>
+    <string name="ps4_overlay_done">%1$s ACTIVE</string>
+    <string name="ps4_overlay_failed">NOT COMPLETED</string>
+    <string name="ps4_settings">Game Mode Settings</string>
+    <string name="ps4_theme">Theme</string>
+    <string name="ps4_bg_image">Custom background</string>
+    <string name="ps4_bg_pick">Choose image</string>
+    <string name="ps4_bg_use">Use my image as background</string>
+    <string name="ps4_sound">Sound</string>
+    <string name="ps4_sfx">Sound effects</string>
+    <string name="ps4_music">Background music</string>
+    <string name="ps4_music_source_default">Built-in ambient</string>
+    <string name="ps4_music_pick">Choose music file</string>
+    <string name="ps4_music_reset">Use built-in</string>
+    <string name="ps4_volume">Volume</string>
+    <string name="ps4_close">Close</string>
+    <string name="ps4_all_settings">Settings</string>
+    <string name="ps4_look">Theme &amp; Sound</string>
+    <string name="ps4_menu_raco">Raco</string>
+    <string name="ps4_menu_about">About</string>
+    <string name="ps4_menu_utilities_desc">Core tweaks, automation, system, appearance, PixelSleep, bypass charging</string>
+    <string name="ps4_back">Back</string>
+</resources>
