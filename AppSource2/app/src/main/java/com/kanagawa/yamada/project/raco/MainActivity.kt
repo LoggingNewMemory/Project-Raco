@@ -67,6 +67,12 @@ class MainActivity : AppCompatActivity() {
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
+        // Game Mode is a landscape experience: open directly in landscape if it is still active
+        com.kanagawa.yamada.project.raco.gamemode.GameModeState.init(this)
+        if (com.kanagawa.yamada.project.raco.gamemode.GameModeState.active) {
+            requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        }
+
         setContent {
             val context = androidx.compose.ui.platform.LocalContext.current
             var bgImagePath by remember { mutableStateOf("") }

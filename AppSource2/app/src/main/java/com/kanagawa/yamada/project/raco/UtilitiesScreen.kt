@@ -56,7 +56,7 @@ data class UtilityItem(
 )
 
 enum class UtilityRoute {
-    CoreTweaks, Automation, System, Appearance, ExtraSettings
+    CoreTweaks, Automation, System, Appearance, ExtraSettings, PixelSleep, BypassCharging
 }
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalAnimationApi::class)
@@ -73,7 +73,9 @@ fun UtilitiesScreen(onBack: () -> Unit) {
         UtilityItem(stringResource(R.string.automation_title), stringResource(R.string.util_desc_automation), Icons.Default.SmartToy, UtilityRoute.Automation, stringResource(R.string.util_kw_automation)),
         UtilityItem(stringResource(R.string.system_title), stringResource(R.string.util_desc_system), Icons.Default.Settings, UtilityRoute.System, stringResource(R.string.util_kw_system)),
         UtilityItem(stringResource(R.string.appearance_title), stringResource(R.string.util_desc_appearance), Icons.Default.ColorLens, UtilityRoute.Appearance, stringResource(R.string.util_kw_appearance)),
-        UtilityItem(stringResource(R.string.extra_settings_title), stringResource(R.string.util_desc_extra_settings), Icons.Default.BuildCircle, UtilityRoute.ExtraSettings, stringResource(R.string.util_kw_extra_settings))
+        UtilityItem(stringResource(R.string.extra_settings_title), stringResource(R.string.util_desc_extra_settings), Icons.Default.BuildCircle, UtilityRoute.ExtraSettings, stringResource(R.string.util_kw_extra_settings)),
+        UtilityItem(stringResource(R.string.pixelsleep_title), stringResource(R.string.util_desc_pixelsleep), Icons.Default.BlurOn, UtilityRoute.PixelSleep, stringResource(R.string.util_kw_pixelsleep)),
+        UtilityItem(stringResource(R.string.bypass_title), stringResource(R.string.util_desc_bypass), Icons.Default.BatteryChargingFull, UtilityRoute.BypassCharging, stringResource(R.string.util_kw_bypass))
     )
 
     LaunchedEffect(Unit) {
@@ -108,6 +110,8 @@ fun UtilitiesScreen(onBack: () -> Unit) {
                 UtilityRoute.System -> SystemScreen(onBack = { currentRoute = null })
                 UtilityRoute.Appearance -> AppearanceScreen(onBack = { currentRoute = null })
                 UtilityRoute.ExtraSettings -> ExtraSettingsScreen(onBack = { currentRoute = null })
+                UtilityRoute.PixelSleep -> PixelSleepScreen(onBack = { currentRoute = null })
+                UtilityRoute.BypassCharging -> BypassChargingScreen(onBack = { currentRoute = null })
             }
         } else {
             val filteredItems = if (searchQuery.isBlank()) {

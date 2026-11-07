@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <!-- PixelSleep -->
+    <string name="pixelsleep_title">PixelSleep</string>
+    <string name="util_desc_pixelsleep">Turn off a few pixels to save battery on OLED screens</string>
+    <string name="util_kw_pixelsleep">pixel sleep oled amoled battery power saving screen dots</string>
+    <string name="pixelsleep_enable">Enable PixelSleep</string>
+    <string name="pixelsleep_enable_desc">Keeps a small share of screen pixels black, everywhere including in games.</string>
+    <string name="pixelsleep_amount">Pixels turned off</string>
+    <string name="pixelsleep_amount_value">%1$d%% of pixels (about 1 of every %2$d)</string>
+    <string name="pixelsleep_size">Pixel size</string>
+    <string name="pixelsleep_size_value">%1$d px</string>
+    <string name="pixelsleep_note">Only saves battery on OLED/AMOLED screens; LCD screens gain nothing. A higher amount saves more but makes the dots more visible. In the Game Assistant PixelSleep is just an on/off switch, the amount is set here.</string>
+    <string name="pixelsleep_perm_title">Overlay permission needed</string>
+    <string name="pixelsleep_perm_desc">PixelSleep draws over other apps. Allow it to continue.</string>
+    <string name="pixelsleep_perm_btn">Grant permission</string>
+    <!-- Bypass charging -->
+    <string name="bypass_title">Bypass Charging</string>
+    <string name="util_desc_bypass">Pause battery charging while plugged in to keep the phone cooler</string>
+    <string name="util_kw_bypass">bypass charging battery heat charger plug pass through gaming</string>
+    <string name="bypass_enable">Bypass charging</string>
+    <string name="bypass_enable_desc">Pauses charging while the charger stays plugged in.</string>
+    <string name="bypass_status">Battery status</string>
+    <string name="bypass_level">Level</string>
+    <string name="bypass_power">Power</string>
+    <string name="bypass_state">State</string>
+    <string name="bypass_current">Current</string>
+    <string name="bypass_temp">Temperature</string>
+    <string name="bypass_plug_none">Unplugged</string>
+    <string name="bypass_plug_ac">AC</string>
+    <string name="bypass_plug_usb">USB</string>
+    <string name="bypass_plug_wireless">Wireless</string>
+    <string name="bypass_state_charging">Charging</string>
+    <string name="bypass_state_discharging">Discharging</string>
+    <string name="bypass_state_not_charging">Not charging</string>
+    <string name="bypass_state_full">Full</string>
+    <string name="bypass_state_unknown">Unknown</string>
+    <string name="bypass_node">Charging control node</string>
+    <string name="bypass_node_current">Current value: %1$s</string>
+    <string name="bypass_no_nodes">No known node found on this device. Enter one below if you know it.</string>
+    <string name="bypass_rescan">Scan again</string>
+    <string name="bypass_custom">Custom node</string>
+    <string name="bypass_custom_path">Path (/sys/…)</string>
+    <string name="bypass_custom_normal">Value to charge normally</string>
+    <string name="bypass_custom_bypass">Value to pause charging</string>
+    <string name="bypass_custom_save">Use this node</string>
+    <string name="bypass_custom_invalid">Invalid path or values</string>
+    <string name="bypass_custom_saved">Node saved</string>
+    <string name="bypass_resume">Resume charging below</string>
+    <string name="bypass_resume_value">%1$d%%</string>
+    <string name="bypass_safety">Bypass switches off by itself when the charger is unplugged or the battery falls below this level.</string>
+    <string name="bypass_warn">Support depends on your kernel. Some nodes only stop charging, so the battery can still drain while you play. Try one node at a time.</string>
+    <string name="bypass_verify_ok">Battery idle (about 0 mA): this is real bypass</string>
+    <string name="bypass_verify_bad">Battery still moves %1$d mA: this node is not a true bypass, try another one</string>
+</resources>

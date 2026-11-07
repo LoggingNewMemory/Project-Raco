@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <!-- PixelSleep -->
+    <string name="pixelsleep_title">PixelSleep</string>
+    <string name="util_desc_pixelsleep">Matikan beberapa pixel agar baterai awet di layar OLED</string>
+    <string name="util_kw_pixelsleep">pixel sleep oled amoled baterai hemat daya layar titik</string>
+    <string name="pixelsleep_enable">Aktifkan PixelSleep</string>
+    <string name="pixelsleep_enable_desc">Menjaga sebagian kecil pixel layar tetap hitam, di mana saja termasuk di dalam game.</string>
+    <string name="pixelsleep_amount">Pixel yang dimatikan</string>
+    <string name="pixelsleep_amount_value">%1$d%% pixel (sekitar 1 dari tiap %2$d)</string>
+    <string name="pixelsleep_size">Ukuran pixel</string>
+    <string name="pixelsleep_size_value">%1$d px</string>
+    <string name="pixelsleep_note">Hanya menghemat baterai di layar OLED/AMOLED; layar LCD tidak berpengaruh. Jumlah lebih besar lebih hemat tetapi titiknya lebih terlihat. Di Game Asisten PixelSleep hanya saklar on/off, jumlahnya diatur di sini.</string>
+    <string name="pixelsleep_perm_title">Perlu izin overlay</string>
+    <string name="pixelsleep_perm_desc">PixelSleep menggambar di atas aplikasi lain. Izinkan agar bisa berjalan.</string>
+    <string name="pixelsleep_perm_btn">Beri izin</string>
+    <!-- Bypass charging -->
+    <string name="bypass_title">Bypass Charging</string>
+    <string name="util_desc_bypass">Jeda pengisian baterai saat dicolok agar HP lebih dingin</string>
+    <string name="util_kw_bypass">bypass charging baterai panas charger colok pass through main game</string>
+    <string name="bypass_enable">Bypass charging</string>
+    <string name="bypass_enable_desc">Menjeda pengisian selama charger tetap tercolok.</string>
+    <string name="bypass_status">Status baterai</string>
+    <string name="bypass_level">Level</string>
+    <string name="bypass_power">Daya</string>
+    <string name="bypass_state">Kondisi</string>
+    <string name="bypass_current">Arus</string>
+    <string name="bypass_temp">Suhu</string>
+    <string name="bypass_plug_none">Tidak dicolok</string>
+    <string name="bypass_plug_ac">AC</string>
+    <string name="bypass_plug_usb">USB</string>
+    <string name="bypass_plug_wireless">Nirkabel</string>
+    <string name="bypass_state_charging">Mengisi</string>
+    <string name="bypass_state_discharging">Terpakai</string>
+    <string name="bypass_state_not_charging">Tidak mengisi</string>
+    <string name="bypass_state_full">Penuh</string>
+    <string name="bypass_state_unknown">Tidak diketahui</string>
+    <string name="bypass_node">Node kontrol pengisian</string>
+    <string name="bypass_node_current">Nilai saat ini: %1$s</string>
+    <string name="bypass_no_nodes">Tidak ada node yang dikenal di perangkat ini. Isi sendiri di bawah jika kamu tahu nodenya.</string>
+    <string name="bypass_rescan">Pindai ulang</string>
+    <string name="bypass_custom">Node sendiri</string>
+    <string name="bypass_custom_path">Path (/sys/…)</string>
+    <string name="bypass_custom_normal">Nilai untuk mengisi normal</string>
+    <string name="bypass_custom_bypass">Nilai untuk menjeda pengisian</string>
+    <string name="bypass_custom_save">Pakai node ini</string>
+    <string name="bypass_custom_invalid">Path atau nilai tidak valid</string>
+    <string name="bypass_custom_saved">Node disimpan</string>
+    <string name="bypass_resume">Lanjut mengisi di bawah</string>
+    <string name="bypass_resume_value">%1$d%%</string>
+    <string name="bypass_safety">Bypass mati sendiri saat charger dicabut atau baterai turun di bawah level ini.</string>
+    <string name="bypass_warn">Dukungan tergantung kernel. Beberapa node hanya menghentikan pengisian, jadi baterai tetap bisa terkuras saat bermain. Coba satu node per satu.</string>
+    <string name="bypass_verify_ok">Baterai diam (sekitar 0 mA): ini bypass asli</string>
+    <string name="bypass_verify_bad">Baterai masih bergerak %1$d mA: node ini bukan bypass sejati, coba node lain</string>
+</resources>

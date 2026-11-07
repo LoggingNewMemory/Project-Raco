@@ -82,6 +82,9 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
     val isExecutingState = mutableStateOf(false)
     val executingModeState = mutableStateOf("")
     val isCrosshairActiveState = mutableStateOf(false)
+
+    // Full-screen ECO / BALANCED / AWAKEN animation shown over the game when the mode is switched
+    private val modeAnimator by lazy { com.kanagawa.yamada.project.raco.gamemode.AssistantModeAnimator(context, this) }
     
     private val sharedPrefs = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
     val crosshairTypeState = mutableStateOf(sharedPrefs.getInt("crosshair_type", 1))
@@ -276,6 +279,7 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                         selectedModeState = selectedModeState,
                         isExecutingState = isExecutingState,
                         executingModeState = executingModeState,
+                        onModeSwitch = { label, executing -> modeAnimator.onState(label, executing) },
                         isCrosshairActiveState = isCrosshairActiveState,
                         onToggleCrosshair = { toggleCrosshair() },
                         crosshairTypeState = crosshairTypeState,
@@ -591,8 +595,14 @@ fun GameSpaceContent(
     activeDndState: MutableState<Boolean>,
     isInfoActiveState: MutableState<Boolean>,
     onToggleInfo: () -> Unit,
-    sharedPrefs: android.content.SharedPreferences
+    sharedPrefs: android.content.SharedPreferences,
+    onModeSwitch: (String, Boolean) -> Unit = { _, _ -> }
 ) {
+    // Drives the mode switch animation overlay (works whether the panel is expanded or not)
+    LaunchedEffect(isExecutingState.value, executingModeState.value) {
+        onModeSwitch(executingModeState.value, isExecutingState.value)
+    }
+
     val themeColor by androidx.compose.animation.animateColorAsState(
         when (selectedModeState.value) {
             "Powersave" -> Color(0xFF4CAF50)

@@ -53,6 +53,31 @@
             android:exported="true">
         </service>
 
+        <service
+            android:name=".tools.PixelSleepService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="screen_overlay_that_dims_a_few_pixels_to_save_power" />
+        </service>
+
+        <service
+            android:name=".tools.BypassService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="battery_charging_safety_watcher_for_bypass_charging" />
+        </service>
+
+        <receiver
+            android:name=".tools.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
     </application>
 
