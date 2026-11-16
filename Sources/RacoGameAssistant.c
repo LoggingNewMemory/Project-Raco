@@ -27,15 +27,71 @@
 #include <poll.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #define TASKS_FILE "/dev/cpuset/top-app/tasks"
+#define PROCS_FILE "/dev/cpuset/top-app/cgroup.procs"
 #define GAME_TXT "/data/ProjectRaco/gamelist.txt"
 #define EVENT_SIZE (sizeof(struct inotify_event))
 #define EVENT_BUF_LEN (1024 * (EVENT_SIZE + 16))
 
 int active_game_pid = 0;
 char active_game_pkg[256] = {0};
-extern int check_game_in_memory(const char *cmdline);
+
+// The gamelist used to be opened and re-read once per process per scan. Cache it
+// and only reload when the file changes on disk.
+static char gamelist_cache[65536];
+static size_t gamelist_len = 0;
+static struct timespec gamelist_mtim = {0, 0};
+static off_t gamelist_size = -1;
+
+static long long now_ms(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (long long)ts.tv_sec * 1000LL + ts.tv_nsec / 1000000LL;
+}
+
+static void refresh_gamelist(void) {
+    struct stat st;
+    if (stat(GAME_TXT, &st) != 0) {
+        gamelist_len = 0;
+        return;
+    }
+    // Compare nanosecond mtime + size: two edits inside the same second must not be missed.
+    if (st.st_mtim.tv_sec == gamelist_mtim.tv_sec && st.st_mtim.tv_nsec == gamelist_mtim.tv_nsec &&
+        st.st_size == gamelist_size) return;
+    FILE *f = fopen(GAME_TXT, "r");
+    if (!f) return;
+    gamelist_len = fread(gamelist_cache, 1, sizeof(gamelist_cache) - 1, f);
+    gamelist_cache[gamelist_len] = '\0';
+    fclose(f);
+    gamelist_mtim = st.st_mtim;
+    gamelist_size = st.st_size;
+}
+
+// Same semantics as check_game_in_memory (RacoGameAssistantLibrary.s): a package matches
+// only when it equals a whole line ('\n' or '\r' terminated). A plain strstr() would also
+// match prefixes/substrings, e.g. "com.dts.freefire" against the line "com.dts.freefiremax".
+static int game_in_list(const char *pkg) {
+    if (!pkg || !*pkg || gamelist_len == 0) return 0;
+    size_t plen = strlen(pkg);
+    const char *p = gamelist_cache;
+    const char *end = gamelist_cache + gamelist_len;
+    while (p < end) {
+        const char *eol = p;
+        while (eol < end && *eol != '\n' && *eol != '\r') eol++;
+        if ((size_t)(eol - p) == plen && memcmp(p, pkg, plen) == 0) return 1;
+        p = eol + 1;
+    }
+    return 0;
+}
+
+// cgroup v1 cgroup.procs lists every TGID with at least one thread in the cgroup, so it
+// yields the same processes as walking "tasks" (one line per thread) at ~1/10 the work.
+static FILE *open_top_app_list(void) {
+    FILE *f = fopen(PROCS_FILE, "r");
+    return f ? f : fopen(TASKS_FILE, "r");
+}
 
 int get_tgid(int tid) {
     char path[256];
@@ -217,6 +273,7 @@ int main() {
     char buffer[EVENT_BUF_LEN];
 
     int pending_check = 0;
+    long long last_scan_ms = 0;
 
     while (1) {
         // Use poll with a 500ms timeout when active, 100ms when waiting for init, 2000ms fallback
@@ -239,6 +296,15 @@ int main() {
             }
         }
 
+        // The cpuset file is modified continuously, so every event used to trigger a
+        // full rescan of ~500 entries. Coalesce events instead of scanning per event;
+        // scan at most every 1.5s while idle, 400ms while a game is being watched.
+        long long now = now_ms();
+        long long scan_interval = (active_game_pid != 0) ? 400 : 1500;
+        if (now - last_scan_ms < scan_interval) continue;
+        last_scan_ms = now;
+        refresh_gamelist();
+
         if (active_game_pid != 0) {
             int score = get_oom_score_adj(active_game_pid);
             
@@ -248,7 +314,7 @@ int main() {
             } else {
                 // Check if another process of the same game took over foreground
                 int handed_over = 0;
-                FILE *tasks_file = fopen(TASKS_FILE, "r");
+                FILE *tasks_file = open_top_app_list();
                 if (tasks_file) {
                     int pid;
                     while (fscanf(tasks_file, "%d", &pid) > 0) {
@@ -288,7 +354,7 @@ int main() {
             int found = 0;
             pending_check = 0;
             
-            FILE *tasks_file = fopen(TASKS_FILE, "r");
+            FILE *tasks_file = open_top_app_list();
             if (tasks_file) {
                 int pid;
                 while (fscanf(tasks_file, "%d", &pid) > 0) {
@@ -304,7 +370,7 @@ int main() {
                             char *colon = strchr(base_pkg, ':');
                             if (colon) *colon = '\0';
 
-                            if (check_game_in_memory(base_pkg)) {
+                            if (game_in_list(base_pkg)) {
                                 int tgid = get_tgid(pid);
                                 int score = get_oom_score_adj(tgid);
                                 
