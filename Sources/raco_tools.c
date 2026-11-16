@@ -17,19 +17,33 @@
  */
 
 #include "raco.h"
+#include <fcntl.h>
 
 RacoConfig config;
 const char *RACO_CONFIG = "/data/ProjectRaco/raco.txt";
 
 // The Assembly Wrappers
 
+// procfs sysctl entries reject chmod (EPERM), and raco_write/raco_kakikomi abort before the
+// write when fchmodat fails, so every /proc/sys write was silently dropped. Retry those
+// with a plain write.
+static void sysctl_fallback(const char *val, const char *path, size_t len) {
+    if (strncmp(path, "/proc/sys/", 10) != 0) return;
+    int fd = open(path, O_WRONLY | O_CLOEXEC);
+    if (fd < 0) return;
+    if (write(fd, val, len) < 0) { /* best effort, same as the asm writer */ }
+    close(fd);
+}
+
 void rawrite(const char *val, const char *path) {
-    raco_write(path, val, strlen(val));
+    size_t len = strlen(val);
+    if (raco_write(path, val, len) != 0) sysctl_fallback(val, path, len);
 }
 
 
 void rakakikomi(const char *val, const char *path) {
-    raco_kakikomi(path, val, strlen(val));
+    size_t len = strlen(val);
+    if (raco_kakikomi(path, val, len) != 0) sysctl_fallback(val, path, len);
 }
 
 int raread(const char *path, char *out_buffer, int max_size) {
