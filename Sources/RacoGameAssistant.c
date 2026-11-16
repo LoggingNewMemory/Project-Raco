@@ -28,7 +28,7 @@
 #include <signal.h>
 #include <sys/stat.h>
 
-#define TASKS_FILE "/dev/cpuset/top-app/tasks"
+#define PROCS_FILE "/dev/cpuset/top-app/cgroup.procs"
 #define GAME_TXT "/data/ProjectRaco/gamelist.txt"
 #define EVENT_SIZE (sizeof(struct inotify_event))
 #define EVENT_BUF_LEN (1024 * (EVENT_SIZE + 16))
@@ -202,42 +202,10 @@ int main() {
     // Automatically reap child processes to prevent zombie leaks
     signal(SIGCHLD, SIG_IGN);
     
-    int fd = inotify_init();
-    if (fd < 0) {
-        perror("inotify_init");
-        return 1;
-    }
-
-    int wd = inotify_add_watch(fd, TASKS_FILE, IN_MODIFY);
-    if (wd < 0) {
-        perror("inotify_add_watch");
-        return 1;
-    }
-
-    char buffer[EVENT_BUF_LEN];
-
-    int pending_check = 0;
-
     while (1) {
-        // Use poll with a 500ms timeout when active, 100ms when waiting for init, 2000ms fallback
-        struct pollfd pfd = {fd, POLLIN, 0};
-        int timeout = (active_game_pid != 0) ? 500 : (pending_check ? 100 : 2000);
-        int ready = poll(&pfd, 1, timeout);
-
-        if (ready < 0) {
-            if (errno == EINTR) continue;
-            perror("poll");
-            break;
-        }
-
-        if (ready > 0) {
-            int length = read(fd, buffer, EVENT_BUF_LEN);
-            if (length < 0) {
-                if (errno == EINTR) continue;
-                perror("read");
-                break;
-            }
-        }
+        // The cpuset file changes on every scheduling change, so waking on
+        // each event meant rescanning the whole list. A plain timer is cheaper.
+        usleep(500000);
 
         if (active_game_pid != 0) {
             int score = get_oom_score_adj(active_game_pid);
@@ -248,7 +216,7 @@ int main() {
             } else {
                 // Check if another process of the same game took over foreground
                 int handed_over = 0;
-                FILE *tasks_file = fopen(TASKS_FILE, "r");
+                FILE *tasks_file = fopen(PROCS_FILE, "r");
                 if (tasks_file) {
                     int pid;
                     while (fscanf(tasks_file, "%d", &pid) > 0) {
@@ -286,9 +254,8 @@ int main() {
 
         if (active_game_pid == 0) {
             int found = 0;
-            pending_check = 0;
             
-            FILE *tasks_file = fopen(TASKS_FILE, "r");
+            FILE *tasks_file = fopen(PROCS_FILE, "r");
             if (tasks_file) {
                 int pid;
                 while (fscanf(tasks_file, "%d", &pid) > 0) {
@@ -296,7 +263,6 @@ int main() {
                     get_cmdline(pid, cmdline, sizeof(cmdline));
                     if (strlen(cmdline) > 0) {
                         if (strstr(cmdline, "zygote") != NULL || strstr(cmdline, "<pre-initialized>") != NULL) {
-                            pending_check = 1;
                         } else {
                             char base_pkg[256];
                             strncpy(base_pkg, cmdline, sizeof(base_pkg));
@@ -326,7 +292,5 @@ int main() {
         }
     }
 
-    inotify_rm_watch(fd, wd);
-    close(fd);
     return 0;
 }
