@@ -20,18 +20,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <sys/inotify.h>
-#include <limits.h>
-#include <errno.h>
-#include <poll.h>
 #include <signal.h>
-#include <sys/stat.h>
 
 #define PROCS_FILE "/dev/cpuset/top-app/cgroup.procs"
-#define GAME_TXT "/data/ProjectRaco/gamelist.txt"
-#define EVENT_SIZE (sizeof(struct inotify_event))
-#define EVENT_BUF_LEN (1024 * (EVENT_SIZE + 16))
 
 int active_game_pid = 0;
 char active_game_pkg[256] = {0};
@@ -216,10 +207,10 @@ int main() {
             } else {
                 // Check if another process of the same game took over foreground
                 int handed_over = 0;
-                FILE *tasks_file = fopen(PROCS_FILE, "r");
-                if (tasks_file) {
+                FILE *procs_file = fopen(PROCS_FILE, "r");
+                if (procs_file) {
                     int pid;
-                    while (fscanf(tasks_file, "%d", &pid) > 0) {
+                    while (fscanf(procs_file, "%d", &pid) > 0) {
                         char cmdline[256];
                         get_cmdline(pid, cmdline, sizeof(cmdline));
                         if (strlen(cmdline) > 0) {
@@ -240,7 +231,7 @@ int main() {
                             }
                         }
                     }
-                    fclose(tasks_file);
+                    fclose(procs_file);
                 }
                 
                 if (handed_over) {
@@ -253,12 +244,10 @@ int main() {
         }
 
         if (active_game_pid == 0) {
-            int found = 0;
-            
-            FILE *tasks_file = fopen(PROCS_FILE, "r");
-            if (tasks_file) {
+            FILE *procs_file = fopen(PROCS_FILE, "r");
+            if (procs_file) {
                 int pid;
-                while (fscanf(tasks_file, "%d", &pid) > 0) {
+                while (fscanf(procs_file, "%d", &pid) > 0) {
                     char cmdline[256];
                     get_cmdline(pid, cmdline, sizeof(cmdline));
                     if (strlen(cmdline) > 0) {
@@ -280,14 +269,13 @@ int main() {
                                     strncpy(active_game_pkg, base_pkg, sizeof(active_game_pkg) - 1);
                                     active_game_pkg[sizeof(active_game_pkg) - 1] = '\0';
                                     exec_performance(base_pkg);
-                                    found = 1;
                                     break;
                                 }
                             }
                         }
                     }
                 }
-                fclose(tasks_file);
+                fclose(procs_file);
             }
         }
     }
