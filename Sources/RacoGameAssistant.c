@@ -28,9 +28,12 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <sys/file.h>
 
 #define TASKS_FILE "/dev/cpuset/top-app/tasks"
 #define PROCS_FILE "/dev/cpuset/top-app/cgroup.procs"
+#define LOCK_FILE "/data/ProjectRaco/.gameassist.lock"
+#define INSTANCE_LOCK "/data/ProjectRaco/.gameassist.instance"
 #define GAME_TXT "/data/ProjectRaco/gamelist.txt"
 #define EVENT_SIZE (sizeof(struct inotify_event))
 #define EVENT_BUF_LEN (1024 * (EVENT_SIZE + 16))
@@ -91,6 +94,14 @@ static int game_in_list(const char *pkg) {
 static FILE *open_top_app_list(void) {
     FILE *f = fopen(PROCS_FILE, "r");
     return f ? f : fopen(TASKS_FILE, "r");
+}
+
+// exec_performance / exec_balance run "raco load" / "raco unload" in forked children.
+// Without serialisation an early unload can finish before the load and leave the device
+// in performance mode with no game running. Hold an exclusive lock for the whole child.
+static void lock_mode_switch(void) {
+    int lfd = open(LOCK_FILE, O_CREAT | O_RDWR | O_CLOEXEC, 0600);
+    if (lfd >= 0) flock(lfd, LOCK_EX);   // released automatically when the child exits
 }
 
 int get_tgid(int tid) {
@@ -157,6 +168,7 @@ int is_playboost_enabled() {
 void exec_performance(char *pkg) {
     pid_t pid = fork();
     if (pid == 0) {
+        lock_mode_switch();
         char cmd[1024];
         
         int mode = 4;
@@ -204,6 +216,7 @@ void exec_performance(char *pkg) {
 void exec_balance(const char *pkg) {
     pid_t pid = fork();
     if (pid == 0) {
+        lock_mode_switch();
         // Tell Kotlin app to hide overlay (if not Companion Mode)
         if (!is_companion_mode()) {
             char cmd[512];
@@ -254,6 +267,18 @@ int get_oom_score_adj(int pid) {
 
 int main() {
     if (daemon(0, 0) == -1) return 1;
+
+    // Single instance: service.sh and the app toggle can both start the watcher, and two
+    // watchers each fork "raco load"/"raco unload" for the same game. Retry briefly so a
+    // restart right after "killall -9" still wins once the old instance has exited.
+    int ifd = open(INSTANCE_LOCK, O_CREAT | O_RDWR | O_CLOEXEC, 0600);
+    if (ifd >= 0) {
+        int tries = 0;
+        while (flock(ifd, LOCK_EX | LOCK_NB) != 0) {
+            if (++tries >= 30) return 0;   // another watcher is alive
+            usleep(100000);
+        }
+    }
     
     // Automatically reap child processes to prevent zombie leaks
     signal(SIGCHLD, SIG_IGN);
