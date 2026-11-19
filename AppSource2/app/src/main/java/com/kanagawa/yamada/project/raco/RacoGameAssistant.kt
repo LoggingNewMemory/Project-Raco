@@ -78,6 +78,22 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
     private var composeView: ComposeView? = null
     private var crosshairView: ComposeView? = null
     private var infoView: ComposeView? = null
+    private var infoWindowParams: WindowManager.LayoutParams? = null
+    private val displayManager by lazy {
+        context.getSystemService(Context.DISPLAY_SERVICE) as android.hardware.display.DisplayManager
+    }
+    private val infoDisplayListener = object : android.hardware.display.DisplayManager.DisplayListener {
+        override fun onDisplayAdded(displayId: Int) {}
+        override fun onDisplayRemoved(displayId: Int) {}
+        override fun onDisplayChanged(displayId: Int) {
+            if (displayId != android.view.Display.DEFAULT_DISPLAY) return
+            infoView?.postDelayed({
+                val v = infoView
+                val p = infoWindowParams
+                if (v != null && p != null) applyInfoFraction(v, p)
+            }, 250)
+        }
+    }
     val selectedModeState = mutableStateOf("Awaken")
     val isExecutingState = mutableStateOf(false)
     val executingModeState = mutableStateOf("")
@@ -208,7 +224,17 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
 
         val savedInfoActive = sharedPrefs.getBoolean("info_active_$packageName", false)
         if (savedInfoActive) {
-            if (infoView == null) toggleInfo(true)
+            if (infoView == null) {
+                toggleInfo(true)
+            } else {
+                // The overlay survives a game switch; re-apply its relative spot
+                // once the new orientation has settled.
+                infoView?.postDelayed({
+                    val v = infoView
+                    val p = infoWindowParams
+                    if (v != null && p != null) applyInfoFraction(v, p)
+                }, 300)
+            }
         } else {
             if (infoView != null) toggleInfo(false)
         }
@@ -312,6 +338,8 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         if (infoView != null) {
             val view = infoView
             infoView = null
+            infoWindowParams = null
+            try { displayManager.unregisterDisplayListener(infoDisplayListener) } catch (e: Exception) {}
             isInfoActiveState.value = false
             view?.animate()?.alpha(0f)?.setDuration(300)?.withEndAction {
                 if (view.parent != null) windowManager.removeView(view)
@@ -443,6 +471,47 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
         }
     }
 
+    private fun infoMetrics(): android.util.DisplayMetrics {
+        val metrics = android.util.DisplayMetrics()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as android.hardware.display.DisplayManager
+            displayManager.getDisplay(android.view.Display.DEFAULT_DISPLAY)?.getRealMetrics(metrics)
+        } else {
+            @Suppress("DEPRECATION")
+            windowManager.defaultDisplay.getRealMetrics(metrics)
+        }
+        return metrics
+    }
+
+    private fun applyInfoFraction(view: ComposeView, params: WindowManager.LayoutParams, attempt: Int = 0) {
+        if (view.width <= 0 || view.height <= 0) {
+            // The window may not be measured yet right after addView(); retry.
+            if (attempt < 5) view.postDelayed({ applyInfoFraction(view, params, attempt + 1) }, 100)
+            return
+        }
+        val metrics = infoMetrics()
+        // The overlay window is inset by the status bar, so the usable area is
+        // smaller than the display; measure the real offset once it is placed.
+        val loc = IntArray(2)
+        view.getLocationOnScreen(loc)
+        val offsetX = (loc[0] - params.x).coerceAtLeast(0)
+        val offsetY = (loc[1] - params.y).coerceAtLeast(0)
+        val maxX = (metrics.widthPixels - offsetX - view.width).coerceAtLeast(0)
+        val maxY = (metrics.heightPixels - offsetY - view.height).coerceAtLeast(0)
+        val fracX = sharedPrefs.getFloat("info_x_frac", -1f)
+        val fracY = sharedPrefs.getFloat("info_y_frac", -1f)
+        val targetX = if (fracX in 0f..1f) (fracX * maxX).toInt() else params.x
+        val targetY = if (fracY in 0f..1f) (fracY * maxY).toInt() else params.y
+        val newX = targetX.coerceIn(0, maxX)
+        val newY = targetY.coerceIn(0, maxY)
+        if (newX != params.x || newY != params.y) {
+            params.x = newX
+            params.y = newY
+            windowManager.updateViewLayout(view, params)
+        }
+        sharedPrefs.edit().putInt("info_x", newX).putInt("info_y", newY).apply()
+    }
+
     private fun toggleInfo(forceState: Boolean? = null) {
         Handler(Looper.getMainLooper()).post {
             val pkg = currentPackageState.value
@@ -450,6 +519,8 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
             if (!targetState && infoView != null) {
                 val view = infoView
                 infoView = null
+                infoWindowParams = null
+                try { displayManager.unregisterDisplayListener(infoDisplayListener) } catch (e: Exception) {}
                 isInfoActiveState.value = false
                 if (pkg.isNotEmpty()) sharedPrefs.edit().putBoolean("info_active_$pkg", false).apply()
                 view?.animate()?.alpha(0f)?.setDuration(300)?.withEndAction {
@@ -467,15 +538,24 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                     PixelFormat.TRANSLUCENT
                 ).apply {
                     gravity = Gravity.TOP or Gravity.START
-                    val savedX = sharedPrefs.getInt("info_x", -1)
-                    val savedY = sharedPrefs.getInt("info_y", -1)
-                    if (savedX != -1 && savedY != -1) {
-                        x = savedX
-                        y = savedY
+                    val metrics = infoMetrics()
+                    val fracX = sharedPrefs.getFloat("info_x_frac", -1f)
+                    val fracY = sharedPrefs.getFloat("info_y_frac", -1f)
+                    if (fracX in 0f..1f && fracY in 0f..1f) {
+                        // Relative spot: top-left stays top-left, bottom-right
+                        // stays bottom-right when the screen rotates.
+                        x = (fracX * metrics.widthPixels).toInt()
+                        y = (fracY * metrics.heightPixels).toInt()
                     } else {
-                        val metrics = context.resources.displayMetrics
-                        x = metrics.widthPixels / 2 - 200
-                        y = 80
+                        val savedX = sharedPrefs.getInt("info_x", -1)
+                        val savedY = sharedPrefs.getInt("info_y", -1)
+                        if (savedX in 0 until metrics.widthPixels && savedY in 0 until metrics.heightPixels) {
+                            x = savedX
+                            y = savedY
+                        } else {
+                            x = metrics.widthPixels / 2 - 200
+                            y = 80
+                        }
                     }
                 }
 
@@ -502,16 +582,13 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                                 initialTouchY = event.rawY
                                 isDragging = false
                                 
-                                val metrics = android.util.DisplayMetrics()
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                    val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as android.hardware.display.DisplayManager
-                                    displayManager.getDisplay(android.view.Display.DEFAULT_DISPLAY)?.getRealMetrics(metrics)
-                                } else {
-                                    @Suppress("DEPRECATION")
-                                    windowManager.defaultDisplay.getRealMetrics(metrics)
-                                }
-                                maxX = Math.max(0, metrics.widthPixels - view.width)
-                                maxY = Math.max(0, metrics.heightPixels - view.height)
+                                val metrics = infoMetrics()
+                                val loc = IntArray(2)
+                                view.getLocationOnScreen(loc)
+                                val offX = (loc[0] - infoParams.x).coerceAtLeast(0)
+                                val offY = (loc[1] - infoParams.y).coerceAtLeast(0)
+                                maxX = Math.max(0, metrics.widthPixels - offX - view.width)
+                                maxY = Math.max(0, metrics.heightPixels - offY - view.height)
                                 
                                 true
                             }
@@ -532,7 +609,14 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                             }
                             MotionEvent.ACTION_UP -> {
                                 if (isDragging) {
-                                    sharedPrefs.edit().putInt("info_x", infoParams.x).putInt("info_y", infoParams.y).apply()
+                                    val fracX = if (maxX > 0) infoParams.x.toFloat() / maxX else 0f
+                                    val fracY = if (maxY > 0) infoParams.y.toFloat() / maxY else 0f
+                                    sharedPrefs.edit()
+                                        .putInt("info_x", infoParams.x)
+                                        .putInt("info_y", infoParams.y)
+                                        .putFloat("info_x_frac", fracX)
+                                        .putFloat("info_y_frac", fracY)
+                                        .apply()
                                 }
                                 true
                             }
@@ -544,7 +628,17 @@ class RacoGameAssistant(private val context: Context) : LifecycleOwner, ViewMode
                         InfoOverlayView(context, pkg)
                     }
                 }
-                windowManager.addView(infoView, infoParams)
+                infoView?.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+                    if ((right - left) != (oldRight - oldLeft) || (bottom - top) != (oldBottom - oldTop)) {
+                        val p = infoWindowParams
+                        if (p != null && v is ComposeView) applyInfoFraction(v, p)
+                    }
+                }
+                val view = infoView
+                infoWindowParams = infoParams
+                windowManager.addView(view, infoParams)
+                displayManager.registerDisplayListener(infoDisplayListener, Handler(Looper.getMainLooper()))
+                view?.let { v -> v.post { applyInfoFraction(v, infoParams) } }
             }
         }
     }
