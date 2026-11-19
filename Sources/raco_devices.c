@@ -934,9 +934,6 @@ void unisoc_awaken() {
     scan_minor_devfreq_and_apply(".gpu", 0);
     unisoc_uscfreq_tune("awaken");
     unisoc_ddr_tune("awaken");
-    if (access("/sys/module/zte_misc/parameters/thermal_control_en", F_OK) == 0) {
-        rawrite("0", "/sys/module/zte_misc/parameters/thermal_control_en");
-    }
     set_gpu_governor(".gpu", "performance");
 }
 
@@ -944,9 +941,6 @@ void unisoc_balanced() {
     scan_minor_devfreq_and_apply(".gpu", 2);
     unisoc_uscfreq_tune("balanced");
     unisoc_ddr_tune("balanced");
-    if (access("/sys/module/zte_misc/parameters/thermal_control_en", F_OK) == 0) {
-        rawrite("1", "/sys/module/zte_misc/parameters/thermal_control_en");
-    }
     set_gpu_governor(".gpu", "simple_ondemand");
 }
 
@@ -954,9 +948,6 @@ void unisoc_normal() {
     scan_minor_devfreq_and_apply(".gpu", 1);
     unisoc_uscfreq_tune("normal");
     unisoc_ddr_tune("normal");
-    if (access("/sys/module/zte_misc/parameters/thermal_control_en", F_OK) == 0) {
-        rawrite("1", "/sys/module/zte_misc/parameters/thermal_control_en");
-    }
     set_gpu_governor(".gpu", "simple_ondemand");
 }
 
@@ -964,9 +955,6 @@ void unisoc_powersave() {
     scan_minor_devfreq_and_apply(".gpu", 1);
     unisoc_uscfreq_tune("powersave");
     unisoc_ddr_tune("powersave");
-    if (access("/sys/module/zte_misc/parameters/thermal_control_en", F_OK) == 0) {
-        rawrite("1", "/sys/module/zte_misc/parameters/thermal_control_en");
-    }
     set_gpu_governor(".gpu", "powersave");
 }
 
