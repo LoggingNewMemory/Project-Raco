@@ -41,7 +41,7 @@
 /*
 Function of raco_write. 
 This will do:
-1. Check exists -> 2. chmod 644 -> 3. Write -> 4. chmod 444
+1. Check exists -> 2. Best-effort chmod 644 -> 3. Open & Write -> 4. Best-effort chmod 444 -> 5. Close
 */
 raco_write:
     stp x29, x30, [sp, #-48]! // Store pointer of 48 byte, Store pointer x29 and Link Register x30
@@ -63,15 +63,13 @@ raco_write:
     svc #0                    // Trigger kernel system call
     cbnz x0, .L_write_fail    // Compare and branch non zero. IF x0 != 0, jump to fail 
 
-    // Chmod 644 via fchmodat
+    // Best-effort Chmod 644 via fchmodat (do not abort on error: sysfs/SELinux may deny setattr)
     mov x0, #AT_FDCWD         // Directory of FD
     mov x1, x19               // Pointer to file path
     mov x2, #PERM_644         // Change to perm 644
     mov x3, #0                // No flags
     mov x8, #SYS_FCHMODAT     // Load Syscall for FCHMODAT
     svc #0                    // Trigger Kernel System Call
-    cmp x0, #0
-    blt .L_write_fail         // If fchmodat fails, jump to fail
 
     // Open file
     mov x0, #AT_FDCWD         // Directory of FD
@@ -85,24 +83,27 @@ raco_write:
     mov x22, x0               // Backup FD Open to x22
 
     // Write file
-    // Since x0 already contain valid FD
+    mov x0, x22               // Explicitly pass valid FD
     mov x1, x20               // Pointer to string Val
     mov x2, x21               // Length of String
     mov x8, #SYS_WRITE        // Load SYSCALL for write
     svc #0                    // Trigger syscall
+    cmp x0, #0
+    cset w21, ge              // w21 = 1 if write succeeded (bytes >= 0), 0 if error
 
-    // Chmod 444 via fchmod (using the open FD)
+    // Best-effort Chmod 444 via fchmod (do not abort on error: sysfs may deny chmod)
     mov x0, x22               // File descriptor x22 into x0
     mov x1, #PERM_444         // Change to perm 444
     mov x8, #SYS_FCHMOD       // Load Syscall for FCHMOD
     svc #0                    // Trigger Kernel System Call
-    cmp x0, #0
-    blt .L_write_fail         // If fchmod fails, jump to fail
 
-    // Close File
+    // Always Close File
     mov x0, x22               // File descriptor x22 into x0
     mov x8, #SYS_CLOSE        // Load syscall for close into x8
     svc #0                    // Trigger Syscall
+
+    // Check write status
+    cbz w21, .L_write_fail    // If write failed, return error
 
     // Exit OK
     mov x0, #0                // Set return as 0
@@ -121,7 +122,7 @@ raco_write:
 /*
 Function of raco_kakikomi. 
 This will do:
-1. Check exists -> 2. chmod 644 -> 3. Write
+1. Check exists -> 2. Best-effort chmod 644 -> 3. Open & Write -> 4. Close
 */
 raco_kakikomi:
     stp x29, x30, [sp, #-48]! // Store pointer of 48 byte, Store pointer x29 and Link Register x30
@@ -143,15 +144,13 @@ raco_kakikomi:
     svc #0                    // Trigger kernel system call
     cbnz x0, .L_kaki_fail     // Compare and branch non zero. IF x0 != 0, jump to fail 
 
-    // Chmod 644 via fchmodat
+    // Best-effort Chmod 644 via fchmodat (do not abort on error: sysfs/SELinux may deny setattr)
     mov x0, #AT_FDCWD         // Directory of FD
     mov x1, x19               // Pointer to file path
     mov x2, #PERM_644         // Change to perm 644
     mov x3, #0                // No flags
     mov x8, #SYS_FCHMODAT     // Load Syscall for FCHMODAT
     svc #0                    // Trigger Kernel System Call
-    cmp x0, #0
-    blt .L_kaki_fail          // If fchmodat fails, jump to fail
 
     // Open file
     mov x0, #AT_FDCWD         // Directory of FD
@@ -165,16 +164,21 @@ raco_kakikomi:
     mov x22, x0               // Backup FD Open to x22
 
     // Write file
-    // Since x0 already contain valid FD
+    mov x0, x22               // Explicitly pass valid FD
     mov x1, x20               // Pointer to string Val
     mov x2, x21               // Length of String
     mov x8, #SYS_WRITE        // Load SYSCALL for write
     svc #0                    // Trigger syscall
+    cmp x0, #0
+    cset w21, ge              // w21 = 1 if write succeeded (bytes >= 0), 0 if error
 
-    // Close File
+    // Always Close File
     mov x0, x22               // File descriptor x22 into x0
     mov x8, #SYS_CLOSE        // Load syscall for close into x8
     svc #0                    // Trigger Syscall
+
+    // Check write status
+    cbz w21, .L_kaki_fail     // If write failed, return error
 
     // Exit OK
     mov x0, #0                // Set return as 0
