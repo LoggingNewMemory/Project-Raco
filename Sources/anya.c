@@ -491,8 +491,6 @@ static void restore_services_kawaii() {
 // ----------------- Public Entry Points (Gen 1) -----------------
 
 void exec_anya_kawaii() {
-    printf("Anya Kawaii Start\n");
-
     // 1. Restore Hardware
     restore_hardware();
 
@@ -501,8 +499,6 @@ void exec_anya_kawaii() {
 }
 
 void exec_anya_melfissa() {
-    printf("Anya Melfissa Start...\n");
-
     // 1. Kill and stop non-HAL thermal services
     kill_thermal_processes();
     stop_thermal_init_services();
@@ -625,7 +621,6 @@ static void restore_thermal_gen2() {
 void exec_anya_kawaii_gen2() {
     pid_t pid = fork();
     if (pid != 0) return;
-    printf("Anya Kawaii Gen 2 Start\n");
     restore_thermal_gen2();
     exit(0);
 }
@@ -633,7 +628,6 @@ void exec_anya_kawaii_gen2() {
 void exec_anya_melfissa_gen2() {
     pid_t pid = fork();
     if (pid != 0) return;
-    printf("Anya Melfissa Gen 2 Start...\n");
     restore_thermal_gen2();
     spoof_thermal_gen2();
     exit(0);
