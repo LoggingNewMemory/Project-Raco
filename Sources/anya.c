@@ -122,12 +122,6 @@ static void disable_thermal_sysfs() {
         rakakikomi(ppm_policies[i], "/proc/ppm/policy_status");
     }
 
-    // Disable Logging/Debug/Panic
-    const char *kernel_base = "/proc/sys/kernel";
-    const char *kernel_files[] = {"sched_boost", "panic", "panic_on_oops"};
-    int kernel_count = sizeof(kernel_files) / sizeof(kernel_files[0]);
-    raco_bulk(kernel_base, kernel_files, kernel_count, "0", 1);
-
     // Disable specific modules
     const char *wq_base = "/sys/module/workqueue/parameters";
     const char *wq_files[] = {"power_efficient", "disable_numa"};
