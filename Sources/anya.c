@@ -104,13 +104,7 @@ static int is_hal_or_protected(pid_t pid, const char *cmdline, const char *comm,
         return 1;
     }
 
-    // 3. Android user applications and system components (do not kill apps)
-    if (strstr(lower_cmd, "com.") || strstr(lower_cmd, "android.") ||
-        strstr(lower_cmd, "system_server")) {
-        return 1;
-    }
-
-    // 4. Inspect /proc/<pid>/exe target
+    // 3. Inspect /proc/<pid>/exe target
     char exe_link[256];
     snprintf(exe_link, sizeof(exe_link), "/proc/%d/exe", pid);
     char exe_target[512] = {0};
@@ -126,7 +120,7 @@ static int is_hal_or_protected(pid_t pid, const char *cmdline, const char *comm,
         }
     }
 
-    // 5. Inspect SELinux domain (/proc/<pid>/attr/current)
+    // 4. Inspect SELinux domain (/proc/<pid>/attr/current)
     char attr_path[256];
     snprintf(attr_path, sizeof(attr_path), "/proc/%d/attr/current", pid);
     FILE *fa = fopen(attr_path, "r");
@@ -141,7 +135,7 @@ static int is_hal_or_protected(pid_t pid, const char *cmdline, const char *comm,
         fclose(fa);
     }
 
-    // 6. Check UID: Android user applications have UID >= 10000
+    // 5. Check UID: Android user applications have UID >= 10000
     char status_path[256];
     snprintf(status_path, sizeof(status_path), "/proc/%d/status", pid);
     FILE *fs = fopen(status_path, "r");
