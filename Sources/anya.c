@@ -41,34 +41,16 @@
 // ==========================================
 
 static void stop_thermal_init_services() {
-    FILE *fp = popen("getprop", "r");
-    if (!fp) return;
-
-    char line[1024];
-    while (fgets(line, sizeof(line), fp)) {
-        char *key_start = strchr(line, '[');
-        if (!key_start) continue;
-        key_start++;
-        char *key_end = strchr(key_start, ']');
-        if (!key_end) continue;
-        *key_end = '\0';
-
-        const char *prop = key_start;
-        if (strncmp(prop, "init.svc.", 9) != 0) continue;
-        const char *svc = prop + 9;
-
-        // MUST avoid any thermal service that includes hal
-        if (strcasestr(prop, "hal") != NULL || strcasestr(svc, "hal") != NULL) {
-            continue;
-        }
-
-        if (strcasestr(svc, "thermal") != NULL) {
-            char cmd[512];
-            snprintf(cmd, sizeof(cmd), "stop '%s'; setprop ctl.stop '%s'", svc, svc);
-            system(cmd);
-        }
-    }
-    pclose(fp);
+    system(
+        "getprop | grep -Ei '^\\[init\\.svc\\..*thermal' | "
+        "grep -vi 'hal' | "
+        "sed 's/^\\[init\\.svc\\.\\([^]]*\\)\\].*/\\1/' | "
+        "while read -r svc; do "
+        "    if [ -n \"$svc\" ]; then "
+        "        setprop ctl.stop \"$svc\" 2>/dev/null; "
+        "    fi; "
+        "done"
+    );
 }
 
 static void set_msm_thermal(const char *val1, const char *val2) {
