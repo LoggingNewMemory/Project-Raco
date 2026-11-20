@@ -382,55 +382,6 @@ static void disable_gpu_limits() {
     raco_bulk(gpufreq_base, gpufreq_one, gpufreq_one_count, "1", 1);
 }
 
-static void reset_thermal_props_melfissa() {
-    FILE *fp = popen("getprop", "r");
-    if (!fp) return;
-
-    char line[1024];
-    while (fgets(line, sizeof(line), fp)) {
-        char *key_start = strchr(line, '[');
-        if (!key_start) continue;
-        key_start++;
-        char *key_end = strchr(key_start, ']');
-        if (!key_end) continue;
-        *key_end = '\0';
-
-        char *val_start = strchr(key_end + 1, '[');
-        char *val = "";
-        if (val_start) {
-            val_start++;
-            char *val_end = strchr(val_start, ']');
-            if (val_end) *val_end = '\0';
-            val = val_start;
-        }
-
-        const char *prop = key_start;
-        // Excluded 'hal' and 'hardware'
-        if (strcasestr(prop, "hal") != NULL || strcasestr(prop, "hardware") != NULL) continue;
-
-        // 1. Disable Transsion/Infinix specific debug throttle
-        if (strcmp(prop, "debug.thermal.throttle.support") == 0) {
-            if (strstr(val, "yes") != NULL) {
-                system("resetprop -n -v debug.thermal.throttle.support no");
-            }
-            continue;
-        }
-
-        // 2. Reset specific thermal props (Excluded 'hal' and 'hardware')
-        int is_sys_thermal = (strncmp(prop, "sys.", 4) == 0 && strcasestr(prop, "thermal") != NULL);
-        int is_thermal_config = (strstr(prop, "thermal_config") != NULL);
-        if (is_sys_thermal || is_thermal_config) {
-            char cmd[512];
-            snprintf(cmd, sizeof(cmd), "resetprop -n '%s' '0'", prop);
-            system(cmd);
-            continue;
-        }
-    }
-    pclose(fp);
-
-    system("if resetprop debug.thermal.throttle.support 2>/dev/null | grep -q 'yes'; then resetprop -n -v debug.thermal.throttle.support no; fi");
-}
-
 // ----------------- Anya Kawaii Modules -----------------
 
 static void restore_filesystem() {
@@ -611,9 +562,6 @@ void exec_anya_melfissa() {
 
     if (p3 > 0) waitpid(p3, NULL, 0);
     else disable_gpu_limits();
-
-    // 4. Apply Property Overrides (Last step to overwrite any status changes)
-    reset_thermal_props_melfissa();
 
     exit(0);
 }
