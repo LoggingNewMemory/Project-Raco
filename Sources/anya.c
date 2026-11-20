@@ -308,7 +308,7 @@ static void disable_fs_protections() {
     }
 }
 
-static void disable_cpu_limits() {
+static void disable_thermal_sysfs() {
     // 1. MSM Thermal
     set_msm_thermal("N", "0");
     system("find /sys/ -name enabled 2>/dev/null | grep 'msm_thermal' | while read -r msm; do echo N > \"$msm\" 2>/dev/null; echo 0 > \"$msm\" 2>/dev/null; done &");
@@ -338,9 +338,7 @@ static void disable_cpu_limits() {
     // FPSGO & MTK
     rakakikomi("0", "/sys/kernel/fpsgo/fbt/thrm_enable");
     rakakikomi("0", "/sys/kernel/eara_thermal/enable");
-}
 
-static void disable_gpu_limits() {
     // KGSL & GPU Freq
     const char *kgsl_zero[] = {"throttling", "max_gpuclk", "thermal_pwrlevel"};
     int kgsl_zero_count = sizeof(kgsl_zero) / sizeof(kgsl_zero[0]);
@@ -505,8 +503,7 @@ void exec_anya_melfissa() {
 
     // 2. Disable thermal protections and limits
     disable_fs_protections();
-    disable_cpu_limits();
-    disable_gpu_limits();
+    disable_thermal_sysfs();
 }
 
 // ==========================================
