@@ -491,8 +491,6 @@ static void restore_services_kawaii() {
 // ----------------- Public Entry Points (Gen 1) -----------------
 
 void exec_anya_kawaii() {
-    pid_t pid = fork();
-    if (pid != 0) return;
     printf("Anya Kawaii Start\n");
 
     // 1. Restore Hardware
@@ -500,47 +498,19 @@ void exec_anya_kawaii() {
 
     // 2. Start Services & Restore Status
     restore_services_kawaii();
-
-    exit(0);
 }
 
 void exec_anya_melfissa() {
-    pid_t pid = fork();
-    if (pid != 0) return;
     printf("Anya Melfissa Start...\n");
 
-    // 1. Kill services immediately (Synchronous to free resources)
+    // 1. Kill and stop non-HAL thermal services
     kill_thermal_processes();
     stop_thermal_init_services();
 
-    // 2. Execute Heavy Tasks in Parallel
-    pid_t p1 = fork();
-    if (p1 == 0) {
-        disable_fs_protections();
-        _exit(0);
-    }
-    pid_t p2 = fork();
-    if (p2 == 0) {
-        disable_cpu_limits();
-        _exit(0);
-    }
-    pid_t p3 = fork();
-    if (p3 == 0) {
-        disable_gpu_limits();
-        _exit(0);
-    }
-
-    // 3. Wait for all background jobs to finish
-    if (p1 > 0) waitpid(p1, NULL, 0);
-    else disable_fs_protections();
-
-    if (p2 > 0) waitpid(p2, NULL, 0);
-    else disable_cpu_limits();
-
-    if (p3 > 0) waitpid(p3, NULL, 0);
-    else disable_gpu_limits();
-
-    exit(0);
+    // 2. Disable thermal protections and limits
+    disable_fs_protections();
+    disable_cpu_limits();
+    disable_gpu_limits();
 }
 
 // ==========================================
