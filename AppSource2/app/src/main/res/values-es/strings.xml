@@ -148,7 +148,7 @@
     <string name="silent_notif_mode_desc">Silenciar notificaciones durante el modo de alto rendimiento</string>
     <string name="loading">Cargando...</string>
     <string name="settings">AJUSTES</string>
-    <string name="set_a_custom_background_banner_image_for_the_app_supported_format_png">Establece una imagen de banner de fondo personalizada para la app. Formato compatible: PNG.</string>
+    <string name="set_a_custom_background_banner_image_for_the_app_supported_format_png">Establece una imagen de banner de fondo personalizada para la app.</string>
     <string name="controls_how_the_banner_image_appears_lower_opacity_more_transparent_higher_blur_softer">Controla la apariencia del banner. Menor opacidad = más transparente. Mayor desenfoque = más suave.</string>
     <string name="search_utilities_1">Buscar utilidades...</string>
     <string name="by_kanagawa_yamada">Por Kanagawa Yamada</string>

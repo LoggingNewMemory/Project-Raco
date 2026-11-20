@@ -148,7 +148,7 @@
     <string name="silent_notif_mode_desc">Отключать звуки уведомлений во время игрового режима</string>
     <string name="loading">Загрузка...</string>
     <string name="settings">НАСТРОЙКИ</string>
-    <string name="set_a_custom_background_banner_image_for_the_app_supported_format_png">Установить собственный баннер для фона приложения. Поддерживаемый формат: PNG.</string>
+    <string name="set_a_custom_background_banner_image_for_the_app_supported_format_png">Установить собственный баннер для фона приложения.</string>
     <string name="controls_how_the_banner_image_appears_lower_opacity_more_transparent_higher_blur_softer">Настройка отображения баннера. Меньше непрозрачность = прозрачнее. Больше размытие = мягче.</string>
     <string name="search_utilities_1">Поиск утилит...</string>
     <string name="by_kanagawa_yamada">Автор: Kanagawa Yamada</string>

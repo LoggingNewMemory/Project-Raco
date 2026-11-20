@@ -92,6 +92,7 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
     val bannerImagePath = sharedPrefs.getString("banner_image_path", "")
+    val bannerUpdateTrigger = sharedPrefs.getLong("banner_update_timestamp", 0L)
 
     var hasRoot by remember { mutableStateOf(false) }
     var gameAssistantEnabled by remember { mutableStateOf(false) }
@@ -326,8 +327,13 @@ fun MainScreen(onNavigate: (Screen) -> Unit) {
                             modifier = Modifier.fillMaxWidth().clickable { onNavigate(Screen.Raco) }
                         ) {
                             Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f/9f)) {
-                                val painter = if (bannerImagePath != null && bannerImagePath.isNotEmpty()) {
-                                    rememberAsyncImagePainter(File(bannerImagePath))
+                                val painter = if (!bannerImagePath.isNullOrEmpty() && File(bannerImagePath).exists()) {
+                                    rememberAsyncImagePainter(
+                                        coil.request.ImageRequest.Builder(context)
+                                            .data(File(bannerImagePath))
+                                            .memoryCacheKey("$bannerImagePath-$bannerUpdateTrigger")
+                                            .build()
+                                    )
                                 } else {
                                     androidx.compose.ui.res.painterResource(id = com.kanagawa.yamada.project.raco.R.drawable.banner)
                                 }

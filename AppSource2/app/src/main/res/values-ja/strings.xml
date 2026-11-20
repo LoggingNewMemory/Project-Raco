@@ -148,7 +148,7 @@
     <string name="silent_notif_mode_desc">パフォーマンスモード実行中の通知音を抑制します</string>
     <string name="loading">読み込み中...</string>
     <string name="settings">設定</string>
-    <string name="set_a_custom_background_banner_image_for_the_app_supported_format_png">アプリの背景バナー画像を設定します。対応形式: PNG</string>
+    <string name="set_a_custom_background_banner_image_for_the_app_supported_format_png">アプリの背景バナー画像を設定します。</string>
     <string name="controls_how_the_banner_image_appears_lower_opacity_more_transparent_higher_blur_softer">バナー画像の表示を調整します。不透明度を下げる＝透明に、ぼかしを上げる＝柔らかな表示になります。</string>
     <string name="search_utilities_1">ユーティリティを検索...</string>
     <string name="by_kanagawa_yamada">作者: 神奈川山田</string>

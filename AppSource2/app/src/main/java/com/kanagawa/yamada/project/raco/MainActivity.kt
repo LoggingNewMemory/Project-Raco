@@ -69,13 +69,14 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             val context = androidx.compose.ui.platform.LocalContext.current
+            val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
             var bgImagePath by remember { mutableStateOf("") }
+            var bgUpdateTrigger by remember { mutableLongStateOf(sharedPrefs.getLong("bg_update_timestamp", 0L)) }
             var bgOpacity by remember { mutableFloatStateOf(0.3f) }
             var bgBlur by remember { mutableFloatStateOf(10f) }
             var adaptiveColor by remember { mutableStateOf<Color?>(null) }
             var isAdaptiveEnabled by remember { mutableStateOf(false) }
             
-            val sharedPrefs = context.getSharedPreferences("raco_app_config", android.content.Context.MODE_PRIVATE)
             var bannerPath by remember { mutableStateOf(sharedPrefs.getString("banner_image_path", "") ?: "") }
             var bannerUpdateTrigger by remember { mutableStateOf(sharedPrefs.getLong("banner_update_timestamp", 0L)) }
             var meshHue by remember { mutableFloatStateOf(sharedPrefs.getFloat("mesh_hue", 260f)) }
@@ -85,6 +86,7 @@ class MainActivity : AppCompatActivity() {
             
             DisposableEffect(Unit) {
                 bgImagePath = sharedPrefs.getString("background_image_path", "") ?: ""
+                bgUpdateTrigger = sharedPrefs.getLong("bg_update_timestamp", 0L)
                 bgOpacity = sharedPrefs.getFloat("bg_opacity", 0.3f)
                 bgBlur = sharedPrefs.getFloat("bg_blur", 10f)
                 isAdaptiveEnabled = sharedPrefs.getBoolean("adaptive_color_enabled", false)
@@ -98,6 +100,7 @@ class MainActivity : AppCompatActivity() {
                 val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
                     when (key) {
                         "background_image_path" -> bgImagePath = prefs.getString(key, "") ?: ""
+                        "bg_update_timestamp" -> bgUpdateTrigger = prefs.getLong(key, 0L)
                         "bg_opacity" -> bgOpacity = prefs.getFloat(key, 0.3f)
                         "bg_blur" -> bgBlur = prefs.getFloat(key, 10f)
                         "adaptive_color_enabled" -> isAdaptiveEnabled = prefs.getBoolean(key, false)
@@ -182,7 +185,10 @@ class MainActivity : AppCompatActivity() {
                 ) {
                     if (bgImagePath.isNotEmpty() && java.io.File(bgImagePath).exists()) {
                         coil.compose.AsyncImage(
-                            model = bgImagePath,
+                            model = coil.request.ImageRequest.Builder(context)
+                                .data(java.io.File(bgImagePath))
+                                .memoryCacheKey("$bgImagePath-$bgUpdateTrigger")
+                                .build(),
                             contentDescription = "Background",
                             contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                             modifier = Modifier

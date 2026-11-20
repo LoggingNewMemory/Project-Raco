@@ -198,7 +198,10 @@ fun AppearanceScreen(onBack: () -> Unit) {
                         }
                     }
                     context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
-                        .edit().putString("background_image_path", destFile.absolutePath).apply()
+                        .edit()
+                        .putString("background_image_path", destFile.absolutePath)
+                        .putLong("bg_update_timestamp", System.currentTimeMillis())
+                        .apply()
                     bgExists = true
                     snackbarHostState.showSnackbar("Background installed successfully")
                 } catch (e: Exception) {
@@ -298,7 +301,11 @@ fun AppearanceScreen(onBack: () -> Unit) {
                                     scope.launch {
                                         val path = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE).getString("banner_image_path", "")
                                         if (!path.isNullOrEmpty()) { File(path).delete() }
-                                        context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE).edit().remove("banner_image_path").apply()
+                                        context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                                            .edit()
+                                            .remove("banner_image_path")
+                                            .putLong("banner_update_timestamp", System.currentTimeMillis())
+                                            .apply()
                                         bannerExists = false; snackbarHostState.showSnackbar(context.getString(R.string.banner_removed))
                                     }
                                 },
@@ -363,7 +370,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
-                            onClick = { bgPickerLauncher.launch("image/png") },
+                            onClick = { bgPickerLauncher.launch("image/*") },
                             modifier = Modifier.weight(1f),
                             enabled = !isInstallingBg
                         ) {
@@ -375,7 +382,11 @@ fun AppearanceScreen(onBack: () -> Unit) {
                                     scope.launch {
                                         val path = context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE).getString("background_image_path", "")
                                         if (!path.isNullOrEmpty()) { File(path).delete() }
-                                        context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE).edit().remove("background_image_path").apply()
+                                        context.getSharedPreferences("raco_app_config", Context.MODE_PRIVATE)
+                                            .edit()
+                                            .remove("background_image_path")
+                                            .putLong("bg_update_timestamp", System.currentTimeMillis())
+                                            .apply()
                                         bgExists = false; snackbarHostState.showSnackbar("Background removed")
                                     }
                                 },

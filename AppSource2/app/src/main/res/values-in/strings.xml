@@ -148,7 +148,7 @@
     <string name="silent_notif_mode_desc">Bisukan suara notifikasi selama mode performa</string>
     <string name="loading">Memuat...</string>
     <string name="settings">PENGATURAN</string>
-    <string name="set_a_custom_background_banner_image_for_the_app_supported_format_png">Atur gambar banner latar belakang kustom untuk aplikasi. Format didukung: PNG.</string>
+    <string name="set_a_custom_background_banner_image_for_the_app_supported_format_png">Atur gambar banner latar belakang kustom untuk aplikasi.</string>
     <string name="controls_how_the_banner_image_appears_lower_opacity_more_transparent_higher_blur_softer">Mengontrol tampilan gambar banner. Opasitas lebih rendah = lebih transparan. Blur lebih tinggi = lebih halus.</string>
     <string name="search_utilities_1">Cari utilitas...</string>
     <string name="by_kanagawa_yamada">Oleh Kanagawa Yamada</string>
