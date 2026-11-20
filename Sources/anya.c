@@ -382,7 +382,7 @@ static void disable_gpu_limits() {
     raco_bulk(gpufreq_base, gpufreq_one, gpufreq_one_count, "1", 1);
 }
 
-static void spoof_running_status_melfissa() {
+static void reset_thermal_props_melfissa() {
     FILE *fp = popen("getprop", "r");
     if (!fp) return;
 
@@ -408,7 +408,7 @@ static void spoof_running_status_melfissa() {
         // Excluded 'hal' and 'hardware'
         if (strcasestr(prop, "hal") != NULL || strcasestr(prop, "hardware") != NULL) continue;
 
-        // 2. Disable Transsion/Infinix specific debug throttle
+        // 1. Disable Transsion/Infinix specific debug throttle
         if (strcmp(prop, "debug.thermal.throttle.support") == 0) {
             if (strstr(val, "yes") != NULL) {
                 system("resetprop -n -v debug.thermal.throttle.support no");
@@ -416,7 +416,7 @@ static void spoof_running_status_melfissa() {
             continue;
         }
 
-        // 1. Reset specific thermal props (Excluded 'hal' and 'hardware')
+        // 2. Reset specific thermal props (Excluded 'hal' and 'hardware')
         int is_sys_thermal = (strncmp(prop, "sys.", 4) == 0 && strcasestr(prop, "thermal") != NULL);
         int is_thermal_config = (strstr(prop, "thermal_config") != NULL);
         if (is_sys_thermal || is_thermal_config) {
@@ -424,13 +424,6 @@ static void spoof_running_status_melfissa() {
             snprintf(cmd, sizeof(cmd), "resetprop -n '%s' '0'", prop);
             system(cmd);
             continue;
-        }
-
-        // 3. THE RUNNING SPOOF (Critical - Excluded 'hal' and 'hardware')
-        if (strcasestr(prop, "thermal") != NULL) {
-            char cmd[512];
-            snprintf(cmd, sizeof(cmd), "resetprop -n '%s' 'running'", prop);
-            system(cmd);
         }
     }
     pclose(fp);
@@ -474,14 +467,12 @@ static void restore_hardware() {
     }
 }
 
-static void restore_services_and_props_kawaii() {
+static void restore_services_kawaii() {
     FILE *fp = popen("getprop", "r");
     if (!fp) return;
 
     char svc_list[64][128];
     int svc_count = 0;
-    char thermal_props[128][128];
-    int prop_count = 0;
 
     char line[1024];
     while (fgets(line, sizeof(line), fp)) {
@@ -502,15 +493,6 @@ static void restore_services_and_props_kawaii() {
                 strncpy(svc_list[svc_count], prop + 9, sizeof(svc_list[0]) - 1);
                 svc_list[svc_count][sizeof(svc_list[0]) - 1] = '\0';
                 svc_count++;
-            }
-        }
-
-        // Collect all thermal properties (without 'hal' and 'hardware')
-        if (strcasestr(prop, "thermal") != NULL) {
-            if (prop_count < 128) {
-                strncpy(thermal_props[prop_count], prop, sizeof(thermal_props[0]) - 1);
-                thermal_props[prop_count][sizeof(thermal_props[0]) - 1] = '\0';
-                prop_count++;
             }
         }
     }
@@ -557,13 +539,6 @@ static void restore_services_and_props_kawaii() {
         }
         pclose(fphal);
     }
-
-    // 3. Excluded 'hal' and 'hardware' from status reset: resetprop -n "$prop" "running"
-    for (int i = 0; i < prop_count; i++) {
-        char cmd[512];
-        snprintf(cmd, sizeof(cmd), "resetprop -n '%s' 'running'", thermal_props[i]);
-        system(cmd);
-    }
 }
 
 // ----------------- Public Entry Points (Gen 1) -----------------
@@ -595,7 +570,7 @@ void exec_anya_kawaii() {
     system("cmd thermalservice override-status 1 >/dev/null 2>&1; cmd thermalservice reset >/dev/null 2>&1");
 
     // 3. Start Services & Restore Status
-    restore_services_and_props_kawaii();
+    restore_services_kawaii();
 
     exit(0);
 }
@@ -637,8 +612,8 @@ void exec_anya_melfissa() {
     if (p3 > 0) waitpid(p3, NULL, 0);
     else disable_gpu_limits();
 
-    // 4. Apply Spoofing (Last step to overwrite any status changes)
-    spoof_running_status_melfissa();
+    // 4. Apply Property Overrides (Last step to overwrite any status changes)
+    reset_thermal_props_melfissa();
 
     exit(0);
 }
