@@ -89,24 +89,6 @@ static void set_msm_thermal(const char *val1, const char *val2) {
 
 // ----------------- Anya Melfissa Modules -----------------
 
-static void disable_fs_protections() {
-    // Delete Cache
-    unlink("/data/vendor/thermal/config");
-    DIR *dir = opendir("/data/vendor/thermal");
-    if (dir) {
-        struct dirent *ent;
-        while ((ent = readdir(dir)) != NULL) {
-            size_t len = strlen(ent->d_name);
-            if (len >= 5 && strcmp(ent->d_name + len - 5, ".dump") == 0) {
-                char dump_path[512];
-                snprintf(dump_path, sizeof(dump_path), "/data/vendor/thermal/%s", ent->d_name);
-                unlink(dump_path);
-            }
-        }
-        closedir(dir);
-    }
-}
-
 static void disable_thermal_sysfs() {
     // 1. MSM Thermal
     set_msm_thermal("N", "0");
@@ -221,8 +203,7 @@ void exec_anya_kawaii() {
 }
 
 void exec_anya_melfissa() {
-    stop_thermal_init_services();
-    disable_fs_protections();
+    // stop_thermal_init_services();
     disable_thermal_sysfs();
 }
 
