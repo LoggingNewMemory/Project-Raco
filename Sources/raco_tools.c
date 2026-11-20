@@ -360,26 +360,16 @@ void devfreq_min_perf(const char *path) { set_devfreq(path, "min"); }
 void change_cpu_gov(const char *gov) {
     DIR *dir;
     struct dirent *ent;
-    if ((dir = opendir("/sys/devices/system/cpu")) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
-            if (strncmp(ent->d_name, "cpu", 3) == 0 && ent->d_name[3] >= '0' && ent->d_name[3] <= '9') {
-                char path[256];
-                snprintf(path, sizeof(path), "/sys/devices/system/cpu/%s/cpufreq/scaling_governor", ent->d_name);
-                rawrite(gov, path);
-            }
-        }
-        closedir(dir);
+    if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) == NULL) return;
+
+    while ((ent = readdir(dir)) != NULL) {
+        if (strncmp(ent->d_name, "policy", 6) != 0) continue;
+
+        char path[256];
+        snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpufreq/%s/scaling_governor", ent->d_name);
+        rawrite(gov, path);
     }
-    if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
-            if (strncmp(ent->d_name, "policy", 6) == 0) {
-                char path[256];
-                snprintf(path, sizeof(path), "/sys/devices/system/cpu/cpufreq/%s/scaling_governor", ent->d_name);
-                rawrite(gov, path);
-            }
-        }
-        closedir(dir);
-    }
+    closedir(dir);
 }
 
 // Frequency Control (CPUFreq)
