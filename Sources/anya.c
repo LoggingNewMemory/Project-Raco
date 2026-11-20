@@ -37,7 +37,7 @@
 #define THERMAL_DIR "/sys/class/thermal"
 
 // ==========================================
-// Gen 1 - Anya Kawaii & Anya Melfissa (POSIX Implementation)
+// Gen 1 - Anya Kawaii & Anya Melfissa
 // ==========================================
 
 static void stop_thermal_init_services() {
