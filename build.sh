@@ -21,7 +21,7 @@
 # 1 = Enable | 0 = Disable
 #========================
 export MODULEVERSION="8.0"
-export FLASHTODEVICE="1"
+export FLASHTODEVICE="0"
 export SENDTOTELEGRAM="0"
 
 MODULES_DIR="Modules"

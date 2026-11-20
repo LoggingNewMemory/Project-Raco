@@ -40,7 +40,135 @@
 // Gen 1 - Anya Kawaii & Anya Melfissa (POSIX Implementation)
 // ==========================================
 
+// Pre-collect PIDs of all HAL / hardware services from getprop init.svc_debug_pid.*
+static int get_hal_pids(pid_t *hal_pids, int max_pids) {
+    int count = 0;
+    FILE *fp = popen("getprop", "r");
+    if (!fp) return 0;
+
+    char line[1024];
+    while (fgets(line, sizeof(line), fp)) {
+        char *key_start = strchr(line, '[');
+        if (!key_start) continue;
+        key_start++;
+        char *key_end = strchr(key_start, ']');
+        if (!key_end) continue;
+        *key_end = '\0';
+
+        if (strncmp(key_start, "init.svc_debug_pid.", 19) != 0) continue;
+
+        const char *svc_name = key_start + 19;
+        if (strcasestr(svc_name, "hal") == NULL && strcasestr(svc_name, "hardware") == NULL) {
+            continue;
+        }
+
+        char *val_start = strchr(key_end + 1, '[');
+        if (!val_start) continue;
+        val_start++;
+        char *val_end = strchr(val_start, ']');
+        if (!val_end) continue;
+        *val_end = '\0';
+
+        pid_t pid = (pid_t)atoi(val_start);
+        if (pid > 1 && count < max_pids) {
+            hal_pids[count++] = pid;
+        }
+    }
+    pclose(fp);
+    return count;
+}
+
+static int is_hal_or_protected(pid_t pid, const char *cmdline, const char *comm,
+                               const pid_t *hal_pids, int hal_pid_count) {
+    for (int i = 0; i < hal_pid_count; i++) {
+        if (pid == hal_pids[i]) return 1;
+    }
+
+    char lower_cmd[512] = {0};
+    for (size_t i = 0; cmdline[i] && i < sizeof(lower_cmd) - 1; i++) {
+        lower_cmd[i] = tolower((unsigned char)cmdline[i]);
+    }
+    char lower_comm[256] = {0};
+    for (size_t i = 0; comm[i] && i < sizeof(lower_comm) - 1; i++) {
+        lower_comm[i] = tolower((unsigned char)comm[i]);
+    }
+
+    // 1. Raco / Anya self-protection
+    if (strstr(lower_cmd, "raco") || strstr(lower_cmd, "anya") ||
+        strstr(lower_comm, "raco") || strstr(lower_comm, "anya")) {
+        return 1;
+    }
+
+    // 2. HAL / Hardware protection (binary names, HAL indicators)
+    if (strstr(lower_cmd, "hal") || strstr(lower_comm, "hal") ||
+        strstr(lower_cmd, "hardware") || strstr(lower_comm, "hardware") ||
+        strstr(lower_cmd, "/hw/") || strstr(lower_comm, "/hw/")) {
+        return 1;
+    }
+
+    // 3. Android user applications and system components (do not kill apps)
+    if (strstr(lower_cmd, "com.") || strstr(lower_cmd, "android.") ||
+        strstr(lower_cmd, "system_server")) {
+        return 1;
+    }
+
+    // 4. Inspect /proc/<pid>/exe target
+    char exe_link[256];
+    snprintf(exe_link, sizeof(exe_link), "/proc/%d/exe", pid);
+    char exe_target[512] = {0};
+    ssize_t len = readlink(exe_link, exe_target, sizeof(exe_target) - 1);
+    if (len > 0) {
+        exe_target[len] = '\0';
+        char lower_exe[512] = {0};
+        for (size_t i = 0; exe_target[i] && i < sizeof(lower_exe) - 1; i++) {
+            lower_exe[i] = tolower((unsigned char)exe_target[i]);
+        }
+        if (strstr(lower_exe, "hal") || strstr(lower_exe, "hardware") || strstr(lower_exe, "/hw/")) {
+            return 1;
+        }
+    }
+
+    // 5. Inspect SELinux domain (/proc/<pid>/attr/current)
+    char attr_path[256];
+    snprintf(attr_path, sizeof(attr_path), "/proc/%d/attr/current", pid);
+    FILE *fa = fopen(attr_path, "r");
+    if (fa) {
+        char domain[256] = {0};
+        if (fgets(domain, sizeof(domain), fa)) {
+            if (strcasestr(domain, "hal_") != NULL || strcasestr(domain, "hal") != NULL) {
+                fclose(fa);
+                return 1;
+            }
+        }
+        fclose(fa);
+    }
+
+    // 6. Check UID: Android user applications have UID >= 10000
+    char status_path[256];
+    snprintf(status_path, sizeof(status_path), "/proc/%d/status", pid);
+    FILE *fs = fopen(status_path, "r");
+    if (fs) {
+        char sline[256];
+        while (fgets(sline, sizeof(sline), fs)) {
+            if (strncmp(sline, "Uid:", 4) == 0) {
+                int ruid = 0;
+                if (sscanf(sline + 4, "%d", &ruid) == 1 && ruid >= 10000) {
+                    fclose(fs);
+                    return 1;
+                }
+                break;
+            }
+        }
+        fclose(fs);
+    }
+
+    return 0;
+}
+
 static void kill_thermal_processes() {
+    pid_t hal_pids[64];
+    int hal_pid_count = get_hal_pids(hal_pids, 64);
+
     DIR *dir = opendir("/proc");
     if (!dir) return;
 
@@ -57,46 +185,43 @@ static void kill_thermal_processes() {
         char path[256];
         snprintf(path, sizeof(path), "/proc/%d/cmdline", pid);
 
+        char cmdline[512] = {0};
         FILE *f = fopen(path, "r");
         if (f) {
-            char cmdline[512] = {0};
             size_t bytes_read = fread(cmdline, 1, sizeof(cmdline) - 1, f);
             fclose(f);
-
-            char comm[256] = {0};
-            snprintf(path, sizeof(path), "/proc/%d/comm", pid);
-            FILE *fc = fopen(path, "r");
-            if (fc) {
-                if (fgets(comm, sizeof(comm), fc)) {
-                    comm[strcspn(comm, "\r\n")] = '\0';
-                }
-                fclose(fc);
-            }
-
             for (size_t i = 0; i < bytes_read; i++) {
                 if (cmdline[i] == '\0') cmdline[i] = ' ';
             }
+        }
 
-            // Aggressive sweep for "thermal", excluding "hal", with safety check for raco/anya
-            char lower_cmd[512] = {0};
-            for (size_t i = 0; cmdline[i] && i < sizeof(lower_cmd) - 1; i++) {
-                lower_cmd[i] = tolower((unsigned char)cmdline[i]);
+        char comm[256] = {0};
+        snprintf(path, sizeof(path), "/proc/%d/comm", pid);
+        FILE *fc = fopen(path, "r");
+        if (fc) {
+            if (fgets(comm, sizeof(comm), fc)) {
+                comm[strcspn(comm, "\r\n")] = '\0';
             }
-            char lower_comm[256] = {0};
-            for (size_t i = 0; comm[i] && i < sizeof(lower_comm) - 1; i++) {
-                lower_comm[i] = tolower((unsigned char)comm[i]);
-            }
+            fclose(fc);
+        }
 
-            if (strstr(lower_cmd, "raco") || strstr(lower_cmd, "anya") ||
-                strstr(lower_comm, "raco") || strstr(lower_comm, "anya")) {
-                continue;
-            }
+        if (cmdline[0] == '\0' && comm[0] == '\0') continue;
 
-            if (strstr(lower_cmd, "thermal") || strstr(lower_comm, "thermal")) {
-                if (!strstr(lower_cmd, "hal") && !strstr(lower_comm, "hal")) {
-                    kill(pid, SIGKILL);
-                }
-            }
+        if (is_hal_or_protected(pid, cmdline, comm, hal_pids, hal_pid_count)) {
+            continue;
+        }
+
+        char lower_cmd[512] = {0};
+        for (size_t i = 0; cmdline[i] && i < sizeof(lower_cmd) - 1; i++) {
+            lower_cmd[i] = tolower((unsigned char)cmdline[i]);
+        }
+        char lower_comm[256] = {0};
+        for (size_t i = 0; comm[i] && i < sizeof(lower_comm) - 1; i++) {
+            lower_comm[i] = tolower((unsigned char)comm[i]);
+        }
+
+        if (strstr(lower_cmd, "thermal") || strstr(lower_comm, "thermal")) {
+            kill(pid, SIGKILL);
         }
     }
     closedir(dir);
@@ -116,7 +241,7 @@ static void stop_thermal_init_services() {
         *key_end = '\0';
 
         const char *prop = key_start;
-        if (strcasestr(prop, "hal") != NULL) continue;
+        if (strcasestr(prop, "hal") != NULL || strcasestr(prop, "hardware") != NULL) continue;
 
         if (strncmp(prop, "init.svc.", 9) == 0 && strcasestr(prop, "thermal") != NULL) {
             const char *svc = prop + 9;
@@ -280,7 +405,8 @@ static void spoof_running_status_melfissa() {
         }
 
         const char *prop = key_start;
-        if (strcasestr(prop, "hal") != NULL) continue;
+        // Excluded 'hal' and 'hardware'
+        if (strcasestr(prop, "hal") != NULL || strcasestr(prop, "hardware") != NULL) continue;
 
         // 2. Disable Transsion/Infinix specific debug throttle
         if (strcmp(prop, "debug.thermal.throttle.support") == 0) {
@@ -290,7 +416,7 @@ static void spoof_running_status_melfissa() {
             continue;
         }
 
-        // 1. Reset specific thermal props (Excluded 'hal')
+        // 1. Reset specific thermal props (Excluded 'hal' and 'hardware')
         int is_sys_thermal = (strncmp(prop, "sys.", 4) == 0 && strcasestr(prop, "thermal") != NULL);
         int is_thermal_config = (strstr(prop, "thermal_config") != NULL);
         if (is_sys_thermal || is_thermal_config) {
@@ -300,7 +426,7 @@ static void spoof_running_status_melfissa() {
             continue;
         }
 
-        // 3. THE RUNNING SPOOF (Critical)
+        // 3. THE RUNNING SPOOF (Critical - Excluded 'hal' and 'hardware')
         if (strcasestr(prop, "thermal") != NULL) {
             char cmd[512];
             snprintf(cmd, sizeof(cmd), "resetprop -n '%s' 'running'", prop);
@@ -367,7 +493,8 @@ static void restore_services_and_props_kawaii() {
         *key_end = '\0';
 
         const char *prop = key_start;
-        if (strcasestr(prop, "hal") != NULL) continue;
+        // Excluded 'hal' and 'hardware'
+        if (strcasestr(prop, "hal") != NULL || strcasestr(prop, "hardware") != NULL) continue;
 
         // Collect init services: init.svc(\.vendor)?\.thermal
         if (strncmp(prop, "init.svc.", 9) == 0 && strcasestr(prop, "thermal") != NULL) {
@@ -378,7 +505,7 @@ static void restore_services_and_props_kawaii() {
             }
         }
 
-        // Collect all thermal properties (without 'hal')
+        // Collect all thermal properties (without 'hal' and 'hardware')
         if (strcasestr(prop, "thermal") != NULL) {
             if (prop_count < 128) {
                 strncpy(thermal_props[prop_count], prop, sizeof(thermal_props[0]) - 1);
@@ -389,7 +516,7 @@ static void restore_services_and_props_kawaii() {
     }
     pclose(fp);
 
-    // 1. Start Services genuinely first (Excluded 'hal')
+    // 1. Start Services genuinely first (Excluded 'hal' and 'hardware')
     for (int i = 0; i < svc_count; i++) {
         char cmd[512];
         snprintf(cmd, sizeof(cmd),
@@ -398,7 +525,40 @@ static void restore_services_and_props_kawaii() {
         system(cmd);
     }
 
-    // 2. Excluded 'hal' from status reset: resetprop -n "$prop" "running"
+    // 2. Ensure any HAL service that might have been stopped is running
+    FILE *fphal = popen("getprop", "r");
+    if (fphal) {
+        char hline[1024];
+        while (fgets(hline, sizeof(hline), fphal)) {
+            char *k_start = strchr(hline, '[');
+            if (!k_start) continue;
+            k_start++;
+            char *k_end = strchr(k_start, ']');
+            if (!k_end) continue;
+            *k_end = '\0';
+
+            char *v_start = strchr(k_end + 1, '[');
+            if (!v_start) continue;
+            v_start++;
+            char *v_end = strchr(v_start, ']');
+            if (!v_end) continue;
+            *v_end = '\0';
+
+            if (strncmp(k_start, "init.svc.", 9) == 0 && strcasestr(k_start, "thermal") != NULL) {
+                if (strcasestr(k_start, "hal") != NULL || strcasestr(k_start, "hardware") != NULL) {
+                    if (strcmp(v_start, "running") != 0) {
+                        const char *hal_svc = k_start + 9;
+                        char cmd[512];
+                        snprintf(cmd, sizeof(cmd), "start '%s'; setprop ctl.start '%s'", hal_svc, hal_svc);
+                        system(cmd);
+                    }
+                }
+            }
+        }
+        pclose(fphal);
+    }
+
+    // 3. Excluded 'hal' and 'hardware' from status reset: resetprop -n "$prop" "running"
     for (int i = 0; i < prop_count; i++) {
         char cmd[512];
         snprintf(cmd, sizeof(cmd), "resetprop -n '%s' 'running'", thermal_props[i]);
