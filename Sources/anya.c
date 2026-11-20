@@ -242,46 +242,13 @@ static void restore_services_kawaii() {
     }
     pclose(fp);
 
-    // 1. Start Services genuinely first (Excluded 'hal')
+    // Start Services genuinely (Excluded 'hal')
     for (int i = 0; i < svc_count; i++) {
         char cmd[512];
         snprintf(cmd, sizeof(cmd),
                  "resetprop -n 'init.svc.%s' 'stopped'; start '%s'; setprop ctl.start '%s'",
                  svc_list[i], svc_list[i], svc_list[i]);
         system(cmd);
-    }
-
-    // 2. Ensure any HAL service that might have been stopped is running
-    FILE *fphal = popen("getprop", "r");
-    if (fphal) {
-        char hline[1024];
-        while (fgets(hline, sizeof(hline), fphal)) {
-            char *k_start = strchr(hline, '[');
-            if (!k_start) continue;
-            k_start++;
-            char *k_end = strchr(k_start, ']');
-            if (!k_end) continue;
-            *k_end = '\0';
-
-            char *v_start = strchr(k_end + 1, '[');
-            if (!v_start) continue;
-            v_start++;
-            char *v_end = strchr(v_start, ']');
-            if (!v_end) continue;
-            *v_end = '\0';
-
-            if (strncmp(k_start, "init.svc.", 9) == 0 && strcasestr(k_start, "thermal") != NULL) {
-                if (strcasestr(k_start, "hal") != NULL) {
-                    if (strcmp(v_start, "running") != 0) {
-                        const char *hal_svc = k_start + 9;
-                        char cmd[512];
-                        snprintf(cmd, sizeof(cmd), "start '%s'; setprop ctl.start '%s'", hal_svc, hal_svc);
-                        system(cmd);
-                    }
-                }
-            }
-        }
-        pclose(fphal);
     }
 }
 
