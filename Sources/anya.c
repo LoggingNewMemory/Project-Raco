@@ -222,18 +222,12 @@ static void restore_services_kawaii() {
 // ----------------- Public Entry Points (Gen 1) -----------------
 
 void exec_anya_kawaii() {
-    // 1. Restore Hardware
     restore_hardware();
-
-    // 2. Start Services & Restore Status
     restore_services_kawaii();
 }
 
 void exec_anya_melfissa() {
-    // 1. Stop non-HAL thermal services
     stop_thermal_init_services();
-
-    // 2. Disable thermal protections and limits
     disable_fs_protections();
     disable_thermal_sysfs();
 }
