@@ -207,49 +207,16 @@ static void restore_hardware() {
 }
 
 static void restore_services_kawaii() {
-    FILE *fp = popen("getprop", "r");
-    if (!fp) return;
-
-    char svc_list[64][128];
-    int svc_count = 0;
-
-    char line[1024];
-    while (fgets(line, sizeof(line), fp)) {
-        char *key_start = strchr(line, '[');
-        if (!key_start) continue;
-        key_start++;
-        char *key_end = strchr(key_start, ']');
-        if (!key_end) continue;
-        *key_end = '\0';
-
-        const char *prop = key_start;
-        if (strncmp(prop, "init.svc.", 9) != 0) continue;
-        const char *svc = prop + 9;
-
-        // MUST avoid any service that includes 'hal'
-        if (strcasestr(prop, "hal") != NULL || strcasestr(svc, "hal") != NULL) {
-            continue;
-        }
-
-        // Collect init services: init.svc(\.vendor)?\.thermal
-        if (strcasestr(svc, "thermal") != NULL) {
-            if (svc_count < 64) {
-                strncpy(svc_list[svc_count], svc, sizeof(svc_list[0]) - 1);
-                svc_list[svc_count][sizeof(svc_list[0]) - 1] = '\0';
-                svc_count++;
-            }
-        }
-    }
-    pclose(fp);
-
-    // Start Services genuinely (Excluded 'hal')
-    for (int i = 0; i < svc_count; i++) {
-        char cmd[512];
-        snprintf(cmd, sizeof(cmd),
-                 "resetprop -n 'init.svc.%s' 'stopped'; start '%s'; setprop ctl.start '%s'",
-                 svc_list[i], svc_list[i], svc_list[i]);
-        system(cmd);
-    }
+    system(
+        "getprop | grep -Ei '^\\[init\\.svc\\..*thermal' | "
+        "grep -vi 'hal' | "
+        "sed 's/^\\[init\\.svc\\.\\([^]]*\\)\\].*/\\1/' | "
+        "while read -r svc; do "
+        "    if [ -n \"$svc\" ]; then "
+        "        setprop ctl.start \"$svc\" 2>/dev/null; "
+        "    fi; "
+        "done"
+    );
 }
 
 // ----------------- Public Entry Points (Gen 1) -----------------
