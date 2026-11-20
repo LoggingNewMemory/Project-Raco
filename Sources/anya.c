@@ -40,7 +40,7 @@
 // Gen 1 - Anya Kawaii & Anya Melfissa (POSIX Implementation)
 // ==========================================
 
-// Pre-collect PIDs of all HAL / hardware services from getprop init.svc_debug_pid.*
+// Pre-collect PIDs of all HAL services from getprop init.svc_debug_pid.*
 static int get_hal_pids(pid_t *hal_pids, int max_pids) {
     int count = 0;
     FILE *fp = popen("getprop", "r");
@@ -58,7 +58,7 @@ static int get_hal_pids(pid_t *hal_pids, int max_pids) {
         if (strncmp(key_start, "init.svc_debug_pid.", 19) != 0) continue;
 
         const char *svc_name = key_start + 19;
-        if (strcasestr(svc_name, "hal") == NULL && strcasestr(svc_name, "hardware") == NULL) {
+        if (strcasestr(svc_name, "hal") == NULL) {
             continue;
         }
 
@@ -99,10 +99,8 @@ static int is_hal_or_protected(pid_t pid, const char *cmdline, const char *comm,
         return 1;
     }
 
-    // 2. HAL / Hardware protection (binary names, HAL indicators)
-    if (strstr(lower_cmd, "hal") || strstr(lower_comm, "hal") ||
-        strstr(lower_cmd, "hardware") || strstr(lower_comm, "hardware") ||
-        strstr(lower_cmd, "/hw/") || strstr(lower_comm, "/hw/")) {
+    // 2. HAL protection (literal "hal")
+    if (strstr(lower_cmd, "hal") || strstr(lower_comm, "hal")) {
         return 1;
     }
 
@@ -123,7 +121,7 @@ static int is_hal_or_protected(pid_t pid, const char *cmdline, const char *comm,
         for (size_t i = 0; exe_target[i] && i < sizeof(lower_exe) - 1; i++) {
             lower_exe[i] = tolower((unsigned char)exe_target[i]);
         }
-        if (strstr(lower_exe, "hal") || strstr(lower_exe, "hardware") || strstr(lower_exe, "/hw/")) {
+        if (strstr(lower_exe, "hal")) {
             return 1;
         }
     }
@@ -221,6 +219,10 @@ static void kill_thermal_processes() {
         }
 
         if (strstr(lower_cmd, "thermal") || strstr(lower_comm, "thermal")) {
+            // Strictly avoid any thermal service or process that includes hal
+            if (strstr(lower_cmd, "hal") || strstr(lower_comm, "hal")) {
+                continue;
+            }
             kill(pid, SIGKILL);
         }
     }
@@ -241,10 +243,15 @@ static void stop_thermal_init_services() {
         *key_end = '\0';
 
         const char *prop = key_start;
-        if (strcasestr(prop, "hal") != NULL || strcasestr(prop, "hardware") != NULL) continue;
+        if (strncmp(prop, "init.svc.", 9) != 0) continue;
+        const char *svc = prop + 9;
 
-        if (strncmp(prop, "init.svc.", 9) == 0 && strcasestr(prop, "thermal") != NULL) {
-            const char *svc = prop + 9;
+        // MUST avoid any thermal service that includes hal
+        if (strcasestr(prop, "hal") != NULL || strcasestr(svc, "hal") != NULL) {
+            continue;
+        }
+
+        if (strcasestr(svc, "thermal") != NULL) {
             char cmd[512];
             snprintf(cmd, sizeof(cmd), "stop '%s'; setprop ctl.stop '%s'", svc, svc);
             system(cmd);
@@ -290,11 +297,6 @@ static void set_msm_thermal(const char *val1, const char *val2) {
 // ----------------- Anya Melfissa Modules -----------------
 
 static void disable_fs_protections() {
-    // Bind mount blocks (Excluded 'hal' binary)
-    if (access("/vendor/bin/thermald", F_OK) == 0) {
-        mount("/dev/null", "/vendor/bin/thermald", NULL, MS_BIND, NULL);
-    }
-
     // Delete Cache
     unlink("/data/vendor/thermal/config");
     DIR *dir = opendir("/data/vendor/thermal");
@@ -384,11 +386,6 @@ static void disable_gpu_limits() {
 
 // ----------------- Anya Kawaii Modules -----------------
 
-static void restore_filesystem() {
-    // 1. Unmount blocked binaries (Excluded 'hal')
-    umount2("/vendor/bin/thermald", MNT_DETACH);
-}
-
 static void restore_hardware() {
     // 1. Re-enable MSM Thermal
     set_msm_thermal("Y", "1");
@@ -435,13 +432,18 @@ static void restore_services_kawaii() {
         *key_end = '\0';
 
         const char *prop = key_start;
-        // Excluded 'hal' and 'hardware'
-        if (strcasestr(prop, "hal") != NULL || strcasestr(prop, "hardware") != NULL) continue;
+        if (strncmp(prop, "init.svc.", 9) != 0) continue;
+        const char *svc = prop + 9;
+
+        // MUST avoid any service that includes 'hal'
+        if (strcasestr(prop, "hal") != NULL || strcasestr(svc, "hal") != NULL) {
+            continue;
+        }
 
         // Collect init services: init.svc(\.vendor)?\.thermal
-        if (strncmp(prop, "init.svc.", 9) == 0 && strcasestr(prop, "thermal") != NULL) {
+        if (strcasestr(svc, "thermal") != NULL) {
             if (svc_count < 64) {
-                strncpy(svc_list[svc_count], prop + 9, sizeof(svc_list[0]) - 1);
+                strncpy(svc_list[svc_count], svc, sizeof(svc_list[0]) - 1);
                 svc_list[svc_count][sizeof(svc_list[0]) - 1] = '\0';
                 svc_count++;
             }
@@ -449,7 +451,7 @@ static void restore_services_kawaii() {
     }
     pclose(fp);
 
-    // 1. Start Services genuinely first (Excluded 'hal' and 'hardware')
+    // 1. Start Services genuinely first (Excluded 'hal')
     for (int i = 0; i < svc_count; i++) {
         char cmd[512];
         snprintf(cmd, sizeof(cmd),
@@ -478,7 +480,7 @@ static void restore_services_kawaii() {
             *v_end = '\0';
 
             if (strncmp(k_start, "init.svc.", 9) == 0 && strcasestr(k_start, "thermal") != NULL) {
-                if (strcasestr(k_start, "hal") != NULL || strcasestr(k_start, "hardware") != NULL) {
+                if (strcasestr(k_start, "hal") != NULL) {
                     if (strcmp(v_start, "running") != 0) {
                         const char *hal_svc = k_start + 9;
                         char cmd[512];
@@ -499,28 +501,10 @@ void exec_anya_kawaii() {
     if (pid != 0) return;
     printf("Anya Kawaii Start\n");
 
-    // 1. Run Restore Operations in Parallel
-    pid_t p1 = fork();
-    if (p1 == 0) {
-        restore_filesystem();
-        _exit(0);
-    }
-    pid_t p2 = fork();
-    if (p2 == 0) {
-        restore_hardware();
-        _exit(0);
-    }
+    // 1. Restore Hardware
+    restore_hardware();
 
-    if (p1 > 0) waitpid(p1, NULL, 0);
-    else restore_filesystem();
-
-    if (p2 > 0) waitpid(p2, NULL, 0);
-    else restore_hardware();
-
-    // 2. Restore Android Thermal Service Internal Status
-    system("cmd thermalservice override-status 1 >/dev/null 2>&1; cmd thermalservice reset >/dev/null 2>&1");
-
-    // 3. Start Services & Restore Status
+    // 2. Start Services & Restore Status
     restore_services_kawaii();
 
     exit(0);
@@ -534,7 +518,6 @@ void exec_anya_melfissa() {
     // 1. Kill services immediately (Synchronous to free resources)
     kill_thermal_processes();
     stop_thermal_init_services();
-    system("cmd thermalservice override-status 0 >/dev/null 2>&1");
 
     // 2. Execute Heavy Tasks in Parallel
     pid_t p1 = fork();
