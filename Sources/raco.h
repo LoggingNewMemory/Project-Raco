@@ -116,7 +116,6 @@ void snapdragon_normal();
 void snapdragon_powersave();
 void snapdragon_balanced();
 void snapdragon_bcl_apply(int mode);
-void snapdragon_msm_thermal_apply(int mode);
 
 // Minor SOC
 void scan_minor_devfreq_and_apply(const char *target, int mode);

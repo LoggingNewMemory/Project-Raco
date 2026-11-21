@@ -22,8 +22,6 @@
 .global raco_read
 
 // Constants for LINUX ARM64
-.equ SYS_FACCESSAT, 48 // Function of check file accessibility
-.equ SYS_FCHMOD,    52 // Function of Change file permission on fd
 .equ SYS_FCHMODAT,  53 // Function of Change file permission
 .equ SYS_OPENAT,    56 // Function of open file
 .equ SYS_CLOSE,     57 // Function of close file
@@ -31,17 +29,15 @@
 .equ SYS_WRITE,     64 // Function of write file 
 
 .equ AT_FDCWD,      -100 // FD is Current Working Dir
-.equ F_OK,          0    // Flag check exist
 .equ O_RDONLY,      0    // Open Read-Only
 .equ O_WRONLY,      1    // Open Write-Only
 
 .equ PERM_644,      420  // Permission of 644 for chmod
-.equ PERM_444,      292  // Permission of 444 for chmod
 
 /*
 Function of raco_write. 
 This will do:
-1. Check exists -> 2. Best-effort chmod 644 -> 3. Open & Write -> 4. Best-effort chmod 444 -> 5. Close
+1. Best-effort chmod 644 -> 2. Open & Write -> 3. Close
 */
 raco_write:
     stp x29, x30, [sp, #-48]! // Store pointer of 48 byte, Store pointer x29 and Link Register x30

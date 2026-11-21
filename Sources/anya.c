@@ -128,45 +128,40 @@ static void reset_cooling_devices() {
     closedir(dir);
 }
 
-static void set_msm_thermal(const char *val1, const char *val2) {
-    const char *msm_mod_base = "/sys/module/msm_thermal";
-    const char *msm_mod_files[] = {
-        "parameters/enabled",
-        "core_control/enabled",
-        "vdd_restriction/enabled"
-    };
-    int msm_mod_count = sizeof(msm_mod_files) / sizeof(msm_mod_files[0]);
-    raco_bulk(msm_mod_base, msm_mod_files, msm_mod_count, val1, 1);
-    if (val2) {
-        raco_bulk(msm_mod_base, msm_mod_files, msm_mod_count, val2, 1);
-    }
+static void snapdragon_msm_thermal_apply(int mode) {
+    const char *v_val = (mode == 0) ? "0" : "1";
+    const char *v_chr = (mode == 0) ? "N" : "Y";
 
-    rakakikomi(val1, "/sys/kernel/msm_thermal/enabled");
-    if (val2) rakakikomi(val2, "/sys/kernel/msm_thermal/enabled");
-
-    rakakikomi(val1, "/sys/devices/virtual/thermal/thermal_message/sconfig");
-    if (val2) rakakikomi(val2, "/sys/devices/virtual/thermal/thermal_message/sconfig");
-
+    // Dynamic module walk covers parameters/enabled, core_control/enabled, vdd_restriction/enabled, etc.
     DIR *dir = opendir("/sys/module/msm_thermal");
     if (dir) {
         struct dirent *ent;
         while ((ent = readdir(dir)) != NULL) {
             if (ent->d_name[0] == '.') continue;
             char subpath[512];
-            snprintf(subpath, sizeof(subpath), "/sys/module/msm_thermal/%s", ent->d_name);
-            const char *enabled_file[] = {"enabled"};
-            raco_bulk(subpath, enabled_file, 1, val1, 1);
-            if (val2) raco_bulk(subpath, enabled_file, 1, val2, 1);
+            snprintf(subpath, sizeof(subpath), "/sys/module/msm_thermal/%s/enabled", ent->d_name);
+            rawrite(v_chr, subpath);
+            rawrite(v_val, subpath);
         }
         closedir(dir);
     }
+
+    // Direct kernel-level & module nodes fallback
+    rawrite(v_chr, "/sys/module/msm_thermal/parameters/enabled");
+    rawrite(v_val, "/sys/module/msm_thermal/parameters/enabled");
+    rawrite(v_val, "/sys/kernel/msm_thermal/enabled");
+    rawrite(v_val, "/sys/module/thermal/parameters/enabled");
+
+    // Xiaomi thermal message sconfig (always reset to 0)
+    rawrite("0", "/sys/devices/virtual/thermal/thermal_message/sconfig");
+    rawrite("0", "/sys/class/thermal/thermal_message/sconfig");
 }
 
 // ----------------- Anya Melfissa Modules -----------------
 
 static void disable_thermal_sysfs() {
     // 1. MSM Thermal
-    set_msm_thermal("N", "0");
+    snapdragon_msm_thermal_apply(0);
     system("find /sys/ -name enabled 2>/dev/null | grep 'msm_thermal' | while read -r msm; do echo N > \"$msm\" 2>/dev/null; echo 0 > \"$msm\" 2>/dev/null; done &");
 
     // 2. ZTE / Unisoc thermal control
@@ -230,7 +225,7 @@ static void disable_thermal_sysfs() {
 
 static void restore_hardware() {
     // 1. Re-enable MSM Thermal
-    set_msm_thermal("Y", "1");
+    snapdragon_msm_thermal_apply(1);
     system("find /sys/ -name enabled 2>/dev/null | grep 'msm_thermal' | while read -r msm; do echo Y > \"$msm\" 2>/dev/null; echo 1 > \"$msm\" 2>/dev/null; done &");
 
     // 2. Re-enable ZTE / Unisoc thermal control

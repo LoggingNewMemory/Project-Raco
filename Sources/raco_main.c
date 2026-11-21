@@ -169,9 +169,7 @@ void mode_awaken() {
     pid_t sys_pid_awaken = fork();
     if (sys_pid_awaken == 0) {
         rawrite("3", "/proc/sys/vm/drop_caches");
-        system("am force-stop com.xiaomi.joyose >/dev/null 2>&1; "
-               "pm disable-user --user 0 com.xiaomi.joyose >/dev/null 2>&1; "
-               "settings put secure high_priority 1; settings put secure low_priority 0; "
+        system("settings put secure high_priority 1; settings put secure low_priority 0; "
                "cmd power set-adaptive-power-saver-enabled false; "
                "cmd power set-fixed-performance-mode-enabled false; "
                "cmd looper_stats disable; "
@@ -231,8 +229,7 @@ void mode_balanced() {
     pid_t sys_pid_balanced = fork();
     if (sys_pid_balanced == 0) {
         rawrite("3", "/proc/sys/vm/drop_caches");
-        system("pm enable com.xiaomi.joyose >/dev/null 2>&1; "
-               "settings put secure high_priority 1; settings put secure low_priority 0; "
+        system("settings put secure high_priority 1; settings put secure low_priority 0; "
                "cmd power set-adaptive-power-saver-enabled false; "
                "cmd power set-fixed-performance-mode-enabled false; "
                "cmd looper_stats enable; "
@@ -336,8 +333,7 @@ void mode_normal() {
     corin_storage("none", "1");
     pid_t sys_pid_normal = fork();
     if (sys_pid_normal == 0) {
-        system("pm enable com.xiaomi.joyose >/dev/null 2>&1; "
-               "settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec; "
+        system("settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec; "
                "settings put secure high_priority 1; settings put secure low_priority 0; "
                "cmd power set-adaptive-power-saver-enabled false; "
                "cmd power set-fixed-performance-mode-enabled false; "

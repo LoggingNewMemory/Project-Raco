@@ -25,38 +25,17 @@ const char *RACO_CONFIG = "/data/ProjectRaco/raco.txt";
 
 void rawrite(const char *val, const char *path) {
     if (!val || !path) return;
-    int len = strlen(val);
-    if (raco_write(path, val, len) != 0) {
-        int fd = open(path, O_WRONLY);
-        if (fd >= 0) {
-            write(fd, val, len);
-            close(fd);
-        }
-    }
+    raco_write(path, val, strlen(val));
 }
 
 void rakakikomi(const char *val, const char *path) {
     if (!val || !path) return;
-    int len = strlen(val);
-    if (raco_kakikomi(path, val, len) != 0) {
-        int fd = open(path, O_WRONLY);
-        if (fd >= 0) {
-            write(fd, val, len);
-            close(fd);
-        }
-    }
+    raco_kakikomi(path, val, strlen(val));
 }
 
 int raread(const char *path, char *out_buffer, int max_size) {
     if (!path || !out_buffer || max_size <= 0) return -1;
     int bytes_read = raco_read(path, out_buffer, max_size);
-    if (bytes_read <= 0) {
-        int fd = open(path, O_RDONLY);
-        if (fd >= 0) {
-            bytes_read = read(fd, out_buffer, max_size - 1);
-            close(fd);
-        }
-    }
 
     // Add Null Terminator so C knows where string ends
     if (bytes_read > 0 && bytes_read < max_size) {
