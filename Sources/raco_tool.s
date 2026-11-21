@@ -54,15 +54,6 @@ raco_write:
     mov x20, x1 // Backup val from x1 to x20
     mov x21, x2 // Backup integer from x2 to x21
 
-    // Check if file exist 
-    mov x0, #AT_FDCWD         // Use work directory
-    mov x1, x19               // Point pointer to file path
-    mov x2, #F_OK             // Check if File is exist
-    mov x3, #0                // No Flag 
-    mov x8, #SYS_FACCESSAT    // Load Syscall for Faccessat
-    svc #0                    // Trigger kernel system call
-    cbnz x0, .L_write_fail    // Compare and branch non zero. IF x0 != 0, jump to fail 
-
     // Best-effort Chmod 644 via fchmodat (do not abort on error: sysfs/SELinux may deny setattr)
     mov x0, #AT_FDCWD         // Directory of FD
     mov x1, x19               // Pointer to file path
@@ -91,12 +82,6 @@ raco_write:
     cmp x0, #0
     cset w21, ge              // w21 = 1 if write succeeded (bytes >= 0), 0 if error
 
-    // Best-effort Chmod 444 via fchmod (do not abort on error: sysfs may deny chmod)
-    mov x0, x22               // File descriptor x22 into x0
-    mov x1, #PERM_444         // Change to perm 444
-    mov x8, #SYS_FCHMOD       // Load Syscall for FCHMOD
-    svc #0                    // Trigger Kernel System Call
-
     // Always Close File
     mov x0, x22               // File descriptor x22 into x0
     mov x8, #SYS_CLOSE        // Load syscall for close into x8
@@ -122,7 +107,7 @@ raco_write:
 /*
 Function of raco_kakikomi. 
 This will do:
-1. Check exists -> 2. Best-effort chmod 644 -> 3. Open & Write -> 4. Close
+1. Best-effort chmod 644 -> 2. Open & Write -> 3. Close
 */
 raco_kakikomi:
     stp x29, x30, [sp, #-48]! // Store pointer of 48 byte, Store pointer x29 and Link Register x30
@@ -134,15 +119,6 @@ raco_kakikomi:
     mov x19, x0 // Backup path from x0 to x19
     mov x20, x1 // Backup val from x1 to x20
     mov x21, x2 // Backup integer from x2 to x21
-
-    // Check if file exist 
-    mov x0, #AT_FDCWD         // Use work directory
-    mov x1, x19               // Point pointer to file path
-    mov x2, #F_OK             // Check if File is exist
-    mov x3, #0                // No Flag 
-    mov x8, #SYS_FACCESSAT    // Load Syscall for Faccessat
-    svc #0                    // Trigger kernel system call
-    cbnz x0, .L_kaki_fail     // Compare and branch non zero. IF x0 != 0, jump to fail 
 
     // Best-effort Chmod 644 via fchmodat (do not abort on error: sysfs/SELinux may deny setattr)
     mov x0, #AT_FDCWD         // Directory of FD
@@ -197,7 +173,7 @@ raco_kakikomi:
 /*
 Function of raco_read. 
 This will do:
-1. Check exists -> 2. Open Read-Only -> 3. Read into C Buffer -> 4. Close
+1. Open Read-Only -> 2. Read into C Buffer -> 3. Close
 */
 raco_read:
     stp x29, x30, [sp, #-48]! // Store pointer of 48
@@ -209,15 +185,6 @@ raco_read:
     mov x19, x0 // Path used
     mov x20, x1 // Pointer of C
     mov x21, x2 // Maximum size. Reference before is 32 byte
-
-    // Check if file exist 
-    mov x0, #AT_FDCWD         // Use work directory
-    mov x1, x19               // Point pointer to file path
-    mov x2, #F_OK             // Check if File is exist
-    mov x3, #0                // No Flag 
-    mov x8, #SYS_FACCESSAT    // Load Syscall for Faccessat
-    svc #0                    // Trigger kernel system call
-    cbnz x0, .L_read_fail     // Compare and branch non zero. IF x0 != 0, jump to fail 
 
     // Open file
     mov x0, #AT_FDCWD         // Directory of FD

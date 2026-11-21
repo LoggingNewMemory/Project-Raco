@@ -24,16 +24,39 @@ const char *RACO_CONFIG = "/data/ProjectRaco/raco.txt";
 // The Assembly Wrappers
 
 void rawrite(const char *val, const char *path) {
-    raco_write(path, val, strlen(val));
+    if (!val || !path) return;
+    int len = strlen(val);
+    if (raco_write(path, val, len) != 0) {
+        int fd = open(path, O_WRONLY);
+        if (fd >= 0) {
+            write(fd, val, len);
+            close(fd);
+        }
+    }
 }
 
-
 void rakakikomi(const char *val, const char *path) {
-    raco_kakikomi(path, val, strlen(val));
+    if (!val || !path) return;
+    int len = strlen(val);
+    if (raco_kakikomi(path, val, len) != 0) {
+        int fd = open(path, O_WRONLY);
+        if (fd >= 0) {
+            write(fd, val, len);
+            close(fd);
+        }
+    }
 }
 
 int raread(const char *path, char *out_buffer, int max_size) {
+    if (!path || !out_buffer || max_size <= 0) return -1;
     int bytes_read = raco_read(path, out_buffer, max_size);
+    if (bytes_read <= 0) {
+        int fd = open(path, O_RDONLY);
+        if (fd >= 0) {
+            bytes_read = read(fd, out_buffer, max_size - 1);
+            close(fd);
+        }
+    }
 
     // Add Null Terminator so C knows where string ends
     if (bytes_read > 0 && bytes_read < max_size) {
@@ -42,13 +65,15 @@ int raread(const char *path, char *out_buffer, int max_size) {
         out_buffer[max_size - 1] = '\0';
     } else {
         out_buffer[0] = '\0'; // Return empty if error
+        return -1;
     }
 
-    // Strip trailing newline
-    if (bytes_read > 0) {
-        int last_char_idx = (bytes_read == max_size) ? max_size - 2 : bytes_read - 1;
-        if (last_char_idx >= 0 && out_buffer[last_char_idx] == '\n') {
-            out_buffer[last_char_idx] = '\0';
+    // Strip trailing whitespace, carriage returns, and newlines
+    for (int i = bytes_read - 1; i >= 0; i--) {
+        if (out_buffer[i] == '\n' || out_buffer[i] == '\r' || out_buffer[i] == ' ') {
+            out_buffer[i] = '\0';
+        } else {
+            break;
         }
     }
 
@@ -357,7 +382,51 @@ void devfreq_mid_perf(const char *path) { set_devfreq(path, "mid"); }
 void devfreq_normal(const char *path) { set_devfreq(path, "normal"); }
 void devfreq_min_perf(const char *path) { set_devfreq(path, "min"); }
 
+void online_all_cores() {
+    DIR *dir = opendir("/sys/devices/system/cpu");
+    if (!dir) return;
+
+    struct dirent *ent;
+    int brought_online = 0;
+    while ((ent = readdir(dir)) != NULL) {
+        if (strncmp(ent->d_name, "cpu", 3) == 0 &&
+            ent->d_name[3] >= '0' && ent->d_name[3] <= '9') {
+            char path[256];
+            snprintf(path, sizeof(path), "/sys/devices/system/cpu/%s/online", ent->d_name);
+            if (access(path, F_OK) == 0) {
+                char state[16] = {0};
+                if (raread(path, state, sizeof(state)) > 0) {
+                    if (state[0] == '0') {
+                        rawrite("1", path);
+                        brought_online = 1;
+                    }
+                } else {
+                    rawrite("1", path);
+                    brought_online = 1;
+                }
+            }
+        }
+    }
+    closedir(dir);
+
+    if (brought_online) {
+        usleep(50000); // 50ms settle time for kernel cpufreq policy node generation
+    }
+}
+
+void set_workqueue_power_efficient(int enable) {
+    if (enable) {
+        rakakikomi("Y", "/sys/module/workqueue/parameters/power_efficient");
+        rakakikomi("Y", "/sys/module/workqueue/parameters/disable_numa");
+    } else {
+        rawrite("N", "/sys/module/workqueue/parameters/power_efficient");
+        rawrite("N", "/sys/module/workqueue/parameters/disable_numa");
+    }
+}
+
 void change_cpu_gov(const char *gov) {
+    online_all_cores();
+
     DIR *dir;
     struct dirent *ent;
     if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) == NULL) return;
@@ -384,6 +453,10 @@ typedef enum {
 static void apply_cpufreq(CpuFreqProfile profile) {
     if (config.alter_cpu_method == 1) return;
 
+    if (profile == CPUFREQ_AWAKEN) {
+        online_all_cores();
+    }
+
     DIR *dir;
     struct dirent *ent;
     if ((dir = opendir("/sys/devices/system/cpu/cpufreq")) == NULL) return;
@@ -403,9 +476,36 @@ static void apply_cpufreq(CpuFreqProfile profile) {
         raread(min_info, hw_min, sizeof(hw_min));
         raread(max_info, hw_max, sizeof(hw_max));
 
+        // Fallback: If cpuinfo_max_freq is empty, fetch highest available freq
+        if (hw_max[0] == '\0') {
+            char avail_path[256];
+            snprintf(avail_path, sizeof(avail_path), "%s/scaling_available_frequencies", path);
+            FreqData top_f = get_target_freq(avail_path, 0);
+            if (top_f.freq > 0) {
+                snprintf(hw_max, sizeof(hw_max), "%ld", top_f.freq);
+            }
+        }
+        if (hw_min[0] == '\0') {
+            char avail_path[256];
+            snprintf(avail_path, sizeof(avail_path), "%s/scaling_available_frequencies", path);
+            FreqData bot_f = get_target_freq(avail_path, 1);
+            if (bot_f.freq > 0) {
+                snprintf(hw_min, sizeof(hw_min), "%ld", bot_f.freq);
+            }
+        }
+
         switch (profile) {
             case CPUFREQ_AWAKEN: {
                 if (hw_max[0] == '\0') break;
+
+                // Ensure governor is explicitly set for this policy
+                char gov_path[256];
+                snprintf(gov_path, sizeof(gov_path), "%s/scaling_governor", path);
+                if (config.lite_performance == 1 && config.default_gov[0] != '\0') {
+                    rawrite(config.default_gov, gov_path);
+                } else {
+                    rawrite("performance", gov_path);
+                }
 
                 if (config.lite_performance == 1) {
                     char avail_path[256];
@@ -421,6 +521,7 @@ static void apply_cpufreq(CpuFreqProfile profile) {
                 }
                 rawrite(hw_max, max_path);
                 rawrite(hw_max, min_path);
+                rawrite(hw_max, max_path);
                 break;
             }
 

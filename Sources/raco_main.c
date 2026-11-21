@@ -169,7 +169,9 @@ void mode_awaken() {
     pid_t sys_pid_awaken = fork();
     if (sys_pid_awaken == 0) {
         rawrite("3", "/proc/sys/vm/drop_caches");
-        system("settings put secure high_priority 1; settings put secure low_priority 0; "
+        system("am force-stop com.xiaomi.joyose >/dev/null 2>&1; "
+               "pm disable-user --user 0 com.xiaomi.joyose >/dev/null 2>&1; "
+               "settings put secure high_priority 1; settings put secure low_priority 0; "
                "cmd power set-adaptive-power-saver-enabled false; "
                "cmd power set-fixed-performance-mode-enabled false; "
                "cmd looper_stats disable; "
@@ -193,7 +195,15 @@ void mode_awaken() {
 
     printf("PROGRESS: 70\n"); fflush(stdout);
 
-    // CPU SETTINGS: Order matters. Set Gov, Safety Wait, Then Apply Profile
+    // Thermal neutralization must occur BEFORE setting CPU frequencies,
+    // otherwise running thermal daemons (mi_thermald, thermal-engine)
+    // and thermal zones will immediately clamp scaling_max_freq back down.
+    anyamelfissa();
+
+    // CPU SETTINGS: Order matters. Online cores, route SOC, Set Gov, Safety Wait, Then Apply Profile
+    online_all_cores();
+    route_soc(4);
+
     if (config.lite_performance == 1) {
         change_cpu_gov(config.default_gov);
     } else {
@@ -202,9 +212,7 @@ void mode_awaken() {
     printf("PROGRESS: 90\n"); fflush(stdout);
     usleep(150000);
     cpufreq_awaken();
-    route_soc(4);
 
-    anyamelfissa();
     dnd_on();
     printf("PROGRESS: 100\n"); fflush(stdout);
     notification("Performance Mode Activated");
@@ -223,7 +231,8 @@ void mode_balanced() {
     pid_t sys_pid_balanced = fork();
     if (sys_pid_balanced == 0) {
         rawrite("3", "/proc/sys/vm/drop_caches");
-        system("settings put secure high_priority 1; settings put secure low_priority 0; "
+        system("pm enable com.xiaomi.joyose >/dev/null 2>&1; "
+               "settings put secure high_priority 1; settings put secure low_priority 0; "
                "cmd power set-adaptive-power-saver-enabled false; "
                "cmd power set-fixed-performance-mode-enabled false; "
                "cmd looper_stats enable; "
@@ -246,9 +255,9 @@ void mode_balanced() {
 
     printf("PROGRESS: 80\n"); fflush(stdout);
     // CPU SETTINGS
+    route_soc(3);
     change_cpu_gov(config.default_gov);
     cpufreq_balanced();
-    route_soc(3);
 
     anyakawaii();
     dnd_off();
@@ -293,13 +302,14 @@ void mode_powersave() {
     
     printf("PROGRESS: 70\n"); fflush(stdout);
     // CPU SETTINGS
-    // 1. Set powersave gov to default gov
+    // 1. Route SOC
+    route_soc(2);
+    // 2. Set powersave gov to default gov
     change_cpu_gov(config.default_gov);
     printf("PROGRESS: 90\n"); fflush(stdout);
     usleep(150000);
-    // 2. Apply limits
+    // 3. Apply limits
     cpufreq_powersave();
-    route_soc(2);
 
     anyakawaii();
     dnd_off();
@@ -326,7 +336,8 @@ void mode_normal() {
     corin_storage("none", "1");
     pid_t sys_pid_normal = fork();
     if (sys_pid_normal == 0) {
-        system("settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec; "
+        system("pm enable com.xiaomi.joyose >/dev/null 2>&1; "
+               "settings delete system pointer_speed; resetprop --delete windowsmgr.max_events_per_sec; "
                "settings put secure high_priority 1; settings put secure low_priority 0; "
                "cmd power set-adaptive-power-saver-enabled false; "
                "cmd power set-fixed-performance-mode-enabled false; "
@@ -349,10 +360,10 @@ void mode_normal() {
     }
 
     printf("PROGRESS: 80\n"); fflush(stdout);
-    // CPU SETTINGS: set governor
+    // CPU SETTINGS: route SOC, then set governor and freqs
+    route_soc(1);
     change_cpu_gov(config.default_gov);
     cpufreq_normal();
-    route_soc(1);
 
     anyakawaii();
     dnd_off();

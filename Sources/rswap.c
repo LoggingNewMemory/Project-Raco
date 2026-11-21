@@ -24,7 +24,7 @@
 void rswap_on() {
     printf("Turning on RSWAP...\n");
     // Attempt normal swapon first
-    int ret = system("swapon -p 32767 /data/ProjectRaco/RSWAP 2>/dev/null");
+    system("swapon -p 32767 /data/ProjectRaco/RSWAP 2>/dev/null");
     
     // Check if it's active
     if (system("grep -q 'RSWAP' /proc/swaps") != 0) {

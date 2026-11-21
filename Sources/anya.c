@@ -40,17 +40,92 @@
 // Gen 1 - Anya Kawaii & Anya Melfissa
 // ==========================================
 
+static void disable_fs_protections() {
+    unlink("/data/vendor/thermal/config");
+    unlink("/data/vendor/thermal/thermal.dump");
+    unlink("/data/vendor/thermal/thermal_history.dump");
+    DIR *dir = opendir("/data/vendor/thermal");
+    if (dir) {
+        struct dirent *ent;
+        while ((ent = readdir(dir)) != NULL) {
+            size_t len = strlen(ent->d_name);
+            if ((len >= 5 && strcmp(ent->d_name + len - 5, ".dump") == 0) ||
+                strcmp(ent->d_name, "config") == 0) {
+                char dump_path[512];
+                snprintf(dump_path, sizeof(dump_path), "/data/vendor/thermal/%s", ent->d_name);
+                unlink(dump_path);
+            }
+        }
+        closedir(dir);
+    }
+}
+
 static void stop_thermal_init_services() {
+    // 1. Android Framework ThermalService override
+    system("cmd thermalservice override-status 0 2>/dev/null");
+
+    // 2. Explicitly stop known Snapdragon/Xiaomi/OEM thermal daemons
+    system("stop thermal-engine 2>/dev/null; stop mi_thermald 2>/dev/null; stop thermald 2>/dev/null; "
+           "setprop ctl.stop thermal-engine 2>/dev/null; setprop ctl.stop mi_thermald 2>/dev/null; setprop ctl.stop thermald 2>/dev/null;");
+
+    // 3. MIUI MQSAS stop (essential for Snapdragon Xiaomi devices like SD732G)
+    system("if ! service check miui.mqsas.IMQSNative | grep -q 'not found'; then "
+           "  for a in $(find /system/etc/init /vendor/etc/init /odm/etc/init -type f 2>/dev/null | xargs grep -Eh '^service (miui|.*thermal)' 2>/dev/null | awk '{print $2}'); do "
+           "    service call miui.mqsas.IMQSNative 21 i32 1 s16 'stop' i32 1 s16 \"$a\" s16 '/dev/null' i32 1 >/dev/null 2>&1; "
+           "  done; "
+           "fi");
+
+    // 4. Discover and stop any init services matching thermal (excluding HAL)
+    system("find /system/etc/init /vendor/etc/init /odm/etc/init -type f 2>/dev/null | "
+           "xargs grep -h '^service.*thermal' 2>/dev/null | "
+           "grep -vi 'hal' | "
+           "awk '{print \"stop \"$2\"; setprop ctl.stop \"$2\";\"}' | sh 2>/dev/null");
+
+    // 5. Query active init services via getprop and stop them
     system(
         "getprop | grep -Ei '^\\[init\\.svc\\..*thermal' | "
         "grep -vi 'hal' | "
         "sed 's/^\\[init\\.svc\\.\\([^]]*\\)\\].*/\\1/' | "
         "while read -r svc; do "
         "    if [ -n \"$svc\" ]; then "
+        "        stop \"$svc\" 2>/dev/null; "
         "        setprop ctl.stop \"$svc\" 2>/dev/null; "
         "    fi; "
         "done"
     );
+}
+
+static void disable_thermal_zones() {
+    DIR *dir = opendir("/sys/class/thermal");
+    if (!dir) return;
+
+    struct dirent *ent;
+    while ((ent = readdir(dir)) != NULL) {
+        if (strncmp(ent->d_name, "thermal_zone", 12) == 0) {
+            char path[512];
+            snprintf(path, sizeof(path), "/sys/class/thermal/%s/mode", ent->d_name);
+            rawrite("disabled", path);
+
+            snprintf(path, sizeof(path), "/sys/class/thermal/%s/policy", ent->d_name);
+            rawrite("user_space", path);
+        }
+    }
+    closedir(dir);
+}
+
+static void reset_cooling_devices() {
+    DIR *dir = opendir("/sys/class/thermal");
+    if (!dir) return;
+
+    struct dirent *ent;
+    while ((ent = readdir(dir)) != NULL) {
+        if (strncmp(ent->d_name, "cooling_device", 14) == 0) {
+            char cur_state[512];
+            snprintf(cur_state, sizeof(cur_state), "/sys/class/thermal/%s/cur_state", ent->d_name);
+            rawrite("0", cur_state);
+        }
+    }
+    closedir(dir);
 }
 
 static void set_msm_thermal(const char *val1, const char *val2) {
@@ -182,13 +257,47 @@ static void restore_hardware() {
     }
 }
 
+static void restore_thermal_zones() {
+    DIR *dir = opendir("/sys/class/thermal");
+    if (!dir) return;
+
+    struct dirent *ent;
+    while ((ent = readdir(dir)) != NULL) {
+        if (strncmp(ent->d_name, "thermal_zone", 12) == 0) {
+            char path[512];
+            snprintf(path, sizeof(path), "/sys/class/thermal/%s/mode", ent->d_name);
+            rakakikomi("enabled", path);
+
+            snprintf(path, sizeof(path), "/sys/class/thermal/%s/policy", ent->d_name);
+            rakakikomi("step_wise", path);
+        }
+    }
+    closedir(dir);
+}
+
 static void restore_services_kawaii() {
+    // 1. Reset Android Framework ThermalService
+    system("cmd thermalservice reset 2>/dev/null");
+
+    // 2. Direct start for known Snapdragon / Xiaomi thermal daemons
+    system("start thermal-engine 2>/dev/null; start mi_thermald 2>/dev/null; start thermald 2>/dev/null; "
+           "setprop ctl.start thermal-engine 2>/dev/null; setprop ctl.start mi_thermald 2>/dev/null; setprop ctl.start thermald 2>/dev/null;");
+
+    // 3. Restart MIUI MQSAS thermal services
+    system("if ! service check miui.mqsas.IMQSNative | grep -q 'not found'; then "
+           "  for a in $(find /system/etc/init /vendor/etc/init /odm/etc/init -type f 2>/dev/null | xargs grep -Eh '^service (miui|.*thermal)' 2>/dev/null | awk '{print $2}'); do "
+           "    service call miui.mqsas.IMQSNative 21 i32 1 s16 'start' i32 1 s16 \"$a\" s16 '/dev/null' i32 1 >/dev/null 2>&1; "
+           "  done; "
+           "fi");
+
+    // 4. Query init services via getprop and start them
     system(
         "getprop | grep -Ei '^\\[init\\.svc\\..*thermal' | "
         "grep -vi 'hal' | "
         "sed 's/^\\[init\\.svc\\.\\([^]]*\\)\\].*/\\1/' | "
         "while read -r svc; do "
         "    if [ -n \"$svc\" ]; then "
+        "        start \"$svc\" 2>/dev/null; "
         "        setprop ctl.start \"$svc\" 2>/dev/null; "
         "    fi; "
         "done"
@@ -199,11 +308,15 @@ static void restore_services_kawaii() {
 
 void exec_anya_kawaii() {
     restore_hardware();
+    restore_thermal_zones();
     restore_services_kawaii();
 }
 
 void exec_anya_melfissa() {
-    // stop_thermal_init_services();
+    stop_thermal_init_services();
+    disable_fs_protections();
+    disable_thermal_zones();
+    reset_cooling_devices();
     disable_thermal_sysfs();
 }
 

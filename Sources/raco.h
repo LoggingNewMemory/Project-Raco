@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <dirent.h>
 #include <sys/stat.h>
 
@@ -96,6 +97,8 @@ void devfreq_balanced(const char *path);
 void devfreq_mid_perf(const char *path);
 void devfreq_min_perf(const char *path);
 void devfreq_normal(const char *path);
+void online_all_cores();
+void set_workqueue_power_efficient(int enable);
 void change_cpu_gov(const char *gov);
 void cpufreq_awaken();
 void cpufreq_balanced();
@@ -112,6 +115,8 @@ void snapdragon_awaken();
 void snapdragon_normal();
 void snapdragon_powersave();
 void snapdragon_balanced();
+void snapdragon_bcl_apply(int mode);
+void snapdragon_msm_thermal_apply(int mode);
 
 // Minor SOC
 void scan_minor_devfreq_and_apply(const char *target, int mode);

@@ -175,6 +175,9 @@ void mediatek_awaken() {
     rawrite("0", "/sys/kernel/fpsgo/fbt/thrm_enable");
     rawrite("1", "/sys/module/mtk_fpsgo/parameters/xgf_uboost");
     rawrite("1", "/proc/cpufreq/cpufreq_sched_disable");
+    rawrite("0", "/proc/eem/eem_status");
+    rawrite("0", "/proc/cpufreq/cpufreq_imax_thermal_protect");
+    rawrite("2", "/proc/cpufreq/cpufreq_imax_enable");
     mtk_mali_devfreq("max");
     rawrite("1", "/sys/devices/platform/boot_dramboost/dramboost/dramboost");
     if (config.device_mitigation == 1) {
@@ -183,6 +186,7 @@ void mediatek_awaken() {
     } else {
         rawrite("0", "/sys/devices/system/cpu/eas/enable");
         rawrite("stop 1", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
+        rawrite("1", "/proc/mtk_batoc_throttling/battery_oc_protect_stop");
     }
 
     // GPU Tweaks
@@ -442,20 +446,107 @@ void snapdragon_core_ctl_apply(const char *val, int lock) {
 
     if ((dir = opendir("/sys/devices/system/cpu")) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
-            if (strncmp(ent->d_name, "cpu", 3) == 0) {
+            if (strncmp(ent->d_name, "cpu", 3) == 0 &&
+                ent->d_name[3] >= '0' && ent->d_name[3] <= '9') {
                 char path[256];
-                snprintf(path, sizeof(path), "/sys/devices/system/cpu/%s/core_ctl/enable", ent->d_name);
 
+                // 1. core_ctl/enable
+                snprintf(path, sizeof(path), "/sys/devices/system/cpu/%s/core_ctl/enable", ent->d_name);
                 if (access(path, F_OK) == 0) {
-                    if (lock == 1) {
-                        rawrite(val, path);
-                    } else {
-                        rakakikomi(val,path);
+                    if (lock == 1) rawrite(val, path);
+                    else rakakikomi(val, path);
+                }
+
+                // 2. core_ctl/disable (CAF kernel variant)
+                snprintf(path, sizeof(path), "/sys/devices/system/cpu/%s/core_ctl/disable", ent->d_name);
+                if (access(path, F_OK) == 0) {
+                    const char *dis_val = (strcmp(val, "0") == 0) ? "1" : "0";
+                    if (lock == 1) rawrite(dis_val, path);
+                    else rakakikomi(dis_val, path);
+                }
+
+                // 3. Min/Max CPUs & Thresholds
+                if (lock == 1) {
+                    char max_path[256], min_path[256];
+                    snprintf(max_path, sizeof(max_path), "/sys/devices/system/cpu/%s/core_ctl/max_cpus", ent->d_name);
+                    snprintf(min_path, sizeof(min_path), "/sys/devices/system/cpu/%s/core_ctl/min_cpus", ent->d_name);
+                    if (access(max_path, F_OK) == 0 && access(min_path, F_OK) == 0) {
+                        char max_val[16] = {0};
+                        if (raread(max_path, max_val, sizeof(max_val)) > 0) {
+                            max_val[strcspn(max_val, "\r\n")] = '\0';
+                            if (max_val[0] != '\0') rawrite(max_val, min_path);
+                        }
                     }
+                    snprintf(path, sizeof(path), "/sys/devices/system/cpu/%s/core_ctl/busy_up_thres", ent->d_name);
+                    rawrite("0", path);
+                    snprintf(path, sizeof(path), "/sys/devices/system/cpu/%s/core_ctl/busy_down_thres", ent->d_name);
+                    rawrite("0", path);
+                } else {
+                    char min_path[256];
+                    snprintf(min_path, sizeof(min_path), "/sys/devices/system/cpu/%s/core_ctl/min_cpus", ent->d_name);
+                    rakakikomi("0", min_path);
+                    snprintf(path, sizeof(path), "/sys/devices/system/cpu/%s/core_ctl/busy_up_thres", ent->d_name);
+                    rakakikomi("60", path);
+                    snprintf(path, sizeof(path), "/sys/devices/system/cpu/%s/core_ctl/busy_down_thres", ent->d_name);
+                    rakakikomi("20", path);
                 }
             }
         }
         closedir(dir);
+    }
+}
+
+void snapdragon_bcl_apply(int mode) {
+    DIR *dir;
+    struct dirent *ent;
+
+    if ((dir = opendir("/sys/class/power_supply")) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (ent->d_name[0] == '.') continue;
+            char path[256];
+            snprintf(path, sizeof(path), "/sys/class/power_supply/%s/device/bcl_enabled", ent->d_name);
+            if (mode == 0) rawrite("0", path);
+            else rakakikomi("1", path);
+
+            snprintf(path, sizeof(path), "/sys/class/power_supply/%s/thermal_limit", ent->d_name);
+            if (mode == 0) rawrite("0", path);
+            else rakakikomi("1", path);
+        }
+        closedir(dir);
+    }
+
+    if (mode == 0) {
+        rawrite("0", "/sys/module/qpnp_bsi/parameters/bcl_enabled");
+        rawrite("0", "/sys/module/bcl_core/parameters/bcl_enabled");
+        rawrite("disable", "/sys/devices/soc/soc:qcom,bcl/mode");
+        rawrite("disable", "/sys/devices/platform/soc/soc:qcom,bcl/mode");
+    } else {
+        rakakikomi("1", "/sys/module/qpnp_bsi/parameters/bcl_enabled");
+        rakakikomi("1", "/sys/module/bcl_core/parameters/bcl_enabled");
+        rakakikomi("enable", "/sys/devices/soc/soc:qcom,bcl/mode");
+        rakakikomi("enable", "/sys/devices/platform/soc/soc:qcom,bcl/mode");
+    }
+}
+
+void snapdragon_msm_thermal_apply(int mode) {
+    if (mode == 0) {
+        rawrite("N", "/sys/module/msm_thermal/parameters/enabled");
+        rawrite("0", "/sys/module/msm_thermal/parameters/enabled");
+        rawrite("0", "/sys/module/msm_thermal/core_control/enabled");
+        rawrite("0", "/sys/module/msm_thermal/vdd_restriction/enabled");
+        rawrite("0", "/sys/kernel/msm_thermal/enabled");
+        rawrite("0", "/sys/devices/virtual/thermal/thermal_message/sconfig");
+        rawrite("0", "/sys/class/thermal/thermal_message/sconfig");
+        rawrite("0", "/sys/module/thermal/parameters/enabled");
+    } else {
+        rakakikomi("Y", "/sys/module/msm_thermal/parameters/enabled");
+        rakakikomi("1", "/sys/module/msm_thermal/parameters/enabled");
+        rakakikomi("1", "/sys/module/msm_thermal/core_control/enabled");
+        rakakikomi("1", "/sys/module/msm_thermal/vdd_restriction/enabled");
+        rakakikomi("1", "/sys/kernel/msm_thermal/enabled");
+        rakakikomi("0", "/sys/devices/virtual/thermal/thermal_message/sconfig");
+        rakakikomi("0", "/sys/class/thermal/thermal_message/sconfig");
+        rakakikomi("1", "/sys/module/thermal/parameters/enabled");
     }
 }
 
@@ -628,7 +719,11 @@ void snapdragon_awaken() {
     rawrite("1", "/sys/module/msm_performance/parameters/touchboost"); // Enable Touchboost
     rawrite("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
 
+    snapdragon_msm_thermal_apply(0);
+    snapdragon_bcl_apply(0);
+    set_workqueue_power_efficient(0);
     snapdragon_core_ctl_apply("0", 1);
+    online_all_cores();
     snapdragon_sched_tune(0);
 
     // ==============================
@@ -671,7 +766,10 @@ void snapdragon_balanced() {
     rakakikomi("0", "/sys/module/msm_performance/parameters/touchboost"); // Enable Touchboost
     rakakikomi("N", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
 
-    snapdragon_core_ctl_apply("0", 0);
+    snapdragon_msm_thermal_apply(1);
+    snapdragon_bcl_apply(1);
+    set_workqueue_power_efficient(1);
+    snapdragon_core_ctl_apply("1", 0);
     snapdragon_sched_tune(2);
 
     // ==============================
@@ -712,7 +810,10 @@ void snapdragon_normal() {
     rakakikomi("0", "/sys/module/msm_performance/parameters/touchboost"); // Enable Touchboost
     rakakikomi("N", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
 
-    snapdragon_core_ctl_apply("0", 0);
+    snapdragon_msm_thermal_apply(1);
+    snapdragon_bcl_apply(1);
+    set_workqueue_power_efficient(1);
+    snapdragon_core_ctl_apply("1", 0);
     snapdragon_sched_tune(1);
 
     // ==============================
@@ -753,7 +854,10 @@ void snapdragon_powersave() {
     rakakikomi("0", "/sys/module/msm_performance/parameters/touchboost"); // Enable Touchboost
     rakakikomi("Y", "/sys/module/adreno_idler/parameters/adreno_idler_active"); // Set Adreno Idl
 
-    snapdragon_core_ctl_apply("0", 0);
+    snapdragon_msm_thermal_apply(1);
+    snapdragon_bcl_apply(1);
+    set_workqueue_power_efficient(1);
+    snapdragon_core_ctl_apply("1", 0);
     snapdragon_sched_tune(1);
 
     // ==============================
