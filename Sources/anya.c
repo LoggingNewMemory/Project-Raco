@@ -61,38 +61,8 @@ static void disable_fs_protections() {
 }
 
 static void stop_thermal_init_services() {
-    // 1. Android Framework ThermalService override
-    system("cmd thermalservice override-status 0 2>/dev/null");
-
-    // 2. Explicitly stop known Snapdragon/Xiaomi/OEM thermal daemons
-    system("stop thermal-engine 2>/dev/null; stop mi_thermald 2>/dev/null; stop thermald 2>/dev/null; "
-           "setprop ctl.stop thermal-engine 2>/dev/null; setprop ctl.stop mi_thermald 2>/dev/null; setprop ctl.stop thermald 2>/dev/null;");
-
-    // 3. MIUI MQSAS stop (essential for Snapdragon Xiaomi devices like SD732G)
-    system("if ! service check miui.mqsas.IMQSNative | grep -q 'not found'; then "
-           "  for a in $(find /system/etc/init /vendor/etc/init /odm/etc/init -type f 2>/dev/null | xargs grep -Eh '^service (miui|.*thermal)' 2>/dev/null | awk '{print $2}'); do "
-           "    service call miui.mqsas.IMQSNative 21 i32 1 s16 'stop' i32 1 s16 \"$a\" s16 '/dev/null' i32 1 >/dev/null 2>&1; "
-           "  done; "
-           "fi");
-
-    // 4. Discover and stop any init services matching thermal (excluding HAL)
-    system("find /system/etc/init /vendor/etc/init /odm/etc/init -type f 2>/dev/null | "
-           "xargs grep -h '^service.*thermal' 2>/dev/null | "
-           "grep -vi 'hal' | "
-           "awk '{print \"stop \"$2\"; setprop ctl.stop \"$2\";\"}' | sh 2>/dev/null");
-
-    // 5. Query active init services via getprop and stop them
-    system(
-        "getprop | grep -Ei '^\\[init\\.svc\\..*thermal' | "
-        "grep -vi 'hal' | "
-        "sed 's/^\\[init\\.svc\\.\\([^]]*\\)\\].*/\\1/' | "
-        "while read -r svc; do "
-        "    if [ -n \"$svc\" ]; then "
-        "        stop \"$svc\" 2>/dev/null; "
-        "        setprop ctl.stop \"$svc\" 2>/dev/null; "
-        "    fi; "
-        "done"
-    );
+    system("stop thermald 2>/dev/null; stop thermal_core 2>/dev/null; "
+           "setprop ctl.stop thermald 2>/dev/null; setprop ctl.stop thermal_core 2>/dev/null;");
 }
 
 static void disable_thermal_zones() {
@@ -275,8 +245,8 @@ static void restore_services_kawaii() {
     system("cmd thermalservice reset 2>/dev/null");
 
     // 2. Direct start for known Snapdragon / Xiaomi thermal daemons
-    system("start thermal-engine 2>/dev/null; start mi_thermald 2>/dev/null; start thermald 2>/dev/null; "
-           "setprop ctl.start thermal-engine 2>/dev/null; setprop ctl.start mi_thermald 2>/dev/null; setprop ctl.start thermald 2>/dev/null;");
+    system("start thermal-engine 2>/dev/null; start mi_thermald 2>/dev/null; start thermald 2>/dev/null; start thermal_core 2>/dev/null; "
+           "setprop ctl.start thermal-engine 2>/dev/null; setprop ctl.start mi_thermald 2>/dev/null; setprop ctl.start thermald 2>/dev/null; setprop ctl.start thermal_core 2>/dev/null;");
 
     // 3. Restart MIUI MQSAS thermal services
     system("if ! service check miui.mqsas.IMQSNative | grep -q 'not found'; then "
