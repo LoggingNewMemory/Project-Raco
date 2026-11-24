@@ -69,6 +69,7 @@ static void stop_thermal_init_services() {
         "getprop | grep -Ei '^\\[init\\.svc\\..*thermal' | "
         "grep -vi 'hal' | "
         "grep -vi 'rescuer' | "
+        "grep -vi 'hardware' | "
         "sed 's/^\\[init\\.svc\\.\\([^]]*\\)\\].*/\\1/' | "
         "while read -r svc; do "
         "    [ -n \"$svc\" ] && stop \"$svc\" 2>/dev/null; "
@@ -77,7 +78,7 @@ static void stop_thermal_init_services() {
 
     // 3. Kill any remaining processes (catches non-init or stubborn daemons)
     system(
-        "for pid in $(ps -A 2>/dev/null | grep -i 'thermal' | grep -vi 'hal' | grep -vi 'rescuer' | grep -vi 'kworker' | awk '{print $2}'); do "
+        "for pid in $(ps -A 2>/dev/null | grep -i 'thermal' | grep -vi 'hal' | grep -vi 'rescuer' | grep -vi 'hardware' | grep -vi 'kworker' | awk '{print $2}'); do "
         "    if [ -n \"$pid\" ] && [ \"$pid\" -gt 1 ]; then "
         "        kill -9 \"$pid\" 2>/dev/null; "
         "    fi; "
@@ -280,6 +281,7 @@ static void restore_services_kawaii() {
         "getprop | grep -Ei '^\\[init\\.svc\\..*thermal' | "
         "grep -vi 'hal' | "
         "grep -vi 'rescuer' | "
+        "grep -vi 'hardware' | "
         "sed 's/^\\[init\\.svc\\.\\([^]]*\\)\\].*/\\1/' | "
         "while read -r svc; do "
         "    if [ -n \"$svc\" ]; then "
